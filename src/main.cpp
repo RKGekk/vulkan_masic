@@ -47,8 +47,7 @@ const std::vector<const char*> VALIDATION_LAYERS = {
 const std::vector<const char*> DEVICE_EXTENSIONS = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
 #ifndef NDEBUG
-    , VK_EXT_DEBUG_MARKER_EXTENSION_NAME
-    //, VK_EXT_DEBUG_UTILS_EXTENSION_NAME
+    //, VK_EXT_DEBUG_MARKER_EXTENSION_NAME
 #endif
 };
 
@@ -215,7 +214,7 @@ struct InstanceExtensions {
 
     void init() {
         available_instance_ext = getAvailableInstanceExtensions<std::unordered_set<std::string>>();
-        std::vector<std::string> req_instance_extensions = getRequiredInstanceExtensions<std::vector<std::string>>();
+        req_instance_extensions = getRequiredInstanceExtensions<std::vector<std::string>>();
         is_all_ext_supported = checkNamesSupported(available_instance_ext, req_instance_extensions);
         if(!is_all_ext_supported) {
             diff_instance_extensions = getNamesUnsupported(available_instance_ext, req_instance_extensions);
@@ -269,7 +268,7 @@ struct InstanceLayers {
     void init() {
         available_validation_layers = getAvailableValidationLayers<std::unordered_set<std::string>>();
         req_validation_layers = getRequiredValidationLayers<std::vector<std::string>>();
-        bool is_all_layers_supported = checkNamesSupported(available_validation_layers, req_validation_layers);
+        is_all_layers_supported = checkNamesSupported(available_validation_layers, req_validation_layers);
         if(!is_all_layers_supported) {
             diff_validation_layers = getNamesUnsupported(available_validation_layers, req_validation_layers);
         }
@@ -280,6 +279,7 @@ struct DeviceExtensions {
     std::unordered_set<std::string> available_device_ext;
     std::vector<std::string> req_device_ext;
     bool all_device_ext_supported;
+    std::unordered_set<std::string> diff_device_ext;
 
     template<typename Container>
     static Container getDeviceExtensionSupported(VkPhysicalDevice physical_device) {
@@ -305,7 +305,10 @@ struct DeviceExtensions {
 
     template<typename Container>
     Container getRequiredDeviceExtensions() {
-        Container extensions {"VK_KHR_portability_subset"};
+        Container extensions;
+#ifdef __APPLE__
+        extensions.insert("VK_KHR_portability_subset");
+#endif
         extensions.insert(extensions.begin(), DEVICE_EXTENSIONS.cbegin(), DEVICE_EXTENSIONS.cend());
         return extensions;
     }
@@ -314,6 +317,9 @@ struct DeviceExtensions {
         available_device_ext = getDeviceExtensionSupported<std::unordered_set<std::string>>(physical_device);
         req_device_ext = getRequiredDeviceExtensions<std::vector<std::string>>();
         all_device_ext_supported = checkNamesSupported(available_device_ext, req_device_ext);
+        if(!all_device_ext_supported) {
+            diff_device_ext = getNamesUnsupported(available_device_ext, req_device_ext);
+        }
     }
 };
 
@@ -479,7 +485,7 @@ private:
         std::vector<VkQueueFamilyProperties> queue_families(queue_family_count);
         vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, queue_families.data());
         
-        for (int i = 0; const auto& queue_family : queue_families) {
+        for (int i = 0; const VkQueueFamilyProperties& queue_family : queue_families) {
             if(queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
                 indices.graphics_family = i;
             }
@@ -501,22 +507,22 @@ private:
         return indices;
     }
 
-    SwapchainSupportDetails querySwapChainSupport(VkPhysicalDevice device) {
+    SwapchainSupportDetails querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface) {
         SwapchainSupportDetails details;
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, m_surface, &details.capabilities);
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
         
         uint32_t format_count = 0u;
-        vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_surface, &format_count, nullptr);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &format_count, nullptr);
         if(format_count) {
             details.formats.resize(format_count);
-            vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_surface, &format_count, details.formats.data());
+            vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &format_count, details.formats.data());
         }
         
         uint32_t present_mode_count = 0u;
-        vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_surface, &present_mode_count, nullptr);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_mode_count, nullptr);
         if(present_mode_count) {
             details.present_modes.resize(present_mode_count);
-            vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_surface, &present_mode_count, details.present_modes.data());
+            vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_mode_count, details.present_modes.data());
         }
         
         return details;
@@ -535,7 +541,7 @@ private:
         
         bool swap_chain_adequate = false;
         if(dev_ext.all_device_ext_supported) {
-            SwapchainSupportDetails swap_chain_details = querySwapChainSupport(device);
+            SwapchainSupportDetails swap_chain_details = querySwapChainSupport(device, surface);
             swap_chain_adequate = !swap_chain_details.formats.empty() && !swap_chain_details.present_modes.empty();
         }
         
@@ -560,10 +566,10 @@ private:
         uint64_t max_memory = getDeviceMaxMemoryLimit(device);
         score += (int)std::log2(max_memory);
         
-        if(!device_features.geometryShader) {
+        if(device_features.geometryShader) {
             score += 1000;
         }
-        if(isDeviceSuitable(device, m_surface)){
+        if(!isDeviceSuitable(device, m_surface)){
             return 0;
         }
         
@@ -574,7 +580,7 @@ private:
         std::vector<VkPhysicalDevice> devices = getPhysicalDevices(vk_instance);
         
         std::multimap<int, VkPhysicalDevice> candidates;
-        for(const auto& device : devices){
+        for(VkPhysicalDevice device : devices){
             int score = rateDeviceSuitability(device);
             candidates.insert(std::make_pair(score, device));
         }
@@ -622,6 +628,7 @@ private:
         if (ENABLE_VALIDATION_LAYERS) {
             DestroyDebugUtilsMessengerEXT(m_vk_instance, m_debug_messenger, nullptr);
         }
+        vkDestroySurfaceKHR(m_vk_instance, m_surface, nullptr);
         vkDestroyInstance(m_vk_instance, nullptr);
         glfwDestroyWindow(m_window);
     }
