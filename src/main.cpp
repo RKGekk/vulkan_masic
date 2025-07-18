@@ -1112,12 +1112,7 @@ private:
         gfx_cmd_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
         gfx_cmd_pool_info.queueFamilyIndex = queue_family_indices.graphics_family.value();
         
-        VkResult result = vkCreateCommandPool(
-            device,
-            &gfx_cmd_pool_info,
-            nullptr,
-            &m_grapics_cmd_pool
-        );
+        VkResult result = vkCreateCommandPool(device, &gfx_cmd_pool_info, nullptr, &m_grapics_cmd_pool);
         if(result != VK_SUCCESS) {
             throw std::runtime_error("failed to create command pool!");
         }
@@ -1127,12 +1122,7 @@ private:
         transfer_cmd_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT | VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
         transfer_cmd_pool_info.queueFamilyIndex = queue_family_indices.transfer_family.value();
         
-        result = vkCreateCommandPool(
-            device,
-            &transfer_cmd_pool_info,
-            nullptr,
-            &m_transfer_cmd_pool
-        );
+        result = vkCreateCommandPool(device, &transfer_cmd_pool_info, nullptr, &m_transfer_cmd_pool);
         if(result != VK_SUCCESS) {
             throw std::runtime_error("failed to create command pool!");
         }
@@ -1273,6 +1263,15 @@ private:
     }
 
     void cleanup() {
+        cleanupSwapchain();
+        vkDestroyRenderPass(m_device, m_render_pass, nullptr);
+        if(m_grapics_cmd_pool != m_transfer_cmd_pool) {
+            vkDestroyCommandPool(m_device, m_grapics_cmd_pool, nullptr);
+            vkDestroyCommandPool(m_device, m_transfer_cmd_pool, nullptr);
+        }
+        else {
+            vkDestroyCommandPool(m_device, m_grapics_cmd_pool, nullptr);
+        }
         vkDestroyDevice(m_device, nullptr);
         if (ENABLE_VALIDATION_LAYERS) {
             DestroyDebugUtilsMessengerEXT(m_vk_instance, m_debug_messenger, nullptr);
