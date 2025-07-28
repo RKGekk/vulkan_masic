@@ -455,6 +455,11 @@ struct DeviceCommandContext {
     VkQueue queue;
 };
 
+struct DeviceBufferContext {
+    VkBuffer buffer;
+    VkDeviceMemory bufferMemory;
+};
+
 class VulkanApplication {
 public:
     void run() {
@@ -1321,15 +1326,17 @@ private:
         subpass_desc.pResolveAttachments = &color_attachment_resolve_ref;
         
         std::array<VkAttachmentDescription, 3> attachments = {color_attachment, depth_attachment, color_attachment_resolve};
+        std::array<VkSubpassDescription, 1> subpases = {subpass_desc};
+        std::array<VkSubpassDependency, 1> dependencies = {pass_dependency};
         
         VkRenderPassCreateInfo render_pass_info{};
         render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
         render_pass_info.attachmentCount = static_cast<uint32_t>(attachments.size());
         render_pass_info.pAttachments = attachments.data();
-        render_pass_info.subpassCount = 1u;
-        render_pass_info.pSubpasses = &subpass_desc;
-        render_pass_info.dependencyCount = 1u;
-        render_pass_info.pDependencies = &pass_dependency;
+        render_pass_info.subpassCount = static_cast<uint32_t>(subpases.size());
+        render_pass_info.pSubpasses = subpases.data();
+        render_pass_info.dependencyCount = static_cast<uint32_t>(dependencies.size());
+        render_pass_info.pDependencies = dependencies.data();
         
         VkRenderPass render_pass = VK_NULL_HANDLE;
         VkResult result = vkCreateRenderPass(device, &render_pass_info, nullptr, &render_pass);
