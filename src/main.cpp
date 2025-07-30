@@ -29,6 +29,9 @@
 #include <string>
 #include <unordered_set>
 
+#include "graphics/vulkan_instance_layers_and_extensions.h"
+#include "tools/string_tools.h"
+
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 const char* WINDOW_TITLE = "Vulkan Test";
@@ -74,23 +77,6 @@ struct SwapchainParams {
     VkPresentModeKHR present_mode;
     VkExtent2D extent;
 };
-
-template<typename Container>
-void printInfo(std::string_view header, Container container) {
-    std::cout << header << ": " << std::endl;
-    for(const auto& ext : container) {
-        std::cout << "\t - " << ext << std::endl;
-    }
-}
-
-template<typename C, typename T>
-auto insert_in_container(C& c, T&& t) -> decltype(c.push_back(std::forward<T>(t)), void()) {
-    c.push_back(std::forward<T>(t));
-}
-template<typename C, typename T>
-auto insert_in_container(C& c, T&& t) -> decltype(c.insert(std::forward<T>(t)), void()) {
-    c.insert(std::forward<T>(t));
-}
 
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* p_create_info, const VkAllocationCallbacks* p_allocator, VkDebugUtilsMessengerEXT* p_debug_messenger) {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
@@ -181,143 +167,6 @@ struct QueueFamilyIndices {
     }
 };
 
-template<typename Container1, typename Container2>
-bool checkNamesSupported(const Container1& available_ext, const Container2& req_layer_names) {
-    bool result = false;
-    result = std::all_of(req_layer_names.cbegin(), req_layer_names.cend(), [&available_ext](const auto& req_name){ return std::count(available_ext.cbegin(), available_ext.cend(), req_name); });
-    return result;
-}
-
-std::unordered_set<std::string> getNamesUnsupported(const std::unordered_set<std::string>& available_ext, const std::vector<std::string>& req_layer_names) {
-    std::unordered_set<std::string> result;
-    std::vector<std::string> from(available_ext.cbegin(), available_ext.cend());
-    std::sort(from.begin(), from.end());
-    std::vector<std::string> to(req_layer_names.cbegin(), req_layer_names.cend());
-    std::sort(to.begin(), to.end());
-    std::set_difference(
-        from.cbegin(),
-        from.cend(),
-        to.cbegin(),
-        to.cend(),
-        std::inserter(result, result.begin())
-    );
-    return result;
-}
-
-struct InstanceExtensions {
-    std::unordered_set<std::string> available_instance_ext;
-    std::vector<std::string> req_instance_extensions;
-    bool is_all_ext_supported = false;
-    std::unordered_set<std::string> diff_instance_extensions;
-
-    template<typename Container>
-    static Container getAvailableInstanceExtensions() {
-        uint32_t ext_count = 0u;
-        VkResult result = vkEnumerateInstanceExtensionProperties(nullptr, &ext_count, nullptr);
-        if(result != VK_SUCCESS) {
-            throw std::runtime_error("failed to read instance properties!");
-        }
-        std::vector<VkExtensionProperties> ext_props(ext_count);
-        result = vkEnumerateInstanceExtensionProperties(nullptr, &ext_count, ext_props.data());
-        if(result != VK_SUCCESS) {
-            throw std::runtime_error("failed to read instance properties!");
-        }
-        Container available_ext;
-        available_ext.reserve(ext_count);
-        for(const VkExtensionProperties& prop : ext_props) {
-            insert_in_container(available_ext, std::string(prop.extensionName));
-        }
-        
-        return available_ext;
-    }
-
-    template<typename Container>
-    static Container getRequiredInstanceExtensions() {
-		uint32_t glfw_extension_count = 0;
-		const char** glfw_extensions = glfwGetRequiredInstanceExtensions(&glfw_extension_count);
-        Container extensions(glfw_extensions, glfw_extensions + glfw_extension_count);
-		if (ENABLE_VALIDATION_LAYERS) {
-			insert_in_container(extensions, VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-		}
-#ifdef __APPLE__
-        insert_in_container(extensions, VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
-#endif
-#ifndef NDEBUG
-        insert_in_container(extensions, VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-#endif
-		return extensions;
-	}
-
-    std::vector<const char*> get_ppNames() const {
-        std::vector<const char*> req_instance_extensions_ppNames;
-        req_instance_extensions_ppNames.reserve(req_instance_extensions.size());
-        std::transform(req_instance_extensions.cbegin(), req_instance_extensions.cend(), std::inserter(req_instance_extensions_ppNames, req_instance_extensions_ppNames.end()), [&](const std::string& str) { return str.c_str(); });
-        return req_instance_extensions_ppNames;
-    }
-
-    void init() {
-        available_instance_ext = getAvailableInstanceExtensions<std::unordered_set<std::string>>();
-        req_instance_extensions = getRequiredInstanceExtensions<std::vector<std::string>>();
-        is_all_ext_supported = checkNamesSupported(available_instance_ext, req_instance_extensions);
-        if(!is_all_ext_supported) {
-            diff_instance_extensions = getNamesUnsupported(available_instance_ext, req_instance_extensions);
-        }
-    }
-};
-
-struct InstanceLayers {
-    std::unordered_set<std::string> available_validation_layers;
-    std::vector<std::string> req_validation_layers;
-    bool is_all_layers_supported = false;
-    std::unordered_set<std::string> diff_validation_layers;
-
-    template<typename Container>
-    static Container getAvailableValidationLayers() {
-        uint32_t layers_count = 0u;
-        VkResult result = vkEnumerateInstanceLayerProperties(&layers_count, nullptr);
-        if(result != VK_SUCCESS) {
-            throw std::runtime_error("failed to read validation layer properties!");
-        }
-        std::vector<VkLayerProperties> layer_props(layers_count);
-        result = vkEnumerateInstanceLayerProperties(&layers_count, layer_props.data());
-        if(result != VK_SUCCESS) {
-            throw std::runtime_error("failed to read validation layer properties!");
-        }
-        Container validation_layers;
-        validation_layers.reserve(layers_count);
-        for(const VkLayerProperties& prop : layer_props) {
-            insert_in_container(validation_layers, std::string(prop.layerName));
-        }
-        
-        return validation_layers;
-    }
-
-    template<typename Container>
-    static Container getRequiredValidationLayers() {
-		Container layers;
-		if (ENABLE_VALIDATION_LAYERS) {
-			layers.insert(layers.begin(), VALIDATION_LAYERS.cbegin(), VALIDATION_LAYERS.cend());
-		}
-		return layers;
-	}
-
-    std::vector<const char*> get_ppNames() const {
-        std::vector<const char*> req_instance_layer_ppNames;
-        req_instance_layer_ppNames.reserve(req_validation_layers.size());
-        std::transform(req_validation_layers.cbegin(), req_validation_layers.cend(), std::inserter(req_instance_layer_ppNames, req_instance_layer_ppNames.begin()), [&](const std::string& str) { return str.c_str(); });
-        return req_instance_layer_ppNames;
-    }
-
-    void init() {
-        available_validation_layers = getAvailableValidationLayers<std::unordered_set<std::string>>();
-        req_validation_layers = getRequiredValidationLayers<std::vector<std::string>>();
-        is_all_layers_supported = checkNamesSupported(available_validation_layers, req_validation_layers);
-        if(!is_all_layers_supported) {
-            diff_validation_layers = getNamesUnsupported(available_validation_layers, req_validation_layers);
-        }
-    }
-};
-
 struct DeviceExtensions {
     std::unordered_set<std::string> available_device_ext;
     std::vector<std::string> req_device_ext;
@@ -368,7 +217,7 @@ struct DeviceExtensions {
         req_device_ext = getRequiredDeviceExtensions<std::vector<std::string>>();
         all_device_ext_supported = checkNamesSupported(available_device_ext, req_device_ext);
         if(!all_device_ext_supported) {
-            diff_device_ext = getNamesUnsupported(available_device_ext, req_device_ext);
+            diff_device_ext = getNamesUnsupported(available_device_ext, {req_device_ext.cbegin(), req_device_ext.cend()});
         }
     }
 };
@@ -476,8 +325,7 @@ public:
 private:
     GLFWwindow* m_window = nullptr;
     VkInstance m_vk_instance = VK_NULL_HANDLE;
-    InstanceExtensions m_instance_extensions;
-    InstanceLayers m_validation_layers;
+    VulkanInstanceLayersAndExtensions m_instance_layers_and_extensions;
     VkDebugUtilsMessengerEXT m_debug_messenger = VK_NULL_HANDLE;
     VkPhysicalDevice m_physical_device = VK_NULL_HANDLE;
     DeviceExtensions m_device_extensions;
@@ -533,6 +381,34 @@ private:
     std::vector<VkDeviceMemory> m_uniform_memory;
     std::vector<void*> m_uniform_mapped;
 
+    template<typename Container>
+    static Container getRequiredValidationLayers() {
+		Container layers;
+		if (ENABLE_VALIDATION_LAYERS) {
+            for(auto name : VALIDATION_LAYERS) {
+			    insert_in_container(layers, std::move(name));
+            }
+		}
+		return layers;
+	}
+
+    template<typename Container>
+    static Container getRequiredInstanceExtensions() {
+		uint32_t glfw_extension_count = 0;
+		const char** glfw_extensions = glfwGetRequiredInstanceExtensions(&glfw_extension_count);
+        Container extensions(glfw_extensions, glfw_extensions + glfw_extension_count);
+		if (ENABLE_VALIDATION_LAYERS) {
+			insert_in_container(extensions, VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+		}
+#ifdef __APPLE__
+        insert_in_container(extensions, VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+#endif
+#ifndef NDEBUG
+        insert_in_container(extensions, VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+#endif
+		return extensions;
+	}
+
     GLFWwindow* initMainWindow() {
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
@@ -550,7 +426,7 @@ private:
         return api_version;
     }
 
-    VkInstance createInstance(const InstanceExtensions& inst_ext, const InstanceLayers& inst_layers) {
+    VkInstance createInstance(const VulkanInstanceLayersAndExtensions& layers_and_ext) {
         VkApplicationInfo app_info{};
         app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
         app_info.pApplicationName = APP_NAME;
@@ -563,29 +439,12 @@ private:
         instance_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         instance_info.pApplicationInfo = &app_info;
         
-#ifndef NDEBUG
-        printInfo("Supported instance extensions", inst_ext.available_instance_ext);
-#endif
-        if(!inst_ext.is_all_ext_supported) {
-            for(const std::string& name : inst_ext.diff_instance_extensions) {
-                throw std::runtime_error("instance not support extension - " + name);
-            }
-        }
-        
-        std::vector<const char*> req_instance_extensions_ppNames = inst_ext.get_ppNames();
+        std::vector<const char*> req_instance_extensions_ppNames = layers_and_ext.get_ppExtNames();
         instance_info.ppEnabledExtensionNames = req_instance_extensions_ppNames.data();
         instance_info.enabledExtensionCount = static_cast<uint32_t>(req_instance_extensions_ppNames.size());
 
 #ifndef NDEBUG
-        printInfo("Supported validation layers", inst_layers.available_validation_layers);
-        
-        if(!inst_layers.is_all_layers_supported) {
-            for(const std::string& name : inst_layers.diff_validation_layers) {
-                throw std::runtime_error("instance not support layer - " + name);
-            }
-        }
-        
-        const std::vector<const char*> req_instance_layer_ppNames = inst_layers.get_ppNames();
+        const std::vector<const char*> req_instance_layer_ppNames = layers_and_ext.get_ppLayerNames();
         instance_info.ppEnabledLayerNames = req_instance_layer_ppNames.data();
         instance_info.enabledLayerCount = static_cast<uint32_t>(req_instance_layer_ppNames.size());
         
@@ -763,7 +622,7 @@ private:
         return surface;
     }
 
-    VkDevice createLogicalDevice(VkPhysicalDevice physical_device, const QueueFamilyIndices& queue_family_indices, const DeviceExtensions& device_extensions, const InstanceLayers& validation_layers) {
+    VkDevice createLogicalDevice(VkPhysicalDevice physical_device, const QueueFamilyIndices& queue_family_indices, const DeviceExtensions& device_extensions, const VulkanInstanceLayersAndExtensions& layers) {
         std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
         const std::unordered_set<uint32_t>& family_indices = queue_family_indices.getFamilies();
         float queue_priority = 1.0f;
@@ -789,7 +648,7 @@ private:
         device_create_info.enabledExtensionCount = static_cast<uint32_t>(device_ext.size());
         device_create_info.ppEnabledExtensionNames = device_ext.data();
 
-        std::vector<const char*> validation_layers_ppNames = validation_layers.get_ppNames();
+        std::vector<const char*> validation_layers_ppNames = layers.get_ppLayerNames();
         if(ENABLE_VALIDATION_LAYERS) {
             device_create_info.enabledLayerCount = static_cast<uint32_t>(validation_layers_ppNames.size());
             device_create_info.ppEnabledLayerNames = validation_layers_ppNames.data();
@@ -1972,9 +1831,24 @@ private:
     }
 
     void initVulkan(GLFWwindow* glfw_window_ptr) {
-        m_instance_extensions.init();
-        m_validation_layers.init();
-        m_vk_instance = createInstance(m_instance_extensions, m_validation_layers);
+        bool is_all_ext_supported = m_instance_layers_and_extensions.init(getRequiredValidationLayers<std::unordered_set<std::string>>(), getRequiredInstanceExtensions<std::unordered_set<std::string>>());
+#ifndef NDEBUG
+        for (const auto&[layer_name, layer_prop] : m_instance_layers_and_extensions.getInstanceLayers()) {
+            std::cout << layer_name << std::endl;
+            for (const LayerExtension& layer_ext : layer_prop.extensions) {
+                std::cout << " - " << layer_ext.extension_name << std::endl;
+            }
+        }
+#endif
+        if(!is_all_ext_supported) {
+            for(const std::string& name : m_instance_layers_and_extensions.getLayersDiff()) {
+                throw std::runtime_error("instance not support layer - " + name);
+            }
+            for(const std::string& name : m_instance_layers_and_extensions.getExtensionsDiff()) {
+                throw std::runtime_error("instance not support extension - " + name);
+            }
+        }
+        m_vk_instance = createInstance(m_instance_layers_and_extensions);
         m_debug_messenger = setupDebugMessanger();
         m_surface = createSurface(m_vk_instance, glfw_window_ptr);
         m_physical_device = pickPhysicalDevice(m_vk_instance);
@@ -1984,7 +1858,7 @@ private:
 #endif
         m_msaa_samples = getMaxUsableSampleCount(m_physical_device);
         m_queue_family_indices.init(m_physical_device, m_surface);
-        m_device = createLogicalDevice(m_physical_device, m_queue_family_indices, m_device_extensions, m_validation_layers);
+        m_device = createLogicalDevice(m_physical_device, m_queue_family_indices, m_device_extensions, m_instance_layers_and_extensions);
 
         vkGetDeviceQueue(m_device, m_queue_family_indices.graphics_family.value(), 0u, &m_graphics_queue);
         vkGetDeviceQueue(m_device, m_queue_family_indices.present_family.value(), 0u, &m_present_queue);

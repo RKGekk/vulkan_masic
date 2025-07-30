@@ -5,7 +5,7 @@ project(vktutorial LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 20)
 
 set(SRC_DIR "src")
-set(APP_SOURCES "${SRC_DIR}/main.cpp")
+set(APP_SOURCES "${SRC_DIR}/main.cpp" "${SRC_DIR}/graphics/vulkan_instance_layers_and_extensions.h" "${SRC_DIR}/graphics/vulkan_instance_layers_and_extensions.cpp" "${SRC_DIR}/tools/string_tools.h" "${SRC_DIR}/tools/string_tools.cpp")
 set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders")
 set(TEXTURES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/textures")
 set(APP_SHADERS "${SHADER_DIR}/shader.frag" "${SHADER_DIR}/shader.vert")
