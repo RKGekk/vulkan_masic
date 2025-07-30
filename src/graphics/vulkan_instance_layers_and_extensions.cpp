@@ -54,7 +54,10 @@ bool VulkanInstanceLayersAndExtensions::init(std::unordered_set<std::string> req
     empty_layer_property.spec_version = 1u;
     empty_layer_property.implementation_version = 1u;
     empty_layer_property.description = "Layer for extensions wo layer. Only extensions provided by the Vulkan implementation or by implicitly enabled layers"s;
-    m_layers.emplace(empty_layer_name, LayerPropertyExt {std::move(empty_layer_property), std::move(empty_layer_ext)});
+    auto empty_layer_ext_it = m_layers.emplace(empty_layer_name, LayerPropertyExt {std::move(empty_layer_property), std::move(empty_layer_ext)});
+    for (const LayerExtension& ext : empty_layer_ext_it.first->second.extensions) {
+        m_extensions.emplace(ext.extension_name, std::ref(empty_layer_ext_it.first->second));
+    }
 
     bool is_all_layers_supported = checkNamesSupported(available_layer_names, m_requested_layers);
     if(!is_all_layers_supported) {
