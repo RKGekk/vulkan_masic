@@ -7,12 +7,18 @@ set(CMAKE_CXX_STANDARD 20)
 set(SRC_DIR "src")
 set(APP_SOURCES
     "${SRC_DIR}/main.cpp"
+    "${SRC_DIR}/tools/string_tools.h"
+    "${SRC_DIR}/tools/string_tools.cpp"
     "${SRC_DIR}/graphics/vulkan_instance_layers_and_extensions.h"
     "${SRC_DIR}/graphics/vulkan_instance_layers_and_extensions.cpp"
     "${SRC_DIR}/graphics/vulkan_instance.h"
     "${SRC_DIR}/graphics/vulkan_instance.cpp"
-    "${SRC_DIR}/tools/string_tools.h"
-    "${SRC_DIR}/tools/string_tools.cpp"
+    "${SRC_DIR}/graphics/vulkan_device.h"
+    "${SRC_DIR}/graphics/vulkan_device.cpp"
+    "${SRC_DIR}/graphics/vulkan_device_extensions.h"
+    "${SRC_DIR}/graphics/vulkan_device_extensions.cpp"
+    "${SRC_DIR}/graphics/vulkan_swapchain.h"
+    "${SRC_DIR}/graphics/vulkan_swapchain.cpp"
 )
 set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders")
 set(TEXTURES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/textures")

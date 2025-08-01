@@ -8,14 +8,15 @@
 #include <GLFW/glfw3.h>
 
 #include "vulkan_instance_layers_and_extensions.h"
+#include "../tools/string_tools.h"
 
 class VulkanInstance {
 public:
     bool init(std::string app_name);
     void destroy();
 
-    VkInstance getInstance();
-    const VulkanInstanceLayersAndExtensions& getLayersAndExtensions();
+    VkInstance getInstance() const;
+    const VulkanInstanceLayersAndExtensions& getLayersAndExtensions() const;
 
 private:
     static uint32_t getVkApiVersion();
@@ -30,6 +31,7 @@ private:
 		Container layers;
 #ifndef NDEBUG
 		insert_in_container(layers, "VK_LAYER_KHRONOS_validation"s);
+        //insert_in_container(layers, "VK_LAYER_LUNARG_api_dump"s);
 #endif
 		return layers;
 	}

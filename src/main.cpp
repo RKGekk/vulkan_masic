@@ -31,6 +31,8 @@
 
 #include "graphics/vulkan_instance_layers_and_extensions.h"
 #include "graphics/vulkan_instance.h"
+#include "graphics/vulkan_device_extensions.h"
+#include "graphics/vulkan_device.h"
 #include "tools/string_tools.h"
 
 const uint32_t WIDTH = 800;
@@ -48,145 +50,6 @@ const std::vector<const char*> DEVICE_EXTENSIONS = {
 };
 
 class VulkanApplication;
-
-struct SwapchainSupportDetails {
-    VkSurfaceCapabilitiesKHR capabilities;
-    std::vector<VkSurfaceFormatKHR> formats;
-    std::vector<VkPresentModeKHR> present_modes;
-};
-
-struct SwapchainParams {
-    VkSurfaceFormatKHR surface_format;
-    VkPresentModeKHR present_mode;
-    VkExtent2D extent;
-};
-
-struct QueueFamilyIndices {
-    std::optional<uint32_t> graphics_family;
-    std::optional<uint32_t> present_family;
-    std::optional<uint32_t> compute_family;
-    std::optional<uint32_t> transfer_family;
-
-    void init(VkPhysicalDevice device, VkSurfaceKHR surface) {
-        uint32_t queue_family_count = 0u;
-        vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, nullptr);
-        
-        std::vector<VkQueueFamilyProperties> queue_families(queue_family_count);
-        vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, queue_families.data());
-        
-        int i = 0;
-        for (const VkQueueFamilyProperties& queue_family : queue_families) {
-            if(queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-                graphics_family = i;
-            }
-            if(queue_family.queueFlags & VK_QUEUE_TRANSFER_BIT) {
-                transfer_family = i;
-            }
-            if(queue_family.queueFlags & VK_QUEUE_COMPUTE_BIT) {
-                compute_family = i;
-            }
-            VkBool32 present_support = false;
-            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &present_support);
-            if(present_support) {
-                present_family = i;
-            }
-            
-            if (isComplete()) {
-                break;
-            }
-            ++i;
-        }
-    }
-    
-    bool isComplete() const {
-        return graphics_family.has_value() && present_family.has_value() && compute_family.has_value() && transfer_family.has_value();
-    }
-    
-    VkSharingMode getBufferSharingMode() const {
-        if (graphics_family.has_value() && transfer_family.has_value() && graphics_family.value() != transfer_family.value()) {
-            return VK_SHARING_MODE_CONCURRENT;
-        }
-        return VK_SHARING_MODE_EXCLUSIVE;
-    }
-    
-    std::unordered_set<uint32_t> getFamilies() const {
-        std::unordered_set<uint32_t> family_indices;
-        if(graphics_family.has_value()) {
-            family_indices.insert(graphics_family.value());
-        }
-        if(present_family.has_value()) {
-            family_indices.insert(present_family.value());
-        }
-        if(compute_family.has_value()) {
-            family_indices.insert(compute_family.value());
-        }
-        if(transfer_family.has_value()) {
-            family_indices.insert(transfer_family.value());
-        }
-        return family_indices;
-    }
-    
-    std::vector<uint32_t> getIndices() const {
-        const auto& families = getFamilies();
-        std::vector<uint32_t> result(families.cbegin(), families.cend());
-        return result;
-    }
-};
-
-struct DeviceExtensions {
-    std::unordered_set<std::string> available_device_ext;
-    std::vector<std::string> req_device_ext;
-    bool all_device_ext_supported;
-    std::unordered_set<std::string> diff_device_ext;
-
-    template<typename Container>
-    static Container getDeviceExtensionSupported(VkPhysicalDevice physical_device) {
-        uint32_t extensions_count = 0u;
-        VkResult result = vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &extensions_count, nullptr);
-        if(result != VK_SUCCESS) {
-            throw std::runtime_error("failed to read instance properties!");
-        }
-        std::vector<VkExtensionProperties> available_extensions(extensions_count);
-        result = vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &extensions_count, available_extensions.data());
-        if(result != VK_SUCCESS) {
-            throw std::runtime_error("failed to read instance properties!");
-        }
-    
-        Container available_ext;
-        available_ext.reserve(extensions_count);
-        for(const VkExtensionProperties& prop : available_extensions) {
-            insert_in_container(available_ext, std::string(prop.extensionName));
-        }
-        
-        return available_ext;
-    }
-
-    template<typename Container>
-    Container getRequiredDeviceExtensions() {
-        Container extensions;
-#ifdef __APPLE__
-        extensions.insert("VK_KHR_portability_subset");
-#endif
-        extensions.insert(extensions.begin(), DEVICE_EXTENSIONS.cbegin(), DEVICE_EXTENSIONS.cend());
-        return extensions;
-    }
-
-    std::vector<const char*> get_ppNames() const {
-        std::vector<const char*> req_device_extensions_ppNames;
-        req_device_extensions_ppNames.reserve(req_device_ext.size());
-        std::transform(req_device_ext.cbegin(), req_device_ext.cend(), std::inserter(req_device_extensions_ppNames, req_device_extensions_ppNames.begin()), [&](const std::string& str) { return str.c_str(); });
-        return req_device_extensions_ppNames;
-    }
-
-    void init(VkPhysicalDevice physical_device) {
-        available_device_ext = getDeviceExtensionSupported<std::unordered_set<std::string>>(physical_device);
-        req_device_ext = getRequiredDeviceExtensions<std::vector<std::string>>();
-        all_device_ext_supported = checkNamesSupported(available_device_ext, req_device_ext);
-        if(!all_device_ext_supported) {
-            diff_device_ext = getNamesUnsupported(available_device_ext, {req_device_ext.cbegin(), req_device_ext.cend()});
-        }
-    }
-};
 
 class InputFileStramGuard final {
 public:
@@ -291,15 +154,8 @@ public:
 private:
     GLFWwindow* m_window = nullptr;
     VulkanInstance m_vulkan_instance;
-    VkPhysicalDevice m_physical_device = VK_NULL_HANDLE;
-    DeviceExtensions m_device_extensions;
+    VulkanDevice m_vulkan_device;
     VkSurfaceKHR m_surface = VK_NULL_HANDLE;
-    VkDevice m_device = VK_NULL_HANDLE;
-    QueueFamilyIndices m_queue_family_indices;
-    VkQueue m_graphics_queue = VK_NULL_HANDLE;
-    VkQueue m_compute_queue = VK_NULL_HANDLE;
-    VkQueue m_transfer_queue = VK_NULL_HANDLE;
-    VkQueue m_present_queue = VK_NULL_HANDLE;
     SwapchainSupportDetails m_swapchain_support_details;
     SwapchainParams m_swapchain_params;
     VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;
@@ -309,7 +165,7 @@ private:
     VkImage m_depth_image = VK_NULL_HANDLE;
     VkDeviceMemory m_depth_memory = VK_NULL_HANDLE;
     VkImageView m_depth_view = VK_NULL_HANDLE;
-    VkSampleCountFlagBits m_msaa_samples = VK_SAMPLE_COUNT_1_BIT;
+    
     VkImage m_color_image;
     VkDeviceMemory m_color_image_memory;
     VkImageView m_color_image_view;
@@ -353,25 +209,6 @@ private:
         return result;
     }
 
-    std::vector<VkPhysicalDevice> getPhysicalDevices(VkInstance vk_instance) {
-        uint32_t devices_count = 0u;
-        VkResult result = vkEnumeratePhysicalDevices(vk_instance, &devices_count, nullptr);
-        if(result != VK_SUCCESS) {
-            throw std::runtime_error("failed to enumerate devices!");
-        }
-        if(!devices_count) {
-            throw std::runtime_error("failed to find GPUs with Vulkan support!");
-        }
-        
-        std::vector<VkPhysicalDevice> devices(devices_count);
-        result = vkEnumeratePhysicalDevices(vk_instance, &devices_count, devices.data());
-        if(result != VK_SUCCESS) {
-            throw std::runtime_error("failed to enumerate devices!");
-        }
-        
-        return devices;
-    }
-
     uint64_t getDeviceMaxMemoryLimit(VkPhysicalDevice device) {
         uint64_t max_memory_limit = 0;
         VkPhysicalDeviceMemoryProperties phys_device_mem_prop;
@@ -383,96 +220,6 @@ private:
         return max_memory_limit;
     }
 
-    SwapchainSupportDetails querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface) {
-        SwapchainSupportDetails details;
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
-        
-        uint32_t format_count = 0u;
-        vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &format_count, nullptr);
-        if(format_count) {
-            details.formats.resize(format_count);
-            vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &format_count, details.formats.data());
-        }
-        
-        uint32_t present_mode_count = 0u;
-        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_mode_count, nullptr);
-        if(present_mode_count) {
-            details.present_modes.resize(present_mode_count);
-            vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_mode_count, details.present_modes.data());
-        }
-        
-        return details;
-    }
-
-    bool isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface) {
-        VkPhysicalDeviceFeatures supported_features{};
-        vkGetPhysicalDeviceFeatures(device, &supported_features);
-    
-        QueueFamilyIndices queue_family_indices;
-        queue_family_indices.init(device, surface);
-        
-        DeviceExtensions dev_ext;
-        dev_ext.init(device);
-
-        bool all_queue_families_supported = queue_family_indices.isComplete();
-        
-        bool swap_chain_adequate = false;
-        if(dev_ext.all_device_ext_supported) {
-            SwapchainSupportDetails swap_chain_details = querySwapChainSupport(device, surface);
-            swap_chain_adequate = !swap_chain_details.formats.empty() && !swap_chain_details.present_modes.empty();
-        }
-        
-        bool result = all_queue_families_supported && dev_ext.all_device_ext_supported && swap_chain_adequate && supported_features.samplerAnisotropy;
-        return result;
-    }
-
-    int rateDeviceSuitability(VkPhysicalDevice device) {
-        VkPhysicalDeviceProperties device_props;
-        vkGetPhysicalDeviceProperties(device, &device_props);
-        
-        VkPhysicalDeviceFeatures device_features;
-        vkGetPhysicalDeviceFeatures(device, &device_features);
-        
-        int score = 0;
-        
-        if(device_props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
-            score += 1000;
-        }
-        score += device_props.limits.maxImageDimension2D;
-        
-        uint64_t max_memory = getDeviceMaxMemoryLimit(device);
-        score += (int)std::log2(max_memory);
-        
-        if(device_features.geometryShader) {
-            score += 1000;
-        }
-        if(!isDeviceSuitable(device, m_surface)){
-            return 0;
-        }
-        
-        return score;
-    }
-
-    VkPhysicalDevice pickPhysicalDevice(VkInstance vk_instance) {        
-        std::vector<VkPhysicalDevice> devices = getPhysicalDevices(vk_instance);
-        
-        std::multimap<int, VkPhysicalDevice> candidates;
-        for(VkPhysicalDevice device : devices){
-            int score = rateDeviceSuitability(device);
-            candidates.insert(std::make_pair(score, device));
-        }
-        
-        VkPhysicalDevice physical_device = VK_NULL_HANDLE;
-        if (candidates.size() > 0u) {
-            physical_device = candidates.rbegin()->second;
-        }
-        else {
-            throw std::runtime_error("failed to find a suitable GPU!");
-        }
-        
-        return physical_device;
-    }
-
     VkSurfaceKHR createSurface(VkInstance vk_instance, GLFWwindow* glfw_window_ptr) {
         VkSurfaceKHR surface = VK_NULL_HANDLE;
         VkResult result = glfwCreateWindowSurface(vk_instance, glfw_window_ptr, nullptr, &surface);
@@ -480,49 +227,6 @@ private:
             throw std::runtime_error("failed to create window surface!");
         }
         return surface;
-    }
-
-    VkDevice createLogicalDevice(VkPhysicalDevice physical_device, const QueueFamilyIndices& queue_family_indices, const DeviceExtensions& device_extensions, const VulkanInstanceLayersAndExtensions& layers) {
-        std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
-        const std::unordered_set<uint32_t>& family_indices = queue_family_indices.getFamilies();
-        float queue_priority = 1.0f;
-        for(uint32_t family_index : family_indices) {
-            VkDeviceQueueCreateInfo queue_create_info{};
-            queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-            queue_create_info.queueFamilyIndex = family_index;
-            queue_create_info.queueCount = 1u;
-            queue_create_info.pQueuePriorities = &queue_priority;
-            queue_create_infos.push_back(queue_create_info);
-        }
-
-        VkPhysicalDeviceFeatures device_features{};
-        device_features.samplerAnisotropy = VK_TRUE;
-
-        VkDeviceCreateInfo device_create_info{};
-        device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        device_create_info.pQueueCreateInfos = queue_create_infos.data();
-        device_create_info.queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size());
-        device_create_info.pEnabledFeatures = &device_features;
-
-        std::vector<const char*> device_ext = device_extensions.get_ppNames();
-        device_create_info.enabledExtensionCount = static_cast<uint32_t>(device_ext.size());
-        device_create_info.ppEnabledExtensionNames = device_ext.data();
-
-        std::vector<const char*> validation_layers_ppNames = layers.get_ppLayerNames();
-#ifndef NDEBUG
-        device_create_info.enabledLayerCount = static_cast<uint32_t>(validation_layers_ppNames.size());
-        device_create_info.ppEnabledLayerNames = validation_layers_ppNames.data();
-#else
-        device_create_info.enabledLayerCount = 0u;
-#endif
-
-        VkDevice device;
-        VkResult result = vkCreateDevice(physical_device, &device_create_info, nullptr, &device);
-        if (result != VK_SUCCESS) {
-            throw std::runtime_error("failed to create logical device!");
-        }
-        
-        return device;
     }
 
     VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& available_formats) {
@@ -624,7 +328,7 @@ private:
 
     uint32_t findMemoryType(uint32_t type_filter, VkMemoryPropertyFlags properties) {
         VkPhysicalDeviceMemoryProperties mem_prop{};
-        vkGetPhysicalDeviceMemoryProperties(m_physical_device, &mem_prop);
+        vkGetPhysicalDeviceMemoryProperties(m_vulkan_device.getDeviceAbilities().physical_device, &mem_prop);
         for(uint32_t i = 0u; i < mem_prop.memoryTypeCount; ++i) {
             bool is_type_suit = type_filter & (1 << i);
             bool is_type_adequate = mem_prop.memoryTypes[i].propertyFlags & properties;
@@ -675,7 +379,7 @@ private:
         view_info.subresourceRange.layerCount = 1u;
         
         VkImageView image_view;
-        VkResult result = vkCreateImageView(m_device, &view_info, nullptr, &image_view);
+        VkResult result = vkCreateImageView(m_vulkan_device.getDevice(), &view_info, nullptr, &image_view);
         if(result != VK_SUCCESS) {
             throw std::runtime_error("failed to create texture image view!");
         }
@@ -698,7 +402,7 @@ private:
         image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         image_info.usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
         image_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        image_info.samples = m_msaa_samples;
+        image_info.samples = m_vulkan_device.getMsaaSamples();
         image_info.flags = 0u;
         createImage(device, image_info, m_color_image, m_color_image_memory, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
@@ -741,16 +445,16 @@ private:
     }
 
     void createSwapchain() {
-        m_swapchain_support_details = querySwapChainSupport(m_physical_device, m_surface);
+        m_swapchain_support_details = querySwapChainSupport(m_vulkan_device.getDeviceAbilities().physical_device, m_surface);
         
         m_swapchain_params.surface_format = chooseSwapSurfaceFormat(m_swapchain_support_details.formats);
         m_swapchain_params.present_mode = chooseSwapPresentMode(m_swapchain_support_details.present_modes);
         m_swapchain_params.extent = chooseSwapExtent(m_swapchain_support_details.capabilities);
         
-        m_swapchain = createSwapchain(m_device, m_surface, m_swapchain_params, m_swapchain_support_details, m_queue_family_indices);
-        m_swapchain_images = getSwapchainImages(m_device, m_swapchain);
+        m_swapchain = createSwapchain(m_vulkan_device.getDevice(), m_surface, m_swapchain_params, m_swapchain_support_details, m_vulkan_device.getQueueFamilyIndices());
+        m_swapchain_images = getSwapchainImages(m_vulkan_device.getDevice(), m_swapchain);
         
-        m_swapchain_views = getImageViews(m_device, m_swapchain_images, m_swapchain_params.surface_format);
+        m_swapchain_views = getImageViews(m_vulkan_device.getDevice(), m_swapchain_images, m_swapchain_params.surface_format);
     }
 
     void recreateSwapchain() {
@@ -762,25 +466,25 @@ private:
             glfwWaitEvents();
         }
     
-        vkDeviceWaitIdle(m_device);
+        vkDeviceWaitIdle(m_vulkan_device.getDevice());
         
         cleanupSwapchain();
-        vkDestroyRenderPass(m_device, m_render_pass, nullptr);
-        vkDestroyPipeline(m_device, m_graphics_pipeline, nullptr);
-        vkDestroyPipelineLayout(m_device, m_pipeline_layout, nullptr);
+        vkDestroyRenderPass(m_vulkan_device.getDevice(), m_render_pass, nullptr);
+        vkDestroyPipeline(m_vulkan_device.getDevice(), m_graphics_pipeline, nullptr);
+        vkDestroyPipelineLayout(m_vulkan_device.getDevice(), m_pipeline_layout, nullptr);
         for(size_t i = 0u; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-            vkDestroySemaphore(m_device, m_image_available[i], nullptr);
-            vkDestroySemaphore(m_device, m_render_finished[i], nullptr);
-            vkDestroyFence(m_device, m_in_flight_frame[i], nullptr);
+            vkDestroySemaphore(m_vulkan_device.getDevice(), m_image_available[i], nullptr);
+            vkDestroySemaphore(m_vulkan_device.getDevice(), m_render_finished[i], nullptr);
+            vkDestroyFence(m_vulkan_device.getDevice(), m_in_flight_frame[i], nullptr);
         }
         
         createSwapchain();
-        createColorResources(m_device);      
-        createDepthResources(m_device, m_grapics_cmd_pool, m_graphics_queue);
-        //m_swapchain_views = getImageViews(m_device, m_swapchain_images, m_swapchain_params.surface_format);
+        createColorResources(m_vulkan_device.getDevice());      
+        createDepthResources(m_vulkan_device.getDevice(), m_grapics_cmd_pool, m_vulkan_device.getGraphicsQueue());
+        //m_swapchain_views = getImageViews(m_vulkan_device.getDevice(), m_swapchain_images, m_swapchain_params.surface_format);
         createRenderPass();
-        createPipeline(m_device, m_vert_shader_modeule, m_frag_shader_modeule, m_render_pass, m_swapchain_params, m_desc_set_layout, m_msaa_samples);
-        createFramebuffers(m_device, m_swapchain_views, m_color_image_view, m_depth_view, m_swapchain_params.extent, m_render_pass);
+        createPipeline(m_vulkan_device.getDevice(), m_vert_shader_modeule, m_frag_shader_modeule, m_render_pass, m_swapchain_params, m_desc_set_layout, m_vulkan_device.getMsaaSamples());
+        createFramebuffers(m_vulkan_device.getDevice(), m_swapchain_views, m_color_image_view, m_depth_view, m_swapchain_params.extent, m_render_pass);
         createSyncObjects();
     }
 
@@ -899,7 +603,7 @@ private:
     VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
         for (VkFormat format : candidates) {
             VkFormatProperties props;
-            vkGetPhysicalDeviceFormatProperties(m_physical_device, format, &props);
+            vkGetPhysicalDeviceFormatProperties(m_vulkan_device.getDeviceAbilities().physical_device, format, &props);
             if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
                 return format;
             }
@@ -938,37 +642,12 @@ private:
         image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         image_info.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
         image_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        image_info.samples = m_msaa_samples;
+        image_info.samples = m_vulkan_device.getMsaaSamples();
         image_info.flags = 0u;
         createImage(device, image_info, m_depth_image, m_depth_memory, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
         m_depth_view = createImageView(m_depth_image, depth_format, VK_IMAGE_ASPECT_DEPTH_BIT, 1u);
         transitionImageLayout(device, cmd_pool, queue, m_depth_image, depth_format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1u);
-    }
-
-    VkSampleCountFlagBits getMaxUsableSampleCount(VkPhysicalDevice physical_device) {
-        VkPhysicalDeviceProperties physical_device_properties;
-        vkGetPhysicalDeviceProperties(physical_device, &physical_device_properties);
-        VkSampleCountFlags counts = physical_device_properties.limits.framebufferColorSampleCounts & physical_device_properties.limits.framebufferDepthSampleCounts;
-        if (counts & VK_SAMPLE_COUNT_64_BIT) {
-            return VK_SAMPLE_COUNT_64_BIT;
-        }
-        if (counts & VK_SAMPLE_COUNT_32_BIT) {
-            return VK_SAMPLE_COUNT_32_BIT;
-        }
-        if (counts & VK_SAMPLE_COUNT_16_BIT) {
-            return VK_SAMPLE_COUNT_16_BIT;
-        }
-        if (counts & VK_SAMPLE_COUNT_8_BIT) {
-            return VK_SAMPLE_COUNT_8_BIT;
-        }
-        if (counts & VK_SAMPLE_COUNT_4_BIT) {
-            return VK_SAMPLE_COUNT_4_BIT;
-        }
-        if (counts & VK_SAMPLE_COUNT_2_BIT) {
-            return VK_SAMPLE_COUNT_2_BIT;
-        }
-        return VK_SAMPLE_COUNT_1_BIT;
     }
 
     void createCommandPools(VkDevice device, const QueueFamilyIndices& queue_family_indices) {
@@ -1088,7 +767,7 @@ private:
         shader_module_info.codeSize = static_cast<uint32_t>(buffer.size());
         shader_module_info.pCode = reinterpret_cast<const uint32_t*>(buffer.data());
         VkShaderModule shader_module = VK_NULL_HANDLE;
-        VkResult result = vkCreateShaderModule(m_device, &shader_module_info, nullptr, &shader_module);
+        VkResult result = vkCreateShaderModule(m_vulkan_device.getDevice(), &shader_module_info, nullptr, &shader_module);
         if(result != VK_SUCCESS) {
             throw std::runtime_error("failed to create shader!");
         }
@@ -1129,7 +808,7 @@ private:
         layout_info.pBindings = bindings.data();
         
         VkDescriptorSetLayout desc_set_layout = VK_NULL_HANDLE;
-        VkResult result = vkCreateDescriptorSetLayout(m_device, &layout_info, nullptr, &desc_set_layout);
+        VkResult result = vkCreateDescriptorSetLayout(m_vulkan_device.getDevice(), &layout_info, nullptr, &desc_set_layout);
         if(result != VK_SUCCESS) {
             throw std::runtime_error("failed to create descriptor set layout!");
         }
@@ -1298,15 +977,15 @@ private:
         pass_dependency.srcAccessMask = 0u;
         pass_dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         pass_dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-        m_render_pass = createRenderPass(m_device, m_swapchain_params, m_msaa_samples, pass_dependency);
+        m_render_pass = createRenderPass(m_vulkan_device.getDevice(), m_swapchain_params, m_vulkan_device.getMsaaSamples(), pass_dependency);
     }
 
     VkSampler createTextureSampler(uint32_t mip_levels) {
         VkPhysicalDeviceFeatures supported_features{};
-        vkGetPhysicalDeviceFeatures(m_physical_device, &supported_features);
+        vkGetPhysicalDeviceFeatures(m_vulkan_device.getDeviceAbilities().physical_device, &supported_features);
     
         VkPhysicalDeviceProperties device_props{};
-        vkGetPhysicalDeviceProperties(m_physical_device, &device_props);
+        vkGetPhysicalDeviceProperties(m_vulkan_device.getDeviceAbilities().physical_device, &device_props);
     
         VkSamplerCreateInfo sampler_info{};
         sampler_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -1327,7 +1006,7 @@ private:
         sampler_info.maxLod = static_cast<float>(mip_levels);;
         
         VkSampler texture_sampler;
-        VkResult result = vkCreateSampler(m_device, &sampler_info, nullptr, &texture_sampler);
+        VkResult result = vkCreateSampler(m_vulkan_device.getDevice(), &sampler_info, nullptr, &texture_sampler);
         if(result != VK_SUCCESS) {
             throw std::runtime_error("failed to create texture sampler!");
         }
@@ -1347,7 +1026,7 @@ private:
         }
         
         VkMemoryRequirements mem_req;
-        vkGetBufferMemoryRequirements(m_device, buffer, &mem_req);
+        vkGetBufferMemoryRequirements(m_vulkan_device.getDevice(), buffer, &mem_req);
         uint32_t mem_type_idx = findMemoryType(mem_req.memoryTypeBits, properties);
         
         VkMemoryAllocateInfo alloc_info{};
@@ -1383,7 +1062,7 @@ private:
 
     void generateMipmaps(VkDevice device, VkCommandPool cmd_pool, VkQueue queue, VkImage image, VkFormat image_format, int32_t tex_width, uint32_t tex_height, uint32_t mip_levels) {
         VkFormatProperties format_properties;
-        vkGetPhysicalDeviceFormatProperties(m_physical_device, image_format, &format_properties);
+        vkGetPhysicalDeviceFormatProperties(m_vulkan_device.getDeviceAbilities().physical_device, image_format, &format_properties);
         if (!(format_properties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT)) {
             throw std::runtime_error("texture image format does not support linear blitting!");
         }
@@ -1469,14 +1148,14 @@ private:
         
         VkBuffer staging_buffer;
         VkDeviceMemory staging_memory;
-        createBuffer(device, buffer_size, m_queue_family_indices, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, staging_buffer, staging_memory);
+        createBuffer(device, buffer_size, m_vulkan_device.getQueueFamilyIndices(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, staging_buffer, staging_memory);
         
         void* data;
         vkMapMemory(device, staging_memory, 0, buffer_size, 0u, &data);
         memcpy(data, vertices.data(), buffer_size);
         vkUnmapMemory(device, staging_memory);
         
-        createBuffer(device, buffer_size, m_queue_family_indices, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vertex_buffer, m_vertex_memory);
+        createBuffer(device, buffer_size, m_vulkan_device.getQueueFamilyIndices(), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vertex_buffer, m_vertex_memory);
         copyBuffer(device, cmd_pool, queue, staging_buffer, m_vertex_buffer, buffer_size);
         
         vkDestroyBuffer(device, staging_buffer, nullptr);
@@ -1489,13 +1168,13 @@ private:
         VkBuffer staging_buffer;
         VkDeviceMemory staging_memory;
         
-        createBuffer(device, buffer_size, m_queue_family_indices, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, staging_buffer, staging_memory);
+        createBuffer(device, buffer_size, m_vulkan_device.getQueueFamilyIndices(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, staging_buffer, staging_memory);
         void* data;
         vkMapMemory(device, staging_memory, 0u, buffer_size, 0u, &data);
         memcpy(data, indices.data(), buffer_size);
         vkUnmapMemory(device, staging_memory);
         
-        createBuffer(device, buffer_size, m_queue_family_indices, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_index_buffer, m_index_memory);
+        createBuffer(device, buffer_size, m_vulkan_device.getQueueFamilyIndices(), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_index_buffer, m_index_memory);
         copyBuffer(device, cmd_pool, queue, staging_buffer, m_index_buffer, buffer_size);
         
         vkDestroyBuffer(device, staging_buffer, nullptr);
@@ -1516,7 +1195,7 @@ private:
         
         VkBuffer staging_buffer;
         VkDeviceMemory staging_memory;
-        createBuffer(device, image_size, m_queue_family_indices, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, staging_buffer, staging_memory);
+        createBuffer(device, image_size, m_vulkan_device.getQueueFamilyIndices(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, staging_buffer, staging_memory);
         
         void* data;
         vkMapMemory(device, staging_memory, 0, image_size, 0, &data);
@@ -1563,8 +1242,8 @@ private:
         m_uniform_mapped.resize(MAX_FRAMES_IN_FLIGHT);
         
         for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-            createBuffer(device, buffer_size, m_queue_family_indices, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_uniform_buffers[i], m_uniform_memory[i]);
-            vkMapMemory(m_device, m_uniform_memory[i], 0u, buffer_size, 0u, &m_uniform_mapped[i]);
+            createBuffer(device, buffer_size, m_vulkan_device.getQueueFamilyIndices(), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_uniform_buffers[i], m_uniform_memory[i]);
+            vkMapMemory(m_vulkan_device.getDevice(), m_uniform_memory[i], 0u, buffer_size, 0u, &m_uniform_mapped[i]);
         }
     }
 
@@ -1657,17 +1336,17 @@ private:
         in_flight_fen_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
         
         for(size_t i = 0u; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-            VkResult result = vkCreateSemaphore(m_device, &image_available_sema_info, nullptr, &m_image_available[i]);
+            VkResult result = vkCreateSemaphore(m_vulkan_device.getDevice(), &image_available_sema_info, nullptr, &m_image_available[i]);
             if(result != VK_SUCCESS) {
                 throw std::runtime_error("failed to create semaphore!");
             }
             
-            result = vkCreateSemaphore(m_device, &render_finished_sem_info, nullptr, &m_render_finished[i]);
+            result = vkCreateSemaphore(m_vulkan_device.getDevice(), &render_finished_sem_info, nullptr, &m_render_finished[i]);
             if(result != VK_SUCCESS) {
                 throw std::runtime_error("failed to create semaphore!");
             }
             
-            result = vkCreateFence(m_device, &in_flight_fen_info, nullptr, &m_in_flight_frame[i]);
+            result = vkCreateFence(m_vulkan_device.getDevice(), &in_flight_fen_info, nullptr, &m_in_flight_frame[i]);
             if(result != VK_SUCCESS) {
                 throw std::runtime_error("failed to create fence!");
             }
@@ -1694,43 +1373,31 @@ private:
         
         m_vulkan_instance.init("Masic"s);
         m_surface = createSurface(m_vulkan_instance.getInstance(), glfw_window_ptr);
-        m_physical_device = pickPhysicalDevice(m_vulkan_instance.getInstance());
-        m_device_extensions.init(m_physical_device);
-#ifndef NDEBUG
-        printInfo("Supported device extensions", m_device_extensions.available_device_ext);
-#endif
-        m_msaa_samples = getMaxUsableSampleCount(m_physical_device);
-        m_queue_family_indices.init(m_physical_device, m_surface);
-        m_device = createLogicalDevice(m_physical_device, m_queue_family_indices, m_device_extensions, m_vulkan_instance.getLayersAndExtensions());
-
-        vkGetDeviceQueue(m_device, m_queue_family_indices.graphics_family.value(), 0u, &m_graphics_queue);
-        vkGetDeviceQueue(m_device, m_queue_family_indices.present_family.value(), 0u, &m_present_queue);
-        vkGetDeviceQueue(m_device, m_queue_family_indices.compute_family.value(), 0u, &m_compute_queue);
-        vkGetDeviceQueue(m_device, m_queue_family_indices.transfer_family.value(), 0u, &m_transfer_queue);
+        m_vulkan_device.init(m_vulkan_instance, m_surface);
 
         createSwapchain();
         loadShaders();
         createRenderPass();
         m_desc_set_layout = createDescSetLayout();
         m_pipeline_layout = VK_NULL_HANDLE;
-        createPipeline(m_device, m_vert_shader_modeule, m_frag_shader_modeule, m_render_pass, m_swapchain_params, m_desc_set_layout, m_msaa_samples);
-        createCommandPools(m_device, m_queue_family_indices);
-        createColorResources(m_device);
-        createDepthResources(m_device, m_grapics_cmd_pool, m_graphics_queue);
-        m_swapchain_framebuffers = createFramebuffers(m_device, m_swapchain_views, m_color_image_view, m_depth_view, m_swapchain_params.extent, m_render_pass);
+        createPipeline(m_vulkan_device.getDevice(), m_vert_shader_modeule, m_frag_shader_modeule, m_render_pass, m_swapchain_params, m_desc_set_layout, m_vulkan_device.getMsaaSamples());
+        createCommandPools(m_vulkan_device.getDevice(), m_vulkan_device.getQueueFamilyIndices());
+        createColorResources(m_vulkan_device.getDevice());
+        createDepthResources(m_vulkan_device.getDevice(), m_grapics_cmd_pool, m_vulkan_device.getGraphicsQueue());
+        m_swapchain_framebuffers = createFramebuffers(m_vulkan_device.getDevice(), m_swapchain_views, m_color_image_view, m_depth_view, m_swapchain_params.extent, m_render_pass);
 
-        m_texture_image = createImage(m_device, m_grapics_cmd_pool, m_graphics_queue, "textures/texture.jpg");
+        m_texture_image = createImage(m_vulkan_device.getDevice(), m_grapics_cmd_pool, m_vulkan_device.getGraphicsQueue(), "textures/texture.jpg");
         m_texture_view = createImageView(m_texture_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, m_mip_levels);
         m_texture_sampler = createTextureSampler(m_mip_levels);
 
-        createAndTransferVertexBuffer(m_device, m_transfer_cmd_pool, m_transfer_queue, g_vertices);
-        createAndTransferIndexBuffer(m_device, m_transfer_cmd_pool, m_transfer_queue, g_indices);
+        createAndTransferVertexBuffer(m_vulkan_device.getDevice(), m_transfer_cmd_pool, m_vulkan_device.getTransferQueue(), g_vertices);
+        createAndTransferIndexBuffer(m_vulkan_device.getDevice(), m_transfer_cmd_pool, m_vulkan_device.getTransferQueue(), g_indices);
 
-        createUniformBuffers(m_device);
-        m_desc_pool = createDescPool(m_device);
-        createDescSets(m_device);
+        createUniformBuffers(m_vulkan_device.getDevice());
+        m_desc_pool = createDescPool(m_vulkan_device.getDevice());
+        createDescSets(m_vulkan_device.getDevice());
 
-        createCommandBuffers(m_device, m_grapics_cmd_pool);
+        createCommandBuffers(m_vulkan_device.getDevice(), m_grapics_cmd_pool);
         createSyncObjects();
     }
 
@@ -1810,10 +1477,10 @@ private:
     }
 
     void drawFrame() {
-        vkWaitForFences(m_device, 1u, &m_in_flight_frame[m_current_frame], VK_TRUE, UINT64_MAX);
+        vkWaitForFences(m_vulkan_device.getDevice(), 1u, &m_in_flight_frame[m_current_frame], VK_TRUE, UINT64_MAX);
         
         uint32_t image_index;
-        VkResult result = vkAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX, m_image_available[m_current_frame], VK_NULL_HANDLE, &image_index);
+        VkResult result = vkAcquireNextImageKHR(m_vulkan_device.getDevice(), m_swapchain, UINT64_MAX, m_image_available[m_current_frame], VK_NULL_HANDLE, &image_index);
         
         if (result == VK_ERROR_OUT_OF_DATE_KHR) {
             recreateSwapchain();
@@ -1824,7 +1491,7 @@ private:
         }
     
         // Only reset the fence if we are submitting work
-        vkResetFences(m_device, 1u, &m_in_flight_frame[m_current_frame]);
+        vkResetFences(m_vulkan_device.getDevice(), 1u, &m_in_flight_frame[m_current_frame]);
         
         update_frame(m_current_frame);
         
@@ -1844,7 +1511,7 @@ private:
         submit_info.signalSemaphoreCount = 1u;
         submit_info.pSignalSemaphores = render_end_semaphores;
         
-        result = vkQueueSubmit(m_graphics_queue, 1u, &submit_info, m_in_flight_frame[m_current_frame]);
+        result = vkQueueSubmit(m_vulkan_device.getGraphicsQueue(), 1u, &submit_info, m_in_flight_frame[m_current_frame]);
         if (result != VK_SUCCESS) {
             throw std::runtime_error("failed to submit draw command buffer!");
         }
@@ -1858,7 +1525,7 @@ private:
         present_info.pSwapchains = swapchains;
         present_info.pImageIndices = &image_index;
         present_info.pResults = nullptr;
-        result = vkQueuePresentKHR(m_present_queue, &present_info);
+        result = vkQueuePresentKHR(m_vulkan_device.getPresentQueue(), &present_info);
         if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_framebuffer_resized) {
             m_framebuffer_resized = false;
             //recreateSwapchain();
@@ -1878,44 +1545,44 @@ private:
     }
 
     void cleanupSwapchain() {
-        vkDestroyImageView(m_device, m_color_image_view, nullptr);
-        vkDestroyImage(m_device, m_color_image, nullptr);
-        vkFreeMemory(m_device, m_color_image_memory, nullptr);
+        vkDestroyImageView(m_vulkan_device.getDevice(), m_color_image_view, nullptr);
+        vkDestroyImage(m_vulkan_device.getDevice(), m_color_image, nullptr);
+        vkFreeMemory(m_vulkan_device.getDevice(), m_color_image_memory, nullptr);
     
-        vkDestroyImageView(m_device, m_depth_view, nullptr);
-        vkDestroyImage(m_device, m_depth_image, nullptr);
-        vkFreeMemory(m_device, m_depth_memory, nullptr);
+        vkDestroyImageView(m_vulkan_device.getDevice(), m_depth_view, nullptr);
+        vkDestroyImage(m_vulkan_device.getDevice(), m_depth_image, nullptr);
+        vkFreeMemory(m_vulkan_device.getDevice(), m_depth_memory, nullptr);
     
         size_t sz = m_swapchain_framebuffers.size();
         for(size_t i = 0u; i < sz; ++i) {
-            vkDestroyFramebuffer(m_device, m_swapchain_framebuffers[i], nullptr);
+            vkDestroyFramebuffer(m_vulkan_device.getDevice(), m_swapchain_framebuffers[i], nullptr);
         }
         for(size_t i = 0u; i < sz; ++i) {
-            vkDestroyImageView(m_device, m_swapchain_views[i], nullptr);
+            vkDestroyImageView(m_vulkan_device.getDevice(), m_swapchain_views[i], nullptr);
         }
-        vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);
+        vkDestroySwapchainKHR(m_vulkan_device.getDevice(), m_swapchain, nullptr);
     }
 
     void cleanup() {
         cleanupSwapchain();
 
-        vkDestroySampler(m_device, m_texture_sampler, nullptr);
-        vkDestroyImageView(m_device, m_texture_view, nullptr);
-        vkDestroyImage(m_device, m_texture_image, nullptr);
-        vkFreeMemory(m_device, m_texture_memory, nullptr);
-        vkDestroyRenderPass(m_device, m_render_pass, nullptr);
-        vkDestroyPipeline(m_device, m_graphics_pipeline, nullptr);
-        vkDestroyPipelineLayout(m_device, m_pipeline_layout, nullptr);
+        vkDestroySampler(m_vulkan_device.getDevice(), m_texture_sampler, nullptr);
+        vkDestroyImageView(m_vulkan_device.getDevice(), m_texture_view, nullptr);
+        vkDestroyImage(m_vulkan_device.getDevice(), m_texture_image, nullptr);
+        vkFreeMemory(m_vulkan_device.getDevice(), m_texture_memory, nullptr);
+        vkDestroyRenderPass(m_vulkan_device.getDevice(), m_render_pass, nullptr);
+        vkDestroyPipeline(m_vulkan_device.getDevice(), m_graphics_pipeline, nullptr);
+        vkDestroyPipelineLayout(m_vulkan_device.getDevice(), m_pipeline_layout, nullptr);
         if(m_grapics_cmd_pool != m_transfer_cmd_pool) {
-            vkDestroyCommandPool(m_device, m_grapics_cmd_pool, nullptr);
-            vkDestroyCommandPool(m_device, m_transfer_cmd_pool, nullptr);
+            vkDestroyCommandPool(m_vulkan_device.getDevice(), m_grapics_cmd_pool, nullptr);
+            vkDestroyCommandPool(m_vulkan_device.getDevice(), m_transfer_cmd_pool, nullptr);
         }
         else {
-            vkDestroyCommandPool(m_device, m_grapics_cmd_pool, nullptr);
+            vkDestroyCommandPool(m_vulkan_device.getDevice(), m_grapics_cmd_pool, nullptr);
         }
-        vkDestroyShaderModule(m_device, m_frag_shader_modeule, nullptr);
-        vkDestroyShaderModule(m_device, m_vert_shader_modeule, nullptr);
-        vkDestroyDevice(m_device, nullptr);
+        vkDestroyShaderModule(m_vulkan_device.getDevice(), m_frag_shader_modeule, nullptr);
+        vkDestroyShaderModule(m_vulkan_device.getDevice(), m_vert_shader_modeule, nullptr);
+        m_vulkan_device.destroy();
         vkDestroySurfaceKHR(m_vulkan_instance.getInstance(), m_surface, nullptr);
         m_vulkan_instance.destroy();
         glfwDestroyWindow(m_window);

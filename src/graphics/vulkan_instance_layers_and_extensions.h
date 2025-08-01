@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <functional>
 #include <string>
 #include <unordered_map>
@@ -11,6 +12,8 @@
 #include "../tools/string_tools.h"
 
 struct LayerProperty {
+    using LayerName = std::string;
+
     std::string layer_name;
     uint32_t spec_version;
     uint32_t implementation_version;
@@ -18,6 +21,8 @@ struct LayerProperty {
 };
 
 struct LayerExtension {
+    using ExtensionName = std::string;
+
     std::string extension_name;
     uint32_t spec_version;
 };
@@ -31,17 +36,23 @@ class VulkanInstanceLayersAndExtensions {
 public:
     bool init(std::unordered_set<std::string> requested_layers, std::unordered_set<std::string> requested_extensions);
 
-    using LayerName = std::string;
-    using ExtensionName = std::string;
+    const std::unordered_map<LayerProperty::LayerName, LayerPropertyExt>& getInstanceLayers() const;
+    const std::vector<LayerExtension>& getInstanceLayerExtensions(const LayerProperty::LayerName& layer_name) const;
+    bool isLayerSupported(const LayerProperty::LayerName& layer_name) const;
+    bool isExtensionSupported(const LayerExtension::ExtensionName& ext_name) const;
 
-    const std::unordered_map<LayerName, LayerPropertyExt>& getInstanceLayers() const;
-    const std::vector<LayerExtension>& getInstanceLayerExtensions(const LayerName& layer_name) const;
-    bool isLayerSupported(const LayerName& layer_name) const;
-    bool isLayersSupported(const LayerName& layer_name) const;
-    bool isExtensionSupported(const ExtensionName& ext_name) const;
+    const std::unordered_set<std::string>& getRequestedLayers() const;
+    const std::unordered_set<std::string>& getRequestedExtensions() const;
+
+    const std::unordered_set<std::string>& getLayersDiff() const;
+    const std::unordered_set<std::string>& getExtensionsDiff() const;
+
+    std::vector<const char*> get_ppLayerNames() const;
+    std::vector<const char*> get_ppExtNames() const;
 
     template<typename ContainerType>
-    static ContainerType getInstanceLayers(std::function<typename ContainerType::value_type(const VkLayerProperties&)> fn) {
+    static ContainerType getInstanceLayersFn(std::function<typename ContainerType::value_type(const VkLayerProperties&)> fn) {
+
         uint32_t layers_count = 0u;
         VkResult result = vkEnumerateInstanceLayerProperties(&layers_count, nullptr);
         if(result != VK_SUCCESS) {
@@ -61,9 +72,11 @@ public:
         
         return validation_layers;
     }
+    
+    static std::vector<LayerProperty> getInstanceLayersAPI();
 
     template<typename ContainerType>
-    static ContainerType getInstanceExtensions(const char* layer_name, std::function<typename ContainerType::value_type(const VkExtensionProperties&)> fn) {
+    static ContainerType getInstanceExtensionsFn(const char* layer_name, std::function<typename ContainerType::value_type(const VkExtensionProperties&)> fn) {
         uint32_t ext_count = 0u;
         VkResult result = vkEnumerateInstanceExtensionProperties(layer_name, &ext_count, nullptr);
         if(result != VK_SUCCESS) {
@@ -83,14 +96,7 @@ public:
         return available_ext;
     }
 
-    const std::unordered_set<std::string>& getRequestedLayers() const;
-    const std::unordered_set<std::string>& getRequestedExtensions() const;
-
-    const std::unordered_set<std::string>& getLayersDiff() const;
-    const std::unordered_set<std::string>& getExtensionsDiff() const;
-
-    std::vector<const char*> get_ppLayerNames() const;
-    std::vector<const char*> get_ppExtNames() const;
+    std::vector<LayerExtension> getInstanceExtensionsAPI(const char* layer_name, std::function<void(const LayerExtension&)> fn = [](const LayerExtension&){});
 
 private:
     std::unordered_set<std::string> m_requested_layers;
@@ -99,6 +105,6 @@ private:
     std::unordered_set<std::string> m_requested_extensions;
     std::unordered_set<std::string> m_diff_instance_extensions;
 
-    std::unordered_map<LayerName, LayerPropertyExt> m_layers;
-    std::unordered_map<ExtensionName, LayerPropertyExt&> m_extensions;
+    std::unordered_map<LayerProperty::LayerName, LayerPropertyExt> m_layers;
+    std::unordered_map<LayerExtension::ExtensionName, LayerPropertyExt&> m_extensions;
 };

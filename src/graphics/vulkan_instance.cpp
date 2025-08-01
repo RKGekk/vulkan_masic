@@ -81,11 +81,11 @@ void VulkanInstance::destroy() {
     vkDestroyInstance(m_instance, nullptr);
 }
 
-VkInstance VulkanInstance::getInstance() {
+VkInstance VulkanInstance::getInstance() const {
     return m_instance;
 }
 
-const VulkanInstanceLayersAndExtensions& VulkanInstance::getLayersAndExtensions() {
+const VulkanInstanceLayersAndExtensions& VulkanInstance::getLayersAndExtensions() const {
     return m_layers_and_extensions;
 }
 
