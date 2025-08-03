@@ -173,6 +173,7 @@ std::vector<VkPhysicalDevice> VulkanDevice::getPhysicalDevices(VkInstance vk_ins
 DeviceAbilities VulkanDevice::rateDeviceSuitability(VkPhysicalDevice device, VkSurfaceKHR surface) {
     DeviceAbilities device_abilities{};
 
+    device_abilities.physical_device = device;
     vkGetPhysicalDeviceProperties(device, &device_abilities.props);
     vkGetPhysicalDeviceFeatures(device, &device_abilities.features);
     vkGetPhysicalDeviceMemoryProperties(device, &device_abilities.memory_properties);
