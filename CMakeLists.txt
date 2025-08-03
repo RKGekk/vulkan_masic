@@ -19,6 +19,8 @@ set(APP_SOURCES
     "${SRC_DIR}/graphics/vulkan_device_extensions.cpp"
     "${SRC_DIR}/graphics/vulkan_swapchain.h"
     "${SRC_DIR}/graphics/vulkan_swapchain.cpp"
+    "${SRC_DIR}/graphics/vulkan_command_manager.h"
+    "${SRC_DIR}/graphics/vulkan_command_manager.cpp"
 )
 set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders")
 set(TEXTURES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/textures")
