@@ -115,6 +115,37 @@ void VulkanCommandManager::endCommandBuffer(VkCommandBuffer command_buffer) {
     }
 }
 
+VkCommandBuffer VulkanCommandManager::beginSingleTimeCommands(VkDevice device, VkCommandPool command_pool) {
+    VkCommandBufferAllocateInfo alloc_info{};
+    alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    alloc_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    alloc_info.commandPool = command_pool;
+    alloc_info.commandBufferCount = 1u;
+    
+    VkCommandBuffer command_buffer;
+    vkAllocateCommandBuffers(device, &alloc_info, &command_buffer);
+    
+    VkCommandBufferBeginInfo begin_info{};
+    begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    VulkanCommandManager::beginCommandBuffer(command_buffer, &begin_info);
+    
+    return command_buffer;
+}
+
+void VulkanCommandManager::endSingleTimeCommands(VkDevice device, VkCommandBuffer command_buffer, VkQueue queue, VkCommandPool command_pool) {
+    VulkanCommandManager::endCommandBuffer(command_buffer);
+    
+    VkSubmitInfo submit_info{};
+    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submit_info.commandBufferCount = 1u;
+    submit_info.pCommandBuffers = &command_buffer;
+    
+    VulkanCommandManager::submitCommandBuffer(queue, submit_info);
+    vkQueueWaitIdle(queue);
+    vkFreeCommandBuffers(device, command_pool, 1u, &command_buffer);
+}
+
 void VulkanCommandManager::submitCommandBuffer(VkQueue queue, VkCommandBuffer command_buffer, VkFence fence) {
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

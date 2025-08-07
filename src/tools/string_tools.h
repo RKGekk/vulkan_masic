@@ -1,15 +1,17 @@
 #pragma once
 
-#pragma once
-
 #include <algorithm>
 #include <codecvt>
+#include <cstdint>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <locale>
 #include <unordered_set>
+#include <vector>
 
 #include <pugixml.hpp>
 
@@ -117,3 +119,21 @@ bool checkNamesSupported(const Container1& available_names, const Container2& re
 }
 
 std::unordered_set<std::string> getNamesUnsupported(const std::unordered_set<std::string>& available_names, const std::unordered_set<std::string>& required_names);
+
+class InputFileStramGuard final {
+public:
+    InputFileStramGuard(std::ifstream&& stream) : m_stream(std::move(stream)) {}
+    ~InputFileStramGuard() {
+        m_stream.close();
+    }
+    InputFileStramGuard(const InputFileStramGuard&) = delete;
+    InputFileStramGuard& operator=(const InputFileStramGuard&) = delete;
+    
+    std::ifstream& Get() {
+        return m_stream;
+    }
+private:
+    std::ifstream m_stream;
+};
+
+std::vector<char> readFile(const std::string& file_name);

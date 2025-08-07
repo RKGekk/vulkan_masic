@@ -10,7 +10,7 @@
 
 class VulkanCommandManager {
 public:
-    bool init(std::shared_ptr<VulkanDevice> m_device);
+    bool init(std::shared_ptr<VulkanDevice> device);
     void destroy();
 
     VkCommandPool getGrapicsCommandPool() const;
@@ -21,9 +21,12 @@ public:
     static void allocCommandBuffer(VkDevice device, VkCommandPool cmmand_pool, std::vector<VkCommandBuffer>& command_buffers, VkCommandBufferAllocateInfo* command_buffer_info = nullptr);
 	static void beginCommandBuffer(VkCommandBuffer command_buffer, VkCommandBufferBeginInfo* p_begin_info = nullptr);
 	static void endCommandBuffer(VkCommandBuffer command_buffer);
+    static VkCommandBuffer beginSingleTimeCommands(VkDevice device, VkCommandPool command_pool);
+    static void endSingleTimeCommands(VkDevice device, VkCommandBuffer command_buffer, VkQueue queue, VkCommandPool command_pool);
     static void submitCommandBuffer(VkQueue queue, VkCommandBuffer command_buffer, VkFence fence = VK_NULL_HANDLE);
     static void submitCommandBuffer(VkQueue queue, const VkSubmitInfo& submit_info, VkFence fence = VK_NULL_HANDLE);
 	static void submitCommandBuffer(VkQueue queue, const std::vector<VkCommandBuffer>& command_buffers, VkFence fence = VK_NULL_HANDLE);
+
 
 private:
     void createCommandPools();

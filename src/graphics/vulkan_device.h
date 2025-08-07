@@ -11,7 +11,6 @@
 #include "vulkan_instance.h"
 #include "vulkan_instance_layers_and_extensions.h"
 #include "vulkan_device_extensions.h"
-#include "vulkan_swapchain.h"
 
 struct QueueFamilyIndices {
     std::vector<VkQueueFamilyProperties> queue_families;
@@ -54,6 +53,8 @@ public:
     VkQueue getTransferQueue() const;
     VkQueue getPresentQueue() const;
     VkSampleCountFlagBits getMsaaSamples() const;
+
+    VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 
 private:
     template<typename Container>

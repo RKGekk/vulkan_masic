@@ -324,3 +324,19 @@ std::unordered_set<std::string> getNamesUnsupported(const std::unordered_set<std
     );
     return result;
 }
+
+std::vector<char> readFile(const std::string& file_name) {
+    InputFileStramGuard stream_guard(std::ifstream(file_name, std::ios::ate | std::ios::binary));
+    std::ifstream& file = stream_guard.Get(); 
+    if(!file.is_open()) {
+        throw std::runtime_error("failed to open file: " + file_name + "\n");
+    }
+
+    size_t file_size = (size_t)file.tellg();
+    std::vector<char> buffer(file_size);
+
+    file.seekg(0u);
+    file.read(buffer.data(), file_size);
+
+    return buffer;
+}

@@ -1,4 +1,5 @@
 #include "vulkan_device.h"
+#include "vulkan_swapchain.h"
 
 std::vector<VkQueueFamilyProperties> QueueFamilyIndices::getQueueFamilies(VkPhysicalDevice device) {
     uint32_t queue_family_count = 0u;
@@ -131,6 +132,20 @@ VkSampleCountFlagBits VulkanDevice::getMsaaSamples() const {
     return m_msaa_samples;
 }
 
+VkFormat VulkanDevice::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
+    for (VkFormat format : candidates) {
+        VkFormatProperties props;
+        vkGetPhysicalDeviceFormatProperties(m_device_abilities.physical_device, format, &props);
+        if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
+            return format;
+        }
+        else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
+            return format;
+        }
+    }
+    throw std::runtime_error("failed to find supported format!");
+}
+
 DeviceAbilities VulkanDevice::pickPhysicalDevice(VkInstance vk_instance, VkSurfaceKHR surface) {
     std::vector<VkPhysicalDevice> devices = getPhysicalDevices(vk_instance);
     
@@ -219,7 +234,7 @@ bool VulkanDevice::isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surfac
     
     bool swap_chain_adequate = false;
     if(all_device_ext_supported) {
-        SwapchainSupportDetails swap_chain_details = querySwapChainSupport(device, surface);
+        SwapchainSupportDetails swap_chain_details = VulkanSwapChain::querySwapChainSupport(device, surface);
         swap_chain_adequate = !swap_chain_details.formats.empty() && !swap_chain_details.present_modes.empty();
     }
     

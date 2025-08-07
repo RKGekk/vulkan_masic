@@ -9,6 +9,7 @@ set(APP_SOURCES
     "${SRC_DIR}/main.cpp"
     "${SRC_DIR}/tools/string_tools.h"
     "${SRC_DIR}/tools/string_tools.cpp"
+    "${SRC_DIR}/tools/vulkan_tools.h"
     "${SRC_DIR}/graphics/vulkan_instance_layers_and_extensions.h"
     "${SRC_DIR}/graphics/vulkan_instance_layers_and_extensions.cpp"
     "${SRC_DIR}/graphics/vulkan_instance.h"
@@ -21,6 +22,8 @@ set(APP_SOURCES
     "${SRC_DIR}/graphics/vulkan_swapchain.cpp"
     "${SRC_DIR}/graphics/vulkan_command_manager.h"
     "${SRC_DIR}/graphics/vulkan_command_manager.cpp"
+    "${SRC_DIR}/graphics/vulkan_renderer.h"
+    "${SRC_DIR}/graphics/vulkan_renderer.cpp"
 )
 set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders")
 set(TEXTURES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/textures")
