@@ -350,6 +350,7 @@ void VulkanRenderer::createColorResources() {
 
 void VulkanRenderer::createDepthResources() {
     VkFormat depth_format = m_device->findDepthFormat();
+    VkImageAspectFlags image_aspect = m_device->hasStencilComponent(depth_format) ? VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT : VK_IMAGE_ASPECT_DEPTH_BIT;
     
     VkImageCreateInfo image_info{};
     image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -369,7 +370,7 @@ void VulkanRenderer::createDepthResources() {
 
     m_out_depth_images.resize(m_swapchain.getMaxFrames());
     for(uint32_t i = 0; i < m_swapchain.getMaxFrames(); ++i) {
-        m_out_depth_images[i] = m_device->createImage(image_info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_IMAGE_ASPECT_DEPTH_BIT, 1u);
+        m_out_depth_images[i] = m_device->createImage(image_info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image_aspect, 1u);
         m_device->getCommandManager().transitionImageLayout(m_out_depth_images[i].image, depth_format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1u);
     }
 }

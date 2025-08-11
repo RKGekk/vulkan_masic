@@ -166,7 +166,7 @@ ImageBuffer VulkanDevice::createImage(const VkImageCreateInfo& image_info, VkMem
 ImageBufferAndView VulkanDevice::createImage(const VkImageCreateInfo& image_info, VkMemoryPropertyFlags properties, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const {
     ImageBuffer image_buffer = createImage(image_info, properties);
     ImageBufferAndView image_and_view = image_buffer.getImageAndView();
-    image_and_view.image_view = createImageView(image_buffer.image, image_info.format, VK_IMAGE_ASPECT_COLOR_BIT, 1u);
+    image_and_view.image_view = createImageView(image_buffer.image, image_info.format, aspect_flags, 1u);
     return image_and_view;
 }
 
