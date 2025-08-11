@@ -52,10 +52,11 @@ public:
 private:
     static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& available_formats);
     static VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& available_present_modes);
-    static VkSwapchainKHR createSwapchain(VkDevice logical_device, VkSurfaceKHR surface, const SwapchainParams& swapchain_params, const SwapchainSupportDetails& swapchain_support_details, const QueueFamilyIndices& queue_family_indices);
-    static std::vector<VkImage> getSwapchainImages(VkDevice device, VkSwapchainKHR swapchain);
-    static std::vector<SwapChainBuffer> getSwapchainBuffers(VkDevice device, VkSwapchainKHR swapchain, VkSurfaceFormatKHR surface_format);
     static VkFormat findSupportedFormat(VkPhysicalDevice device, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+
+    VkSwapchainKHR createSwapchain(VkSurfaceKHR surface, const SwapchainParams& swapchain_params, const SwapchainSupportDetails& swapchain_support_details, const QueueFamilyIndices& queue_family_indices) const;
+    std::vector<VkImage> getSwapchainImages() const;
+    std::vector<SwapChainBuffer> getSwapchainBuffers(VkFormat format) const;
 
     VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 

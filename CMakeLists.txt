@@ -14,6 +14,8 @@ set(APP_SOURCES
     "${SRC_DIR}/graphics/vulkan_instance_layers_and_extensions.cpp"
     "${SRC_DIR}/graphics/vulkan_instance.h"
     "${SRC_DIR}/graphics/vulkan_instance.cpp"
+    "${SRC_DIR}/graphics/vulkan_queue_family.h"
+    "${SRC_DIR}/graphics/vulkan_queue_family.cpp"
     "${SRC_DIR}/graphics/vulkan_device.h"
     "${SRC_DIR}/graphics/vulkan_device.cpp"
     "${SRC_DIR}/graphics/vulkan_device_extensions.h"
@@ -22,6 +24,8 @@ set(APP_SOURCES
     "${SRC_DIR}/graphics/vulkan_swapchain.cpp"
     "${SRC_DIR}/graphics/vulkan_command_manager.h"
     "${SRC_DIR}/graphics/vulkan_command_manager.cpp"
+    "${SRC_DIR}/graphics/vulkan_drawable.h"
+    "${SRC_DIR}/graphics/vulkan_drawable.cpp"
     "${SRC_DIR}/graphics/vulkan_renderer.h"
     "${SRC_DIR}/graphics/vulkan_renderer.cpp"
 )

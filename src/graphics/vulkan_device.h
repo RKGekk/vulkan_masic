@@ -11,24 +11,7 @@
 #include "vulkan_instance.h"
 #include "vulkan_instance_layers_and_extensions.h"
 #include "vulkan_device_extensions.h"
-
-struct QueueFamilyIndices {
-    std::vector<VkQueueFamilyProperties> queue_families;
-
-    std::optional<uint32_t> graphics_family;
-    std::optional<uint32_t> present_family;
-    std::optional<uint32_t> compute_family;
-    std::optional<uint32_t> transfer_family;
-
-    void init(VkPhysicalDevice device, VkSurfaceKHR surface);
-    
-    bool isComplete() const;
-    VkSharingMode getBufferSharingMode() const;
-    std::unordered_set<uint32_t> getFamilies() const;
-    std::vector<uint32_t> getIndices() const;
-
-    static std::vector<VkQueueFamilyProperties> getQueueFamilies(VkPhysicalDevice device);
-};
+#include "vulkan_command_manager.h"
 
 struct DeviceAbilities {
     VkPhysicalDevice physical_device;
@@ -36,6 +19,28 @@ struct DeviceAbilities {
     VkPhysicalDeviceFeatures features;
     VkPhysicalDeviceMemoryProperties memory_properties;
     int score;
+};
+
+struct VulkanBuffer {
+    VkBuffer buf;
+    VkDeviceMemory mem;
+    VkDescriptorBufferInfo bufferInfo;
+};
+
+struct ImageBufferAndView;
+struct ImageBuffer {
+    VkDeviceMemory memory;
+    VkImage image;
+    VkImageCreateInfo image_info;
+    ImageBufferAndView getImageAndView() const;
+};
+
+struct ImageBufferAndView {
+    VkDeviceMemory memory;
+    VkImage image;
+    VkImageCreateInfo image_info;
+    VkImageView image_view;
+    ImageBuffer getImage() const;
 };
 
 class VulkanDevice {
@@ -47,14 +52,23 @@ public:
 
     VkDevice getDevice() const;
     const DeviceAbilities& getDeviceAbilities() const;
-    const QueueFamilyIndices& getQueueFamilyIndices() const;
-    VkQueue getGraphicsQueue() const;
-    VkQueue getComputeQueue() const;
-    VkQueue getTransferQueue() const;
-    VkQueue getPresentQueue() const;
     VkSampleCountFlagBits getMsaaSamples() const;
+    const VulkanCommandManager& getCommandManager() const;
 
-    VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+    VulkanBuffer createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) const;
+
+    VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT, uint32_t mip_levels = 1u) const;
+    std::vector<VkImageView> createImageViews(const std::vector<VkImage>& images, VkFormat format, VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT, uint32_t mip_levels = 1u) const;
+    ImageBuffer createImage(const VkImageCreateInfo& image_info, VkMemoryPropertyFlags properties) const;
+    ImageBufferAndView createImage(const VkImageCreateInfo& image_info, VkMemoryPropertyFlags properties, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const;
+    ImageBuffer createImage(const std::string& path_to_file) const;
+    ImageBufferAndView createImageAndView(const std::string& path_to_file) const;
+
+    uint32_t findMemoryType(uint32_t type_filter, VkMemoryPropertyFlags properties) const;
+    VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const;
+    VkFormat findDepthFormat();
+
+    static bool hasStencilComponent(VkFormat format);
 
 private:
     template<typename Container>
@@ -76,17 +90,12 @@ private:
     static uint64_t getDeviceMaxMemoryLimit(VkPhysicalDeviceMemoryProperties phys_device_mem_prop);
     static bool isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface);
     static VkSampleCountFlagBits getMaxUsableSampleCount(VkPhysicalDeviceProperties physical_device_properties);
-
-    static VkDevice createLogicalDevice(VkPhysicalDevice physical_device, const QueueFamilyIndices& queue_family_indices, const VulkanDeviceExtensions& device_extensions, const VulkanInstanceLayersAndExtensions& instance_layers_and_extensions);
+    static VkDevice createLogicalDevice(VkPhysicalDevice physical_device, const std::unordered_set<uint32_t>& family_indices, const VulkanDeviceExtensions& device_extensions, const VulkanInstanceLayersAndExtensions& instance_layers_and_extensions);
 
     VulkanDeviceExtensions m_extensions;
     VkDevice m_device;
     DeviceAbilities m_device_abilities;
-    QueueFamilyIndices m_queue_family_indices;
-    VkQueue m_graphics_queue = VK_NULL_HANDLE;
-    VkQueue m_compute_queue = VK_NULL_HANDLE;
-    VkQueue m_transfer_queue = VK_NULL_HANDLE;
-    VkQueue m_present_queue = VK_NULL_HANDLE;
+    VulkanCommandManager m_command_manager;
 
     VkSampleCountFlagBits m_msaa_samples = VK_SAMPLE_COUNT_1_BIT;
 };

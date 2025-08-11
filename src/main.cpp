@@ -33,6 +33,7 @@
 #include "graphics/vulkan_device.h"
 #include "graphics/vulkan_command_manager.h"
 #include "graphics/vulkan_renderer.h"
+#include "graphics/vulkan_drawable.h"
 #include "tools/string_tools.h"
 
 const uint32_t WIDTH = 800;
@@ -80,7 +81,6 @@ private:
     VulkanInstance m_vulkan_instance;
     std::shared_ptr<VulkanDevice> m_vulkan_device;
     
-    std::shared_ptr<VulkanCommandManager> m_command_manager;
     VulkanRenderer m_renderer;
 
     GLFWwindow* initMainWindow() {
@@ -100,10 +100,10 @@ private:
         m_vulkan_device = std::make_shared<VulkanDevice>();
         m_vulkan_device->init(m_vulkan_instance, m_surface);
 
-        m_command_manager = std::make_shared<VulkanCommandManager>();
-        m_command_manager->init(m_vulkan_device);
-
-        m_renderer.init(m_vulkan_device, m_surface, m_window, m_command_manager, "textures/texture.jpg", g_vertices, g_indices);
+        m_renderer.init(m_vulkan_device, m_surface, m_window, "textures/texture.jpg");
+        std::shared_ptr<VulkanDrawable> drawable = std::make_shared<VulkanDrawable>();
+        drawable->init(m_vulkan_device, g_vertices, g_indices);
+        m_renderer.addDrawable(std::move(drawable));
     }
 
     void update_frame(uint32_t current_image) {
@@ -134,7 +134,6 @@ private:
 
     void cleanup() {
         m_renderer.destroy();
-        m_command_manager->destroy();
         m_vulkan_device->destroy();
         vkDestroySurfaceKHR(m_vulkan_instance.getInstance(), m_surface, nullptr);
         m_vulkan_instance.destroy();

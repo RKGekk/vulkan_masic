@@ -12,19 +12,19 @@ bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR su
     m_swapchain_params.present_mode = chooseSwapPresentMode(m_swapchain_support_details.present_modes);
     m_swapchain_params.extent = chooseSwapExtent(m_swapchain_support_details.capabilities);
 
-    if(m_device->getQueueFamilyIndices().graphics_family != m_device->getQueueFamilyIndices().present_family) {
+    if(m_device->getCommandManager().getQueueFamilyIndices().getGraphicsFamily() != m_device->getCommandManager().getQueueFamilyIndices().getPresentFamily()) {
         m_swapchain_params.images_sharing_mode = VK_SHARING_MODE_CONCURRENT;
     }
     else {
         m_swapchain_params.images_sharing_mode = VK_SHARING_MODE_EXCLUSIVE;
     }
 
-    m_swapchain = createSwapchain(m_device->getDevice(), m_surface, m_swapchain_params, m_swapchain_support_details, m_device->getQueueFamilyIndices());
+    m_swapchain = createSwapchain(m_surface, m_swapchain_params, m_swapchain_support_details, m_device->getCommandManager().getQueueFamilyIndices());
     VkResult result = vkGetSwapchainImagesKHR(m_device->getDevice(), m_swapchain, &m_max_frames, nullptr);
     if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to get swapchain images count!");
     }
-    m_swapchain_images = getSwapchainBuffers(m_device->getDevice(), m_swapchain, m_swapchain_params.surface_format);
+    m_swapchain_images = getSwapchainBuffers(m_swapchain_params.surface_format.format);
 
     return true;
 }
@@ -46,15 +46,15 @@ void VulkanSwapChain::recreate() {
     m_swapchain_params.present_mode = chooseSwapPresentMode(m_swapchain_support_details.present_modes);
     m_swapchain_params.extent = chooseSwapExtent(m_swapchain_support_details.capabilities);
 
-    if(m_device->getQueueFamilyIndices().graphics_family != m_device->getQueueFamilyIndices().present_family) {
+    if(m_device->getCommandManager().getQueueFamilyIndices().getGraphicsFamily() != m_device->getCommandManager().getQueueFamilyIndices().getPresentFamily()) {
         m_swapchain_params.images_sharing_mode = VK_SHARING_MODE_CONCURRENT;
     }
     else {
         m_swapchain_params.images_sharing_mode = VK_SHARING_MODE_EXCLUSIVE;
     }
 
-    m_swapchain = createSwapchain(m_device->getDevice(), m_surface, m_swapchain_params, m_swapchain_support_details, m_device->getQueueFamilyIndices());
-    m_swapchain_images = getSwapchainBuffers(m_device->getDevice(), m_swapchain, m_swapchain_params.surface_format);
+    m_swapchain = createSwapchain(m_surface, m_swapchain_params, m_swapchain_support_details, m_device->getCommandManager().getQueueFamilyIndices());
+    m_swapchain_images = getSwapchainBuffers(m_swapchain_params.surface_format.format);
 }
 
 const SwapchainSupportDetails& VulkanSwapChain::getSwapchainSupportDetails() const {
@@ -141,7 +141,7 @@ VkPresentModeKHR VulkanSwapChain::chooseSwapPresentMode(const std::vector<VkPres
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-VkSwapchainKHR VulkanSwapChain::createSwapchain(VkDevice logical_device, VkSurfaceKHR surface, const SwapchainParams& swapchain_params, const SwapchainSupportDetails& swapchain_support_details, const QueueFamilyIndices& queue_family_indices) {
+VkSwapchainKHR VulkanSwapChain::createSwapchain(VkSurfaceKHR surface, const SwapchainParams& swapchain_params, const SwapchainSupportDetails& swapchain_support_details, const QueueFamilyIndices& queue_family_indices) const {
     uint32_t image_count = swapchain_support_details.capabilities.minImageCount + 1u;
     if(swapchain_support_details.capabilities.maxImageCount > 0u && image_count > swapchain_support_details.capabilities.maxImageCount){
         image_count = swapchain_support_details.capabilities.maxImageCount;
@@ -176,7 +176,7 @@ VkSwapchainKHR VulkanSwapChain::createSwapchain(VkDevice logical_device, VkSurfa
     swapchain_create_info.oldSwapchain = VK_NULL_HANDLE;
     
     VkSwapchainKHR swap_chain = VK_NULL_HANDLE;
-    VkResult result = vkCreateSwapchainKHR(logical_device, &swapchain_create_info, nullptr, &swap_chain);
+    VkResult result = vkCreateSwapchainKHR(m_device->getDevice(), &swapchain_create_info, nullptr, &swap_chain);
     if(result != VK_SUCCESS) {
         throw std::runtime_error("failed to create swap chain!");
     }
@@ -184,14 +184,14 @@ VkSwapchainKHR VulkanSwapChain::createSwapchain(VkDevice logical_device, VkSurfa
     return swap_chain;
 }
 
-std::vector<VkImage> VulkanSwapChain::getSwapchainImages(VkDevice device, VkSwapchainKHR swapchain) {
+std::vector<VkImage> VulkanSwapChain::getSwapchainImages() const {
     uint32_t swapchain_image_count = 0u;
-    VkResult result = vkGetSwapchainImagesKHR(device, swapchain, &swapchain_image_count, nullptr);
+    VkResult result = vkGetSwapchainImagesKHR(m_device->getDevice(), m_swapchain, &swapchain_image_count, nullptr);
     if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to get swapchain images!");
     }
     std::vector<VkImage> swapchain_images(swapchain_image_count);
-    result = vkGetSwapchainImagesKHR(device, swapchain, &swapchain_image_count, swapchain_images.data());
+    result = vkGetSwapchainImagesKHR(m_device->getDevice(), m_swapchain, &swapchain_image_count, swapchain_images.data());
     if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to get swapchain images!");
     }
@@ -199,9 +199,9 @@ std::vector<VkImage> VulkanSwapChain::getSwapchainImages(VkDevice device, VkSwap
     return swapchain_images; 
 }
 
-std::vector<SwapChainBuffer> VulkanSwapChain::getSwapchainBuffers(VkDevice device, VkSwapchainKHR swapchain, VkSurfaceFormatKHR surface_format) {
-    std::vector<VkImage> swapchain_images = getSwapchainImages(device, swapchain);
-    std::vector<VkImageView> swapchain_views = VulkanRenderer::getImageViews(device, swapchain_images, surface_format);
+std::vector<SwapChainBuffer> VulkanSwapChain::getSwapchainBuffers(VkFormat format) const {
+    std::vector<VkImage> swapchain_images = getSwapchainImages();
+    std::vector<VkImageView> swapchain_views = m_device->createImageViews(swapchain_images, format);
     size_t sz = swapchain_images.size();
     std::vector<SwapChainBuffer> swapchain_buffers;
     swapchain_buffers.reserve(sz);
