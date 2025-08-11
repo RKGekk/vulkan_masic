@@ -13,6 +13,7 @@
 #include "vulkan_device.h"
 #include "vulkan_swapchain.h"
 #include "vulkan_drawable.h"
+#include "vulkan_shader.h"
 
 struct UniformBufferObject {
     glm::mat4 model;
@@ -34,19 +35,15 @@ public:
     void update_frame(const UniformBufferObject& ubo);
     void addDrawable(std::shared_ptr<VulkanDrawable> drawable);
 
-    static VkShaderModule CreateShaderModule(VkDevice device, const std::string& path);
-    static VkShaderModule CreateShaderModule(VkDevice device, const std::vector<char>& buffer);
-    static VkRenderPass createRenderPass(const std::shared_ptr<VulkanDevice>& device_ptr, const SwapchainParams& swapchain_params, VkSubpassDependency pass_dependency);
-    
 private:
 
     void createColorResources();
     void createDepthResources();
-    void loadShaders();
-
+    
     VkDescriptorSetLayout createDescSetLayout();
     void createRenderPass();
-    void createPipeline(VkDevice device, VkShaderModule vert_shader_modeule, VkShaderModule frag_shader_modeule, VkRenderPass render_pass, SwapchainParams swapchain_params, VkDescriptorSetLayout desc_set_layout, VkSampleCountFlagBits msaa_samples);
+    VkRenderPass createRenderPass(const SwapchainParams& swapchain_params, VkSubpassDependency pass_dependency);
+    void createPipeline(VkDevice device, VkRenderPass render_pass, SwapchainParams swapchain_params, VkDescriptorSetLayout desc_set_layout, VkSampleCountFlagBits msaa_samples);
     std::vector<VkFramebuffer> createFramebuffers();
     
     VkSampler createTextureSampler(uint32_t mip_levels);
@@ -64,8 +61,8 @@ private:
     std::vector<ImageBufferAndView> m_out_color_images;
     std::vector<ImageBufferAndView> m_out_depth_images;
 
-    VkShaderModule m_vert_shader_modeule = VK_NULL_HANDLE;
-    VkShaderModule m_frag_shader_modeule = VK_NULL_HANDLE;
+    VulkanShader m_vert_shader;
+    VulkanShader m_frag_shader;
 
     VkRenderPass m_render_pass = VK_NULL_HANDLE;
     VkDescriptorSetLayout m_desc_set_layout = VK_NULL_HANDLE;

@@ -8,11 +8,13 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR sur
     createColorResources();
     createDepthResources();
 
-    loadShaders();
+    
+    m_frag_shader.init(m_device->getDevice(), "shaders/shader.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+    m_vert_shader.init(m_device->getDevice(), "shaders/shader.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
 
     createRenderPass();
     m_desc_set_layout = createDescSetLayout();
-    createPipeline(m_device->getDevice(), m_vert_shader_modeule, m_frag_shader_modeule, m_render_pass, m_swapchain.getSwapchainParams(), m_desc_set_layout, m_device->getMsaaSamples());
+    createPipeline(m_device->getDevice(), m_render_pass, m_swapchain.getSwapchainParams(), m_desc_set_layout, m_device->getMsaaSamples());
     m_out_framebuffers = createFramebuffers();
 
     m_texture_image = m_device->createImageAndView(texture_path);
@@ -71,8 +73,8 @@ void VulkanRenderer::destroy() {
         drawable->destroy();
     }
 
-    vkDestroyShaderModule(m_device->getDevice(), m_frag_shader_modeule, nullptr);
-    vkDestroyShaderModule(m_device->getDevice(), m_vert_shader_modeule, nullptr);
+    m_vert_shader.destroy();
+    m_frag_shader.destroy();
 }
 
 void VulkanRenderer::recreate() {
@@ -106,7 +108,7 @@ void VulkanRenderer::recreate() {
 
     createRenderPass();
     m_desc_set_layout = createDescSetLayout();
-    createPipeline(m_device->getDevice(), m_vert_shader_modeule, m_frag_shader_modeule, m_render_pass, m_swapchain.getSwapchainParams(), m_desc_set_layout, m_device->getMsaaSamples());
+    createPipeline(m_device->getDevice(), m_render_pass, m_swapchain.getSwapchainParams(), m_desc_set_layout, m_device->getMsaaSamples());
     m_out_framebuffers = createFramebuffers();
 
     createSyncObjects();
@@ -233,97 +235,6 @@ void VulkanRenderer::addDrawable(std::shared_ptr<VulkanDrawable> drawable) {
     m_drawable_list.push_back(std::move(drawable));
 }
 
-VkShaderModule VulkanRenderer::CreateShaderModule(VkDevice device, const std::string& path) {
-    auto shader_buff = readFile(path);
-    VkShaderModule shader_modeule = CreateShaderModule(device, shader_buff);
-    return shader_modeule;
-}
-
-VkShaderModule VulkanRenderer::CreateShaderModule(VkDevice device, const std::vector<char>& buffer) {
-    VkShaderModuleCreateInfo shader_module_info{};
-    shader_module_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    shader_module_info.codeSize = static_cast<uint32_t>(buffer.size());
-    shader_module_info.pCode = reinterpret_cast<const uint32_t*>(buffer.data());
-    VkShaderModule shader_module = VK_NULL_HANDLE;
-    VkResult result = vkCreateShaderModule(device, &shader_module_info, nullptr, &shader_module);
-    if(result != VK_SUCCESS) {
-        throw std::runtime_error("failed to create shader!");
-    }
-    return shader_module;
-}
-
-VkRenderPass VulkanRenderer::createRenderPass(const std::shared_ptr<VulkanDevice>& device_ptr, const SwapchainParams& swapchain_params, VkSubpassDependency subpass_dependency) {
-    VkAttachmentDescription color_attachment{};
-    color_attachment.format = swapchain_params.surface_format.format;
-    color_attachment.samples = device_ptr->getMsaaSamples();
-    color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    color_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    color_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    color_attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    
-    VkAttachmentReference color_attachment_ref{};
-    color_attachment_ref.attachment = 0u;
-    color_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; 
-    
-    VkAttachmentDescription depth_attachment{};
-    depth_attachment.format = device_ptr->findDepthFormat();
-    depth_attachment.samples = device_ptr->getMsaaSamples();
-    depth_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    depth_attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depth_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    depth_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depth_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    depth_attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-    
-    VkAttachmentReference depth_attachment_ref{};
-    depth_attachment_ref.attachment = 1u;
-    depth_attachment_ref.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-    
-    VkAttachmentDescription color_attachment_resolve{};
-    color_attachment_resolve.format = swapchain_params.surface_format.format;
-    color_attachment_resolve.samples = VK_SAMPLE_COUNT_1_BIT;
-    color_attachment_resolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    color_attachment_resolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    color_attachment_resolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    color_attachment_resolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    color_attachment_resolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    color_attachment_resolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-    
-    VkAttachmentReference color_attachment_resolve_ref{};
-    color_attachment_resolve_ref.attachment = 2u;
-    color_attachment_resolve_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    
-    VkSubpassDescription subpass_desc{};
-    subpass_desc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpass_desc.colorAttachmentCount = 1u;
-    subpass_desc.pColorAttachments = &color_attachment_ref;
-    subpass_desc.pDepthStencilAttachment = &depth_attachment_ref;
-    subpass_desc.pResolveAttachments = &color_attachment_resolve_ref;
-    
-    std::array<VkAttachmentDescription, 3> attachments = {color_attachment, depth_attachment, color_attachment_resolve};
-    std::array<VkSubpassDescription, 1> subpases = {subpass_desc};
-    std::array<VkSubpassDependency, 1> subdependencies = {subpass_dependency};
-    
-    VkRenderPassCreateInfo render_pass_info{};
-    render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    render_pass_info.attachmentCount = static_cast<uint32_t>(attachments.size());
-    render_pass_info.pAttachments = attachments.data();
-    render_pass_info.subpassCount = static_cast<uint32_t>(subpases.size());
-    render_pass_info.pSubpasses = subpases.data();
-    render_pass_info.dependencyCount = static_cast<uint32_t>(subdependencies.size());
-    render_pass_info.pDependencies = subdependencies.data();
-    
-    VkRenderPass render_pass = VK_NULL_HANDLE;
-    VkResult result = vkCreateRenderPass(device_ptr->getDevice(), &render_pass_info, nullptr, &render_pass);
-    if (result != VK_SUCCESS) {
-        throw std::runtime_error("failed to create render pass!");
-    }
-    
-    return render_pass;
-}
-
 void VulkanRenderer::createColorResources() {
     VkFormat color_format = m_swapchain.getSwapchainParams().surface_format.format;
     VkImageCreateInfo image_info{};
@@ -375,11 +286,6 @@ void VulkanRenderer::createDepthResources() {
     }
 }
 
-void VulkanRenderer::loadShaders() {
-    m_frag_shader_modeule = CreateShaderModule(m_device->getDevice(), "shaders/shader.frag.spv");
-    m_vert_shader_modeule = CreateShaderModule(m_device->getDevice(), "shaders/shader.vert.spv");
-}
-
 VkDescriptorSetLayout VulkanRenderer::createDescSetLayout() {
     VkDescriptorSetLayoutBinding ubo_layout_binding{};
     ubo_layout_binding.binding = 0u;
@@ -419,23 +325,84 @@ void VulkanRenderer::createRenderPass() {
     pass_dependency.srcAccessMask = 0u;
     pass_dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
     pass_dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-    m_render_pass = createRenderPass(m_device, m_swapchain.getSwapchainParams(), pass_dependency);
+    m_render_pass = createRenderPass(m_swapchain.getSwapchainParams(), pass_dependency);
 }
 
-void VulkanRenderer::createPipeline(VkDevice device, VkShaderModule vert_shader_module, VkShaderModule frag_shader_module, VkRenderPass render_pass, SwapchainParams swapchain_params, VkDescriptorSetLayout desc_set_layout, VkSampleCountFlagBits msaa_samples) {
-    VkPipelineShaderStageCreateInfo frag_shader_info{};
-    frag_shader_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    frag_shader_info.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-    frag_shader_info.module = frag_shader_module;
-    frag_shader_info.pName = "main";
-    frag_shader_info.pSpecializationInfo = nullptr; // fill constants
+VkRenderPass VulkanRenderer::createRenderPass(const SwapchainParams& swapchain_params, VkSubpassDependency subpass_dependency) {
+    VkAttachmentDescription color_attachment{};
+    color_attachment.format = swapchain_params.surface_format.format;
+    color_attachment.samples = m_device->getMsaaSamples();
+    color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    color_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    color_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    color_attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    
+    VkAttachmentReference color_attachment_ref{};
+    color_attachment_ref.attachment = 0u;
+    color_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; 
+    
+    VkAttachmentDescription depth_attachment{};
+    depth_attachment.format = m_device->findDepthFormat();
+    depth_attachment.samples = m_device->getMsaaSamples();
+    depth_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depth_attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depth_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    depth_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depth_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    depth_attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    
+    VkAttachmentReference depth_attachment_ref{};
+    depth_attachment_ref.attachment = 1u;
+    depth_attachment_ref.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    
+    VkAttachmentDescription color_attachment_resolve{};
+    color_attachment_resolve.format = swapchain_params.surface_format.format;
+    color_attachment_resolve.samples = VK_SAMPLE_COUNT_1_BIT;
+    color_attachment_resolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    color_attachment_resolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    color_attachment_resolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    color_attachment_resolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    color_attachment_resolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    color_attachment_resolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    
+    VkAttachmentReference color_attachment_resolve_ref{};
+    color_attachment_resolve_ref.attachment = 2u;
+    color_attachment_resolve_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    
+    VkSubpassDescription subpass_desc{};
+    subpass_desc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass_desc.colorAttachmentCount = 1u;
+    subpass_desc.pColorAttachments = &color_attachment_ref;
+    subpass_desc.pDepthStencilAttachment = &depth_attachment_ref;
+    subpass_desc.pResolveAttachments = &color_attachment_resolve_ref;
+    
+    std::array<VkAttachmentDescription, 3> attachments = {color_attachment, depth_attachment, color_attachment_resolve};
+    std::array<VkSubpassDescription, 1> subpases = {subpass_desc};
+    std::array<VkSubpassDependency, 1> subdependencies = {subpass_dependency};
+    
+    VkRenderPassCreateInfo render_pass_info{};
+    render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    render_pass_info.attachmentCount = static_cast<uint32_t>(attachments.size());
+    render_pass_info.pAttachments = attachments.data();
+    render_pass_info.subpassCount = static_cast<uint32_t>(subpases.size());
+    render_pass_info.pSubpasses = subpases.data();
+    render_pass_info.dependencyCount = static_cast<uint32_t>(subdependencies.size());
+    render_pass_info.pDependencies = subdependencies.data();
+    
+    VkRenderPass render_pass = VK_NULL_HANDLE;
+    VkResult result = vkCreateRenderPass(m_device->getDevice(), &render_pass_info, nullptr, &render_pass);
+    if (result != VK_SUCCESS) {
+        throw std::runtime_error("failed to create render pass!");
+    }
+    
+    return render_pass;
+}
 
-    VkPipelineShaderStageCreateInfo vertex_shader_info{};
-    vertex_shader_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    vertex_shader_info.stage = VK_SHADER_STAGE_VERTEX_BIT;
-    vertex_shader_info.module = vert_shader_module;
-    vertex_shader_info.pName = "main";
-    vertex_shader_info.pSpecializationInfo = nullptr;
+void VulkanRenderer::createPipeline(VkDevice device, VkRenderPass render_pass, SwapchainParams swapchain_params, VkDescriptorSetLayout desc_set_layout, VkSampleCountFlagBits msaa_samples) {
+    VkPipelineShaderStageCreateInfo frag_shader_info = m_frag_shader.getShaderInfo();
+    VkPipelineShaderStageCreateInfo vertex_shader_info = m_vert_shader.getShaderInfo();
     VkPipelineShaderStageCreateInfo shader_stages[] = {frag_shader_info, vertex_shader_info};
     
     std::array<VkDynamicState, 2> dynamic_states = {
