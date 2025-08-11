@@ -11,7 +11,7 @@ public:
     bool init(VkDevice device, const std::string& path, VkShaderStageFlagBits pipeline_stage);
     void destroy();
 
-    VkPipelineShaderStageCreateInfo getShaderInfo() const;
+    const VkPipelineShaderStageCreateInfo& getShaderInfo() const;
 
 private:
     VkShaderModule CreateShaderModule(const std::vector<char>& buffer) const;

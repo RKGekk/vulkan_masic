@@ -48,7 +48,7 @@ void VulkanDrawable::createAndTransferVertexBuffer(const std::vector<Vertex>& ve
     vkDestroyBuffer(m_device->getDevice(), staging_buffer.buf, nullptr);
     vkFreeMemory(m_device->getDevice(), staging_buffer.mem, nullptr);
 
-    m_vertex_input_bind_desc = Vertex::getBindingDescription();
+    m_vertex_input_bind_desc = Vertex::getBindingDescriptions()[0];
     vertex_input_attr_descs = Vertex::getAttributeDescritpions();
 }
 

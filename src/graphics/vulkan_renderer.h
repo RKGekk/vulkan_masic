@@ -14,6 +14,7 @@
 #include "vulkan_swapchain.h"
 #include "vulkan_drawable.h"
 #include "vulkan_shader.h"
+#include "vulkan_pipeline.h"
 
 struct UniformBufferObject {
     glm::mat4 model;
@@ -43,7 +44,7 @@ private:
     VkDescriptorSetLayout createDescSetLayout();
     void createRenderPass();
     VkRenderPass createRenderPass(const SwapchainParams& swapchain_params, VkSubpassDependency pass_dependency);
-    void createPipeline(VkDevice device, VkRenderPass render_pass, SwapchainParams swapchain_params, VkDescriptorSetLayout desc_set_layout, VkSampleCountFlagBits msaa_samples);
+    
     std::vector<VkFramebuffer> createFramebuffers();
     
     VkSampler createTextureSampler(uint32_t mip_levels);
@@ -65,9 +66,9 @@ private:
     VulkanShader m_frag_shader;
 
     VkRenderPass m_render_pass = VK_NULL_HANDLE;
+
     VkDescriptorSetLayout m_desc_set_layout = VK_NULL_HANDLE;
-    VkPipelineLayout m_pipeline_layout = VK_NULL_HANDLE;
-    VkPipeline m_graphics_pipeline = VK_NULL_HANDLE;
+    VulkanPipeline m_pipeline;
     VkSampler m_texture_sampler = VK_NULL_HANDLE;
 
     ImageBufferAndView m_texture_image;

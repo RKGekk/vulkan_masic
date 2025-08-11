@@ -28,6 +28,8 @@ set(APP_SOURCES
     "${SRC_DIR}/graphics/vulkan_drawable.cpp"
     "${SRC_DIR}/graphics/vulkan_shader.h"
     "${SRC_DIR}/graphics/vulkan_shader.cpp"
+    "${SRC_DIR}/graphics/vulkan_pipeline.h"
+    "${SRC_DIR}/graphics/vulkan_pipeline.cpp"
     "${SRC_DIR}/graphics/vulkan_renderer.h"
     "${SRC_DIR}/graphics/vulkan_renderer.cpp"
 )
