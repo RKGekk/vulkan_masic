@@ -64,6 +64,13 @@ void VulkanRenderer::destroy() {
     vkDestroyPipeline(m_device->getDevice(), m_graphics_pipeline, nullptr);
     vkDestroyPipelineLayout(m_device->getDevice(), m_pipeline_layout, nullptr);
 
+    vkDestroyDescriptorPool(m_device->getDevice(), m_desc_pool, nullptr);
+    vkDestroyDescriptorSetLayout(m_device->getDevice(), m_desc_set_layout, nullptr);
+
+    for (const std::shared_ptr<VulkanDrawable>& drawable : m_drawable_list) {
+        drawable->destroy();
+    }
+
     vkDestroyShaderModule(m_device->getDevice(), m_frag_shader_modeule, nullptr);
     vkDestroyShaderModule(m_device->getDevice(), m_vert_shader_modeule, nullptr);
 }
