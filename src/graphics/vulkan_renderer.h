@@ -15,12 +15,9 @@
 #include "vulkan_drawable.h"
 #include "vulkan_shader.h"
 #include "vulkan_pipeline.h"
-
-struct UniformBufferObject {
-    glm::mat4 model;
-    glm::mat4 view;
-    glm::mat4 proj;
-};
+#include "basic_vertex.h"
+#include "basic_uniform.h"
+#include "vulkan_uniform_buffer.h"
 
 class VulkanRenderer {
 public:
@@ -29,6 +26,7 @@ public:
     void recreate();
 
     const VulkanSwapChain& getSwapchain();
+    const std::shared_ptr<VulkanPipeline>& getPipeline();
 
     void recordCommandBuffer(VkCommandBuffer command_buffer, uint32_t image_index);
     void drawFrame();
@@ -49,7 +47,7 @@ private:
     
     VkSampler createTextureSampler(uint32_t mip_levels);
 
-    void createUniformBuffers(VkDevice device);
+    void createUniformBuffers();
     void createDescSets(VkDevice device);
     VkDescriptorPool createDescPool(VkDevice device);
     void createSyncObjects();
@@ -59,6 +57,7 @@ private:
     VulkanSwapChain m_swapchain;
 
     std::vector<VkFramebuffer> m_out_framebuffers;
+
     std::vector<ImageBufferAndView> m_out_color_images;
     std::vector<ImageBufferAndView> m_out_depth_images;
 
@@ -68,7 +67,7 @@ private:
     VkRenderPass m_render_pass = VK_NULL_HANDLE;
 
     VkDescriptorSetLayout m_desc_set_layout = VK_NULL_HANDLE;
-    VulkanPipeline m_pipeline;
+    std::shared_ptr<VulkanPipeline> m_pipeline;
     VkSampler m_texture_sampler = VK_NULL_HANDLE;
 
     ImageBufferAndView m_texture_image;
@@ -79,8 +78,7 @@ private:
 
     std::vector<std::shared_ptr<VulkanDrawable>> m_drawable_list;
     
-    std::vector<VulkanBuffer> m_uniform_buffers;
-    std::vector<void*> m_uniform_mapped;
+    std::vector<std::shared_ptr<IVulkanUniformBuffer>> m_uniform_buffers;
 
     std::vector<VkSemaphore> m_image_available; // signaled when the presentation engine is finished using the image.
     std::vector<VkSemaphore> m_render_finished;

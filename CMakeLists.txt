@@ -30,6 +30,13 @@ set(APP_SOURCES
     "${SRC_DIR}/graphics/vulkan_shader.cpp"
     "${SRC_DIR}/graphics/vulkan_pipeline.h"
     "${SRC_DIR}/graphics/vulkan_pipeline.cpp"
+    "${SRC_DIR}/graphics/basic_vertex.h"
+    "${SRC_DIR}/graphics/basic_uniform.h"
+    "${SRC_DIR}/graphics/render_resource.h"
+    "${SRC_DIR}/graphics/vulkan_vertex_buffer.h"
+    "${SRC_DIR}/graphics/vulkan_vertex_buffer.cpp"
+    "${SRC_DIR}/graphics/vulkan_uniform_buffer.h"
+    "${SRC_DIR}/graphics/vulkan_uniform_buffer.cpp"
     "${SRC_DIR}/graphics/vulkan_renderer.h"
     "${SRC_DIR}/graphics/vulkan_renderer.cpp"
 )

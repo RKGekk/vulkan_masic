@@ -34,6 +34,8 @@
 #include "graphics/vulkan_command_manager.h"
 #include "graphics/vulkan_renderer.h"
 #include "graphics/vulkan_drawable.h"
+#include "graphics/basic_vertex.h"
+#include "graphics/vulkan_vertex_buffer.h"
 #include "tools/string_tools.h"
 
 const uint32_t WIDTH = 800;
@@ -102,7 +104,10 @@ private:
 
         m_renderer.init(m_vulkan_device, m_surface, m_window, "textures/texture.jpg");
         std::shared_ptr<VulkanDrawable> drawable = std::make_shared<VulkanDrawable>();
-        drawable->init(m_vulkan_device, g_vertices, g_indices);
+
+        std::shared_ptr<VertexBuffer<Vertex, uint16_t>> vertex_buffer = std::make_shared<VertexBuffer<Vertex, uint16_t>>();
+        vertex_buffer->init(m_vulkan_device, g_vertices, g_indices, Vertex::getVertextInputInfo());
+        drawable->init(m_vulkan_device, m_renderer.getPipeline(), std::move(vertex_buffer));
         m_renderer.addDrawable(std::move(drawable));
     }
 

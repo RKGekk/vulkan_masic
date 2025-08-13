@@ -16,14 +16,14 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR sur
     pipeline_shaders_info.push_back(m_vert_shader.getShaderInfo());
 
     createRenderPass();
+    createUniformBuffers();
     m_desc_set_layout = createDescSetLayout();
-    m_pipeline.init(m_device->getDevice(), m_desc_set_layout, m_render_pass, m_swapchain.getSwapchainParams().extent, pipeline_shaders_info, Vertex::getVertextInputInfo(), m_device->getMsaaSamples());
+    m_pipeline = std::make_shared<VulkanPipeline>();
+    m_pipeline->init(m_device->getDevice(), m_desc_set_layout, m_render_pass, m_swapchain.getSwapchainParams().extent, pipeline_shaders_info, Vertex::getVertextInputInfo(), m_device->getMsaaSamples());
     m_out_framebuffers = createFramebuffers();
 
     m_texture_image = m_device->createImageAndView(texture_path);
     m_texture_sampler = createTextureSampler(m_texture_image.image_info.mipLevels);
-    
-    createUniformBuffers(m_device->getDevice());
     
     m_desc_pool = createDescPool(m_device->getDevice());
     createDescSets(m_device->getDevice());
@@ -51,8 +51,7 @@ void VulkanRenderer::destroy() {
         
         vkDestroyFramebuffer(m_device->getDevice(), m_out_framebuffers[i], nullptr);
 
-        vkDestroyBuffer(m_device->getDevice(), m_uniform_buffers[i].buf, nullptr);
-        vkFreeMemory(m_device->getDevice(), m_uniform_buffers[i].mem, nullptr);
+        m_uniform_buffers[i]->destroy();
 
         vkDestroySemaphore(m_device->getDevice(), m_image_available[i], nullptr);
         vkDestroySemaphore(m_device->getDevice(), m_render_finished[i], nullptr);
@@ -66,7 +65,7 @@ void VulkanRenderer::destroy() {
     vkFreeMemory(m_device->getDevice(), m_texture_image.memory, nullptr);
     
     vkDestroyRenderPass(m_device->getDevice(), m_render_pass, nullptr);
-    m_pipeline.destroy();
+    m_pipeline->destroy();
 
     vkDestroyDescriptorPool(m_device->getDevice(), m_desc_pool, nullptr);
     vkDestroyDescriptorSetLayout(m_device->getDevice(), m_desc_set_layout, nullptr);
@@ -102,7 +101,7 @@ void VulkanRenderer::recreate() {
     }
     
     vkDestroyRenderPass(m_device->getDevice(), m_render_pass, nullptr);
-    m_pipeline.destroy();
+    m_pipeline->destroy();
 
     createColorResources();
     createDepthResources();
@@ -113,7 +112,8 @@ void VulkanRenderer::recreate() {
     std::vector<VkPipelineShaderStageCreateInfo> pipeline_shaders_info;
     pipeline_shaders_info.push_back(m_frag_shader.getShaderInfo());
     pipeline_shaders_info.push_back(m_vert_shader.getShaderInfo());
-    m_pipeline.init(m_device->getDevice(), m_desc_set_layout, m_render_pass, m_swapchain.getSwapchainParams().extent, pipeline_shaders_info, Vertex::getVertextInputInfo(), m_device->getMsaaSamples());
+    m_pipeline = std::make_shared<VulkanPipeline>();
+    m_pipeline->init(m_device->getDevice(), m_desc_set_layout, m_render_pass, m_swapchain.getSwapchainParams().extent, pipeline_shaders_info, Vertex::getVertextInputInfo(), m_device->getMsaaSamples());
 
     m_out_framebuffers = createFramebuffers();
 
@@ -122,6 +122,10 @@ void VulkanRenderer::recreate() {
 
 const VulkanSwapChain& VulkanRenderer::getSwapchain() {
     return m_swapchain;
+}
+
+const std::shared_ptr<VulkanPipeline>& VulkanRenderer::getPipeline() {
+    return m_pipeline;
 }
 
 void VulkanRenderer::recordCommandBuffer(VkCommandBuffer command_buffer, uint32_t image_index) {
@@ -144,33 +148,29 @@ void VulkanRenderer::recordCommandBuffer(VkCommandBuffer command_buffer, uint32_
     clear_values[1].depthStencil = {1.0f, 0};
     renderpass_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
     renderpass_info.pClearValues = clear_values.data();
+
+    VkViewport view_port{};
+    view_port.x = 0.0f;
+    view_port.y = 0.0f;
+    view_port.width = static_cast<float>(m_swapchain.getSwapchainParams().extent.width);
+    view_port.height = static_cast<float>(m_swapchain.getSwapchainParams().extent.height);
+    view_port.minDepth = 0.0f;
+    view_port.maxDepth = 1.0f;
+
+    VkRect2D scissor{};
+    scissor.offset = {0, 0};
+    scissor.extent = m_swapchain.getSwapchainParams().extent;
     
     for(const std::shared_ptr<VulkanDrawable> renderable : m_drawable_list) {
         vkCmdBeginRenderPass(command_buffer, &renderpass_info, VK_SUBPASS_CONTENTS_INLINE);
-        vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.getPipeline());
         
-        VkBuffer vertex_buffers[] = {renderable->getVertexBuffer().buf};
-        VkDeviceSize offsets[] = {0};
-        vkCmdBindVertexBuffers(command_buffer, 0, 1, vertex_buffers, offsets);
-        vkCmdBindIndexBuffer(command_buffer, renderable->getIndexBuffer().buf, 0u, VK_INDEX_TYPE_UINT16);
-        
-        VkViewport view_port{};
-        view_port.x = 0.0f;
-        view_port.y = 0.0f;
-        view_port.width = static_cast<float>(m_swapchain.getSwapchainParams().extent.width);
-        view_port.height = static_cast<float>(m_swapchain.getSwapchainParams().extent.height);
-        view_port.minDepth = 0.0f;
-        view_port.maxDepth = 1.0f;
         vkCmdSetViewport(command_buffer, 0u, 1u, &view_port);
-        
-        VkRect2D scissor{};
-        scissor.offset = {0, 0};
-        scissor.extent = m_swapchain.getSwapchainParams().extent;
         vkCmdSetScissor(command_buffer, 0u, 1u, &scissor);
+
+        vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->getPipelineLayout(), 0, 1, &m_desc_sets[m_swapchain.getCurrentFrame()], 0, nullptr);
         
-        vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.getPipelineLayout(), 0, 1, &m_desc_sets[m_swapchain.getCurrentFrame()], 0, nullptr);
+        renderable->recordCommandBuffer(command_buffer);
         
-        vkCmdDrawIndexed(command_buffer, static_cast<uint32_t>(renderable->getIndicesCount()), 1u, 0u, 0u, 0u);
         vkCmdEndRenderPass(command_buffer);
     }
     
@@ -234,7 +234,7 @@ void VulkanRenderer::setFramebufferResized() {
 }
 
 void VulkanRenderer::update_frame(const UniformBufferObject& ubo) {
-    memcpy(m_uniform_mapped[m_swapchain.getCurrentFrame()], &ubo, sizeof(ubo));
+    m_uniform_buffers[m_swapchain.getCurrentFrame()]->update(&ubo);
 }
 
 void VulkanRenderer::addDrawable(std::shared_ptr<VulkanDrawable> drawable) {
@@ -293,12 +293,7 @@ void VulkanRenderer::createDepthResources() {
 }
 
 VkDescriptorSetLayout VulkanRenderer::createDescSetLayout() {
-    VkDescriptorSetLayoutBinding ubo_layout_binding{};
-    ubo_layout_binding.binding = 0u;
-    ubo_layout_binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    ubo_layout_binding.descriptorCount = 1u;
-    ubo_layout_binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-    ubo_layout_binding.pImmutableSamplers = nullptr;
+    VkDescriptorSetLayoutBinding ubo_layout_binding = m_uniform_buffers[0]->getDescLayoutBinding();
     
     VkDescriptorSetLayoutBinding sampler_layout_binding{};
     sampler_layout_binding.binding = 1u;
@@ -462,15 +457,18 @@ VkSampler VulkanRenderer::createTextureSampler(uint32_t mip_levels) {
     return texture_sampler;
 }
 
-void VulkanRenderer::createUniformBuffers(VkDevice device) {
-    VkDeviceSize buffer_size = sizeof(UniformBufferObject);
-    
+void VulkanRenderer::createUniformBuffers() {
     m_uniform_buffers.resize(m_swapchain.getMaxFrames());
-    m_uniform_mapped.resize(m_swapchain.getMaxFrames());
-    
     for(size_t i = 0; i < m_swapchain.getMaxFrames(); ++i) {
-        m_uniform_buffers[i] = m_device->createBuffer(buffer_size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-        vkMapMemory(m_device->getDevice(), m_uniform_buffers[i].mem, 0u, buffer_size, 0u, &m_uniform_mapped[i]);
+        VkDescriptorSetLayoutBinding ubo_layout_binding{};
+        ubo_layout_binding.binding = 0u;
+        ubo_layout_binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        ubo_layout_binding.descriptorCount = 1u;
+        ubo_layout_binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        ubo_layout_binding.pImmutableSamplers = nullptr;
+        std::shared_ptr<VulkanUniformBuffer<UniformBufferObject>> uniform_buffer = std::make_shared<VulkanUniformBuffer<UniformBufferObject>>();
+        uniform_buffer->init(m_device, ubo_layout_binding);
+        m_uniform_buffers[i] = std::move(uniform_buffer);
     }
 }
 
@@ -490,10 +488,7 @@ void VulkanRenderer::createDescSets(VkDevice device) {
     }
         
     for(size_t i = 0u; i < m_swapchain.getMaxFrames(); ++i) {
-        VkDescriptorBufferInfo buffer_info{};
-        buffer_info.buffer = m_uniform_buffers[i].buf;
-        buffer_info.offset = 0u;
-        buffer_info.range = sizeof(UniformBufferObject);
+        VkDescriptorBufferInfo buffer_info = m_uniform_buffers[i]->getDescBufferInfo();
         
         VkDescriptorImageInfo image_info{};
         image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
