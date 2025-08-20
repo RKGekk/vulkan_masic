@@ -53,6 +53,7 @@ public:
         
         m_window = initMainWindow();
         initVulkan(m_window);
+        m_timer.Start();
         mainLoop();
         cleanup();
 
