@@ -7,11 +7,11 @@
 #include <stb_image.h>
 
 ImageBufferAndView ImageBuffer::getImageAndView() const {
-    return {memory, image, image_info};
+    return {memory, image, image_info, image_size};
 }
 
 ImageBuffer ImageBufferAndView::getImage() const {
-    return {memory, image, image_info};
+    return {memory, image, image_info, image_size};
 }
 
 bool VulkanDevice::init(const VulkanInstance& instance, VkSurfaceKHR surface) {
@@ -59,6 +59,7 @@ const VulkanCommandManager& VulkanDevice::getCommandManager() const {
 
 VulkanBuffer VulkanDevice::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) const {
     VulkanBuffer vulkan_buffer;
+    vulkan_buffer.properties = properties;
 
     std::vector<uint32_t> family_indices = m_command_manager.getQueueFamilyIndices().getIndices();
 
@@ -145,6 +146,7 @@ ImageBuffer VulkanDevice::createImage(const VkImageCreateInfo& image_info, VkMem
     
     VkMemoryRequirements mem_req{};
     vkGetImageMemoryRequirements(m_device, image_buffer.image, &mem_req);
+    image_buffer.image_size = mem_req.size;
     
     uint32_t mem_type_idx = findMemoryType(mem_req.memoryTypeBits, properties);
     VkMemoryAllocateInfo alloc_info{};
@@ -190,6 +192,14 @@ ImageBuffer VulkanDevice::createImage(const std::string& path_to_file) const {
     stbi_image_free(pixels);
 
     uint32_t mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(tex_width, tex_height)))) + 1u;
+
+    VkFormat image_format = findSupportedFormat(
+        {
+            VK_FORMAT_R8G8B8A8_SRGB
+        },
+        VK_IMAGE_TILING_OPTIMAL,
+        VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT
+    );
     
     VkImageCreateInfo image_info{};
     image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -199,7 +209,8 @@ ImageBuffer VulkanDevice::createImage(const std::string& path_to_file) const {
     image_info.extent.depth = 1u;
     image_info.mipLevels = mip_levels;
     image_info.arrayLayers = 1u;
-    image_info.format = VK_FORMAT_R8G8B8A8_SRGB;
+    //image_info.format = VK_FORMAT_R8G8B8A8_SRGB;
+    image_info.format = image_format;
     image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
     image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     image_info.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;

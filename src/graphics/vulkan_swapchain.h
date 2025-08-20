@@ -44,7 +44,7 @@ public:
     GLFWwindow* getWindow() const;
     VkSwapchainKHR getSwapchain() const;
 
-    const std::vector<SwapChainBuffer>& getSwapchainImages();
+    const std::vector<SwapChainBuffer>& getSwapchainImages() const;
 
     static VkSurfaceKHR createSurface(VkInstance vk_instance, GLFWwindow* glfw_window_ptr);
     static SwapchainSupportDetails querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
@@ -52,11 +52,10 @@ public:
 private:
     static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& available_formats);
     static VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& available_present_modes);
-    static VkFormat findSupportedFormat(VkPhysicalDevice device, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 
     VkSwapchainKHR createSwapchain(VkSurfaceKHR surface, const SwapchainParams& swapchain_params, const SwapchainSupportDetails& swapchain_support_details, const QueueFamilyIndices& queue_family_indices) const;
-    std::vector<VkImage> getSwapchainImages() const;
-    std::vector<SwapChainBuffer> getSwapchainBuffers(VkFormat format) const;
+    std::vector<VkImage> retriveSwapchainImages() const;
+    std::vector<SwapChainBuffer> retriveSwapchainBuffers(VkFormat format) const;
 
     VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 

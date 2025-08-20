@@ -7,7 +7,7 @@ bool VulkanShader::init(VkDevice device, const std::string& path, VkShaderStageF
     std::vector<char> shader_buff = readFile(path);
     VkShaderModule shader_module = CreateShaderModule(shader_buff);
 
-
+    m_shader_info = VkPipelineShaderStageCreateInfo{};
     m_shader_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     m_shader_info.pNext = nullptr;
     m_shader_info.flags = 0u;

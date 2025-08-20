@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "vulkan_descriptor.h"
+
 class VulkanShader {
 public:
     bool init(VkDevice device, const std::string& path, VkShaderStageFlagBits pipeline_stage);
@@ -18,4 +20,5 @@ private:
 
     VkDevice m_device;
     VkPipelineShaderStageCreateInfo m_shader_info;
+    VulkanDescriptor m_descriptor;
 };

@@ -25,6 +25,7 @@ struct VulkanBuffer {
     VkBuffer buf;
     VkDeviceMemory mem;
     VkDescriptorBufferInfo bufferInfo;
+    VkMemoryPropertyFlags properties;
 };
 
 struct ImageBufferAndView;
@@ -32,6 +33,7 @@ struct ImageBuffer {
     VkDeviceMemory memory;
     VkImage image;
     VkImageCreateInfo image_info;
+    VkDeviceSize image_size;
     ImageBufferAndView getImageAndView() const;
 };
 
@@ -39,6 +41,7 @@ struct ImageBufferAndView {
     VkDeviceMemory memory;
     VkImage image;
     VkImageCreateInfo image_info;
+    VkDeviceSize image_size;
     VkImageView image_view;
     ImageBuffer getImage() const;
 };

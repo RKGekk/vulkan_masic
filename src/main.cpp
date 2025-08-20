@@ -35,33 +35,16 @@
 #include "graphics/vulkan_renderer.h"
 #include "graphics/vulkan_drawable.h"
 #include "graphics/basic_vertex.h"
+#include "graphics/basic_drawable.h"
 #include "graphics/vulkan_vertex_buffer.h"
 #include "tools/string_tools.h"
+#include "tools/game_timer.h"
 
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 const char* WINDOW_TITLE = "Vulkan Test";
 const char* APP_NAME = "Hello Triangle";
 const char* ENGINE_NAME = "No Engine";
-
-const std::vector<Vertex> g_vertices = {
-    {{-0.5f, -0.5f,  0.0f}, { 1.0f,  0.0f,  0.0f}, { 0.0f,  0.0f}},
-    {{ 0.5f, -0.5f,  0.0f}, { 0.0f,  1.0f,  0.0f}, { 1.0f,  0.0f}},
-    {{ 0.5f,  0.5f,  0.0f}, { 0.0f,  0.0f,  1.0f}, { 1.0f,  1.0f}},
-    {{-0.5f,  0.5f,  0.0f}, { 1.0f,  1.0f,  1.0f}, { 0.0f,  1.0f}},
-
-    {{-0.5f, -0.5f, -0.5f}, { 1.0f,  0.0f,  0.0f}, { 0.0f,  0.0f}},
-    {{ 0.5f, -0.5f, -0.5f}, { 0.0f,  1.0f,  0.0f}, { 1.0f,  0.0f}},
-    {{ 0.5f,  0.5f, -0.5f}, { 0.0f,  0.0f,  1.0f}, { 1.0f,  1.0f}},
-    {{-0.5f,  0.5f, -0.5f}, { 1.0f,  1.0f,  1.0f}, { 0.0f,  1.0f}}
-};
-
-const std::vector<uint16_t> g_indices = {
-    0, 1, 2,
-    2, 3, 0,
-    4, 5, 6,
-    6, 7, 4
-};
 
 class VulkanApplication {
 public:
@@ -84,6 +67,7 @@ private:
     std::shared_ptr<VulkanDevice> m_vulkan_device;
     
     VulkanRenderer m_renderer;
+    GameTimer m_timer;
 
     GLFWwindow* initMainWindow() {
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -102,31 +86,16 @@ private:
         m_vulkan_device = std::make_shared<VulkanDevice>();
         m_vulkan_device->init(m_vulkan_instance, m_surface);
 
-        m_renderer.init(m_vulkan_device, m_surface, m_window, "textures/texture.jpg");
-        std::shared_ptr<VulkanDrawable> drawable = std::make_shared<VulkanDrawable>();
+        m_renderer.init(m_vulkan_device, m_surface, m_window);
 
-        std::shared_ptr<VertexBuffer<Vertex, uint16_t>> vertex_buffer = std::make_shared<VertexBuffer<Vertex, uint16_t>>();
-        vertex_buffer->init(m_vulkan_device, g_vertices, g_indices, Vertex::getVertextInputInfo());
-        drawable->init(m_vulkan_device, m_renderer.getPipeline(), std::move(vertex_buffer));
+        std::shared_ptr<BasicDrawable> drawable = std::make_shared<BasicDrawable>();
+        drawable->init(m_vulkan_device, m_renderer.getRenderTarget());
         m_renderer.addDrawable(std::move(drawable));
     }
 
     void update_frame(uint32_t current_image) {
-        static auto start_time = std::chrono::high_resolution_clock::now();
-        
-        auto current_time = std::chrono::high_resolution_clock::now();
-        float dt = std::chrono::duration<float, std::chrono::seconds::period>(current_time - start_time).count();
-        float angle = dt * glm::radians(90.f);
-        glm::vec3 rotation_axis = glm::vec3(0.0f, 0.0f, 1.0f);
-        float aspect = (float)m_renderer.getSwapchain().getSwapchainParams().extent.width / (float)m_renderer.getSwapchain().getSwapchainParams().extent.height;
-        
-        UniformBufferObject ubo{};
-        ubo.model = glm::rotate(glm::mat4(1.0f), angle, rotation_axis);
-        ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        ubo.proj = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 10.0f);
-        ubo.proj[1][1] *= -1.0f;
-        
-        m_renderer.update_frame(ubo);
+        m_timer.Tick();
+        m_renderer.update_frame(m_timer, current_image);
     }
 
     void mainLoop() {

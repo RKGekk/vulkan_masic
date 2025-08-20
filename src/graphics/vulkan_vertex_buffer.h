@@ -6,6 +6,7 @@
 #include "vulkan_device.h"
 
 #include <memory>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
@@ -27,7 +28,7 @@ public:
         m_indices_count = indices.size();
         createAndTransferVertexBuffer(vertices);
         createAndTransferIndexBuffer(indices);
-        m_vertex_info = m_vertex_info;
+        m_vertex_info = vertex_info;
 
         return true;
     }

@@ -3,33 +3,23 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
-#include <glm/glm.hpp>
-#include <glm/vec4.hpp>
-#include <glm/mat4x4.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include "../tools/game_timer.h"
+#include "render_resource.h"
 
-#include <array>
-#include <memory>
-#include <mutex>
+#include <cstdint>
 #include <vector>
-#include <utility>
 
-#include "vulkan_device.h"
-#include "vulkan_vertex_buffer.h"
-#include "vulkan_pipeline.h"
+struct RenderTarget {
+    using Attachment = std::vector<VkImageView>;
+    RenderTargetFormat render_target_fmt;
+    uint32_t frame_count;
+    std::vector<Attachment> frames;
+};
 
-class VulkanDrawable {
+class IVulkanDrawable {
 public:
-    bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<VulkanPipeline> pipeline, std::shared_ptr<IVertexBuffer> vertex_buffer);
-    void destroy();
-    void recordCommandBuffer(VkCommandBuffer command_buffer);
-
-private:
-    std::shared_ptr<VulkanDevice> m_device;
-    std::shared_ptr<IVertexBuffer> m_vertex_buffer;
-
-	std::shared_ptr<VulkanPipeline> m_pipeline;
+    virtual void reset(const RenderTarget& rt) = 0;
+    virtual void destroy() = 0;
+    virtual void recordCommandBuffer(VkCommandBuffer command_buffer, uint32_t frame_index) = 0;
+    virtual void update(const GameTimerDelta& delta, uint32_t image_index) = 0;
 };

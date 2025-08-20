@@ -24,7 +24,7 @@ bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR su
     if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to get swapchain images count!");
     }
-    m_swapchain_images = getSwapchainBuffers(m_swapchain_params.surface_format.format);
+    m_swapchain_images = retriveSwapchainBuffers(m_swapchain_params.surface_format.format);
 
     return true;
 }
@@ -54,7 +54,7 @@ void VulkanSwapChain::recreate() {
     }
 
     m_swapchain = createSwapchain(m_surface, m_swapchain_params, m_swapchain_support_details, m_device->getCommandManager().getQueueFamilyIndices());
-    m_swapchain_images = getSwapchainBuffers(m_swapchain_params.surface_format.format);
+    m_swapchain_images = retriveSwapchainBuffers(m_swapchain_params.surface_format.format);
 }
 
 const SwapchainSupportDetails& VulkanSwapChain::getSwapchainSupportDetails() const {
@@ -89,7 +89,7 @@ VkSwapchainKHR VulkanSwapChain::getSwapchain() const {
     return m_swapchain;
 }
 
-const std::vector<SwapChainBuffer>& VulkanSwapChain::getSwapchainImages() {
+const std::vector<SwapChainBuffer>& VulkanSwapChain::getSwapchainImages() const {
     return m_swapchain_images;
 }
 
@@ -184,7 +184,7 @@ VkSwapchainKHR VulkanSwapChain::createSwapchain(VkSurfaceKHR surface, const Swap
     return swap_chain;
 }
 
-std::vector<VkImage> VulkanSwapChain::getSwapchainImages() const {
+std::vector<VkImage> VulkanSwapChain::retriveSwapchainImages() const {
     uint32_t swapchain_image_count = 0u;
     VkResult result = vkGetSwapchainImagesKHR(m_device->getDevice(), m_swapchain, &swapchain_image_count, nullptr);
     if (result != VK_SUCCESS) {
@@ -199,8 +199,8 @@ std::vector<VkImage> VulkanSwapChain::getSwapchainImages() const {
     return swapchain_images; 
 }
 
-std::vector<SwapChainBuffer> VulkanSwapChain::getSwapchainBuffers(VkFormat format) const {
-    std::vector<VkImage> swapchain_images = getSwapchainImages();
+std::vector<SwapChainBuffer> VulkanSwapChain::retriveSwapchainBuffers(VkFormat format) const {
+    std::vector<VkImage> swapchain_images = retriveSwapchainImages();
     std::vector<VkImageView> swapchain_views = m_device->createImageViews(swapchain_images, format);
     size_t sz = swapchain_images.size();
     std::vector<SwapChainBuffer> swapchain_buffers;

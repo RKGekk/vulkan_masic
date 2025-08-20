@@ -3,7 +3,7 @@
 #include <array>
 #include <stdexcept>
 
-bool VulkanPipeline::init(VkDevice device, VkDescriptorSetLayout desc_set_layout, VkRenderPass render_pass, VkExtent2D viewport_extent, const std::vector<VkPipelineShaderStageCreateInfo>& shaders_info, const VkPipelineVertexInputStateCreateInfo& vertex_input_info, VkSampleCountFlagBits msaa_samples) {
+bool VulkanPipeline::init(VkDevice device, const std::vector<VkDescriptorSetLayout>& desc_set_layouts, VkRenderPass render_pass, VkExtent2D viewport_extent, std::vector<VkPipelineShaderStageCreateInfo> shaders_info, const VkPipelineVertexInputStateCreateInfo& vertex_input_info, VkSampleCountFlagBits msaa_samples) {
     m_device = device;
 
     VkPipelineCacheCreateInfo pipeline_cache_info{};
@@ -17,8 +17,9 @@ bool VulkanPipeline::init(VkDevice device, VkDescriptorSetLayout desc_set_layout
         throw std::runtime_error("failed to create pipeline cache!");
     }
 
-    m_pipeline_layout = createPipelineLayout(desc_set_layout);
+    m_pipeline_layout = createPipelineLayout(desc_set_layouts);
     m_graphics_pipeline = createPipeline(render_pass, viewport_extent, shaders_info, vertex_input_info, msaa_samples);
+    m_shaders_info = std::move(shaders_info);
 
     return true;
 }
@@ -37,13 +38,17 @@ VkPipelineLayout VulkanPipeline::getPipelineLayout() const {
     return m_pipeline_layout;
 }
 
-VkPipelineLayout VulkanPipeline::createPipelineLayout(VkDescriptorSetLayout desc_set_layout) const {
+const std::vector<VkPipelineShaderStageCreateInfo>& VulkanPipeline::getShadersInfo() const {
+    return m_shaders_info;
+}
+
+VkPipelineLayout VulkanPipeline::createPipelineLayout(const std::vector<VkDescriptorSetLayout>& desc_set_layouts) const {
     VkPipelineLayout pipeline_layout;
 
     VkPipelineLayoutCreateInfo pipeline_layout_info{};
     pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipeline_layout_info.setLayoutCount = 1u;
-    pipeline_layout_info.pSetLayouts = &desc_set_layout;
+    pipeline_layout_info.setLayoutCount = static_cast<uint32_t>(desc_set_layouts.size());
+    pipeline_layout_info.pSetLayouts = desc_set_layouts.data();
     pipeline_layout_info.pushConstantRangeCount = 0u;
     pipeline_layout_info.pPushConstantRanges = nullptr;
     
