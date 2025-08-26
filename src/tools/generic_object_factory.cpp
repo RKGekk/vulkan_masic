@@ -1,0 +1,1 @@
+#include "generic_object_factory.h"
