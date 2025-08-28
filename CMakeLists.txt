@@ -86,6 +86,10 @@ set(APP_SOURCES
     "${SRC_DIR}/graphics/vulkan_device_extensions.cpp"
     "${SRC_DIR}/graphics/vulkan_swapchain.h"
     "${SRC_DIR}/graphics/vulkan_swapchain.cpp"
+    "${SRC_DIR}/graphics/vulkan_command_pool_type.h"
+    "${SRC_DIR}/graphics/vulkan_command_pool_type.cpp"
+    "${SRC_DIR}/graphics/vulkan_command_buffer.h"
+    "${SRC_DIR}/graphics/vulkan_command_buffer.cpp"
     "${SRC_DIR}/graphics/vulkan_command_manager.h"
     "${SRC_DIR}/graphics/vulkan_command_manager.cpp"
     "${SRC_DIR}/graphics/vulkan_drawable.h"
@@ -115,7 +119,7 @@ set(APP_SOURCES
 set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders")
 set(TEXTURES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/textures")
 set(APP_SHADERS "${SHADER_DIR}/shader.frag" "${SHADER_DIR}/shader.vert")
-set(APP_RESOURCES "${TEXTURES_DIR}/texture.jpg" "${SRC_DIR}/application_options.xml")
+set(APP_RESOURCES "${TEXTURES_DIR}/texture.jpg")
 
 set(SPV_BIN_DIR "${CMAKE_BINARY_DIR}/Debug/shaders")
 set(SH_RESOURCES_DIR "${CMAKE_BINARY_DIR}/Debug/textures")
@@ -164,6 +168,7 @@ endfunction ()
 foreach(TEXTURE ${APP_RESOURCES})
     CopyFile(${TEXTURE} ${SH_RESOURCES_DIR})
 endforeach()
+CopyFile("${SRC_DIR}/application_options.xml" "${CMAKE_BINARY_DIR}/Debug")
 
 find_package(Vulkan REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)

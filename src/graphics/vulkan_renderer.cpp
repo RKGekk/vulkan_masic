@@ -8,7 +8,7 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR sur
     createColorResources();
     createDepthResources();
 
-    m_command_buffers = m_device->getCommandManager().allocCommandBuffer(m_device->getCommandManager().getGrapicsCommandPool(), m_swapchain.getMaxFrames());
+    m_command_buffers = m_device->getCommandManager().allocCommandBuffer(m_swapchain.getMaxFrames());
     createSyncObjects();
 
     return true;
@@ -19,6 +19,8 @@ void VulkanRenderer::destroy() {
     size_t sz = m_swapchain.getMaxFrames();
     m_swapchain.destroy();
     for(size_t i = 0u; i < sz; ++i) {
+        m_command_buffers[i].destroy();
+
         vkDestroyImageView(m_device->getDevice(), m_out_color_images[i].image_view, nullptr);
         vkDestroyImage(m_device->getDevice(), m_out_color_images[i].image, nullptr);
         vkFreeMemory(m_device->getDevice(), m_out_color_images[i].memory, nullptr);
@@ -28,7 +30,6 @@ void VulkanRenderer::destroy() {
         vkFreeMemory(m_device->getDevice(), m_out_depth_images[i].memory, nullptr);
         
         vkDestroySemaphore(m_device->getDevice(), m_image_available[i], nullptr);
-        vkDestroySemaphore(m_device->getDevice(), m_render_finished[i], nullptr);
         vkDestroyFence(m_device->getDevice(), m_in_flight_frame[i], nullptr);
     }
 
@@ -43,6 +44,8 @@ void VulkanRenderer::recreate() {
     
     size_t sz = m_swapchain.getMaxFrames();
     for(size_t i = 0u; i < sz; ++i) {
+        m_command_buffers[i].destroy();
+
         vkDestroyImageView(m_device->getDevice(), m_out_color_images[i].image_view, nullptr);
         vkDestroyImage(m_device->getDevice(), m_out_color_images[i].image, nullptr);
         vkFreeMemory(m_device->getDevice(), m_out_color_images[i].memory, nullptr);
@@ -52,12 +55,13 @@ void VulkanRenderer::recreate() {
         vkFreeMemory(m_device->getDevice(), m_out_depth_images[i].memory, nullptr);
         
         vkDestroySemaphore(m_device->getDevice(), m_image_available[i], nullptr);
-        vkDestroySemaphore(m_device->getDevice(), m_render_finished[i], nullptr);
         vkDestroyFence(m_device->getDevice(), m_in_flight_frame[i], nullptr);
     }
     
     createColorResources();
     createDepthResources();
+
+    m_command_buffers = m_device->getCommandManager().allocCommandBuffer(m_swapchain.getMaxFrames());
 
     for (const std::shared_ptr<IVulkanDrawable>& drawable : m_drawable_list) {
         drawable->reset(getRenderTarget());
@@ -108,7 +112,7 @@ RenderTarget VulkanRenderer::getRenderTarget() const {
     return rt;
 }
 
-void VulkanRenderer::recordCommandBuffer(VkCommandBuffer command_buffer, uint32_t image_index) {
+void VulkanRenderer::recordCommandBuffer(const CommandBuffer& command_buffer, uint32_t image_index) {
     VkCommandBufferBeginInfo begin_info{};
     begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     begin_info.flags = 0u;
@@ -140,23 +144,24 @@ void VulkanRenderer::drawFrame() {
     // Only reset the fence if we are submitting work
     vkResetFences(m_device->getDevice(), 1u, &m_in_flight_frame[m_swapchain.getCurrentFrame()]);
     
-    vkResetCommandBuffer(m_command_buffers[m_swapchain.getCurrentFrame()], 0u);
+    m_command_buffers[m_swapchain.getCurrentFrame()].reset();
     recordCommandBuffer(m_command_buffers[m_swapchain.getCurrentFrame()], image_index);
     
-    VkSemaphore render_end_semaphores[] = {m_render_finished[m_swapchain.getCurrentFrame()]};
+    VkSemaphore render_end_semaphores[] = {m_command_buffers[m_swapchain.getCurrentFrame()].getInProgressSemaphore()};
     VkSemaphore wait_semaphores[] = {m_image_available[m_swapchain.getCurrentFrame()]};
     VkPipelineStageFlags wait_stages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+    VkCommandBuffer command_buffers[] = {m_command_buffers[m_swapchain.getCurrentFrame()].getCommandBufer()};
     VkSubmitInfo submit_info{};
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info.waitSemaphoreCount = 1u;
     submit_info.pWaitSemaphores = wait_semaphores;
     submit_info.pWaitDstStageMask = wait_stages;
     submit_info.commandBufferCount = 1u;
-    submit_info.pCommandBuffers = &m_command_buffers[m_swapchain.getCurrentFrame()];
+    submit_info.pCommandBuffers = command_buffers;
     submit_info.signalSemaphoreCount = 1u;
     submit_info.pSignalSemaphores = render_end_semaphores;
     
-    m_device->getCommandManager().submitCommandBuffer(m_device->getCommandManager().getGraphicsQueue(), submit_info, m_in_flight_frame[m_swapchain.getCurrentFrame()]);
+    m_device->getCommandManager().submitCommandBuffer(submit_info, PoolTypeEnum::GRAPICS, m_in_flight_frame[m_swapchain.getCurrentFrame()]);
     
     VkSwapchainKHR swapchains[] = {m_swapchain.getSwapchain()};
     VkPresentInfoKHR present_info{};
@@ -167,7 +172,7 @@ void VulkanRenderer::drawFrame() {
     present_info.pSwapchains = swapchains;
     present_info.pImageIndices = &image_index;
     present_info.pResults = nullptr;
-    result = vkQueuePresentKHR(m_device->getCommandManager().getPresentQueue(), &present_info);
+    result = vkQueuePresentKHR(m_device->getCommandManager().getQueue(), &present_info);
     if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to present swap chain image!");
     }
@@ -242,7 +247,6 @@ void VulkanRenderer::createDepthResources() {
 
 void VulkanRenderer::createSyncObjects(){
     m_image_available.resize(m_swapchain.getMaxFrames());
-    m_render_finished.resize(m_swapchain.getMaxFrames());
     m_in_flight_frame.resize(m_swapchain.getMaxFrames());
 
     VkSemaphoreCreateInfo image_available_sema_info{};
@@ -257,11 +261,6 @@ void VulkanRenderer::createSyncObjects(){
     
     for(size_t i = 0u; i < m_swapchain.getMaxFrames(); ++i) {
         VkResult result = vkCreateSemaphore(m_device->getDevice(), &image_available_sema_info, nullptr, &m_image_available[i]);
-        if(result != VK_SUCCESS) {
-            throw std::runtime_error("failed to create semaphore!");
-        }
-        
-        result = vkCreateSemaphore(m_device->getDevice(), &render_finished_sem_info, nullptr, &m_render_finished[i]);
         if(result != VK_SUCCESS) {
             throw std::runtime_error("failed to create semaphore!");
         }

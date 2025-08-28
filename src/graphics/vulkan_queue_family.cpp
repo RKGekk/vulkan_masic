@@ -1,38 +1,46 @@
 #include "vulkan_queue_family.h"
 
-void QueueFamilyIndices::init(VkPhysicalDevice physical_device, VkSurfaceKHR surface) {
+bool QueueFamilyIndices::init(VkPhysicalDevice physical_device, VkSurfaceKHR surface) {
     m_queue_families = getQueueFamilies(physical_device);
     
     int i = 0;
     for (const VkQueueFamilyProperties& queue_family : m_queue_families) {
-        if(queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-            m_graphics_family = i;
-        }
-        if(queue_family.queueFlags & VK_QUEUE_TRANSFER_BIT) {
-            m_transfer_family = i;
-        }
-        if(queue_family.queueFlags & VK_QUEUE_COMPUTE_BIT) {
-            m_compute_family = i;
-        }
         VkBool32 present_support = false;
         vkGetPhysicalDeviceSurfaceSupportKHR(physical_device, i, surface, &present_support);
-        if(present_support) {
-            m_present_family = i;
+        QueueFamily qf{};
+        qf.index = i;
+        qf.present_support = static_cast<bool>(present_support);
+        if(queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            m_families[PoolTypeEnum::GRAPICS] = qf;
         }
-        
-        if (isComplete()) {
-            break;
+        if(queue_family.queueFlags & VK_QUEUE_TRANSFER_BIT) {
+            if(m_families.contains(PoolTypeEnum::TRANSFER) && !(queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) && !(queue_family.queueFlags & VK_QUEUE_COMPUTE_BIT) && !(queue_family.queueFlags & VK_QUEUE_VIDEO_DECODE_BIT_KHR) && !(queue_family.queueFlags & VK_QUEUE_VIDEO_ENCODE_BIT_KHR)) {
+                m_families[PoolTypeEnum::TRANSFER] = qf;
+            }
+            else if (!m_families.contains(PoolTypeEnum::TRANSFER)) {
+                m_families[PoolTypeEnum::TRANSFER] = qf;
+            }
+        }
+        if(queue_family.queueFlags & VK_QUEUE_COMPUTE_BIT) {
+            if(m_families.contains(PoolTypeEnum::COMPUTE) && !(queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) && !(queue_family.queueFlags & VK_QUEUE_VIDEO_DECODE_BIT_KHR) && !(queue_family.queueFlags & VK_QUEUE_VIDEO_ENCODE_BIT_KHR)) {
+                m_families[PoolTypeEnum::COMPUTE] = qf;
+            }
+            else if(!m_families.contains(PoolTypeEnum::COMPUTE)) {
+                m_families[PoolTypeEnum::COMPUTE] = qf;
+            }
         }
         ++i;
     }
+    
+    return isComplete();
 }
 
 bool QueueFamilyIndices::isComplete() const {
-    return m_graphics_family.has_value() && m_present_family.has_value() && m_compute_family.has_value() && m_transfer_family.has_value();
+    return m_families.contains(PoolTypeEnum::GRAPICS) && m_families.contains(PoolTypeEnum::COMPUTE) && m_families.contains(PoolTypeEnum::TRANSFER);
 }
 
 VkSharingMode QueueFamilyIndices::getBufferSharingMode() const {
-    if (m_graphics_family.has_value() && m_transfer_family.has_value() && m_graphics_family.value() != m_transfer_family.value()) {
+    if (m_families.contains(PoolTypeEnum::GRAPICS) && m_families.contains(PoolTypeEnum::TRANSFER) && m_families.at(PoolTypeEnum::GRAPICS).index != m_families.at(PoolTypeEnum::TRANSFER).index) {
         return VK_SHARING_MODE_CONCURRENT;
     }
     return VK_SHARING_MODE_EXCLUSIVE;
@@ -40,17 +48,14 @@ VkSharingMode QueueFamilyIndices::getBufferSharingMode() const {
 
 std::unordered_set<uint32_t> QueueFamilyIndices::getFamilies() const {
     std::unordered_set<uint32_t> family_indices;
-    if(m_graphics_family.has_value()) {
-        family_indices.insert(m_graphics_family.value());
+    if(m_families.contains(PoolTypeEnum::GRAPICS)) {
+        family_indices.insert(m_families.at(PoolTypeEnum::GRAPICS).index);
     }
-    if(m_present_family.has_value()) {
-        family_indices.insert(m_present_family.value());
+    if(m_families.contains(PoolTypeEnum::COMPUTE)) {
+        family_indices.insert(m_families.at(PoolTypeEnum::COMPUTE).index);
     }
-    if(m_compute_family.has_value()) {
-        family_indices.insert(m_compute_family.value());
-    }
-    if(m_transfer_family.has_value()) {
-        family_indices.insert(m_transfer_family.value());
+    if(m_families.contains(PoolTypeEnum::TRANSFER)) {
+        family_indices.insert(m_families.at(PoolTypeEnum::TRANSFER).index);
     }
     return family_indices;
 }
@@ -65,20 +70,11 @@ const std::vector<VkQueueFamilyProperties>& QueueFamilyIndices::getQueueFamilies
     return m_queue_families;
 }
 
-const std::optional<uint32_t>& QueueFamilyIndices::getGraphicsFamily() const {
-    return m_graphics_family;
-}
-
-const std::optional<uint32_t>& QueueFamilyIndices::getPresentFamily() const {
-    return m_present_family;
-}
-
-const std::optional<uint32_t>& QueueFamilyIndices::getComputeFamily() const {
-    return m_compute_family;
-}
-
-const std::optional<uint32_t>& QueueFamilyIndices::getTransferFamily() const {
-    return m_transfer_family;
+std::optional<uint32_t> QueueFamilyIndices::getFamilyIdx(PoolTypeEnum pool_type) const {
+    if(m_families.contains(PoolTypeEnum::GRAPICS)) {
+        return m_families.at(PoolTypeEnum::GRAPICS).index;
+    }
+    return std::nullopt;
 }
 
 std::vector<VkQueueFamilyProperties> QueueFamilyIndices::getQueueFamilies(VkPhysicalDevice device) {

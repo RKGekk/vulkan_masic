@@ -18,6 +18,7 @@ struct DeviceAbilities {
     VkPhysicalDeviceProperties props;
     VkPhysicalDeviceFeatures features;
     VkPhysicalDeviceMemoryProperties memory_properties;
+    bool host_visible_single_heap_memory;
     int score;
 };
 
@@ -94,6 +95,7 @@ private:
     static bool isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface);
     static VkSampleCountFlagBits getMaxUsableSampleCount(VkPhysicalDeviceProperties physical_device_properties);
     static VkDevice createLogicalDevice(VkPhysicalDevice physical_device, const std::unordered_set<uint32_t>& family_indices, const VulkanDeviceExtensions& device_extensions, const VulkanInstanceLayersAndExtensions& instance_layers_and_extensions);
+    static bool isHostVisibleSingleHeapMemory(VkPhysicalDevice physical_device);
 
     VulkanDeviceExtensions m_extensions;
     VkDevice m_device;

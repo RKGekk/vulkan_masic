@@ -111,7 +111,7 @@ void BasicDrawable::destroy() {
     }
 }
 
-void BasicDrawable::recordCommandBuffer(VkCommandBuffer command_buffer, uint32_t image_index) {
+void BasicDrawable::recordCommandBuffer(const CommandBuffer& command_buffer, uint32_t image_index) {
 
     VkRenderPassBeginInfo renderpass_info{};
     renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -138,23 +138,23 @@ void BasicDrawable::recordCommandBuffer(VkCommandBuffer command_buffer, uint32_t
     scissor.offset = {0, 0};
     scissor.extent = m_render_target_fmt.viewportExtent;
 
-    vkCmdBeginRenderPass(command_buffer, &renderpass_info, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBeginRenderPass(command_buffer.getCommandBufer(), &renderpass_info, VK_SUBPASS_CONTENTS_INLINE);
         
-    vkCmdSetViewport(command_buffer, 0u, 1u, &view_port);
-    vkCmdSetScissor(command_buffer, 0u, 1u, &scissor);
+    vkCmdSetViewport(command_buffer.getCommandBufer(), 0u, 1u, &view_port);
+    vkCmdSetScissor(command_buffer.getCommandBufer(), 0u, 1u, &scissor);
 
-    vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.getPipelineLayout(), 0, 1, &m_descriptor.getDescriptorSets()[image_index], 0, nullptr);
+    vkCmdBindDescriptorSets(command_buffer.getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.getPipelineLayout(), 0, 1, &m_descriptor.getDescriptorSets()[image_index], 0, nullptr);
         
-    vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.getPipeline());
+    vkCmdBindPipeline(command_buffer.getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.getPipeline());
 
     VkBuffer vertex_buffers[] = {m_vertex_buffer->getVertexBuffer().buf};
     VkDeviceSize offsets[] = {0};
-    vkCmdBindVertexBuffers(command_buffer, 0, 1, vertex_buffers, offsets);
-    vkCmdBindIndexBuffer(command_buffer, m_vertex_buffer->getIndexBuffer().buf, 0u, VK_INDEX_TYPE_UINT16);
+    vkCmdBindVertexBuffers(command_buffer.getCommandBufer(), 0, 1, vertex_buffers, offsets);
+    vkCmdBindIndexBuffer(command_buffer.getCommandBufer(), m_vertex_buffer->getIndexBuffer().buf, 0u, VK_INDEX_TYPE_UINT16);
 
-    vkCmdDrawIndexed(command_buffer, static_cast<uint32_t>(m_vertex_buffer->getIndicesCount()), 1u, 0u, 0u, 0u);
+    vkCmdDrawIndexed(command_buffer.getCommandBufer(), static_cast<uint32_t>(m_vertex_buffer->getIndicesCount()), 1u, 0u, 0u, 0u);
 
-    vkCmdEndRenderPass(command_buffer);
+    vkCmdEndRenderPass(command_buffer.getCommandBufer());
 }
 
 void BasicDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {

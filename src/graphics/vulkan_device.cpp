@@ -328,6 +328,8 @@ DeviceAbilities VulkanDevice::rateDeviceSuitability(VkPhysicalDevice device, VkS
     vkGetPhysicalDeviceProperties(device, &device_abilities.props);
     vkGetPhysicalDeviceFeatures(device, &device_abilities.features);
     vkGetPhysicalDeviceMemoryProperties(device, &device_abilities.memory_properties);
+
+    device_abilities.host_visible_single_heap_memory = isHostVisibleSingleHeapMemory(device);
     
     if(device_abilities.props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
         device_abilities.score += 1000;
@@ -441,4 +443,22 @@ VkDevice VulkanDevice::createLogicalDevice(VkPhysicalDevice physical_device, con
     }
     
     return device;
+}
+
+bool VulkanDevice::isHostVisibleSingleHeapMemory(VkPhysicalDevice physical_device) {
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkGetPhysicalDeviceMemoryProperties(physical_device, &memProperties);
+    if (memProperties.memoryHeapCount != 1) {
+        return false;
+    }
+
+    const uint32_t flag = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+    for (uint32_t i = 0u; i < memProperties.memoryTypeCount; ++i) {
+        if ((memProperties.memoryTypes[i].propertyFlags & flag) == flag) {
+            return true;
+        }
+    }
+
+    return false;
 }

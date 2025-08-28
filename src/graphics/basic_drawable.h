@@ -32,7 +32,7 @@ public:
     bool init(std::shared_ptr<VulkanDevice> device, const RenderTarget& rt);
     void reset(const RenderTarget& rt) override;
     void destroy() override;
-    void recordCommandBuffer(VkCommandBuffer command_buffer, uint32_t frame_index) override;
+    void recordCommandBuffer(const CommandBuffer& command_buffer, uint32_t frame_index) override;
     void update(const GameTimerDelta& delta, uint32_t image_index) override;
 
 private:

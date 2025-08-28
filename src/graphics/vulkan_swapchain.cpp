@@ -12,12 +12,7 @@ bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR su
     m_swapchain_params.present_mode = chooseSwapPresentMode(m_swapchain_support_details.present_modes);
     m_swapchain_params.extent = chooseSwapExtent(m_swapchain_support_details.capabilities);
 
-    if(m_device->getCommandManager().getQueueFamilyIndices().getGraphicsFamily() != m_device->getCommandManager().getQueueFamilyIndices().getPresentFamily()) {
-        m_swapchain_params.images_sharing_mode = VK_SHARING_MODE_CONCURRENT;
-    }
-    else {
-        m_swapchain_params.images_sharing_mode = VK_SHARING_MODE_EXCLUSIVE;
-    }
+    m_swapchain_params.images_sharing_mode = m_device->getCommandManager().getBufferSharingMode();
 
     m_swapchain = createSwapchain(m_surface, m_swapchain_params, m_swapchain_support_details, m_device->getCommandManager().getQueueFamilyIndices());
     VkResult result = vkGetSwapchainImagesKHR(m_device->getDevice(), m_swapchain, &m_max_frames, nullptr);
@@ -46,12 +41,7 @@ void VulkanSwapChain::recreate() {
     m_swapchain_params.present_mode = chooseSwapPresentMode(m_swapchain_support_details.present_modes);
     m_swapchain_params.extent = chooseSwapExtent(m_swapchain_support_details.capabilities);
 
-    if(m_device->getCommandManager().getQueueFamilyIndices().getGraphicsFamily() != m_device->getCommandManager().getQueueFamilyIndices().getPresentFamily()) {
-        m_swapchain_params.images_sharing_mode = VK_SHARING_MODE_CONCURRENT;
-    }
-    else {
-        m_swapchain_params.images_sharing_mode = VK_SHARING_MODE_EXCLUSIVE;
-    }
+    m_swapchain_params.images_sharing_mode = m_device->getCommandManager().getBufferSharingMode();
 
     m_swapchain = createSwapchain(m_surface, m_swapchain_params, m_swapchain_support_details, m_device->getCommandManager().getQueueFamilyIndices());
     m_swapchain_images = retriveSwapchainBuffers(m_swapchain_params.surface_format.format);
@@ -119,6 +109,8 @@ SwapchainSupportDetails VulkanSwapChain::querySwapChainSupport(VkPhysicalDevice 
         details.present_modes.resize(present_mode_count);
         vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_mode_count, details.present_modes.data());
     }
+
+    details.is_native_swapchain_BGR = isNativeSwapChainBGR(details.formats);
     
     return details;
 }
@@ -140,6 +132,21 @@ VkPresentModeKHR VulkanSwapChain::chooseSwapPresentMode(const std::vector<VkPres
     }
     return VK_PRESENT_MODE_FIFO_KHR;
 }
+
+bool VulkanSwapChain::isNativeSwapChainBGR(const std::vector<VkSurfaceFormatKHR>& formats) {
+    for (const VkSurfaceFormatKHR& fmt : formats) {
+        // The preferred format should be the one which is closer to the beginning of the formats
+        // container. If BGR is encountered earlier, it should be picked as the format of choice. If RGB
+        // happens to be earlier, take it.
+        if (fmt.format == VK_FORMAT_R8G8B8A8_UNORM || fmt.format == VK_FORMAT_R8G8B8A8_SRGB || fmt.format == VK_FORMAT_A2R10G10B10_UNORM_PACK32) {
+            return false;
+        }
+        if (fmt.format == VK_FORMAT_B8G8R8A8_UNORM || fmt.format == VK_FORMAT_B8G8R8A8_SRGB || fmt.format == VK_FORMAT_A2B10G10R10_UNORM_PACK32) {
+            return true;
+        }
+    }
+    return false;
+};
 
 VkSwapchainKHR VulkanSwapChain::createSwapchain(VkSurfaceKHR surface, const SwapchainParams& swapchain_params, const SwapchainSupportDetails& swapchain_support_details, const QueueFamilyIndices& queue_family_indices) const {
     uint32_t image_count = swapchain_support_details.capabilities.minImageCount + 1u;

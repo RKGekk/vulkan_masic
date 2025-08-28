@@ -5,6 +5,7 @@
 
 #include "../tools/game_timer.h"
 #include "render_resource.h"
+#include "vulkan_command_buffer.h"
 
 #include <cstdint>
 #include <vector>
@@ -20,6 +21,6 @@ class IVulkanDrawable {
 public:
     virtual void reset(const RenderTarget& rt) = 0;
     virtual void destroy() = 0;
-    virtual void recordCommandBuffer(VkCommandBuffer command_buffer, uint32_t frame_index) = 0;
+    virtual void recordCommandBuffer(const CommandBuffer& command_buffer, uint32_t frame_index) = 0;
     virtual void update(const GameTimerDelta& delta, uint32_t image_index) = 0;
 };

@@ -20,6 +20,7 @@ struct SwapchainSupportDetails {
     VkSurfaceCapabilitiesKHR capabilities;
     std::vector<VkSurfaceFormatKHR> formats;
     std::vector<VkPresentModeKHR> present_modes;
+    bool is_native_swapchain_BGR;
 };
 
 struct SwapchainParams {
@@ -52,6 +53,7 @@ public:
 private:
     static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& available_formats);
     static VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& available_present_modes);
+    static bool isNativeSwapChainBGR(const std::vector<VkSurfaceFormatKHR>& formats);
 
     VkSwapchainKHR createSwapchain(VkSurfaceKHR surface, const SwapchainParams& swapchain_params, const SwapchainSupportDetails& swapchain_support_details, const QueueFamilyIndices& queue_family_indices) const;
     std::vector<VkImage> retriveSwapchainImages() const;
