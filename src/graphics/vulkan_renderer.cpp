@@ -196,6 +196,7 @@ void VulkanRenderer::addDrawable(std::shared_ptr<IVulkanDrawable> drawable) {
 
 void VulkanRenderer::createColorResources() {
     VkFormat color_format = m_swapchain.getSwapchainParams().surface_format.format;
+    std::vector<uint32_t> families = m_device->getCommandManager().getQueueFamilyIndices().getIndices();
     VkImageCreateInfo image_info{};
     image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     image_info.imageType = VK_IMAGE_TYPE_2D;
@@ -209,6 +210,8 @@ void VulkanRenderer::createColorResources() {
     image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     image_info.usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     image_info.sharingMode = m_swapchain.getSwapchainParams().images_sharing_mode;
+    image_info.queueFamilyIndexCount = static_cast<uint32_t>(families.size());
+    image_info.pQueueFamilyIndices = families.data();
     image_info.samples = m_device->getMsaaSamples();
     image_info.flags = 0u;
 
@@ -221,7 +224,7 @@ void VulkanRenderer::createColorResources() {
 void VulkanRenderer::createDepthResources() {
     VkFormat depth_format = m_device->findDepthFormat();
     VkImageAspectFlags image_aspect = m_device->hasStencilComponent(depth_format) ? VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT : VK_IMAGE_ASPECT_DEPTH_BIT;
-    
+    std::vector<uint32_t> families = m_device->getCommandManager().getQueueFamilyIndices().getIndices();
     VkImageCreateInfo image_info{};
     image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     image_info.imageType = VK_IMAGE_TYPE_2D;
@@ -235,6 +238,8 @@ void VulkanRenderer::createDepthResources() {
     image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     image_info.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
     image_info.sharingMode = m_swapchain.getSwapchainParams().images_sharing_mode;
+    image_info.queueFamilyIndexCount = static_cast<uint32_t>(families.size());
+    image_info.pQueueFamilyIndices = families.data();
     image_info.samples = m_device->getMsaaSamples();
     image_info.flags = 0u;
 

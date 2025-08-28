@@ -193,6 +193,7 @@ void VulkanCommandManager::endSingleTimeCommands(CommandBuffer command_buffer) c
     submitCommandBuffer(submit_info, command_buffer.getPoolType());
     vkQueueWaitIdle(getQueue(command_buffer.getPoolType()));
     vkFreeCommandBuffers(m_device, getCommandPool(command_buffer.getPoolType()), 1u, command_buffers);
+    command_buffer.destroy();
 }
 
 void VulkanCommandManager::submitCommandBuffer(CommandBuffer command_buffer, PoolTypeEnum pool_type, VkFence fence) const {

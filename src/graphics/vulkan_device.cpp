@@ -201,6 +201,7 @@ ImageBuffer VulkanDevice::createImage(const std::string& path_to_file) const {
         VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT
     );
     
+    std::vector<uint32_t> families = m_command_manager.getQueueFamilyIndices().getIndices();
     VkImageCreateInfo image_info{};
     image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     image_info.imageType = VK_IMAGE_TYPE_2D;
@@ -214,7 +215,9 @@ ImageBuffer VulkanDevice::createImage(const std::string& path_to_file) const {
     image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
     image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     image_info.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-    image_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    image_info.sharingMode = m_command_manager.getBufferSharingMode();
+    image_info.queueFamilyIndexCount = static_cast<uint32_t>(families.size());
+    image_info.pQueueFamilyIndices = families.data();
     image_info.samples = VK_SAMPLE_COUNT_1_BIT;
     image_info.flags = 0u;
     
