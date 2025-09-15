@@ -1,22 +1,91 @@
 #include "vulkan_command_manager.h"
 #include "vulkan_device.h"
 
-unsigned int m_last_command_buffer_id = 0u;
+unsigned int LAST_COMMAND_BUFFER_ID = 0u;
 
-bool VulkanCommandManager::init(VkPhysicalDevice physical_device, VkDevice logical_device, VkSurfaceKHR surface) {
+bool VulkanCommandManager::init(VkPhysicalDevice physical_device, VkDevice logical_device, VkSurfaceKHR surface, std::shared_ptr<ThreadPool> thread_pool) {
     m_device = logical_device;
     m_queue_family_indices.init(physical_device, surface);
+    m_thread_pool = std::move(thread_pool);
 
     vkGetDeviceQueue(m_device, m_queue_family_indices.getFamilyIdx(PoolTypeEnum::GRAPICS).value(), 0u, &m_graphics_queue);
     vkGetDeviceQueue(m_device, m_queue_family_indices.getFamilyIdx(PoolTypeEnum::COMPUTE).value(), 0u, &m_compute_queue);
     vkGetDeviceQueue(m_device, m_queue_family_indices.getFamilyIdx(PoolTypeEnum::TRANSFER).value(), 0u, &m_transfer_queue);
 
     createCommandPools();
+
+    m_command_buffers.resize(MAX_COMMAND_BUFFERS);
+    VkCommandBufferAllocateInfo command_alloc_info{};
+    command_alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    command_alloc_info.commandPool = getCommandPool(PoolTypeEnum::TRANSFER);
+    command_alloc_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    command_alloc_info.commandBufferCount = MAX_COMMAND_BUFFERS;
+
+	VkResult result = vkAllocateCommandBuffers(m_device, &command_alloc_info, m_command_buffers.data());
+    if(result != VK_SUCCESS) {
+        throw std::runtime_error("failed to allocate command buffers!");
+    }
+
+    m_fences.resize(MAX_COMMAND_BUFFERS);
+    m_semaphores.resize(MAX_COMMAND_BUFFERS);
+    for (uint32_t i = 0u; i < MAX_COMMAND_BUFFERS; ++i) {
+        m_free_cmd_idx.Push(i);
+
+        VkFenceCreateInfo fen_info{};
+        fen_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        //fen_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+        result = vkCreateFence(m_device, &fen_info, nullptr, &m_fences[i]);
+        vkResetFences(m_device, 1u, &m_fences[i]);
+        if(result != VK_SUCCESS) {
+            throw std::runtime_error("failed to create fence!");
+        }
+        m_free_smp_idx.Push(i);
+    
+        VkSemaphoreCreateInfo buffer_available_sema_info{};
+        buffer_available_sema_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        result = vkCreateSemaphore(m_device, &buffer_available_sema_info, nullptr, &m_semaphores[i]);
+        if(result != VK_SUCCESS) {
+            throw std::runtime_error("failed to create semaphore!");
+        }
+        m_free_fnc_idx.Push(i);
+    }
+
+    m_thread_pool->Submit(
+        [this]() {
+            while(true) {
+                CommandBatch work_in_progress;
+                m_work_in_progress.WaitAndPop(work_in_progress);
+                if(work_in_progress.Noop()) break;
+
+                vkWaitForFences(m_device, 1u, work_in_progress.getFencePtr(), VK_TRUE, UINT64_MAX);
+                work_in_progress.reset();
+
+                std::vector<size_t> cmd_idx = m_submit_to_buf_id.ValueFor(work_in_progress.getId(), {});
+                for (size_t i : cmd_idx) {
+                    m_free_cmd_idx.Push(i);
+                }
+                m_submit_to_buf_id.RemoveMapping(work_in_progress.getId());
+
+                size_t sem_id = m_submit_to_sem_id.ValueFor(work_in_progress.getId(), -1);
+                m_free_smp_idx.Push(sem_id);
+                m_submit_to_sem_id.RemoveMapping(work_in_progress.getId());
+
+                size_t fnc_id = m_submit_to_fnc_id.ValueFor(work_in_progress.getId(), -1);
+                //vkResetFences(m_device, 1u, &m_fences[fnc_id]);
+                m_free_fnc_idx.Push(fnc_id);
+                m_submit_to_fnc_id.RemoveMapping(work_in_progress.getId());
+            }
+            return;
+        }
+    );
     
     return true;
 }
 
 void VulkanCommandManager::destroy() {
+    CommandBatch noop;
+    noop.setNoop();
+    m_work_in_progress.Push(std::move(noop));
     if(m_grapics_cmd_pool != m_transfer_cmd_pool) {
         vkDestroyCommandPool(m_device, m_grapics_cmd_pool, nullptr);
         vkDestroyCommandPool(m_device, m_transfer_cmd_pool, nullptr);
@@ -54,83 +123,77 @@ VkCommandPool VulkanCommandManager::getCommandPool(PoolTypeEnum pool_type) const
     return m_grapics_cmd_pool;
 }
 
-CommandBuffer VulkanCommandManager::allocCommandBuffer(PoolTypeEnum pool_type, const VkCommandBufferAllocateInfo* command_buffer_info) const {
-	if (command_buffer_info) {
-        VkCommandBuffer vkcommand_buffer;
-		VkResult result = vkAllocateCommandBuffers(m_device, command_buffer_info, &vkcommand_buffer);
-        if(result != VK_SUCCESS) {
-            throw std::runtime_error("failed to allocate command buffers!");
+CommandBatch VulkanCommandManager::allocCommandBuffer(PoolTypeEnum pool_type, size_t buffers_count, CommandBatch::BatchWaitInfo wait_info, VkCommandBufferAllocateInfo* command_buffer_info) {
+    std::vector<VkCommandBuffer> command_buffers;
+    command_buffers.resize(buffers_count);
+
+    if(pool_type == PoolTypeEnum::TRANSFER) {
+        std::vector<size_t> cmd_idx;
+        cmd_idx.reserve(buffers_count);
+        for(size_t i = 0u; i < buffers_count; ++i) {
+            size_t command_buf_idx = -1;
+            m_free_cmd_idx.WaitAndPop(command_buf_idx);
+            command_buffers[i] = m_command_buffers[command_buf_idx];
+            cmd_idx.push_back(command_buf_idx);
         }
-        CommandBuffer command_buffer;
-        command_buffer.init(m_device, vkcommand_buffer, pool_type, m_last_command_buffer_id++);
-        return command_buffer;
-	}
+        size_t semaphore_idx = -1;
+        m_free_smp_idx.WaitAndPop(semaphore_idx);
+        VkSemaphore semaphore = m_semaphores[semaphore_idx];
+        size_t fence_idx = -1;
+        m_free_fnc_idx.WaitAndPop(fence_idx);
+        VkFence fence = m_fences[fence_idx];
 
-	VkCommandBufferAllocateInfo command_alloc_info = {};
-	command_alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	command_alloc_info.pNext = NULL;
-	command_alloc_info.commandPool = getCommandPool(pool_type);
-	command_alloc_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	command_alloc_info.commandBufferCount = 1u;
-
-    VkCommandBuffer vkcommand_buffer;
-	VkResult result = vkAllocateCommandBuffers(m_device, &command_alloc_info, &vkcommand_buffer);
-    if(result != VK_SUCCESS) {
-        throw std::runtime_error("failed to allocate command buffers!");
+        CommandBatch result_buffers;
+        result_buffers.init(m_device, std::move(command_buffers), semaphore, fence, pool_type, LAST_COMMAND_BUFFER_ID++);
+        m_submit_to_buf_id.AddOrUpdateMapping(result_buffers.getId(), cmd_idx);
+        m_submit_to_sem_id.AddOrUpdateMapping(result_buffers.getId(), semaphore_idx);
+        m_submit_to_fnc_id.AddOrUpdateMapping(result_buffers.getId(), fence_idx);
+        return result_buffers;
     }
-    CommandBuffer command_buffer;
-    command_buffer.init(m_device, vkcommand_buffer, pool_type, m_last_command_buffer_id++);
-    return command_buffer;
-}
 
-std::vector<CommandBuffer> VulkanCommandManager::allocCommandBuffer(size_t buffers_count, PoolTypeEnum pool_type, VkCommandBufferAllocateInfo* command_buffer_info) const {
 	if (command_buffer_info) {
-        std::vector<VkCommandBuffer> command_buffers;
-        command_buffers.resize(buffers_count);
         command_buffer_info->commandBufferCount = static_cast<uint32_t>(command_buffers.size());
 		VkResult result = vkAllocateCommandBuffers(m_device, command_buffer_info, command_buffers.data());
         if(result != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate command buffers!");
         }
-        std::vector<CommandBuffer> result_buffers;
-        result_buffers.reserve(buffers_count);
-        for (VkCommandBuffer buffer : command_buffers) {
-            CommandBuffer command_buffer;
-            command_buffer.init(m_device, buffer, pool_type, m_last_command_buffer_id++);
-            result_buffers.push_back(std::move(command_buffer));
-        }
+        CommandBatch result_buffers;
+        result_buffers.init(m_device, std::move(command_buffers), pool_type, LAST_COMMAND_BUFFER_ID++);
         return result_buffers;
 	}
 
-    std::vector<VkCommandBuffer> command_buffers;
-    command_buffers.resize(buffers_count);
     VkCommandBufferAllocateInfo command_alloc_info{};
     command_alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     command_alloc_info.commandPool = getCommandPool(pool_type);
     command_alloc_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     command_alloc_info.commandBufferCount = static_cast<uint32_t>(command_buffers.size());
 
-    VkCommandBuffer command_buffer;
 	VkResult result = vkAllocateCommandBuffers(m_device, &command_alloc_info, command_buffers.data());
     if(result != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate command buffers!");
     }
 
-    std::vector<CommandBuffer> result_buffers;
-    result_buffers.reserve(buffers_count);
-    for (VkCommandBuffer buffer : command_buffers) {
-        CommandBuffer command_buffer;
-        command_buffer.init(m_device, buffer, pool_type, m_last_command_buffer_id++);
-        result_buffers.push_back(std::move(command_buffer));
-    }
+    CommandBatch result_buffers;
+    result_buffers.init(m_device, std::move(command_buffers), pool_type, LAST_COMMAND_BUFFER_ID++);
     return result_buffers;
 }
 
-void VulkanCommandManager::beginCommandBuffer(CommandBuffer command_buffer, VkCommandBufferBeginInfo* p_begin_info) {
+void VulkanCommandManager::beginCommandBuffer(CommandBatch& command_buffer, size_t index, VkCommandBufferBeginInfo* p_begin_info) {
 	if (p_begin_info) {
-		VkResult result = vkBeginCommandBuffer(command_buffer.getCommandBufer(), p_begin_info);
-		if(result != VK_SUCCESS) {
-            throw std::runtime_error("failed to begin recording commandbuffer!");
+        if(index == SELECT_ALL_BUFFERS) {
+            size_t sz = command_buffer.getCommandBuferCount();
+            for (size_t i = 0u; i < sz; ++i) {
+                VkResult result = vkBeginCommandBuffer(command_buffer.getCommandBufer(i), p_begin_info);
+		        if(result != VK_SUCCESS) {
+                    throw std::runtime_error("failed to begin recording commandbuffer!");
+                }
+            }
+        }
+        else {
+            VkResult result = vkBeginCommandBuffer(command_buffer.getCommandBufer(index), p_begin_info);
+		    if(result != VK_SUCCESS) {
+                throw std::runtime_error("failed to begin recording commandbuffer!");
+            }
         }
 		return;
 	}
@@ -151,102 +214,86 @@ void VulkanCommandManager::beginCommandBuffer(CommandBuffer command_buffer, VkCo
     begin_info.flags = 0u;
     begin_info.pInheritanceInfo = &inherit_info;
 
-    VkResult result = vkBeginCommandBuffer(command_buffer.getCommandBufer(), &begin_info);
-    if(result != VK_SUCCESS) {
-        throw std::runtime_error("failed to begin recording commandbuffer!");
+    if(index == SELECT_ALL_BUFFERS) {
+        size_t sz = command_buffer.getCommandBuferCount();
+        for (size_t i = 0u; i < sz; ++i) {
+            VkResult result = vkBeginCommandBuffer(command_buffer.getCommandBufer(i), &begin_info);
+            if(result != VK_SUCCESS) {
+               throw std::runtime_error("failed to begin recording commandbuffer!");
+            }
+        }
+    }
+    else {
+        VkResult result = vkBeginCommandBuffer(command_buffer.getCommandBufer(index), &begin_info);
+        if(result != VK_SUCCESS) {
+            throw std::runtime_error("failed to begin recording commandbuffer!");
+        }
     }
 }
 
-void VulkanCommandManager::endCommandBuffer(CommandBuffer command_buffer) {
-	VkResult result = vkEndCommandBuffer(command_buffer.getCommandBufer());
-	if(result != VK_SUCCESS) {
-        throw std::runtime_error("failed to record command buffer!");
+void VulkanCommandManager::endCommandBuffer(CommandBatch& command_buffer, size_t index) {
+    if(index == SELECT_ALL_BUFFERS) {
+        size_t sz = command_buffer.getCommandBuferCount();
+        for (size_t i = 0u; i < sz; ++i) {
+            VkResult result = vkEndCommandBuffer(command_buffer.getCommandBufer(i));
+	        if(result != VK_SUCCESS) {
+                throw std::runtime_error("failed to record command buffer!");
+            }
+        }
+    }
+    else {
+	    VkResult result = vkEndCommandBuffer(command_buffer.getCommandBufer(index));
+	    if(result != VK_SUCCESS) {
+            throw std::runtime_error("failed to record command buffer!");
+        }
     }
 }
 
-CommandBuffer VulkanCommandManager::beginSingleTimeCommands(PoolTypeEnum pool_type) const {
-    CommandBuffer command_buffer = allocCommandBuffer(pool_type);
-    
-    VkCommandBufferBeginInfo begin_info{};
-    begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-    beginCommandBuffer(command_buffer, &begin_info);
-    
-    return command_buffer;
-}
-
-void VulkanCommandManager::endSingleTimeCommands(CommandBuffer command_buffer) const {
-    endCommandBuffer(command_buffer);
-    
-    VkSemaphore end_semaphores[] = {command_buffer.getInProgressSemaphore()};
-    VkCommandBuffer command_buffers[] = {command_buffer.getCommandBufer()};
-    VkSubmitInfo submit_info{};
-    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submit_info.waitSemaphoreCount = 0u;
-    submit_info.pWaitSemaphores = nullptr;
-    submit_info.pWaitDstStageMask = nullptr;
-    submit_info.commandBufferCount = 1u;
-    submit_info.pCommandBuffers = command_buffers;
-    submit_info.signalSemaphoreCount = 1u;
-    submit_info.pSignalSemaphores = end_semaphores;
-    
-    submitCommandBuffer(submit_info, command_buffer.getPoolType());
-    vkQueueWaitIdle(getQueue(command_buffer.getPoolType()));
-    vkFreeCommandBuffers(m_device, getCommandPool(command_buffer.getPoolType()), 1u, command_buffers);
-    command_buffer.destroy();
-}
-
-void VulkanCommandManager::submitCommandBuffer(CommandBuffer command_buffer, PoolTypeEnum pool_type, VkFence fence) const {
-    VkSemaphore end_semaphores[] = {command_buffer.getInProgressSemaphore()};
-    VkCommandBuffer command_buffers[] = {command_buffer.getCommandBufer()};
-	VkSubmitInfo submit_info = {};
-	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submit_info.pNext = nullptr;
-	submit_info.waitSemaphoreCount = 0;
-	submit_info.pWaitSemaphores = nullptr;
-	submit_info.pWaitDstStageMask = nullptr;
-	submit_info.commandBufferCount = 1u;
-	submit_info.pCommandBuffers = command_buffers;
-	submit_info.signalSemaphoreCount = 1u;
-	submit_info.pSignalSemaphores = end_semaphores;
-
-	submitCommandBuffer(submit_info, pool_type, fence);
-}
-
-void VulkanCommandManager::submitCommandBuffer(const std::vector<CommandBuffer>& command_buffers, PoolTypeEnum pool_type, VkFence fence) const {
-    std::vector<VkSemaphore> end_semaphores;
-    end_semaphores.reserve(command_buffers.size());
-    std::vector<VkCommandBuffer> vkcommand_buffers;
-    vkcommand_buffers.reserve(command_buffers.size());
-    for(const CommandBuffer& buffer: command_buffers) {
-        vkcommand_buffers.push_back(buffer.getCommandBufer());
-        end_semaphores.push_back(buffer.getInProgressSemaphore());
+void VulkanCommandManager::submitCommandBuffer(CommandBatch& command_buffer, size_t index, VkSubmitInfo* p_submit_info) {
+    if(command_buffer.getPoolType() == PoolTypeEnum::TRANSFER) {
+        if (p_submit_info) {
+            VkResult result = vkQueueSubmit(getQueue(command_buffer.getPoolType()), 1u, p_submit_info, command_buffer.getRenderFence());
+            if (result != VK_SUCCESS) {
+                throw std::runtime_error("failed to submit draw command buffer!");
+            }
+            return;
+        }
+        else {
+            VkSubmitInfo submit_info = command_buffer.getSubmitInfo();
+            VkResult result = vkQueueSubmit(getQueue(command_buffer.getPoolType()), 1u, &submit_info, command_buffer.getRenderFence());
+            if (result != VK_SUCCESS) {
+                throw std::runtime_error("failed to submit draw command buffer!");
+            }
+        }
+        m_work_in_progress.Push(command_buffer);
+        return;
     }
 
-    VkSubmitInfo submit_info = {};
-    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submit_info.pNext = nullptr;
-    submit_info.waitSemaphoreCount = 0u;
-    submit_info.pWaitSemaphores = nullptr;
-    submit_info.pWaitDstStageMask = nullptr;
-    submit_info.commandBufferCount = static_cast<uint32_t>(command_buffers.size());
-    submit_info.pCommandBuffers = vkcommand_buffers.data();
-    submit_info.signalSemaphoreCount = static_cast<uint32_t>(command_buffers.size());
-    submit_info.pSignalSemaphores = end_semaphores.data();
+    if (p_submit_info) {
+        VkResult result = vkQueueSubmit(getQueue(command_buffer.getPoolType()), 1u, p_submit_info, command_buffer.getRenderFence());
+        if (result != VK_SUCCESS) {
+            throw std::runtime_error("failed to submit draw command buffer!");
+        }
+        return;
+    }
 
-    submitCommandBuffer(submit_info, pool_type, fence);
-}
+    VkSubmitInfo submit_info = command_buffer.getSubmitInfo();
+    if(index != SELECT_ALL_BUFFERS) {
+        submit_info.commandBufferCount = 1u;
+        submit_info.pCommandBuffers = command_buffer.getCommandBuferPtr(index);
+    }
 
-void VulkanCommandManager::submitCommandBuffer(const VkSubmitInfo& submit_info, PoolTypeEnum pool_type, VkFence fence) const {
-    VkResult result = vkQueueSubmit(getQueue(pool_type), 1, &submit_info, fence);
+    VkResult result = vkQueueSubmit(getQueue(command_buffer.getPoolType()), 1u, &submit_info, command_buffer.getRenderFence());
     if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to submit draw command buffer!");
     }
 }
 
-void VulkanCommandManager::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout, uint32_t mip_levels, PoolTypeEnum pool_type) const {
-    CommandBuffer command_buffer = beginSingleTimeCommands(pool_type);
-    
+void VulkanCommandManager::wait(PoolTypeEnum pool_type) {
+    vkQueueWaitIdle(getQueue(pool_type));
+}
+
+void VulkanCommandManager::transitionImageLayout(VkCommandBuffer command_buffer, VkImage image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout, uint32_t mip_levels) {
     VkPipelineStageFlags source_stage;
     VkPipelineStageFlags destination_stage;
     
@@ -293,14 +340,10 @@ void VulkanCommandManager::transitionImageLayout(VkImage image, VkFormat format,
     barrier.subresourceRange.levelCount = mip_levels;
     barrier.subresourceRange.baseArrayLayer = 0u;
     barrier.subresourceRange.layerCount = 1u;
-    vkCmdPipelineBarrier(command_buffer.getCommandBufer(), source_stage, destination_stage, 0u, 0u, nullptr, 0u, nullptr, 1u, &barrier);
-    
-    endSingleTimeCommands(command_buffer);
+    vkCmdPipelineBarrier(command_buffer, source_stage, destination_stage, 0u, 0u, nullptr, 0u, nullptr, 1u, &barrier);
 }
 
-void VulkanCommandManager::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, PoolTypeEnum pool_type) const {
-    CommandBuffer command_buffer = beginSingleTimeCommands(pool_type);
-    
+void VulkanCommandManager::copyBufferToImage(VkCommandBuffer command_buffer, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
     VkBufferImageCopy region{};
     region.bufferOffset = 0u;
     region.bufferRowLength = 0u;
@@ -311,14 +354,10 @@ void VulkanCommandManager::copyBufferToImage(VkBuffer buffer, VkImage image, uin
     region.imageSubresource.layerCount = 1u;
     region.imageOffset = {0, 0, 0};
     region.imageExtent = {width, height, 1};
-    vkCmdCopyBufferToImage(command_buffer.getCommandBufer(), buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1u, &region);
-    
-    endSingleTimeCommands(command_buffer);
+    vkCmdCopyBufferToImage(command_buffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1u, &region);
 }
 
-void VulkanCommandManager::generateMipmaps(VkImage image, VkFormat image_format, int32_t tex_width, uint32_t tex_height, uint32_t mip_levels, PoolTypeEnum pool_type) const {
-    CommandBuffer command_buffer = beginSingleTimeCommands(pool_type);
-    
+void VulkanCommandManager::generateMipmaps(VkCommandBuffer command_buffer, VkImage image, VkFormat image_format, int32_t tex_width, uint32_t tex_height, uint32_t mip_levels) {
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     barrier.image = image;
@@ -337,7 +376,7 @@ void VulkanCommandManager::generateMipmaps(VkImage image, VkFormat image_format,
         barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
         barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
         barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-        vkCmdPipelineBarrier(command_buffer.getCommandBufer(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0u, 0u, nullptr, 0u, nullptr, 1u, &barrier);
+        vkCmdPipelineBarrier(command_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0u, 0u, nullptr, 0u, nullptr, 1u, &barrier);
         
         VkImageBlit blit{};
         blit.srcOffsets[0] = {0, 0, 0};
@@ -354,13 +393,13 @@ void VulkanCommandManager::generateMipmaps(VkImage image, VkFormat image_format,
         blit.dstSubresource.baseArrayLayer = 0u;
         blit.dstSubresource.layerCount = 1u;
         
-        vkCmdBlitImage(command_buffer.getCommandBufer(), image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1u, &blit, VK_FILTER_LINEAR);
+        vkCmdBlitImage(command_buffer, image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1u, &blit, VK_FILTER_LINEAR);
         
         barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
         barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
         barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-        vkCmdPipelineBarrier(command_buffer.getCommandBufer(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0u, 0u, nullptr, 0u, nullptr, 1u, &barrier);
+        vkCmdPipelineBarrier(command_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0u, 0u, nullptr, 0u, nullptr, 1u, &barrier);
         
         if (mip_width > 1) {
             mip_width /= 2;
@@ -376,21 +415,15 @@ void VulkanCommandManager::generateMipmaps(VkImage image, VkFormat image_format,
     barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-    vkCmdPipelineBarrier(command_buffer.getCommandBufer(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0u, 0u, nullptr, 0u, nullptr, 1u, &barrier);
-    
-    endSingleTimeCommands(command_buffer);
+    vkCmdPipelineBarrier(command_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0u, 0u, nullptr, 0u, nullptr, 1u, &barrier);
 }
 
-void VulkanCommandManager::copyBuffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size, PoolTypeEnum pool_type) const {
-    CommandBuffer command_buffer = beginSingleTimeCommands(pool_type);
-    
+void VulkanCommandManager::copyBuffer(VkCommandBuffer command_buffer, VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size) {
     VkBufferCopy copy_regions{};
     copy_regions.srcOffset = 0u;
     copy_regions.dstOffset = 0u;
     copy_regions.size = size;
-    vkCmdCopyBuffer(command_buffer.getCommandBufer(), src_buffer, dst_buffer, 1, &copy_regions);
-    
-    endSingleTimeCommands(command_buffer);
+    vkCmdCopyBuffer(command_buffer, src_buffer, dst_buffer, 1, &copy_regions);
 }
 
 void VulkanCommandManager::createCommandPools() {

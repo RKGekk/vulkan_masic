@@ -24,9 +24,9 @@ bool VulkanApplication::initGraphics(WindowSurface::WindowPtr window) {
     m_surface = VulkanSwapChain::createSurface(m_vulkan_instance.getInstance(), window);
 
     m_vulkan_device = std::make_shared<VulkanDevice>();
-    m_vulkan_device->init(m_vulkan_instance, m_surface);
+    m_vulkan_device->init(m_vulkan_instance, m_surface, m_thread_pool);
 
-    m_renderer.init(m_vulkan_device, m_surface, window);
+    m_renderer.init(m_vulkan_device, m_surface, window, m_thread_pool);
 
     std::shared_ptr<BasicDrawable> drawable = std::make_shared<BasicDrawable>();
     drawable->init(m_vulkan_device, m_renderer.getRenderTarget());

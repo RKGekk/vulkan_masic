@@ -32,6 +32,8 @@ struct SwapchainParams {
 
 class VulkanSwapChain {
 public:
+    static const uint32_t CURRENT_SYNC = -1;
+
     bool init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR surface, GLFWwindow* window);
     void destroy();
     void recreate();
@@ -40,7 +42,13 @@ public:
     const SwapchainParams& getSwapchainParams() const;
     int getMaxFrames() const;
     uint32_t getCurrentFrame() const;
-    void setNextFrame();
+    const uint32_t* getCurrentFramePtr() const;
+    uint32_t getCurrentSync() const;
+    bool setNextFrame();
+    VkSemaphore getImageAvailableSemaphore(uint32_t image_index = CURRENT_SYNC); // signaled when the presentation engine is finished using the image.
+    VkSemaphore* getImageAvailableSemaphorePtr(uint32_t image_index = CURRENT_SYNC); // signaled when the presentation engine is finished using the image.
+    VkFence getImageAvailableFence(uint32_t image_index = CURRENT_SYNC); // signaled when the presentation engine is finished using the image.
+    VkFence* getImageAvailableFencePtr(uint32_t image_index = CURRENT_SYNC); // signaled when the presentation engine is finished using the image.
     VkSurfaceKHR getSurface() const;
     GLFWwindow* getWindow() const;
     VkSwapchainKHR getSwapchain() const;
@@ -69,7 +77,10 @@ private:
     VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;
 
     std::vector<SwapChainBuffer> m_swapchain_images;
+    std::vector<VkSemaphore> m_image_available_sem; // signaled when the presentation engine is finished using the image.
+    std::vector<VkFence> m_image_available_fen; // signaled when the presentation engine is finished using the image.
 
     uint32_t m_current_frame = 0u;
+    uint32_t m_current_sync = 0u;
     uint32_t m_max_frames = 0u;
 };

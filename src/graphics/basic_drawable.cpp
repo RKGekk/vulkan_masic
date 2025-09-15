@@ -111,7 +111,7 @@ void BasicDrawable::destroy() {
     }
 }
 
-void BasicDrawable::recordCommandBuffer(const CommandBuffer& command_buffer, uint32_t image_index) {
+void BasicDrawable::recordCommandBuffer(const CommandBatch& command_buffer, uint32_t image_index) {
 
     VkRenderPassBeginInfo renderpass_info{};
     renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;

@@ -10,6 +10,7 @@
 #include "application_options.h"
 #include "window_surface.h"
 #include "tools/game_timer.h"
+#include "tools/thread_pool.h"
 #include "events/ievent_manager.h"
 
 class VulkanApplication;
@@ -45,6 +46,7 @@ protected:
     GameTimer m_timer;
 
     std::unique_ptr<IEventManager> m_event_manager;
+    std::shared_ptr<ThreadPool> m_thread_pool;
 
     std::atomic_bool m_is_running;
     std::atomic_bool m_request_quit;

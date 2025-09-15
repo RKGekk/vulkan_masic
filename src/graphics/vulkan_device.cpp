@@ -14,7 +14,8 @@ ImageBuffer ImageBufferAndView::getImage() const {
     return {memory, image, image_info, image_size};
 }
 
-bool VulkanDevice::init(const VulkanInstance& instance, VkSurfaceKHR surface) {
+bool VulkanDevice::init(const VulkanInstance& instance, VkSurfaceKHR surface, std::shared_ptr<ThreadPool> thread_pool) {
+    m_thread_pool = std::move(thread_pool);
     m_device_abilities = pickPhysicalDevice(instance.getInstance(), surface);
     bool all_device_ext_supported = m_extensions.init(m_device_abilities.physical_device, getRequiredDeviceExtensions<std::unordered_set<std::string>>());
 
@@ -27,7 +28,7 @@ bool VulkanDevice::init(const VulkanInstance& instance, VkSurfaceKHR surface) {
     QueueFamilyIndices queue_family_indices;
     queue_family_indices.init(m_device_abilities.physical_device, surface);
     m_device = createLogicalDevice(m_device_abilities.physical_device, queue_family_indices.getFamilies(), m_extensions, instance.getLayersAndExtensions());
-    m_command_manager.init(m_device_abilities.physical_device, m_device, surface);
+    m_command_manager.init(m_device_abilities.physical_device, m_device, surface, m_thread_pool);
 
     return all_device_ext_supported;
 }
@@ -54,6 +55,10 @@ VkSampleCountFlagBits VulkanDevice::getMsaaSamples() const {
 }
 
 const VulkanCommandManager& VulkanDevice::getCommandManager() const {
+    return m_command_manager;
+}
+
+VulkanCommandManager& VulkanDevice::getCommandManager() {
     return m_command_manager;
 }
 
@@ -172,7 +177,7 @@ ImageBufferAndView VulkanDevice::createImage(const VkImageCreateInfo& image_info
     return image_and_view;
 }
 
-ImageBuffer VulkanDevice::createImage(const std::string& path_to_file) const {
+ImageBuffer VulkanDevice::createImage(const std::string& path_to_file) {
     int tex_width;
     int tex_height;
     int tex_channels;
@@ -223,10 +228,15 @@ ImageBuffer VulkanDevice::createImage(const std::string& path_to_file) const {
     
     ImageBuffer image = createImage(image_info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     
-    m_command_manager.transitionImageLayout(image.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mip_levels);
-    m_command_manager.copyBufferToImage(staging_buffer.buf, image.image, static_cast<uint32_t>(tex_width), static_cast<uint32_t>(tex_height));
-    m_command_manager.generateMipmaps(image.image, VK_FORMAT_R8G8B8A8_SRGB, tex_width, tex_height, mip_levels);
+    CommandBatch command_buffer = m_command_manager.allocCommandBuffer(PoolTypeEnum::TRANSFER);
+    VulkanCommandManager::beginCommandBuffer(command_buffer);
+    m_command_manager.transitionImageLayout(command_buffer.getCommandBufer(), image.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mip_levels);
+    m_command_manager.copyBufferToImage(command_buffer.getCommandBufer(), staging_buffer.buf, image.image, static_cast<uint32_t>(tex_width), static_cast<uint32_t>(tex_height));
+    m_command_manager.generateMipmaps(command_buffer.getCommandBufer(), image.image, VK_FORMAT_R8G8B8A8_SRGB, tex_width, tex_height, mip_levels);
+    VulkanCommandManager::endCommandBuffer(command_buffer);
     //m_command_manager.transitionImageLayout(image.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mip_levels);
+    m_command_manager.submitCommandBuffer(command_buffer);
+    m_command_manager.wait(PoolTypeEnum::TRANSFER);
     
     vkDestroyBuffer(m_device, staging_buffer.buf, nullptr);
     vkFreeMemory(m_device, staging_buffer.mem, nullptr);
@@ -234,7 +244,7 @@ ImageBuffer VulkanDevice::createImage(const std::string& path_to_file) const {
     return image;
 }
 
-ImageBufferAndView VulkanDevice::createImageAndView(const std::string& path_to_file) const {
+ImageBufferAndView VulkanDevice::createImageAndView(const std::string& path_to_file) {
     ImageBuffer image_buffer = createImage(path_to_file);
     ImageBufferAndView image_and_view = image_buffer.getImageAndView();
     image_and_view.image_view = createImageView(image_buffer.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, image_buffer.image_info.mipLevels);

@@ -69,7 +69,12 @@ private:
         vkUnmapMemory(m_device->getDevice(), staging_buffer.mem);
     
         m_vertex_buffer = m_device->createBuffer(buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-        m_device->getCommandManager().copyBuffer(staging_buffer.buf, m_vertex_buffer.buf, buffer_size);
+        CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
+        VulkanCommandManager::beginCommandBuffer(command_buffer);
+        m_device->getCommandManager().copyBuffer(command_buffer.getCommandBufer(), staging_buffer.buf, m_vertex_buffer.buf, buffer_size);
+        VulkanCommandManager::endCommandBuffer(command_buffer);
+        m_device->getCommandManager().submitCommandBuffer(command_buffer);
+        m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
 
         vkDestroyBuffer(m_device->getDevice(), staging_buffer.buf, nullptr);
         vkFreeMemory(m_device->getDevice(), staging_buffer.mem, nullptr);
@@ -85,7 +90,12 @@ private:
         vkUnmapMemory(m_device->getDevice(), staging_buffer.mem);
     
         m_index_buffer = m_device->createBuffer(buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-        m_device->getCommandManager().copyBuffer(staging_buffer.buf, m_index_buffer.buf, buffer_size);
+        CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
+        VulkanCommandManager::beginCommandBuffer(command_buffer);
+        m_device->getCommandManager().copyBuffer(command_buffer.getCommandBufer() ,staging_buffer.buf, m_index_buffer.buf, buffer_size);
+        VulkanCommandManager::endCommandBuffer(command_buffer);
+        m_device->getCommandManager().submitCommandBuffer(command_buffer);
+        m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
     
         vkDestroyBuffer(m_device->getDevice(), staging_buffer.buf, nullptr);
         vkFreeMemory(m_device->getDevice(), staging_buffer.mem, nullptr);

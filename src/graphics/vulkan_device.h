@@ -12,6 +12,7 @@
 #include "vulkan_instance_layers_and_extensions.h"
 #include "vulkan_device_extensions.h"
 #include "vulkan_command_manager.h"
+#include "../tools/thread_pool.h"
 
 struct DeviceAbilities {
     VkPhysicalDevice physical_device;
@@ -49,7 +50,7 @@ struct ImageBufferAndView {
 
 class VulkanDevice {
 public:
-    bool init(const VulkanInstance& instance, VkSurfaceKHR surface);
+    bool init(const VulkanInstance& instance, VkSurfaceKHR surface, std::shared_ptr<ThreadPool> thread_pool);
     void destroy();
 
     const VulkanDeviceExtensions& getExtensions() const ;
@@ -58,6 +59,7 @@ public:
     const DeviceAbilities& getDeviceAbilities() const;
     VkSampleCountFlagBits getMsaaSamples() const;
     const VulkanCommandManager& getCommandManager() const;
+    VulkanCommandManager& getCommandManager();
 
     VulkanBuffer createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) const;
 
@@ -65,8 +67,8 @@ public:
     std::vector<VkImageView> createImageViews(const std::vector<VkImage>& images, VkFormat format, VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT, uint32_t mip_levels = 1u) const;
     ImageBuffer createImage(const VkImageCreateInfo& image_info, VkMemoryPropertyFlags properties) const;
     ImageBufferAndView createImage(const VkImageCreateInfo& image_info, VkMemoryPropertyFlags properties, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const;
-    ImageBuffer createImage(const std::string& path_to_file) const;
-    ImageBufferAndView createImageAndView(const std::string& path_to_file) const;
+    ImageBuffer createImage(const std::string& path_to_file);
+    ImageBufferAndView createImageAndView(const std::string& path_to_file);
 
     uint32_t findMemoryType(uint32_t type_filter, VkMemoryPropertyFlags properties) const;
     VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const;
@@ -101,6 +103,7 @@ private:
     VkDevice m_device;
     DeviceAbilities m_device_abilities;
     VulkanCommandManager m_command_manager;
+    std::shared_ptr<ThreadPool> m_thread_pool;
 
     VkSampleCountFlagBits m_msaa_samples = VK_SAMPLE_COUNT_1_BIT;
 };

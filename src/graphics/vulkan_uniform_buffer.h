@@ -68,12 +68,15 @@ public:
             memcpy(m_uniforms_mapped[copy_index], src_data, m_uniform_size);
             return;
         }
-        CommandBuffer command_buffer = m_device->getCommandManager().beginSingleTimeCommands(PoolTypeEnum::TRANSFER);
-        update(command_buffer, src_data, copy_index);
-        m_device->getCommandManager().endSingleTimeCommands(command_buffer);
+        CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
+        VulkanCommandManager::beginCommandBuffer(command_buffer);
+        update(command_buffer.getCommandBufer(), src_data, copy_index);
+        VulkanCommandManager::endCommandBuffer(command_buffer);
+        m_device->getCommandManager().submitCommandBuffer(command_buffer);
+        m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
     }
 
-    void update(const CommandBuffer& command_buffer, const void* src_data, uint32_t copy_index) override {
+    void update(VkCommandBuffer command_buffer, const void* src_data, uint32_t copy_index) override {
         if(m_uniform_buffers[copy_index].properties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) {
             update(src_data, copy_index);
             return;
@@ -89,14 +92,14 @@ public:
         copy_regions.srcOffset = 0u;
         copy_regions.dstOffset = 0u;
         copy_regions.size = m_uniform_size;
-        vkCmdCopyBuffer(command_buffer.getCommandBufer(), staging_buffer.buf, m_uniform_buffers[copy_index].buf, 1, &copy_regions);
+        vkCmdCopyBuffer(command_buffer, staging_buffer.buf, m_uniform_buffers[copy_index].buf, 1, &copy_regions);
 
         VkMemoryBarrier barrier{};
         barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
         VkAccessFlags srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
         VkAccessFlags dstAccessMask = VK_ACCESS_UNIFORM_READ_BIT;
     
-        vkCmdPipelineBarrier(command_buffer.getCommandBufer(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0u, 1u, &barrier, 0u, nullptr, 0u, nullptr);
+        vkCmdPipelineBarrier(command_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0u, 1u, &barrier, 0u, nullptr, 0u, nullptr);
     }
 
 private:

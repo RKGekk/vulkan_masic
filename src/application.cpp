@@ -41,7 +41,7 @@ void Application::Quit(int exitCode) {
     m_window->OnClose(false);
 }
 
-Application::Application() : m_is_running(false), m_request_quit(false) {}
+Application::Application() : m_is_running(false), m_request_quit(false), m_thread_pool(std::make_shared<ThreadPool>()) {}
 
 Application::~Application() {
     glfwTerminate();

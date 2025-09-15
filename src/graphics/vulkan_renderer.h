@@ -11,12 +11,14 @@
 
 #include "../tools/string_tools.h"
 #include "../tools/game_timer.h"
+#include "../tools/thread_pool.h"
 #include "vulkan_device.h"
 #include "vulkan_swapchain.h"
 #include "vulkan_drawable.h"
 #include "vulkan_shader.h"
 #include "vulkan_pipeline.h"
 #include "vulkan_command_buffer.h"
+#include "vulkan_command_pool_type.h"
 #include "basic_vertex.h"
 #include "basic_uniform.h"
 #include "basic_drawable.h"
@@ -24,7 +26,7 @@
 
 class VulkanRenderer {
 public:
-    bool init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR surface, GLFWwindow* window);
+    bool init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR surface, GLFWwindow* window, std::shared_ptr<ThreadPool> thread_pool);
     void destroy();
     void recreate();
 
@@ -33,7 +35,7 @@ public:
     const std::vector<ImageBufferAndView>& getDepthImages() const;
     RenderTarget getRenderTarget() const;
 
-    void recordCommandBuffer(const CommandBuffer& command_buffer, uint32_t image_index);
+    void recordCommandBuffer(CommandBatch& command_buffer);
     void drawFrame();
     void setFramebufferResized();
     void update_frame(const GameTimerDelta& delta, uint32_t image_index);
@@ -43,7 +45,6 @@ private:
 
     void createColorResources();
     void createDepthResources();
-    void createSyncObjects();
 
     std::shared_ptr<VulkanDevice> m_device;
 
@@ -52,12 +53,10 @@ private:
     std::vector<ImageBufferAndView> m_out_color_images;
     std::vector<ImageBufferAndView> m_out_depth_images;
 
-    std::vector<CommandBuffer> m_command_buffers;
+    std::vector<CommandBatch> m_command_buffers;
+    std::shared_ptr<ThreadPool> m_thread_pool;
 
     std::vector<std::shared_ptr<IVulkanDrawable>> m_drawable_list;
     
-    std::vector<VkSemaphore> m_image_available; // signaled when the presentation engine is finished using the image.
-    std::vector<VkFence> m_in_flight_frame; // will be signaled when the command buffers finish
-
     bool m_framebuffer_resized = false;
 };
