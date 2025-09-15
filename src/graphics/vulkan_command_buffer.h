@@ -27,7 +27,7 @@ public:
     VkSemaphore getInProgressSemaphore() const;
     const VkSemaphore* getInProgressSemaphorePtr() const;
     VkFence getRenderFence() const;
-    const VkFence* getFencePtr() const;
+    const VkFence* getRenderFencePtr() const;
     PoolTypeEnum getPoolType() const;
     unsigned int getId() const;
     VkSubmitInfo getSubmitInfo(BatchWaitInfo* wait_info = nullptr) const;

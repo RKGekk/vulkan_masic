@@ -57,6 +57,8 @@ private:
     std::shared_ptr<ThreadPool> m_thread_pool;
 
     std::vector<std::shared_ptr<IVulkanDrawable>> m_drawable_list;
-    
+
+    std::vector<VkSemaphore> m_image_available; // signaled when the presentation engine is finished using the image.
+
     bool m_framebuffer_resized = false;
 };

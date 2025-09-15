@@ -57,7 +57,7 @@ bool VulkanCommandManager::init(VkPhysicalDevice physical_device, VkDevice logic
                 m_work_in_progress.WaitAndPop(work_in_progress);
                 if(work_in_progress.Noop()) break;
 
-                vkWaitForFences(m_device, 1u, work_in_progress.getFencePtr(), VK_TRUE, UINT64_MAX);
+                vkWaitForFences(m_device, 1u, work_in_progress.getRenderFencePtr(), VK_TRUE, UINT64_MAX);
                 work_in_progress.reset();
 
                 std::vector<size_t> cmd_idx = m_submit_to_buf_id.ValueFor(work_in_progress.getId(), {});

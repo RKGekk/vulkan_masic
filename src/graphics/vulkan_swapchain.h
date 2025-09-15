@@ -44,7 +44,8 @@ public:
     uint32_t getCurrentFrame() const;
     const uint32_t* getCurrentFramePtr() const;
     uint32_t getCurrentSync() const;
-    bool setNextFrame();
+    uint32_t fetchNextSync() const;
+    bool setNextFrame(VkFence wait_to);
     VkSemaphore getImageAvailableSemaphore(uint32_t image_index = CURRENT_SYNC); // signaled when the presentation engine is finished using the image.
     VkSemaphore* getImageAvailableSemaphorePtr(uint32_t image_index = CURRENT_SYNC); // signaled when the presentation engine is finished using the image.
     VkFence getImageAvailableFence(uint32_t image_index = CURRENT_SYNC); // signaled when the presentation engine is finished using the image.

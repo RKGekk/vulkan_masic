@@ -14,6 +14,16 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR sur
         m_command_buffers.push_back(m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::GRAPICS));
     }
 
+    m_image_available.resize(m_swapchain.getMaxFrames());
+    VkSemaphoreCreateInfo image_available_sema_info{};
+    image_available_sema_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    for(size_t i = 0u; i < m_swapchain.getMaxFrames(); ++i) {
+        VkResult result = vkCreateSemaphore(m_device->getDevice(), &image_available_sema_info, nullptr, &m_image_available[i]);
+        if(result != VK_SUCCESS) {
+            throw std::runtime_error("failed to create semaphore!");
+        }
+    }
+
     return true;
 }
 
@@ -120,14 +130,11 @@ void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer) {
 }
 
 void VulkanRenderer::drawFrame() {
-    
-    bool next_frame_available = m_swapchain.setNextFrame();
+    bool next_frame_available = m_swapchain.setNextFrame(m_command_buffers[m_swapchain.fetchNextSync()].getRenderFence());
     if (!next_frame_available || m_framebuffer_resized) {
         recreate();
         return;
     }
-
-    vkWaitForFences(m_device->getDevice(), 1u, m_command_buffers[m_swapchain.getCurrentSync()].getFencePtr(), VK_TRUE, UINT64_MAX);
 
     m_command_buffers[m_swapchain.getCurrentSync()].reset();
     recordCommandBuffer(m_command_buffers[m_swapchain.getCurrentSync()]);
@@ -136,16 +143,14 @@ void VulkanRenderer::drawFrame() {
     wait_info.wait_for_semaphores.push_back(m_swapchain.getImageAvailableSemaphore());
     wait_info.wait_for_stages.push_back(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
     VkSubmitInfo submit_info = m_command_buffers[m_swapchain.getCurrentSync()].getSubmitInfo(&wait_info);
-    
+
     m_device->getCommandManager().submitCommandBuffer(m_command_buffers[m_swapchain.getCurrentSync()], VulkanCommandManager::SELECT_ALL_BUFFERS, &submit_info);
     
     VkSwapchainKHR swapchains[] = {m_swapchain.getSwapchain()};
-    //VkSemaphore wait_semaphores[] = {m_swapchain.getImageAvailableSemaphore(), m_command_buffers[m_swapchain.getCurrentSync()].getInProgressSemaphore()};
     VkPresentInfoKHR present_info{};
     present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     present_info.waitSemaphoreCount = 1u;
     present_info.pWaitSemaphores = m_command_buffers[m_swapchain.getCurrentSync()].getInProgressSemaphorePtr();
-    //present_info.pWaitSemaphores = wait_semaphores;
     present_info.swapchainCount = 1u;
     present_info.pSwapchains = swapchains;
     present_info.pImageIndices = m_swapchain.getCurrentFramePtr();

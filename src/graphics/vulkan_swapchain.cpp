@@ -93,11 +93,20 @@ uint32_t VulkanSwapChain::getCurrentSync() const {
     return m_current_sync;
 }
 
-bool VulkanSwapChain::setNextFrame() {
-    m_current_sync = (m_current_sync + 1u) % m_max_frames;
+uint32_t VulkanSwapChain::fetchNextSync() const {
+    return (m_current_sync + 1u) % m_max_frames;
+}
+
+bool VulkanSwapChain::setNextFrame(VkFence wait_to) {
+    if (wait_to) {
+        vkWaitForFences(m_device->getDevice(), 1u, &wait_to, VK_TRUE, UINT64_MAX);
+    }
+    m_current_sync = fetchNextSync();
     vkWaitForFences(m_device->getDevice(), 1u, getImageAvailableFencePtr(), VK_TRUE, UINT64_MAX);
     vkResetFences(m_device->getDevice(), 1u, getImageAvailableFencePtr());
     VkResult result = vkAcquireNextImageKHR(m_device->getDevice(), m_swapchain, UINT64_MAX, getImageAvailableSemaphore(), getImageAvailableFence(), &m_current_frame);
+    //VkResult result = vkAcquireNextImageKHR(m_device->getDevice(), m_swapchain, UINT64_MAX, m_image_available_sem[m_current_sync], getImageAvailableFence(), &m_current_frame);
+    //VkResult result = vkAcquireNextImageKHR(m_device->getDevice(), m_swapchain, UINT64_MAX, getImageAvailableSemaphore(), VK_NULL_HANDLE, &m_current_frame);
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
         return false;
     }

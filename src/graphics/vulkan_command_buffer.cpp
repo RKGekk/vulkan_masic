@@ -68,7 +68,7 @@ VkFence CommandBatch::getRenderFence() const {
     return m_render_fence;
 }
 
-const VkFence* CommandBatch::getFencePtr() const {
+const VkFence* CommandBatch::getRenderFencePtr() const {
     return &m_render_fence;
 }
 
