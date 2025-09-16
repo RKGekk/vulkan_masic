@@ -71,7 +71,6 @@ bool VulkanCommandManager::init(VkPhysicalDevice physical_device, VkDevice logic
                 m_submit_to_sem_id.RemoveMapping(work_in_progress.getId());
 
                 size_t fnc_id = m_submit_to_fnc_id.ValueFor(work_in_progress.getId(), -1);
-                //vkResetFences(m_device, 1u, &m_fences[fnc_id]);
                 m_free_fnc_idx.Push(fnc_id);
                 m_submit_to_fnc_id.RemoveMapping(work_in_progress.getId());
             }
@@ -145,6 +144,7 @@ CommandBatch VulkanCommandManager::allocCommandBuffer(PoolTypeEnum pool_type, si
 
         CommandBatch result_buffers;
         result_buffers.init(m_device, std::move(command_buffers), semaphore, fence, pool_type, LAST_COMMAND_BUFFER_ID++);
+        result_buffers.reset();
         m_submit_to_buf_id.AddOrUpdateMapping(result_buffers.getId(), cmd_idx);
         m_submit_to_sem_id.AddOrUpdateMapping(result_buffers.getId(), semaphore_idx);
         m_submit_to_fnc_id.AddOrUpdateMapping(result_buffers.getId(), fence_idx);

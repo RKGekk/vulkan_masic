@@ -15,6 +15,7 @@ public:
     void Push(DataType value) {
         std::lock_guard<std::mutex> lock(m_mutex);
         m_queue.push(std::move(value));
+        m_data_cond.notify_one();
     }
 
     bool TryPop(DataType& value) {
@@ -39,6 +40,14 @@ public:
     }
 
     void WaitAndPop(DataType& value) {
+        {
+            std::lock_guard<std::mutex> lk(m_mutex);
+            if(!m_queue.empty()) {
+                value = m_queue.front();
+                m_queue.pop();
+                return;
+            }
+        }
         std::unique_lock<std::mutex> lk(m_mutex);
         m_data_cond.wait(lk, [this](){return !m_queue.empty();});
         value = m_queue.front();
@@ -46,6 +55,14 @@ public:
     }
 
     std::shared_ptr<DataType> WaitAndPop() {
+        {
+            std::lock_guard<std::mutex> lk(m_mutex);
+            if(!m_queue.empty()) {
+                std::shared_ptr<DataType> value = std::make_shared<DataType>(m_queue.front());
+                m_queue.pop();
+                return value;
+            }
+        }
         std::unique_lock<std::mutex> lk(m_mutex);
         m_data_cond.wait(lk, [this](){return !m_queue.empty();});
         std::shared_ptr<DataType> value = std::make_shared<DataType>(m_queue.front());
