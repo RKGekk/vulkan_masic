@@ -50,8 +50,11 @@ void VulkanSwapChain::destroy() {
     size_t sz = m_swapchain_images.size();
     for(size_t i = 0u; i < sz; ++i) {
         vkDestroyImageView(m_device->getDevice(), m_swapchain_images[i].view, nullptr);
+        vkDestroySemaphore(m_device->getDevice(), m_image_available_sem[i], nullptr);
+        vkDestroyFence(m_device->getDevice(), m_image_available_fen[i], nullptr);
     }
     vkDestroySwapchainKHR(m_device->getDevice(), m_swapchain, nullptr);
+
 }
 
 void VulkanSwapChain::recreate() {

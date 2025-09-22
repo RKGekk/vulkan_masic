@@ -9,7 +9,6 @@ std::unique_ptr<Application> gs_pSingeton;
 std::once_flag gs_only_once;
 
 static WindowSurface::WindowNameMap gs_window_by_name;
-static std::mutex gs_window_mutex;
 
 Application& Application::Get() {
     std::call_once(gs_only_once, [](){gs_pSingeton.reset(new VulkanApplication()); });
@@ -60,7 +59,6 @@ bool Application::Initialize(ApplicationOptions opt) {
     m_timer.Start();
     m_options = std::move(opt);
     m_event_manager = std::make_unique<EventManager>("MasicApp Event Mgr", true);
-    if (!m_event_manager) return false;
 
     if (!glfwInit()) return false;
         

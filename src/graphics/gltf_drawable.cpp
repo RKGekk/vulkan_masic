@@ -1,20 +1,72 @@
-#include "basic_drawable.h"
-
-#include "basic_vertex.h"
-#include "basic_uniform.h"
+#include "gltf_drawable.h"
 
 #include <utility>
 
-const std::vector<Vertex> g_vertices = {
-    {{-0.5f, -0.5f,  0.0f}, { 1.0f,  0.0f,  0.0f}, { 0.0f,  0.0f}},
-    {{ 0.5f, -0.5f,  0.0f}, { 0.0f,  1.0f,  0.0f}, { 1.0f,  0.0f}},
-    {{ 0.5f,  0.5f,  0.0f}, { 0.0f,  0.0f,  1.0f}, { 1.0f,  1.0f}},
-    {{-0.5f,  0.5f,  0.0f}, { 1.0f,  1.0f,  1.0f}, { 0.0f,  1.0f}},
+struct GLTFUniformBufferObject {
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 proj;
+};
 
-    {{-0.5f, -0.5f, -0.5f}, { 1.0f,  0.0f,  0.0f}, { 0.0f,  0.0f}},
-    {{ 0.5f, -0.5f, -0.5f}, { 0.0f,  1.0f,  0.0f}, { 1.0f,  0.0f}},
-    {{ 0.5f,  0.5f, -0.5f}, { 0.0f,  0.0f,  1.0f}, { 1.0f,  1.0f}},
-    {{-0.5f,  0.5f, -0.5f}, { 1.0f,  1.0f,  1.0f}, { 0.0f,  1.0f}}
+struct GLTFVertex {
+    glm::vec3 pos;
+    glm::vec3 color;
+    glm::vec2 tex_coord;
+    
+    static const std::vector<VkVertexInputBindingDescription>& getBindingDescriptions() {
+        static std::vector<VkVertexInputBindingDescription> binding_desc(1);
+        static std::once_flag exe_flag;
+        std::call_once(exe_flag, [](){
+            binding_desc[0].binding = 0u;
+            binding_desc[0].stride = sizeof(GLTFVertex);
+            binding_desc[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+        });
+        
+        return binding_desc;
+    }
+    
+    static const std::vector<VkVertexInputAttributeDescription>& getAttributeDescritpions() {
+        static std::vector<VkVertexInputAttributeDescription> attribute_desc(3);
+        static std::once_flag exe_flag;
+        std::call_once(exe_flag, [](){
+            attribute_desc[0].binding = 0;
+            attribute_desc[0].location = 0;
+            attribute_desc[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+            attribute_desc[0].offset = offsetof(GLTFVertex, pos);
+            
+            attribute_desc[1].binding = 0;
+            attribute_desc[1].location = 1;
+            attribute_desc[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+            attribute_desc[1].offset = offsetof(GLTFVertex, color);
+            
+            attribute_desc[2].binding = 0;
+            attribute_desc[2].location = 2;
+            attribute_desc[2].format = VK_FORMAT_R32G32_SFLOAT;
+            attribute_desc[2].offset = offsetof(GLTFVertex, tex_coord);;
+        });
+        
+        return attribute_desc;
+    }
+
+    static VkPipelineVertexInputStateCreateInfo getVertextInputInfo() {
+        const std::vector<VkVertexInputBindingDescription>& binding_desc = getBindingDescriptions();
+        const std::vector<VkVertexInputAttributeDescription>& attribute_desc = getAttributeDescritpions();
+        VkPipelineVertexInputStateCreateInfo vertex_input_info{};
+        vertex_input_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+        vertex_input_info.vertexBindingDescriptionCount = static_cast<uint32_t>(binding_desc.size());
+        vertex_input_info.pVertexBindingDescriptions = binding_desc.data();
+        vertex_input_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribute_desc.size());
+        vertex_input_info.pVertexAttributeDescriptions = attribute_desc.data();
+
+        return vertex_input_info;
+    }
+};
+
+const std::vector<GLTFVertex> g_vertices = {
+    {{-0.5f, -0.5f,  0.5f}, { 1.0f,  0.0f,  0.0f}, { 0.0f,  0.0f}},
+    {{ 0.5f, -0.5f,  0.5f}, { 0.0f,  1.0f,  0.0f}, { 1.0f,  0.0f}},
+    {{ 0.5f,  0.5f,  0.5f}, { 0.0f,  0.0f,  1.0f}, { 1.0f,  1.0f}},
+    {{-0.5f,  0.5f,  0.5f}, { 1.0f,  1.0f,  1.0f}, { 0.0f,  1.0f}}
 };
 
 const std::vector<uint16_t> g_indices = {
@@ -24,13 +76,13 @@ const std::vector<uint16_t> g_indices = {
     6, 7, 4
 };
 
-bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarget& rt) {
+bool GLTFDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarget& rt) {
     m_device = std::move(device);
     m_render_target_fmt = rt.render_target_fmt;
     m_rt_aspect = (float)rt.render_target_fmt.viewportExtent.width / (float)rt.render_target_fmt.viewportExtent.height;
 
-    std::shared_ptr<VertexBuffer<Vertex, uint16_t>> vertex_buffer = std::make_shared<VertexBuffer<Vertex, uint16_t>>();
-    vertex_buffer->init(m_device, g_vertices, g_indices, Vertex::getVertextInputInfo());
+    std::shared_ptr<VertexBuffer<GLTFVertex, uint16_t>> vertex_buffer = std::make_shared<VertexBuffer<GLTFVertex, uint16_t>>();
+    vertex_buffer->init(m_device, g_vertices, g_indices, GLTFVertex::getVertextInputInfo());
     m_vertex_buffer = std::move(vertex_buffer);
 
     std::shared_ptr<VulkanUniformBuffer<UniformBufferObject>> uniform_buffer = std::make_shared<VulkanUniformBuffer<UniformBufferObject>>();
@@ -75,7 +127,7 @@ bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarge
     return true;
 }
 
-void BasicDrawable::reset(const RenderTarget& rt) {
+void GLTFDrawable::reset(const RenderTarget& rt) {
     std::vector<VulkanDescriptor::Binding> bindings = m_descriptor.getBingingsForSets();
     std::vector<VkPipelineShaderStageCreateInfo> pipeline_shaders = m_pipeline.getShadersInfo();
 
@@ -95,7 +147,7 @@ void BasicDrawable::reset(const RenderTarget& rt) {
     m_out_framebuffers = createFramebuffers(rt);
 }
 
-void BasicDrawable::destroy() {
+void GLTFDrawable::destroy() {
     m_vertex_buffer->destroy();
     m_uniform_buffers->destroy();
     m_pipeline.destroy();
@@ -111,7 +163,7 @@ void BasicDrawable::destroy() {
     }
 }
 
-void BasicDrawable::recordCommandBuffer(const CommandBatch& command_buffer, uint32_t image_index) {
+void GLTFDrawable::recordCommandBuffer(const CommandBatch& command_buffer, uint32_t image_index) {
 
     VkRenderPassBeginInfo renderpass_info{};
     renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -157,12 +209,12 @@ void BasicDrawable::recordCommandBuffer(const CommandBatch& command_buffer, uint
     vkCmdEndRenderPass(command_buffer.getCommandBufer());
 }
 
-void BasicDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
+void GLTFDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     float angle = delta.fGetTotalSeconds() * glm::radians(90.f);
     glm::vec3 rotation_axis = glm::vec3(0.0f, 0.0f, 1.0f);
     
-    UniformBufferObject ubo{};
-    ubo.model = glm::rotate(glm::mat4(1.0f), angle, rotation_axis);
+    GLTFUniformBufferObject ubo{};
+    ubo.model = glm::rotate(glm::mat4(1.0f), -1.0f * angle, rotation_axis);
     ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.proj = glm::perspective(glm::radians(45.0f), m_rt_aspect, 0.1f, 10.0f);
     ubo.proj[1][1] *= -1.0f;
@@ -170,7 +222,7 @@ void BasicDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     m_uniform_buffers->update(VK_NULL_HANDLE, &ubo, image_index);
 }
 
-VkRenderPass BasicDrawable::createRenderPass(VkFormat color_format, VkFormat depth_format) {
+VkRenderPass GLTFDrawable::createRenderPass(VkFormat color_format, VkFormat depth_format) {
     VkRenderPass result;
     VkSubpassDependency pass_dependency{};
     pass_dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -184,15 +236,15 @@ VkRenderPass BasicDrawable::createRenderPass(VkFormat color_format, VkFormat dep
     return result;
 }
 
-VkRenderPass BasicDrawable::createRenderPass(VkFormat color_format, VkFormat depth_format, VkSubpassDependency subpass_dependency) {
+VkRenderPass GLTFDrawable::createRenderPass(VkFormat color_format, VkFormat depth_format, VkSubpassDependency subpass_dependency) {
     VkAttachmentDescription color_attachment{};
     color_attachment.format = color_format;
     color_attachment.samples = m_device->getMsaaSamples();
-    color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
     color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     color_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     color_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    color_attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     color_attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     
     VkAttachmentReference color_attachment_ref{};
@@ -202,11 +254,11 @@ VkRenderPass BasicDrawable::createRenderPass(VkFormat color_format, VkFormat dep
     VkAttachmentDescription depth_attachment{};
     depth_attachment.format = depth_format;
     depth_attachment.samples = m_device->getMsaaSamples();
-    depth_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depth_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
     depth_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     depth_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     depth_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depth_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    depth_attachment.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     depth_attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     
     VkAttachmentReference depth_attachment_ref{};
@@ -216,12 +268,12 @@ VkRenderPass BasicDrawable::createRenderPass(VkFormat color_format, VkFormat dep
     VkAttachmentDescription color_attachment_resolve{};
     color_attachment_resolve.format = color_format;
     color_attachment_resolve.samples = VK_SAMPLE_COUNT_1_BIT;
-    color_attachment_resolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    color_attachment_resolve.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
     color_attachment_resolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     color_attachment_resolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     color_attachment_resolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    color_attachment_resolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    color_attachment_resolve.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    color_attachment_resolve.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    color_attachment_resolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
     
     VkAttachmentReference color_attachment_resolve_ref{};
     color_attachment_resolve_ref.attachment = 2u;
@@ -256,7 +308,7 @@ VkRenderPass BasicDrawable::createRenderPass(VkFormat color_format, VkFormat dep
     return render_pass;
 }
 
-std::vector<VkFramebuffer> BasicDrawable::createFramebuffers(const RenderTarget& rt) {
+std::vector<VkFramebuffer> GLTFDrawable::createFramebuffers(const RenderTarget& rt) {
     std::vector<VkFramebuffer> result_framebuffers(rt.frame_count);
     for(size_t i = 0u; i < rt.frame_count; ++i) {
         VkFramebufferCreateInfo framebuffer_info{};

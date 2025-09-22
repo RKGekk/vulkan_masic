@@ -37,6 +37,7 @@ public:
     void Show();
     void Hide();
     bool ProcessMessages();
+    bool SkipDraw();
 
     WindowSurface();
     ~WindowSurface();

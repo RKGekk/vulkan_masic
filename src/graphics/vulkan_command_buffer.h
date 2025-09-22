@@ -18,12 +18,18 @@ public:
 
     bool init(VkDevice device, std::vector<VkCommandBuffer> command_buffers, PoolTypeEnum pool_type, unsigned int submit_id, BatchWaitInfo wait_info = {});
     bool init(VkDevice device, std::vector<VkCommandBuffer> command_buffers, VkSemaphore semaphore, VkFence fence, PoolTypeEnum pool_type, unsigned int submit_id, BatchWaitInfo wait_info = {});
+    bool init(VkDevice device, size_t reserve, PoolTypeEnum pool_type, unsigned int submit_id, BatchWaitInfo wait_info = {});
+    bool init(VkDevice device, size_t reserve, VkSemaphore semaphore, VkFence fence, PoolTypeEnum pool_type, unsigned int submit_id, BatchWaitInfo wait_info = {});
     void destroy();
 
     VkCommandBuffer getCommandBufer(size_t index = 0u) const;
     const VkCommandBuffer* getCommandBuferPtr(size_t index = 0u) const;
     size_t getCommandBuferCount() const;
     const std::vector<VkCommandBuffer> getCommandBufers() const;
+    void addCommandBufer(VkCommandBuffer command_buffer);
+    void addCommandBufer(std::vector<VkCommandBuffer> command_buffers);
+    void reserveCommandBufer(size_t sz);
+
     VkSemaphore getInProgressSemaphore() const;
     const VkSemaphore* getInProgressSemaphorePtr() const;
     VkFence getRenderFence() const;
@@ -31,6 +37,7 @@ public:
     PoolTypeEnum getPoolType() const;
     unsigned int getId() const;
     VkSubmitInfo getSubmitInfo(BatchWaitInfo* wait_info = nullptr) const;
+    const BatchWaitInfo& getWaitInfo() const;
 
     void setNoop();
     bool Noop();

@@ -70,9 +70,7 @@ private:
     
         m_vertex_buffer = m_device->createBuffer(buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
         CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
-        VulkanCommandManager::beginCommandBuffer(command_buffer);
         m_device->getCommandManager().copyBuffer(command_buffer.getCommandBufer(), staging_buffer.buf, m_vertex_buffer.buf, buffer_size);
-        VulkanCommandManager::endCommandBuffer(command_buffer);
         m_device->getCommandManager().submitCommandBuffer(command_buffer);
         m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
 
@@ -91,9 +89,7 @@ private:
     
         m_index_buffer = m_device->createBuffer(buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
         CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
-        VulkanCommandManager::beginCommandBuffer(command_buffer);
         m_device->getCommandManager().copyBuffer(command_buffer.getCommandBufer() ,staging_buffer.buf, m_index_buffer.buf, buffer_size);
-        VulkanCommandManager::endCommandBuffer(command_buffer);
         m_device->getCommandManager().submitCommandBuffer(command_buffer);
         m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
     

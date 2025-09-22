@@ -65,6 +65,13 @@ bool WindowSurface::ProcessMessages() {
     return glfwWindowShouldClose(m_window);
 }
 
+bool WindowSurface::SkipDraw() {
+    int width;
+    int height;
+    glfwGetFramebufferSize(m_window, &width, &height);
+    return (!width || !height);
+}
+
 WindowSurface::WindowSurface() : m_dpi_scaling(1.0f), m_name(), m_title(), m_previous_mouse_x(0), m_previous_mouse_y(0), m_is_fullscreen(false), m_is_minimized(false), m_is_maximized(false) {}
 
 WindowSurface::~WindowSurface() {

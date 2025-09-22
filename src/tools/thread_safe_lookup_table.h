@@ -73,8 +73,7 @@ public:
 private:
     class bucket_type {
     public:
-        using bucket_value = std::pair<KeyType, ValueType>;
-        using bucke_data = std::list<bucket_value>;
+        using bucke_data = std::vector<std::pair<KeyType, ValueType>>;
         using bucket_it = bucke_data::iterator;
         using bucket_const_it = bucke_data::const_iterator;
 
@@ -88,7 +87,7 @@ private:
             std::unique_lock<std::shared_mutex> lock(m_mutex);
             bucket_it found_entry = find_entry_for(key);
             if(found_entry == m_data.end()) {
-                m_data.push_back(bucket_value(key, value));
+                m_data.push_back(std::pair<KeyType, ValueType>(key, value));
             }
             else {
                 found_entry->second = value;
@@ -119,7 +118,7 @@ private:
             return std::find_if(
                 m_data.cbegin(),
                 m_data.cend(),
-                [&](const bucket_value& item) {
+                [&](const std::pair<KeyType, ValueType>& item) {
                     return item.first == key;
                 }
             );
@@ -129,7 +128,7 @@ private:
             return std::find_if(
                 m_data.begin(),
                 m_data.end(),
-                [&](const bucket_value& item) {
+                [&](const std::pair<KeyType, ValueType>& item) {
                     return item.first == key;
                 }
             );

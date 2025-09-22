@@ -16,7 +16,6 @@ public:
     virtual void* getMappedBuffer(uint32_t copy_index) const = 0;
     virtual VkDeviceSize getSize() const = 0;
     virtual VkDescriptorBufferInfo getDescBufferInfo(uint32_t copy_index) const = 0;
-    virtual void update(const void* data, uint32_t copy_index) = 0;
     virtual void update(VkCommandBuffer command_buffer, const void* data, uint32_t copy_index) = 0;
 };
 

@@ -50,7 +50,7 @@ bool VulkanCommandManager::init(VkPhysicalDevice physical_device, VkDevice logic
         m_free_fnc_idx.Push(i);
     }
 
-    m_thread_pool->Submit(
+    m_cmd_buff_thread = std::thread(
         [this]() {
             while(true) {
                 CommandBatch work_in_progress;
@@ -77,7 +77,7 @@ bool VulkanCommandManager::init(VkPhysicalDevice physical_device, VkDevice logic
             return;
         }
     );
-    
+
     return true;
 }
 
@@ -91,6 +91,11 @@ void VulkanCommandManager::destroy() {
     }
     else {
         vkDestroyCommandPool(m_device, m_grapics_cmd_pool, nullptr);
+    }
+
+    for(size_t i = 0u; i < MAX_COMMAND_BUFFERS; ++i) {
+        vkDestroySemaphore(m_device, m_semaphores[i], nullptr);
+        vkDestroyFence(m_device, m_fences[i], nullptr);
     }
 }
 
@@ -145,6 +150,7 @@ CommandBatch VulkanCommandManager::allocCommandBuffer(PoolTypeEnum pool_type, si
         CommandBatch result_buffers;
         result_buffers.init(m_device, std::move(command_buffers), semaphore, fence, pool_type, LAST_COMMAND_BUFFER_ID++);
         result_buffers.reset();
+        VulkanCommandManager::beginCommandBuffer(result_buffers);
         m_submit_to_buf_id.AddOrUpdateMapping(result_buffers.getId(), cmd_idx);
         m_submit_to_sem_id.AddOrUpdateMapping(result_buffers.getId(), semaphore_idx);
         m_submit_to_fnc_id.AddOrUpdateMapping(result_buffers.getId(), fence_idx);
@@ -251,6 +257,7 @@ void VulkanCommandManager::endCommandBuffer(CommandBatch& command_buffer, size_t
 
 void VulkanCommandManager::submitCommandBuffer(CommandBatch& command_buffer, size_t index, VkSubmitInfo* p_submit_info) {
     if(command_buffer.getPoolType() == PoolTypeEnum::TRANSFER) {
+        VulkanCommandManager::endCommandBuffer(command_buffer);
         if (p_submit_info) {
             VkResult result = vkQueueSubmit(getQueue(command_buffer.getPoolType()), 1u, p_submit_info, command_buffer.getRenderFence());
             if (result != VK_SUCCESS) {

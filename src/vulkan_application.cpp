@@ -1,5 +1,10 @@
 #include "vulkan_application.h"
 
+#include "graphics/basic_vertex.h"
+#include "graphics/basic_uniform.h"
+#include "graphics/basic_drawable.h"
+#include "graphics/gltf_drawable.h"
+
 VulkanApplication::VulkanApplication() : Application() {}
 
 VulkanApplication::~VulkanApplication() {
@@ -32,6 +37,10 @@ bool VulkanApplication::initGraphics(WindowSurface::WindowPtr window) {
     drawable->init(m_vulkan_device, m_renderer.getRenderTarget());
     m_renderer.addDrawable(std::move(drawable));
 
+    std::shared_ptr<GLTFDrawable> gltfdrawable = std::make_shared<GLTFDrawable>();
+    gltfdrawable->init(m_vulkan_device, m_renderer.getRenderTarget());
+    m_renderer.addDrawable(std::move(gltfdrawable));
+
     return true;
 }
 
@@ -41,6 +50,7 @@ void VulkanApplication::update_frame(uint32_t current_image) {
 
 void VulkanApplication::mainLoop() {
     while(!Application::update()) {
+        if(m_window->SkipDraw()) continue;
         update_frame(m_renderer.getSwapchain().getCurrentFrame());
         m_renderer.drawFrame();
     }

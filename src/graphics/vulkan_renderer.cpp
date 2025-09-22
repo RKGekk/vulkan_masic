@@ -14,16 +14,6 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR sur
         m_command_buffers.push_back(m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::GRAPICS));
     }
 
-    m_image_available.resize(m_swapchain.getMaxFrames());
-    VkSemaphoreCreateInfo image_available_sema_info{};
-    image_available_sema_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-    for(size_t i = 0u; i < m_swapchain.getMaxFrames(); ++i) {
-        VkResult result = vkCreateSemaphore(m_device->getDevice(), &image_available_sema_info, nullptr, &m_image_available[i]);
-        if(result != VK_SUCCESS) {
-            throw std::runtime_error("failed to create semaphore!");
-        }
-    }
-
     return true;
 }
 
@@ -228,9 +218,7 @@ void VulkanRenderer::createDepthResources() {
     for(uint32_t i = 0; i < m_swapchain.getMaxFrames(); ++i) {
         m_out_depth_images[i] = m_device->createImage(image_info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image_aspect, 1u);
         CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
-        VulkanCommandManager::beginCommandBuffer(command_buffer);
         m_device->getCommandManager().transitionImageLayout(command_buffer.getCommandBufer(), m_out_depth_images[i].image, depth_format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1u);
-        VulkanCommandManager::endCommandBuffer(command_buffer);
         m_device->getCommandManager().submitCommandBuffer(command_buffer);
         m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
     }

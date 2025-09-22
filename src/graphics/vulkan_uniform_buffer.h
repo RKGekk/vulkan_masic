@@ -63,22 +63,9 @@ public:
         return m_buffers_info[copy_index];
     }
 
-    void update(const void* src_data, uint32_t copy_index) override {
-        if(m_uniform_buffers[copy_index].properties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) {
-            memcpy(m_uniforms_mapped[copy_index], src_data, m_uniform_size);
-            return;
-        }
-        CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
-        VulkanCommandManager::beginCommandBuffer(command_buffer);
-        update(command_buffer.getCommandBufer(), src_data, copy_index);
-        VulkanCommandManager::endCommandBuffer(command_buffer);
-        m_device->getCommandManager().submitCommandBuffer(command_buffer);
-        m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
-    }
-
     void update(VkCommandBuffer command_buffer, const void* src_data, uint32_t copy_index) override {
         if(m_uniform_buffers[copy_index].properties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) {
-            update(src_data, copy_index);
+            memcpy(m_uniforms_mapped[copy_index], src_data, m_uniform_size);
             return;
         }
         VulkanBuffer staging_buffer = m_device->createBuffer(m_uniform_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);

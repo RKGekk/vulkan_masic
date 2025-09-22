@@ -108,6 +108,8 @@ set(APP_SOURCES
     "${SRC_DIR}/graphics/basic_uniform.h"
     "${SRC_DIR}/graphics/basic_drawable.h"
     "${SRC_DIR}/graphics/basic_drawable.cpp"
+    "${SRC_DIR}/graphics/gltf_drawable.h"
+    "${SRC_DIR}/graphics/gltf_drawable.cpp"
     "${SRC_DIR}/graphics/render_resource.h"
     "${SRC_DIR}/graphics/vulkan_buffer.h"
     "${SRC_DIR}/graphics/vulkan_buffer.cpp"

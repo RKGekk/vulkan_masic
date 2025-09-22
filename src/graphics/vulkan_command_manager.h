@@ -68,4 +68,5 @@ private:
     ThreadSafeQueue<size_t> m_free_fnc_idx;
 
     std::shared_ptr<ThreadPool> m_thread_pool;
+    scope_thread m_cmd_buff_thread;
 };

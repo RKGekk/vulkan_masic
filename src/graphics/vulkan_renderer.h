@@ -19,9 +19,6 @@
 #include "vulkan_pipeline.h"
 #include "vulkan_command_buffer.h"
 #include "vulkan_command_pool_type.h"
-#include "basic_vertex.h"
-#include "basic_uniform.h"
-#include "basic_drawable.h"
 #include "vulkan_uniform_buffer.h"
 
 class VulkanRenderer {
@@ -57,8 +54,6 @@ private:
     std::shared_ptr<ThreadPool> m_thread_pool;
 
     std::vector<std::shared_ptr<IVulkanDrawable>> m_drawable_list;
-
-    std::vector<VkSemaphore> m_image_available; // signaled when the presentation engine is finished using the image.
 
     bool m_framebuffer_resized = false;
 };

@@ -1,5 +1,7 @@
 #include "vulkan_command_buffer.h"
 
+#include <iterator>
+
 bool CommandBatch::init(VkDevice device, std::vector<VkCommandBuffer> command_buffers, PoolTypeEnum pool_type, unsigned int id, BatchWaitInfo wait_info) {
     m_device = device;
     m_submit_id = id;
@@ -36,8 +38,46 @@ bool CommandBatch::init(VkDevice device, std::vector<VkCommandBuffer> command_bu
     return true;
 }
 
+bool CommandBatch::init(VkDevice device, size_t reserve, PoolTypeEnum pool_type, unsigned int id, BatchWaitInfo wait_info) {
+    m_device = device;
+    m_submit_id = id;
+    m_command_buffers.reserve(reserve);
+    m_pool_type = pool_type;
+    m_wait_info = wait_info;
+
+    VkSemaphoreCreateInfo buffer_available_sema_info{};
+    buffer_available_sema_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    VkResult result = vkCreateSemaphore(m_device, &buffer_available_sema_info, nullptr, &m_buffer_in_use_semaphore);
+    if(result != VK_SUCCESS) {
+        throw std::runtime_error("failed to create semaphore!");
+    }
+
+    VkFenceCreateInfo fen_info{};
+    fen_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fen_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+    result = vkCreateFence(m_device, &fen_info, nullptr, &m_render_fence);
+    if(result != VK_SUCCESS) {
+        throw std::runtime_error("failed to create fence!");
+    }
+
+    return true;
+}
+
+bool CommandBatch::init(VkDevice device, size_t reserve, VkSemaphore semaphore, VkFence fence, PoolTypeEnum pool_type, unsigned int submit_id, BatchWaitInfo wait_info) {
+    m_device = device;
+    m_submit_id = submit_id;
+    m_command_buffers.reserve(reserve);
+    m_pool_type = pool_type;
+    m_buffer_in_use_semaphore = semaphore;
+    m_render_fence = fence;
+
+    return true;
+}
+
+
 void CommandBatch::destroy() {
     vkDestroySemaphore(m_device, m_buffer_in_use_semaphore, nullptr);
+    vkDestroyFence(m_device, m_render_fence, nullptr);
 }
 
 VkCommandBuffer CommandBatch::getCommandBufer(size_t index) const {
@@ -54,6 +94,22 @@ size_t CommandBatch::getCommandBuferCount() const {
 
 const std::vector<VkCommandBuffer> CommandBatch::getCommandBufers() const {
     return m_command_buffers;
+}
+
+void CommandBatch::addCommandBufer(VkCommandBuffer command_buffer) {
+    m_command_buffers.push_back(command_buffer);
+}
+
+void CommandBatch::addCommandBufer(std::vector<VkCommandBuffer> command_buffers) {
+    m_command_buffers.insert(
+        m_command_buffers.end(),
+        std::make_move_iterator(command_buffers.begin()),
+        std::make_move_iterator(command_buffers.end())
+    );
+}
+
+void CommandBatch::reserveCommandBufer(size_t sz) {
+    m_command_buffers.reserve(sz);
 }
 
 VkSemaphore CommandBatch::getInProgressSemaphore() const {
@@ -106,6 +162,10 @@ VkSubmitInfo CommandBatch::getSubmitInfo(BatchWaitInfo* wait_info) const {
     }
 
     return submit_info;
+}
+
+const CommandBatch::BatchWaitInfo& CommandBatch::getWaitInfo() const {
+    return m_wait_info;
 }
 
 void CommandBatch::setNoop() {
