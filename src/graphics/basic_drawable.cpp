@@ -29,8 +29,8 @@ bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarge
     m_render_target_fmt = rt.render_target_fmt;
     m_rt_aspect = (float)rt.render_target_fmt.viewportExtent.width / (float)rt.render_target_fmt.viewportExtent.height;
 
-    std::shared_ptr<VertexBuffer<Vertex, uint16_t>> vertex_buffer = std::make_shared<VertexBuffer<Vertex, uint16_t>>();
-    vertex_buffer->init(m_device, g_vertices, g_indices, Vertex::getVertextInputInfo());
+    std::shared_ptr<VertexBuffer> vertex_buffer = std::make_shared<VertexBuffer>();
+    vertex_buffer->init<Vertex, uint16_t>(m_device, g_vertices, g_indices, Vertex::getVertextInputInfo());
     m_vertex_buffer = std::move(vertex_buffer);
 
     std::shared_ptr<VulkanUniformBuffer<UniformBufferObject>> uniform_buffer = std::make_shared<VulkanUniformBuffer<UniformBufferObject>>();
@@ -150,7 +150,7 @@ void BasicDrawable::recordCommandBuffer(const CommandBatch& command_buffer, uint
     VkBuffer vertex_buffers[] = {m_vertex_buffer->getVertexBuffer().buf};
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(command_buffer.getCommandBufer(), 0, 1, vertex_buffers, offsets);
-    vkCmdBindIndexBuffer(command_buffer.getCommandBufer(), m_vertex_buffer->getIndexBuffer().buf, 0u, VK_INDEX_TYPE_UINT16);
+    vkCmdBindIndexBuffer(command_buffer.getCommandBufer(), m_vertex_buffer->getIndexBuffer().buf, 0u, m_vertex_buffer->getIndexType());
 
     vkCmdDrawIndexed(command_buffer.getCommandBufer(), static_cast<uint32_t>(m_vertex_buffer->getIndicesCount()), 1u, 0u, 0u, 0u);
 

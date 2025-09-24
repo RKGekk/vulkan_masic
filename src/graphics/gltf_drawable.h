@@ -11,6 +11,8 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "tiny_gltf.h"
+
 #include "vulkan_device.h"
 #include "vulkan_drawable.h"
 #include "render_resource.h"
@@ -57,4 +59,7 @@ private:
     std::vector<VkFramebuffer> m_out_framebuffers;
 
     VulkanTexture m_texture;
+
+    tinygltf::Model m_gltf_model;
+    tinygltf::TinyGLTF m_gltf_ctx;
 };

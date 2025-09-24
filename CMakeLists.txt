@@ -126,15 +126,18 @@ set(APP_SOURCES
 )
 set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders")
 set(TEXTURES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/textures")
+set(OBJECTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/objects")
 set(APP_SHADERS "${SHADER_DIR}/shader.frag" "${SHADER_DIR}/shader.vert")
-set(APP_RESOURCES "${TEXTURES_DIR}/texture.jpg")
+set(APP_RESOURCES "${TEXTURES_DIR}/texture.jpg" "${TEXTURES_DIR}/Sketchfab_UV_Checker.png")
+set(APP_OBJECTS "${OBJECTS_DIR}/cube.gltf" "${OBJECTS_DIR}/cube.bin")
 
 set(SPV_BIN_DIR "${CMAKE_BINARY_DIR}/Debug/shaders")
+set(CONFIG_DIR "${CMAKE_BINARY_DIR}/Debug/")
 set(SH_RESOURCES_DIR "${CMAKE_BINARY_DIR}/Debug/textures")
+set(SH_OBJ_DIR "${CMAKE_BINARY_DIR}/Debug/objects")
 file(MAKE_DIRECTORY ${SPV_BIN_DIR})
 file(MAKE_DIRECTORY ${SH_RESOURCES_DIR})
-
-
+file(MAKE_DIRECTORY ${SH_OBJ_DIR})
 
 find_program(GLSLC glslc HINTS /usr/bin /usr/local/bin $ENV{VULKAN_SDK}/Bin/ $ENV{VULKAN_SDK}/Bin32/)
 if (NOT GLSLC)
@@ -162,7 +165,7 @@ foreach (SHADER ${APP_SHADERS})
     compile_shader(${SHADER})
 endforeach()
 
-function (CopyFile FILE_PATH COPY_OUTPUT_DIRECTORY)
+function (CopyResourceFile FILE_PATH COPY_OUTPUT_DIRECTORY)
     get_filename_component(FILE_NAME ${FILE_PATH} NAME)
     set(SH_RESOURCES_OUTPUT "${SH_RESOURCES_DIR}/${FILE_NAME}")
 
@@ -173,10 +176,35 @@ function (CopyFile FILE_PATH COPY_OUTPUT_DIRECTORY)
     set(SHADER_RESOURCES ${SHADER_RESOURCES} PARENT_SCOPE)
 endfunction ()
 
+function (CopyObjectFile FILE_PATH COPY_OUTPUT_DIRECTORY)
+    get_filename_component(FILE_NAME ${FILE_PATH} NAME)
+    set(SH_OBJECTS_OUTPUT "${SH_OBJ_DIR}/${FILE_NAME}")
+
+    message(STATUS ${FILE_PATH})
+    file(COPY ${FILE_PATH} DESTINATION ${SH_OBJ_DIR})
+
+    list(APPEND SHADER_OBJECTS ${SH_OBJECTS_OUTPUT})
+    set(SHADER_OBJECTS ${OBJECTS} PARENT_SCOPE)
+endfunction ()
+
+function (CopyConfigFile FILE_PATH COPY_OUTPUT_DIRECTORY)
+    get_filename_component(FILE_NAME ${FILE_PATH} NAME)
+    set(CONFIG_OUTPUT "${CMAKE_BINARY_DIR}/Debug/${FILE_NAME}")
+
+    message(STATUS ${FILE_PATH})
+    file(COPY ${FILE_PATH} DESTINATION "${CMAKE_BINARY_DIR}/Debug")
+
+    list(APPEND RESOURCES_CONFIG ${CONFIG_OUTPUT})
+    set(RESOURCES_CONFIG ${RESOURCES_CONFIG} PARENT_SCOPE)
+endfunction ()
+
 foreach(TEXTURE ${APP_RESOURCES})
-    CopyFile(${TEXTURE} ${SH_RESOURCES_DIR})
+    CopyResourceFile(${TEXTURE} ${SH_RESOURCES_DIR})
 endforeach()
-CopyFile("${SRC_DIR}/application_options.xml" "${CMAKE_BINARY_DIR}/Debug")
+foreach(OBJECT ${APP_OBJECTS})
+    CopyObjectFile(${OBJECT} ${SH_OBJ_DIR})
+endforeach()
+CopyConfigFile("${SRC_DIR}/application_options.xml" "${CMAKE_BINARY_DIR}/Debug")
 
 find_package(Vulkan REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
@@ -189,8 +217,10 @@ find_package(pugixml CONFIG REQUIRED)
 add_executable(vktutorial ${APP_SOURCES})
 add_custom_target(Shaders ALL DEPENDS ${SPIRV_SHADERS})
 add_custom_target(Textures ALL DEPENDS ${SHADER_RESOURCES})
+add_custom_target(Objects ALL DEPENDS ${SHADER_OBJECTS})
 add_dependencies(vktutorial Shaders)
 add_dependencies(vktutorial Textures)
+add_dependencies(vktutorial Objects)
 
 target_include_directories(vktutorial PRIVATE ${TINYGLTF_INCLUDE_DIRS} ${Stb_INCLUDE_DIR})
 target_link_libraries(vktutorial PRIVATE Vulkan::Vulkan glfw ${GLFW_LIBRARIES} glm::glm imgui::imgui pugixml::shared pugixml::pugixml)

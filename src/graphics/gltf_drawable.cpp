@@ -1,5 +1,10 @@
+#define TINYGLTF_IMPLEMENTATION
+//#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+
 #include "gltf_drawable.h"
 
+#include <filesystem>
 #include <utility>
 
 struct GLTFUniformBufferObject {
@@ -8,88 +13,282 @@ struct GLTFUniformBufferObject {
     glm::mat4 proj;
 };
 
-struct GLTFVertex {
-    glm::vec3 pos;
-    glm::vec3 color;
-    glm::vec2 tex_coord;
-    
-    static const std::vector<VkVertexInputBindingDescription>& getBindingDescriptions() {
-        static std::vector<VkVertexInputBindingDescription> binding_desc(1);
-        static std::once_flag exe_flag;
-        std::call_once(exe_flag, [](){
-            binding_desc[0].binding = 0u;
-            binding_desc[0].stride = sizeof(GLTFVertex);
-            binding_desc[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-        });
+VkIndexType getIndexType(int accessor_component_type) {
+    switch (accessor_component_type) {
+        case TINYGLTF_COMPONENT_TYPE_BYTE : return VK_INDEX_TYPE_UINT8_EXT;
+        case TINYGLTF_COMPONENT_TYPE_SHORT : return VK_INDEX_TYPE_UINT16;
+        case TINYGLTF_COMPONENT_TYPE_INT : return VK_INDEX_TYPE_UINT32;
+
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE : return VK_INDEX_TYPE_UINT8_EXT;
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT : return VK_INDEX_TYPE_UINT16;
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT : return VK_INDEX_TYPE_UINT32;
         
-        return binding_desc;
+        default: return VK_INDEX_TYPE_UINT32;
     }
-    
-    static const std::vector<VkVertexInputAttributeDescription>& getAttributeDescritpions() {
-        static std::vector<VkVertexInputAttributeDescription> attribute_desc(3);
-        static std::once_flag exe_flag;
-        std::call_once(exe_flag, [](){
-            attribute_desc[0].binding = 0;
-            attribute_desc[0].location = 0;
-            attribute_desc[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-            attribute_desc[0].offset = offsetof(GLTFVertex, pos);
-            
-            attribute_desc[1].binding = 0;
-            attribute_desc[1].location = 1;
-            attribute_desc[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-            attribute_desc[1].offset = offsetof(GLTFVertex, color);
-            
-            attribute_desc[2].binding = 0;
-            attribute_desc[2].location = 2;
-            attribute_desc[2].format = VK_FORMAT_R32G32_SFLOAT;
-            attribute_desc[2].offset = offsetof(GLTFVertex, tex_coord);;
-        });
+}
+
+float GetAttributeFloat(const unsigned char* raw_data_ptr, uint32_t component_type) {
+	float result = 0.0f;
+	switch (component_type) {
+		case TINYGLTF_COMPONENT_TYPE_BYTE: {
+			result = static_cast<float>(*((int8_t*)raw_data_ptr))/127.0f;
+		}
+		break;
+		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE: {
+            result = static_cast<float>(*((uint8_t*)raw_data_ptr))/255.0f;
+        }
+        break;
+		case TINYGLTF_COMPONENT_TYPE_SHORT: {
+            result = static_cast<float>(*((int16_t*)raw_data_ptr))/32767.0f;
+        }
+        break;
+		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT: {
+            result = static_cast<float>(*((uint16_t*)raw_data_ptr))/65535.0f;
+        } 
+        break;
+		case TINYGLTF_COMPONENT_TYPE_INT: {
+            result = static_cast<float>(*((int32_t*)raw_data_ptr))/2147483647.0f;
+        }
+        break;
+		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT: {
+            result = static_cast<float>(*((uint32_t*)raw_data_ptr))/4294967295.0f;
+        } 
+        break;
+		case TINYGLTF_COMPONENT_TYPE_FLOAT: {
+			result = *((float*)raw_data_ptr);
+		}
+		break;
+		case TINYGLTF_COMPONENT_TYPE_DOUBLE: {
+			double value = *((double*)raw_data_ptr);
+			result = value;
+		}
+		break;
+		default: break;
+	}
+	return result;
+}
+
+int32_t getVertexStride(size_t mesh_idx, size_t primitive_idx, const tinygltf::Model& gltf_model) {
+    int32_t vertex_stride = 0u;
+    const tinygltf::Mesh& mesh = gltf_model.meshes[mesh_idx];
+    const tinygltf::Primitive& primitive = mesh.primitives[primitive_idx];
+    for (const auto& [semantic_name, semantic_accessor_idx] : primitive.attributes) {
+        const tinygltf::Accessor& vertex_attrib_accessor = gltf_model.accessors[semantic_accessor_idx];
+        int32_t element_size = tinygltf::GetComponentSizeInBytes(vertex_attrib_accessor.componentType);
+        int32_t num_elements_in_type = tinygltf::GetNumComponentsInType(vertex_attrib_accessor.type);
+        vertex_stride += element_size * num_elements_in_type;
+    }
+
+    return vertex_stride;
+}
+
+int32_t getNumVertices(size_t mesh_idx, size_t primitive_idx, const tinygltf::Model& gltf_model) {
+    const tinygltf::Mesh& mesh = gltf_model.meshes[mesh_idx];
+    const tinygltf::Primitive& primitive = mesh.primitives[primitive_idx];
+	auto pos_semantic_accessor_idx = primitive.attributes.at("POSITION");
+	const tinygltf::Accessor& pos_vertex_attrib_accessor = gltf_model.accessors[pos_semantic_accessor_idx];
+	int32_t num_vertices = pos_vertex_attrib_accessor.count;
+	return num_vertices;
+}
+
+bool ValidateVertexAttribute(const std::string& semantic_name) {
+	if (semantic_name == "POSITION") {
+		return true;
+	}
+	else if (semantic_name == "NORMAL") {
+		return true;
+	}
+	else if (semantic_name == "TANGENT") {
+		return true;
+	}
+	else if (semantic_name == "BINORMAL") {
+		return true;
+	}
+    else if (semantic_name == "TEXCOORD") {
+		return true;
+	}
+	else if (semantic_name == "TEXCOORD_0") {
+		return true;
+	}
+	else if (semantic_name == "TEXCOORD_1") {
+		return true;
+	}
+	else if (semantic_name == "TEXCOORD_2") {
+		return true;
+	}
+	else if (semantic_name == "TEXCOORD_3") {
+		return true;
+	}
+	else if (semantic_name == "COLOR") {
+		return true;
+	}
+    else if (semantic_name == "COLOR_0") {
+		return true;
+	}
+	else if (semantic_name == "WEIGHTS_0") {
+		return true;
+	}
+	else if (semantic_name == "JOINTS_0") {
+		return true;
+	}
+	return false;
+}
+
+size_t getShaderFloatOffset(const std::string& semantic_name) {
+    if (semantic_name == "POSITION") {
+		return 0u;
+	}
+	else if (semantic_name == "TEXCOORD_0") {
+		return 6u;
+	}
+    else if (semantic_name == "COLOR_0") {
+		return 3u;
+	}
+	return -1;
+}
+
+size_t getShaderStride() {
+    return 12 + 12 + 8;
+}
+
+uint32_t getShaderNumElementsToCopy(const std::string& semantic_name) {
+    if (semantic_name == "POSITION") {
+		return 3u;
+	}
+	else if (semantic_name == "TEXCOORD_0") {
+		return 2u;
+	}
+    else if (semantic_name == "COLOR_0") {
+		return 3u;
+	}
+	return -1;
+}
+
+std::vector<float> getVertices(const tinygltf::Model& gltf_model) {
+    int32_t vertex_stride = getVertexStride(0u, 0u, gltf_model);
+    int32_t num_vertices = getNumVertices(0u, 0u, gltf_model);
+    int32_t shader_stride = getShaderStride();
+    std::vector<float> result(num_vertices * (shader_stride / 4), 0.0f);
+
+    const tinygltf::Mesh& mesh = gltf_model.meshes[0];
+    const tinygltf::Primitive& primitive = mesh.primitives[0];
+    for (const auto& [semantic_name, semantic_accessor_idx] : primitive.attributes) {
+        if(!ValidateVertexAttribute(semantic_name)) continue;
+        size_t shader_current_offset = getShaderFloatOffset(semantic_name);
+
+        const tinygltf::Accessor& vertex_attrib_accessor = gltf_model.accessors[semantic_accessor_idx];
+        int32_t element_size = tinygltf::GetComponentSizeInBytes(vertex_attrib_accessor.componentType);
+        int32_t num_elements_in_type = tinygltf::GetNumComponentsInType(vertex_attrib_accessor.type);
+        int32_t num_elements_to_copy = getShaderNumElementsToCopy(semantic_name);
+        const tinygltf::BufferView& vertex_attrib_view = gltf_model.bufferViews[vertex_attrib_accessor.bufferView];
+        const tinygltf::Buffer& vertex_attrib_buffer = gltf_model.buffers[vertex_attrib_view.buffer];
+        const unsigned char* begin_ptr = vertex_attrib_buffer.data.data();
+        size_t buffer_offset_bytes = vertex_attrib_accessor.byteOffset + vertex_attrib_view.byteOffset;
+        size_t buffer_stride_bytes = vertex_attrib_view.byteStride ? vertex_attrib_view.byteStride : element_size * num_elements_in_type;
+        size_t elements_count = vertex_attrib_accessor.count;
+        for (size_t current_element = 0u; current_element < elements_count; ++current_element) {
+        	for (int32_t current_component_num = 0; current_component_num < num_elements_to_copy; ++current_component_num) {
+        		const unsigned char* raw_data_ptr = begin_ptr + buffer_offset_bytes + current_element * buffer_stride_bytes + current_component_num * element_size;
+        		float vertex_attrib_element = GetAttributeFloat(raw_data_ptr, vertex_attrib_accessor.componentType);
+        		result[current_element * (shader_stride / 4) + shader_current_offset + current_component_num] = vertex_attrib_element;
+        	}
+        }
+    }
+
+    return result;
+}
+
+VkPipelineVertexInputStateCreateInfo getVertextInputInfo() {
+    static std::vector<VkVertexInputBindingDescription> binding_desc(1);
+    static std::once_flag binding_exe_flag;
+    std::call_once(binding_exe_flag, [](){
+        binding_desc[0].binding = 0u;
+        binding_desc[0].stride = 32u;
+        binding_desc[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+    });
+
+    static std::vector<VkVertexInputAttributeDescription> attribute_desc(3);
+    static std::once_flag attribute_exe_flag;
+    std::call_once(attribute_exe_flag, [](){
+        attribute_desc[0].binding = 0u;
+        attribute_desc[0].location = 0u;
+        attribute_desc[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attribute_desc[0].offset = 0u;
         
-        return attribute_desc;
-    }
+        attribute_desc[1].binding = 0u;
+        attribute_desc[1].location = 1u;
+        attribute_desc[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attribute_desc[1].offset = 12u;
+        
+        attribute_desc[2].binding = 0u;
+        attribute_desc[2].location = 2u;
+        attribute_desc[2].format = VK_FORMAT_R32G32_SFLOAT;
+        attribute_desc[2].offset = 24u;
+    });
 
-    static VkPipelineVertexInputStateCreateInfo getVertextInputInfo() {
-        const std::vector<VkVertexInputBindingDescription>& binding_desc = getBindingDescriptions();
-        const std::vector<VkVertexInputAttributeDescription>& attribute_desc = getAttributeDescritpions();
-        VkPipelineVertexInputStateCreateInfo vertex_input_info{};
-        vertex_input_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        vertex_input_info.vertexBindingDescriptionCount = static_cast<uint32_t>(binding_desc.size());
-        vertex_input_info.pVertexBindingDescriptions = binding_desc.data();
-        vertex_input_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribute_desc.size());
-        vertex_input_info.pVertexAttributeDescriptions = attribute_desc.data();
+    VkPipelineVertexInputStateCreateInfo vertex_input_info{};
+    vertex_input_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vertex_input_info.vertexBindingDescriptionCount = static_cast<uint32_t>(binding_desc.size());
+    vertex_input_info.pVertexBindingDescriptions = binding_desc.data();
+    vertex_input_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribute_desc.size());
+    vertex_input_info.pVertexAttributeDescriptions = attribute_desc.data();
 
-        return vertex_input_info;
-    }
-};
-
-const std::vector<GLTFVertex> g_vertices = {
-    {{-0.5f, -0.5f,  0.5f}, { 1.0f,  0.0f,  0.0f}, { 0.0f,  0.0f}},
-    {{ 0.5f, -0.5f,  0.5f}, { 0.0f,  1.0f,  0.0f}, { 1.0f,  0.0f}},
-    {{ 0.5f,  0.5f,  0.5f}, { 0.0f,  0.0f,  1.0f}, { 1.0f,  1.0f}},
-    {{-0.5f,  0.5f,  0.5f}, { 1.0f,  1.0f,  1.0f}, { 0.0f,  1.0f}}
-};
-
-const std::vector<uint16_t> g_indices = {
-    0, 1, 2,
-    2, 3, 0,
-    4, 5, 6,
-    6, 7, 4
-};
+    return vertex_input_info;
+}
 
 bool GLTFDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarget& rt) {
+    using namespace std::literals;
+    
     m_device = std::move(device);
     m_render_target_fmt = rt.render_target_fmt;
     m_rt_aspect = (float)rt.render_target_fmt.viewportExtent.width / (float)rt.render_target_fmt.viewportExtent.height;
 
-    std::shared_ptr<VertexBuffer<GLTFVertex, uint16_t>> vertex_buffer = std::make_shared<VertexBuffer<GLTFVertex, uint16_t>>();
-    vertex_buffer->init(m_device, g_vertices, g_indices, GLTFVertex::getVertextInputInfo());
+    std::string file_name = "objects/cube.gltf"s;
+    std::filesystem::path model_path(file_name);
+    
+    bool store_original_json_for_extras_and_extensions = true;
+    m_gltf_ctx.SetStoreOriginalJSONForExtrasAndExtensions(store_original_json_for_extras_and_extensions);
+
+    bool load_result = false;
+    std::string ext = model_path.extension().string().c_str();
+    std::string load_error;
+    std::string load_warning;
+    if (ext.compare(".glb") == 0) {
+    	load_result = m_gltf_ctx.LoadBinaryFromFile(&m_gltf_model, &load_error, &load_warning, model_path.string().c_str());
+    }
+    else {
+    	load_result = m_gltf_ctx.LoadASCIIFromFile(&m_gltf_model, &load_error, &load_warning, model_path.string().c_str());
+    }
+
+    const tinygltf::Mesh& mesh = m_gltf_model.meshes[0];
+    const tinygltf::Primitive& primitive = mesh.primitives[0];
+    const tinygltf::Accessor& indices_accessor = m_gltf_model.accessors[primitive.indices];
+    const tinygltf::BufferView& indices_buffer_view = m_gltf_model.bufferViews[indices_accessor.bufferView];
+    const tinygltf::Buffer& indices_buffer = m_gltf_model.buffers[indices_buffer_view.buffer];
+
+    size_t index_count = indices_accessor.count;
+    const void* indices_data = indices_buffer.data.data() + indices_buffer_view.byteOffset;
+
+    int pos_semantic_accessor_idx = primitive.attributes.at("POSITION");
+    const tinygltf::Accessor& vertices_pos_accessor = m_gltf_model.accessors[pos_semantic_accessor_idx];
+
+    size_t vertex_count = vertices_pos_accessor.count;
+    std::vector<float> vertices = getVertices(m_gltf_model);
+    const void* vertices_data = vertices.data();
+
+    std::shared_ptr<VertexBuffer> vertex_buffer = std::make_shared<VertexBuffer>();
+    vertex_buffer->init(m_device, vertices_data, vertex_count, indices_data, index_count, getIndexType(indices_accessor.componentType), getVertextInputInfo());
     m_vertex_buffer = std::move(vertex_buffer);
 
     std::shared_ptr<VulkanUniformBuffer<UniformBufferObject>> uniform_buffer = std::make_shared<VulkanUniformBuffer<UniformBufferObject>>();
     uniform_buffer->init(m_device, rt.frame_count, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     m_uniform_buffers = std::move(uniform_buffer);
 
-    m_texture.init(m_device, "textures/texture.jpg");
+    const tinygltf::Material& gltf_material = m_gltf_model.materials[primitive.material];
+    const tinygltf::Texture& gltf_texture = m_gltf_model.textures[gltf_material.pbrMetallicRoughness.metallicRoughnessTexture.index];
+    const tinygltf::Image& gltf_image = m_gltf_model.images[gltf_texture.source];
+    const std::string texture_name = "textures/"s + gltf_image.uri;
+    m_texture.init(m_device, texture_name);
 
     std::vector<VulkanDescriptor::Binding> binding(rt.frame_count);
     for(size_t i = 0u; i < rt.frame_count; ++i) {
@@ -214,7 +413,7 @@ void GLTFDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     glm::vec3 rotation_axis = glm::vec3(0.0f, 0.0f, 1.0f);
     
     GLTFUniformBufferObject ubo{};
-    ubo.model = glm::rotate(glm::mat4(1.0f), -1.0f * angle, rotation_axis);
+    ubo.model = glm::translate(glm::scale(glm::rotate(glm::mat4(1.0f), -1.0f * angle, rotation_axis), glm::vec3(0.25f, 0.25f, 0.25f)), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.proj = glm::perspective(glm::radians(45.0f), m_rt_aspect, 0.1f, 10.0f);
     ubo.proj[1][1] *= -1.0f;

@@ -18,84 +18,43 @@ public:
     virtual VulkanBuffer getVertexBuffer() const = 0;
     virtual VulkanBuffer getIndexBuffer() const = 0;
     virtual VkPipelineVertexInputStateCreateInfo getVertextInputInfo() const = 0;
+    virtual VkIndexType getIndexType () const = 0;
 };
 
-template<typename VertexType, typename IndexType>
 class VertexBuffer : public IVertexBuffer {
 public:
+
+    template<typename VertexType, typename IndexType>
     bool init(std::shared_ptr<VulkanDevice> device, const std::vector<VertexType>& vertices, const std::vector<IndexType>& indices, VkPipelineVertexInputStateCreateInfo vertex_info) {
         m_device = std::move(device);
         m_indices_count = indices.size();
-        createAndTransferVertexBuffer(vertices);
-        createAndTransferIndexBuffer(indices);
+        m_index_type = getIndexTypeByCount(sizeof(indices[0]));
+
+        VkDeviceSize vertices_buffer_size = sizeof(vertices[0]) * vertices.size();
+        createAndTransferVertexBuffer(vertices.data(), vertices_buffer_size);
+
+        VkDeviceSize indices_buffer_size = sizeof(indices[0]) * indices.size();
+        createAndTransferIndexBuffer(indices.data(), indices_buffer_size);
         m_vertex_info = vertex_info;
 
         return true;
     }
 
-    void destroy() override {
-        vkDestroyBuffer(m_device->getDevice(), m_vertex_buffer.buf, nullptr);
-        vkFreeMemory(m_device->getDevice(), m_vertex_buffer.mem, nullptr);
-    
-        vkDestroyBuffer(m_device->getDevice(), m_index_buffer.buf, nullptr);
-        vkFreeMemory(m_device->getDevice(), m_index_buffer.mem, nullptr);
-    }
-
-    size_t getIndicesCount() const override {
-        return m_indices_count;
-    }
-
-    VulkanBuffer getVertexBuffer() const override {
-        return m_vertex_buffer;
-    }
-
-    VulkanBuffer getIndexBuffer() const override {
-        return m_index_buffer;
-    }
-
-    VkPipelineVertexInputStateCreateInfo getVertextInputInfo() const override {
-        return m_vertex_info;
-    }
+    bool init(std::shared_ptr<VulkanDevice> device, const void* vertices_data, size_t vertices_count, const void* indices_data, size_t indices_count, VkIndexType index_type, VkPipelineVertexInputStateCreateInfo vertex_info);
+    void destroy() override;
+    size_t getIndicesCount() const override;
+    VulkanBuffer getVertexBuffer() const override;
+    VulkanBuffer getIndexBuffer() const override;
+    VkPipelineVertexInputStateCreateInfo getVertextInputInfo() const override;
+    VkIndexType getIndexType() const override;
 
 private:
-    void createAndTransferVertexBuffer(const std::vector<VertexType>& vertices) {
-        VkDeviceSize buffer_size = sizeof(vertices[0]) * vertices.size();
-    
-        VulkanBuffer staging_buffer = m_device->createBuffer(buffer_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-        
-        void* data;
-        vkMapMemory(m_device->getDevice(), staging_buffer.mem, 0, buffer_size, 0u, &data);
-        memcpy(data, vertices.data(), buffer_size);
-        vkUnmapMemory(m_device->getDevice(), staging_buffer.mem);
-    
-        m_vertex_buffer = m_device->createBuffer(buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-        CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
-        m_device->getCommandManager().copyBuffer(command_buffer.getCommandBufer(), staging_buffer.buf, m_vertex_buffer.buf, buffer_size);
-        m_device->getCommandManager().submitCommandBuffer(command_buffer);
-        m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
 
-        vkDestroyBuffer(m_device->getDevice(), staging_buffer.buf, nullptr);
-        vkFreeMemory(m_device->getDevice(), staging_buffer.mem, nullptr);
-    }
+    void createAndTransferVertexBuffer(const void* vertices_data, VkDeviceSize buffer_size);
+    void createAndTransferIndexBuffer(const void* indices_data, VkDeviceSize buffer_size);
 
-    void createAndTransferIndexBuffer(const std::vector<IndexType>& indices) {
-        VkDeviceSize buffer_size = sizeof(indices[0]) * indices.size();
-    
-        VulkanBuffer staging_buffer = m_device->createBuffer(buffer_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-        void* data;
-        vkMapMemory(m_device->getDevice(), staging_buffer.mem, 0u, buffer_size, 0u, &data);
-        memcpy(data, indices.data(), buffer_size);
-        vkUnmapMemory(m_device->getDevice(), staging_buffer.mem);
-    
-        m_index_buffer = m_device->createBuffer(buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-        CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
-        m_device->getCommandManager().copyBuffer(command_buffer.getCommandBufer() ,staging_buffer.buf, m_index_buffer.buf, buffer_size);
-        m_device->getCommandManager().submitCommandBuffer(command_buffer);
-        m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
-    
-        vkDestroyBuffer(m_device->getDevice(), staging_buffer.buf, nullptr);
-        vkFreeMemory(m_device->getDevice(), staging_buffer.mem, nullptr);
-    }
+    static size_t getIndexBytesCount(VkIndexType index_type);
+    static VkIndexType getIndexTypeByCount(size_t sz);
 
     std::shared_ptr<VulkanDevice> m_device;
 
@@ -103,4 +62,5 @@ private:
     VulkanBuffer m_index_buffer;
     size_t m_indices_count = 0u;
     VkPipelineVertexInputStateCreateInfo m_vertex_info;
+    VkIndexType m_index_type;
 };
