@@ -186,3 +186,127 @@ void Scene::deleteSceneNodes(const std::vector<NodeIndex>& nodes_indices_to_dele
     // 5) scene node names list is not modified, but in principle it can be (remove all non-used items and adjust the nameForNode_ map)
     // 6) Material names list is not modified also, but if some materials fell out of use
 }
+
+template <typename T>
+inline void mergeVectors(std::vector<T>& v1, const std::vector<T>& v2) {
+  v1.insert(v1.end(), v2.begin(), v2.end());
+}
+
+void Scene::shiftNodes(int start_offset, int node_count, int shift_amount) {
+    auto shiftNode = [shift_amount](Scene::Hierarchy& node) {
+        if (node.parent > Scene::NO_INDEX) node.parent += shift_amount;
+        if (node.first_child > Scene::NO_INDEX) node.first_child += shift_amount;
+        if (node.next_sibling > Scene::NO_INDEX) node.next_sibling += shift_amount;
+        // node->level does not require to be shifted
+    };
+
+    // If there are too many nodes, we can use std::execution::par with std::transform:
+    //	 std::transform(scene.hierarchy_.begin() + startOffset,
+    //                  scene.hierarchy_.begin() + nodeCount,
+    //                  scene.hierarchy_.begin() + startOffset,
+    //                  shiftNode);
+    //	 for (auto i = scene.hierarchy_.begin() + startOffset ; i != scene.hierarchy_.begin() + nodeCount ; i++)
+    //		 shiftNode(*i);
+
+    for (int i = 0; i < node_count; ++i) {
+        shiftNode(m_hierarchy[i + start_offset]);
+    }
+}
+
+// Add the items from otherMap shifting indices and values along the way
+using ItemMap = std::unordered_map<uint32_t, uint32_t>;
+void mergeMaps(ItemMap& m, const ItemMap& other_map, int index_offset, int item_offset) {
+    for (const auto& i : other_map) {
+        m[i.first + index_offset] = i.second + item_offset;
+    }
+}
+
+void Scene::mergeScenes(const std::vector<Scene*>& scenes, const std::vector<glm::mat4>& root_transforms, const std::vector<uint32_t>& mesh_counts, bool merge_meshes, bool merge_materials) {
+    // Create new root node
+    m_hierarchy = {
+        {
+            .parent = NO_INDEX,
+            .first_child = 1,
+            .next_sibling = NO_INDEX,
+            .level = 0
+        }
+    };
+
+    m_node_name_map[0] = 0;
+    m_node_names = { "NewRoot" };
+
+    m_local_transform.push_back(glm::mat4(1.f));
+    m_global_transform.push_back(glm::mat4(1.f));
+
+    if (scenes.empty()) return;
+
+    int offs = 1;
+    int mesh_offs = 0;
+    int name_offs = (int)m_node_names.size();
+    int material_offs = 0;
+    auto mesh_count = mesh_counts.begin();
+
+    if (!merge_materials) {
+        m_materials = scenes[0]->m_materials;
+    }
+
+    // FIXME: too much logic (for all the components in a scene, though mesh data and materials go separately - they're dedicated data lists)
+    for (const Scene* s : scenes) {
+        mergeVectors(m_local_transform, s->m_local_transform);
+        mergeVectors(m_global_transform, s->m_global_transform);
+
+        mergeVectors(m_hierarchy, s->m_hierarchy);
+
+        mergeVectors(m_node_names, s->m_node_names);
+        if (merge_materials) {
+            mergeVectors(m_materials, s->m_materials);
+        }
+
+        const int node_count = (int)s->m_hierarchy.size();
+
+        shiftNodes(offs, node_count, offs);
+
+        mergeMaps(m_node_type_flags_map, s->m_node_type_flags_map, offs, merge_meshes ? mesh_offs : 0);
+        mergeMaps(m_node_mesh_map, s->m_node_mesh_map, offs, merge_meshes ? mesh_offs : 0);
+        mergeMaps(m_node_group_map, s->m_node_group_map, offs, merge_meshes ? mesh_offs : 0);
+        mergeMaps(m_node_material_map, s->m_node_material_map, offs, merge_materials ? material_offs : 0);
+        mergeMaps(m_node_name_map, s->m_node_name_map, offs, name_offs);
+
+        offs += node_count;
+
+        material_offs += (int)s->m_materials.size();
+        name_offs += (int)s->m_node_names.size();
+
+        if (merge_meshes) {
+            mesh_offs += *mesh_count;
+            mesh_count++;
+        }
+    }
+
+    // fixing 'nextSibling' fields in the old roots (zero-index in all the scenes)
+    offs = 1;
+    int idx = 0;
+    for (const Scene* s : scenes) {
+        const int node_count = (int)s->m_hierarchy.size();
+        const bool is_last = (idx == scenes.size() - 1);
+        // calculate new next sibling for the old scene roots
+        const int next = is_last ? NO_INDEX : offs + node_count;
+
+        m_hierarchy[offs].next_sibling = next;
+        // attach to new root
+        m_hierarchy[offs].parent = 0;
+
+        // transform old root nodes, if the transforms are given
+        if (!root_transforms.empty()) {
+            m_local_transform[offs] = root_transforms[idx] * m_local_transform[offs];
+        }
+
+        offs += node_count;
+        idx++;
+    }
+
+    // now, shift levels of all nodes below the root
+    for (auto i = m_hierarchy.begin() + 1; i != m_hierarchy.end(); ++i) {
+        i->level++;
+    }
+}
