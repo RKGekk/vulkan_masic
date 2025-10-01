@@ -8,6 +8,7 @@
 #include <unordered_map>
 
 #include "application_options.h"
+#include "engine/engine.h"
 #include "window_surface.h"
 #include "tools/game_timer.h"
 #include "tools/thread_pool.h"
@@ -20,7 +21,7 @@ public:
     static Application& Get();
     static std::shared_ptr<WindowSurface> GetRenderWindow();
 
-    virtual void run();
+    virtual void run(std::shared_ptr<Engine> pEngine);
     bool update();
     void Quit(int exit_code = 0);
 

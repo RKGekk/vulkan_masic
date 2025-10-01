@@ -30,6 +30,7 @@
 
 #include "application_options.h"
 #include "application.h"
+#include "engine/engine.h"
 #include "graphics/vulkan_instance_layers_and_extensions.h"
 #include "graphics/vulkan_instance.h"
 #include "graphics/vulkan_device_extensions.h"
@@ -49,8 +50,10 @@ int main(int, char**){
     ApplicationOptions cfg;
     cfg.Init("application_options.xml"s);
     if(!Application::Get().Initialize(cfg)) return 0;
+    std::shared_ptr<Engine> pEngine = Engine::GetEngine();
+    if(!pEngine || !pEngine->Initialize(cfg)) return 0;
     try {
-        Application::Get().run();
+        Application::Get().run(pEngine);
     }
     catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;

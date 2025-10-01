@@ -12,6 +12,7 @@
 #include "../tools/string_tools.h"
 #include "../tools/game_timer.h"
 #include "../tools/thread_pool.h"
+#include "../window_surface.h"
 #include "vulkan_device.h"
 #include "vulkan_swapchain.h"
 #include "vulkan_drawable.h"
@@ -27,6 +28,9 @@ public:
     void destroy();
     void recreate();
 
+    static std::shared_ptr<WindowSurface> CreateRenderWindow(const ApplicationOptions& options);
+
+    static std::shared_ptr<WindowSurface> GetRenderWindow();
     const VulkanSwapChain& getSwapchain() const;
     const std::vector<ImageBufferAndView>& getColorImages() const;
     const std::vector<ImageBufferAndView>& getDepthImages() const;

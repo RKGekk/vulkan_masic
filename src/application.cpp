@@ -19,7 +19,7 @@ std::shared_ptr<WindowSurface> Application::GetRenderWindow() {
     return Application::Get().m_window;
 }
 
-void Application::run() {
+void Application::run(std::shared_ptr<Engine> pEngine) {
     if (!glfwInit()) return;
     m_is_running = true;
     mainLoop();
