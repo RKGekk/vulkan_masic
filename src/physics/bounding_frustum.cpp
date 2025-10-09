@@ -397,14 +397,14 @@ bool BoundingFrustum::Intersects(const BoundingSphere& sh) const noexcept {
     }
 
     // Build the corners of the frustum.
-    glm::vec4 vRightTop(RightSlope, TopSlope, 1.0f, 0.0f);
-    glm::vec4 vRightBottom(RightSlope, BottomSlope, 1.0f, 0.0f);
-    glm::vec4 vLeftTop(LeftSlope, TopSlope, 1.0f, 0.0f);
-    glm::vec4 vLeftBottom(LeftSlope, BottomSlope, 1.0f, 0.0f);
-    glm::vec4 vNear(Near);
-    glm::vec4 vFar(Far);
+    glm::vec3 vRightTop(RightSlope, TopSlope, 1.0f);
+    glm::vec3 vRightBottom(RightSlope, BottomSlope, 1.0f);
+    glm::vec3 vLeftTop(LeftSlope, TopSlope, 1.0f);
+    glm::vec3 vLeftBottom(LeftSlope, BottomSlope, 1.0f);
+    glm::vec3 vNear(Near);
+    glm::vec3 vFar(Far);
 
-    glm::vec4 Corners[CORNER_COUNT];
+    glm::vec3 Corners[CORNER_COUNT];
     Corners[0] = vRightTop * vNear;
     Corners[1] = vRightBottom * vNear;
     Corners[2] = vLeftTop * vNear;
@@ -430,9 +430,9 @@ bool BoundingFrustum::Intersects(const BoundingSphere& sh) const noexcept {
 
         // Find the nearest point on the edge to the center of the sphere.
         // The corners of the frustum are included as the endpoints of the edges.
-        glm::vec4 Point = PointOnLineSegmentNearestPoint(Corners[ei0], Corners[ei1], vCenter);
+        glm::vec3 Point = PointOnLineSegmentNearestPoint(Corners[ei0], Corners[ei1], vCenter);
 
-        glm::vec4 Delta = vCenter - Point;
+        glm::vec3 Delta = glm::vec3(vCenter) - Point;
 
         float DistSq = glm::dot(Delta, Delta);
 
