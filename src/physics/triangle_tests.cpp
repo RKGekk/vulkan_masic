@@ -119,6 +119,24 @@ void IntersectTrianglePlane(const glm::vec3& V0, const glm::vec3& V1, const glm:
     Inside = MaxDist < 0.0f;
 }
 
+void IntersectAxisAlignedBoxPlane(const glm::vec3& Center, const glm::vec3& Extents, const glm::vec4& Plane, bool& Outside, bool& Inside) noexcept {
+    // Compute the distance to the center of the box.
+    float Dist = glm::dot(glm::vec4(Center, 0.0f), Plane);
+
+    // Project the axes of the box onto the normal of the plane.  Half the
+    // length of the projection (sometime called the "radius") is equal to
+    // h(u) * abs(n dot b(u))) + h(v) * abs(n dot b(v)) + h(w) * abs(n dot b(w))
+    // where h(i) are extents of the box, n is the plane normal, and b(i) are the
+    // axes of the box. In this case b(i) = [(1,0,0), (0,1,0), (0,0,1)].
+    float Radius = glm::dot(Extents, glm::abs(glm::vec3(Plane)));
+
+    // Outside the plane?
+    Outside = Dist > Radius;
+
+    // Fully inside the plane?
+    Inside = Dist < -Radius;
+}
+
 bool PointOnPlaneInsideTriangle(const glm::vec3& P, const glm::vec3& V0, const glm::vec3& V1, const glm::vec3& V2) noexcept {
     // Compute the triangle normal.
     glm::vec3 N = glm::cross(V2 - V0, V1 - V0);
@@ -137,6 +155,56 @@ bool PointOnPlaneInsideTriangle(const glm::vec3& P, const glm::vec3& V0, const g
 
     // If the point inside all of the edges it is inside.
     return Inside0 && Inside1 && Inside2;
+}
+
+bool Vector3InBounds(const glm::vec3& V, const glm::vec3& Bounds) noexcept{
+    return (
+        (
+            (V[0] <= Bounds[0] && V[0] >= -Bounds[0]) &&
+            (V[1] <= Bounds[1] && V[1] >= -Bounds[1]) &&
+            (V[2] <= Bounds[2] && V[2] >= -Bounds[2])
+        ) != 0
+    );
+}
+
+glm::vec3 VectorSelect(const glm::vec3& V1, const glm::vec3& V2, const glm::bvec3& Control) {
+    glm::vec3 Result = glm::vec3(
+        Control[0] ? V2[0] : V1[0],
+        Control[1] ? V2[1] : V1[1],
+        Control[2] ? V2[2] : V1[2]
+    );
+    return Result;
+}
+
+glm::vec4 VectorSelect(const glm::vec4& V1, const glm::vec4& V2, const glm::bvec4& Control) {
+    glm::vec4 Result = glm::vec4(
+        Control[0] ? V2[0] : V1[0],
+        Control[1] ? V2[1] : V1[1],
+        Control[2] ? V2[2] : V1[2],
+        Control[3] ? V2[3] : V1[3]
+    );
+    return Result;
+}
+
+glm::bvec3 VectorInBounds(glm::vec3 V, glm::vec3 Bounds) noexcept {
+
+    glm::bvec3 Control = glm::bvec3(
+        (V[0] <= Bounds[0] && V[0] >= -Bounds[0]) ? true : false,
+        (V[1] <= Bounds[1] && V[1] >= -Bounds[1]) ? true : false,
+        (V[2] <= Bounds[2] && V[2] >= -Bounds[2]) ? true : false
+    );
+    return Control;
+}
+
+glm::bvec4 VectorInBounds(glm::vec4 V, glm::vec4 Bounds) noexcept {
+
+    glm::bvec4 Control = glm::bvec4(
+        (V[0] <= Bounds[0] && V[0] >= -Bounds[0]) ? true : false,
+        (V[1] <= Bounds[1] && V[1] >= -Bounds[1]) ? true : false,
+        (V[2] <= Bounds[2] && V[2] >= -Bounds[2]) ? true : false,
+        (V[3] <= Bounds[3] && V[3] >= -Bounds[3]) ? true : false
+    );
+    return Control;
 }
 
 /****************************************************************************
