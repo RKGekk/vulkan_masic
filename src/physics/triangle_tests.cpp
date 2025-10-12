@@ -119,6 +119,29 @@ void IntersectTrianglePlane(const glm::vec3& V0, const glm::vec3& V1, const glm:
     Inside = MaxDist < 0.0f;
 }
 
+void IntersectOrientedBoxPlane(const glm::vec3& Center, const glm::vec3& Extents, const glm::vec3& Axis0, const glm::vec3& Axis1, const glm::vec3& Axis2, const glm::vec4& Plane, bool & Outside, bool& Inside) noexcept {
+        // Compute the distance to the center of the box.
+        float Dist = glm::dot(glm::vec4(Center, 0.0f), Plane);
+
+        // Project the axes of the box onto the normal of the plane.  Half the
+        // length of the projection (sometime called the "radius") is equal to
+        // h(u) * abs(n dot b(u))) + h(v) * abs(n dot b(v)) + h(w) * abs(n dot b(w))
+        // where h(i) are extents of the box, n is the plane normal, and b(i) are the
+        // axes of the box.
+        glm::vec3 Radius;
+        Radius.x = glm::dot(Plane, glm::vec4(Axis0, 0.0f));
+        Radius.y = glm::dot(Plane, glm::vec4(Axis1, 0.0f));
+        Radius.z = glm::dot(Plane, glm::vec4(Axis2, 0.0f));
+
+        float R = glm::dot(Extents, glm::abs(Radius));
+
+        // Outside the plane?
+        Outside = Dist > R;
+
+        // Fully inside the plane?
+        Inside = Dist < -R;
+    }
+
 void IntersectAxisAlignedBoxPlane(const glm::vec3& Center, const glm::vec3& Extents, const glm::vec4& Plane, bool& Outside, bool& Inside) noexcept {
     // Compute the distance to the center of the box.
     float Dist = glm::dot(glm::vec4(Center, 0.0f), Plane);
@@ -205,6 +228,209 @@ glm::bvec4 VectorInBounds(glm::vec4 V, glm::vec4 Bounds) noexcept {
         (V[3] <= Bounds[3] && V[3] >= -Bounds[3]) ? true : false
     );
     return Control;
+}
+
+bool CalculateEigenVectorsFromCovarianceMatrix(float Cxx, float Cyy, float Czz, float Cxy, float Cxz, float Cyz, glm::vec3* pV1, glm::vec3* pV2, glm::vec3* pV3) noexcept {
+    // Calculate the eigenvalues by solving a cubic equation.
+    float e = -(Cxx + Cyy + Czz);
+    float f = Cxx * Cyy + Cyy * Czz + Czz * Cxx - Cxy * Cxy - Cxz * Cxz - Cyz * Cyz;
+    float g = Cxy * Cxy * Czz + Cxz * Cxz * Cyy + Cyz * Cyz * Cxx - Cxy * Cyz * Cxz * 2.0f - Cxx * Cyy * Czz;
+
+    float ev1, ev2, ev3;
+    if (!SolveCubic(e, f, g, &ev1, &ev2, &ev3)) {
+        // set them to arbitrary orthonormal basis set
+        *pV1 = glm::vec3(1.0f, 0.0f, 0.0f);
+        *pV2 = glm::vec3(0.0f, 1.0f, 0.0f);
+        *pV3 = glm::vec3(0.0f, 0.0f, 1.0f);
+        return false;
+    }
+
+    return CalculateEigenVectors(Cxx, Cxy, Cxz, Cyy, Cyz, Czz, ev1, ev2, ev3, pV1, pV2, pV3);
+}
+
+bool SolveCubic(float e, float f, float g, float* t, float* u, float* v) noexcept {
+    float p, q, h, rc, d, theta, costh3, sinth3;
+
+    p = f - e * e / 3.0f;
+    q = g - e * f / 3.0f + e * e * e * 2.0f / 27.0f;
+    h = q * q / 4.0f + p * p * p / 27.0f;
+
+    if (h > 0.0f) {
+        *t = *u = *v = 0.0f;
+        return false; // only one real root
+    }
+
+    // all the same root
+    if ((h == 0.0) && (q == 0.0)) {
+        *t = -e / 3.0f;
+        *u = -e / 3.0f;
+        *v = -e / 3.0f;
+
+        return true;
+    }
+
+    d = sqrtf(q * q / 4.0f - h);
+    if (d < 0) {
+        rc = -powf(-d, 1.0f / 3.0f);
+    }
+    else {
+        rc = powf(d, 1.0f / 3.0f);
+    }
+
+    theta = glm::acos(-q / (2.0f * d));
+    costh3 = glm::cos(theta / 3.0f);
+    sinth3 = sqrtf(3.0f) * glm::sin(theta / 3.0f);
+    *t = 2.0f * rc * costh3 - e / 3.0f;
+    *u = -rc * (costh3 + sinth3) - e / 3.0f;
+    *v = -rc * (costh3 - sinth3) - e / 3.0f;
+
+    return true;
+}
+
+bool CalculateEigenVectors(float m11, float m12, float m13, float m22, float m23, float m33, float e1, float e2, float e3, glm::vec3* pV1, glm::vec3* pV2, glm::vec3* pV3) noexcept {
+    *pV1 = CalculateEigenVector(m11, m12, m13, m22, m23, m33, e1);
+    *pV2 = CalculateEigenVector(m11, m12, m13, m22, m23, m33, e2);
+    *pV3 = CalculateEigenVector(m11, m12, m13, m22, m23, m33, e3);
+
+    bool v1z = false;
+    bool v2z = false;
+    bool v3z = false;
+
+    glm::vec3 Zero = glm::vec3(0.0f);
+
+    if (glm::all(glm::equal(*pV1, Zero))) {
+        v1z = true;
+    }
+
+    if (glm::all(glm::equal(*pV2, Zero))) {
+        v2z = true;
+    }
+
+    if (glm::all(glm::equal(*pV3, Zero))) {
+        v3z = true;
+    }
+
+    bool e12 = glm::abs((glm::dot(*pV1, *pV2))) > 0.1f; // check for non-orthogonal vectors
+    bool e13 = glm::abs((glm::dot(*pV1, *pV3))) > 0.1f;
+    bool e23 = glm::abs((glm::dot(*pV2, *pV3))) > 0.1f;
+
+    // all eigenvectors are 0- any basis set
+    if ((v1z && v2z && v3z) || (e12 && e13 && e23) || (e12 && v3z) || (e13 && v2z) || (e23 && v1z)) {
+        *pV1 = glm::vec3(1.0f, 0.0f, 0.0f);
+        *pV2 = glm::vec3(0.0f, 1.0f, 0.0f);
+        *pV3 = glm::vec3(0.0f, 0.0f, 1.0f);
+        return true;
+    }
+
+    if (v1z && v2z) {
+        glm::vec3 vTmp = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), *pV3);
+        if (glm::dot(vTmp, vTmp) < 1e-5f) {
+            vTmp = glm::cross(glm::vec3(1.0f, 0.0f, 0.0f), *pV3);
+        }
+        *pV1 = glm::normalize(vTmp);
+        *pV2 = glm::cross(*pV3, *pV1);
+        return true;
+    }
+
+    if (v3z && v1z) {
+        glm::vec3 vTmp = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), *pV2);
+        if (glm::dot(vTmp, vTmp) < 1e-5f) {
+            vTmp = glm::cross(glm::vec3(1.0f, 0.0f, 0.0f), *pV2);
+        }
+        *pV3 = glm::normalize(vTmp);
+        *pV1 = glm::cross(*pV2, *pV3);
+        return true;
+    }
+
+    if (v2z && v3z) {
+        glm::vec3 vTmp = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), *pV1);
+        if (glm::dot(vTmp, vTmp) < 1e-5f) {
+            vTmp = glm::cross(glm::vec3(1.0f, 0.0f, 0.0f), *pV1);
+        }
+        *pV2 = glm::normalize(vTmp);
+        *pV3 = glm::cross(*pV1, *pV2);
+        return true;
+    }
+
+    if ((v1z) || e12) {
+        *pV1 = glm::cross(*pV2, *pV3);
+        return true;
+    }
+
+    if ((v2z) || e23) {
+        *pV2 = glm::cross(*pV3, *pV1);
+        return true;
+    }
+
+    if ((v3z) || e13) {
+        *pV3 = glm::cross(*pV1, *pV2);
+        return true;
+    }
+
+    return true;
+}
+
+glm::vec3 CalculateEigenVector(float m11, float m12, float m13, float m22, float m23, float m33, float e) noexcept {
+    float fTmp[3];
+    fTmp[0] = m12 * m23 - m13 * (m22 - e);
+    fTmp[1] = m13 * m12 - m23 * (m11 - e);
+    fTmp[2] = (m11 - e) * (m22 - e) - m12 * m12;
+
+    glm::vec3 vTmp = glm::vec3(*reinterpret_cast<const glm::vec3*>(fTmp));
+
+    // planar or linear
+    if (glm::all(glm::equal(vTmp, glm::vec3(0.0f)))) {
+        float f1, f2, f3;
+
+        // we only have one equation - find a valid one
+        if ((m11 - e != 0.0f) || (m12 != 0.0f) || (m13 != 0.0f)) {
+            f1 = m11 - e; f2 = m12; f3 = m13;
+        }
+        else if ((m12 != 0.0f) || (m22 - e != 0.0f) || (m23 != 0.0f)) {
+            f1 = m12; f2 = m22 - e; f3 = m23;
+        }
+        else if ((m13 != 0.0f) || (m23 != 0.0f) || (m33 - e != 0.0f)) {
+            f1 = m13; f2 = m23; f3 = m33 - e;
+        }
+        else {
+            // error, we'll just make something up - we have NO context
+            f1 = 1.0f; f2 = 0.0f; f3 = 0.0f;
+        }
+
+        if (f1 == 0.0f) {
+            vTmp.x = 0.0f;
+        }
+        else {
+            vTmp.x = 1.0f;
+        }
+
+        if (f2 == 0.0f) {
+            vTmp.y = 0.0f;
+        }
+        else {
+            vTmp.y = 1.0f;
+        }
+
+        if (f3 == 0.0f) {
+            vTmp.z = 0.0f;
+            // recalculate y to make equation work
+            if (m12 != 0.0f) {
+                vTmp.y = -f1 / f2;
+            }
+        }
+        else {
+            vTmp.z = (f2 - f1) / f3;
+        }
+    }
+
+    if (glm::dot(vTmp, vTmp) > 1e-5f) {
+        return glm::normalize(vTmp);
+    }
+    else {
+        // Multiply by a value large enough to make the vector non-zero.
+        vTmp = vTmp * 1e5f;
+        return glm::normalize(vTmp);
+    }
 }
 
 /****************************************************************************

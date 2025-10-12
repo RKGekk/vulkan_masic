@@ -22,6 +22,7 @@ glm::vec3 PointOnLineSegmentNearestPoint(const glm::vec3& S1, const glm::vec3& S
 void IntersectSpherePlane(const glm::vec3& Center, float Radius, const glm::vec4& Plane, bool& Outside, bool& Inside) noexcept;
 void IntersectFrustumPlane(const glm::vec4& Point0, const glm::vec4& Point1, const glm::vec4& Point2, const glm::vec4& Point3, const glm::vec4& Point4, const glm::vec4& Point5, const glm::vec4& Point6, const glm::vec4& Point7, const glm::vec4& Plane, bool& Outside, bool& Inside) noexcept;
 void IntersectTrianglePlane(const glm::vec3& V0, const glm::vec3& V1, const glm::vec3& V2, const glm::vec4& Plane, bool& Outside, bool& Inside) noexcept;
+void IntersectOrientedBoxPlane(const glm::vec3& Center, const glm::vec3& Extents, const glm::vec3& Axis0, const glm::vec3& Axis1, glm::vec3& Axis2, const glm::vec4& Plane, bool& Outside, bool& Inside) noexcept;
 void IntersectAxisAlignedBoxPlane(const glm::vec3& Center, const glm::vec3& Extents, const glm::vec4& Plane, bool& Outside, bool& Inside) noexcept;
 bool PointOnPlaneInsideTriangle(const glm::vec3& P, const glm::vec3& V0, const glm::vec3& V1, const glm::vec3& V2) noexcept;
 bool Vector3InBounds(const glm::vec3& V, const glm::vec3& Bounds) noexcept;
@@ -29,6 +30,10 @@ glm::vec3 VectorSelect(const glm::vec3& V1, const glm::vec3& V2, const glm::bvec
 glm::vec4 VectorSelect(const glm::vec4& V1, const glm::vec4& V2, const glm::bvec4& Control);
 glm::bvec3 VectorInBounds(glm::vec3 V, glm::vec3 Bounds) noexcept;
 glm::bvec4 VectorInBounds(glm::vec4 V, glm::vec4 Bounds) noexcept;
+bool CalculateEigenVectorsFromCovarianceMatrix(float Cxx, float Cyy, float Czz, float Cxy, float Cxz, float Cyz, glm::vec3* pV1, glm::vec3* pV2, glm::vec3* pV3) noexcept;
+bool SolveCubic(float e, float f, float g, float* t, float* u, float* v) noexcept;
+bool CalculateEigenVectors(float m11, float m12, float m13, float m22, float m23, float m33, float e1, float e2, float e3, glm::vec3* pV1, glm::vec3* pV2, glm::vec3* pV3) noexcept;
+glm::vec3 CalculateEigenVector(float m11, float m12, float m13, float m22, float m23, float m33, float e) noexcept;
 
 static const glm::vec4 g_RayEpsilon;
 
