@@ -15,48 +15,37 @@
 #include "scene.h"
 #include "scene_node_properties.h"
 
-class SceneNode {
+class SceneNode : public std::enable_shared_from_this<SceneNode> {
 public:
-	SceneNode(std::string name) {};
-	SceneNode(std::string name, uint32_t group_id) {};
-	SceneNode(std::string name, glm::mat4x4 to) {};
-	SceneNode(std::string name, uint32_t group_id, glm::mat4x4 to) {};
+	SceneNode(std::shared_ptr<Scene> scene, Scene::NodeIndex node_index);
+	SceneNode(std::shared_ptr<Scene> scene, std::string name, Scene::NodeIndex parent = 0u);
+	SceneNode(std::shared_ptr<Scene> scene, std::string name, glm::mat4x4 to, Scene::NodeIndex parent = 0u);
 
-	virtual ~SceneNode() {};
+	virtual ~SceneNode();
 
-	virtual bool VOnRestore() {};
-	virtual bool VOnUpdate() {};
-	virtual bool VOnLostDevice() {};
+	virtual bool VOnRestore();
+	virtual bool VOnUpdate();
+	virtual bool VOnLostDevice();
 
-	virtual bool VAddChild(const SceneNode& kid) {};
-	virtual bool VRemoveChild(const SceneNode& cid) {};
-	virtual const Scene::NodeIndex VGetChild() const {};
-    virtual const Scene::NodeIndex VGetSibling() const {};
+	virtual const Scene::NodeIndex VGetChild() const;
+    virtual const Scene::NodeIndex VGetSibling() const;
 
-	const SceneNodeProperties& Get() const {};
+	const SceneNodeProperties& Get() const;
 
-	void UpdateCumulativeTransform() {};
+	void SetTransform(const glm::mat4x4& to_parent);
 
-	void SetTransform(glm::mat4x4 to_parent) {};
+	void SetTranslation3(const glm::vec3& pos);
+	void SetTranslation4(const glm::vec4& pos);
 
-	void SetTranslation3(glm::vec3 pos) {};
-	void SetTranslation4(glm::vec4 pos) {};
+	const SceneNode& GetParent();
+    Scene::NodeIndex GetParentIndex();
 
-	void SetParent(const SceneNode& parent_node) {};
-    void SetParent(Scene::NodeIndex parent_node) {};
-	const SceneNode& GetParent() {};
-    Scene::NodeIndex GetParentIndex() {};
+	void SetName(std::string name);
 
-	void SetName(std::string name) {};
-
-	void SetDirtyFlags(uint32_t flags) {};
-	void AddDirtyFlags(uint32_t flags) {};
-	void RemoveDirtyFlags(uint32_t flags) {};
-
-	void SetGroupID(uint32_t id) {};
+	void SetNodeType(uint32_t flags);
 
 protected:
-    Scene::NodeIndex m_node_index;
     std::shared_ptr<Scene> m_scene;
+	Scene::NodeIndex m_node_index;
 	SceneNodeProperties m_props;
 };

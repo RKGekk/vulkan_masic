@@ -52,6 +52,6 @@ void VulkanApplication::mainLoop() {
     while(!Application::update()) {
         if(m_window->SkipDraw()) continue;
         update_frame(m_renderer.getSwapchain().getCurrentFrame());
-        m_renderer.drawFrame();
+        m_renderer.drawFrame(m_game->GetViews());
     }
 }

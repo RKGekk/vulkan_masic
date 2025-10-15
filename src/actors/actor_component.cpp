@@ -31,3 +31,7 @@ StrongActorPtr ActorComponent::GetOwner() {
 ActorId ActorComponent::GetOwnerId() {
 	return m_pOwner->GetId();
 }
+
+bool ActorComponent::GetIsInitialized() {
+	return m_initialized;
+}

@@ -7,10 +7,12 @@ set(CMAKE_CXX_STANDARD 20)
 set(SRC_DIR "src")
 set(APP_SOURCES
     "${SRC_DIR}/engine/renderer_enum.h"
-    "${SRC_DIR}/engine/engine.h"
-    "${SRC_DIR}/engine/engine.cpp"
     "${SRC_DIR}/engine/iengine_logic.h"
+    "${SRC_DIR}/engine/iscreen_element.h"
     "${SRC_DIR}/engine/base_engine_logic.h"
+    "${SRC_DIR}/engine/base_engine_logic.cpp"
+    "${SRC_DIR}/engine/human_view.h"
+    "${SRC_DIR}/engine/human_view.cpp"
     "${SRC_DIR}/engine/iengine_physics.h"
     "${SRC_DIR}/application_options.h"
     "${SRC_DIR}/application_options.cpp"
@@ -21,6 +23,14 @@ set(APP_SOURCES
     "${SRC_DIR}/vulkan_application.h"
     "${SRC_DIR}/vulkan_application.cpp"
     "${SRC_DIR}/main.cpp"
+    "${SRC_DIR}/physics/bounding_box.cpp"
+    "${SRC_DIR}/physics/bounding_box.h"
+    "${SRC_DIR}/physics/bounding_frustum.cpp"
+    "${SRC_DIR}/physics/bounding_frustum.h"
+    "${SRC_DIR}/physics/bounding_oriented_box.cpp"
+    "${SRC_DIR}/physics/bounding_oriented_box.h"
+    "${SRC_DIR}/physics/bounding_sphere.cpp"
+    "${SRC_DIR}/physics/bounding_sphere.h"
     "${SRC_DIR}/physics/collision_box.h"
     "${SRC_DIR}/physics/collision_data.h"
     "${SRC_DIR}/physics/collision_detector.cpp"
@@ -80,6 +90,10 @@ set(APP_SOURCES
     "${SRC_DIR}/actors/actor.cpp"
     "${SRC_DIR}/actors/actor_component.h"
     "${SRC_DIR}/actors/actor_component.cpp"
+    "${SRC_DIR}/actors/actor_factory.h"
+    "${SRC_DIR}/actors/actor_factory.cpp"
+    "${SRC_DIR}/actors/transform_component.h"
+    "${SRC_DIR}/actors/transform_component.cpp"
     "${SRC_DIR}/events/ievent_data.h"
     "${SRC_DIR}/events/base_event_data.h"
     "${SRC_DIR}/events/base_event_data.cpp"
@@ -89,6 +103,8 @@ set(APP_SOURCES
     "${SRC_DIR}/events/event_manager.cpp"
     "${SRC_DIR}/events/cicadas/window_keycodes.h"
     "${SRC_DIR}/events/cicadas/window_keycodes.cpp"
+    "${SRC_DIR}/events/cicadas/evt_data_destroy_scene_component.h"
+    "${SRC_DIR}/events/cicadas/evt_data_destroy_scene_component.cpp"
     "${SRC_DIR}/events/cicadas/key_event_args.h"
     "${SRC_DIR}/events/cicadas/key_event_args.cpp"
     "${SRC_DIR}/events/cicadas/evt_data_key_pressed_event.h"
@@ -154,6 +170,14 @@ set(APP_SOURCES
     "${SRC_DIR}/scene/material.cpp"
     "${SRC_DIR}/scene/scene.h"
     "${SRC_DIR}/scene/scene.cpp"
+    "${SRC_DIR}/scene/scene_node.h"
+    "${SRC_DIR}/scene/scene_node.cpp"
+    "${SRC_DIR}/scene/camera_node.h"
+    "${SRC_DIR}/scene/camera_node.cpp"
+    "${SRC_DIR}/scene/basic_camera_node.h"
+    "${SRC_DIR}/scene/basic_camera_node.cpp"
+    "${SRC_DIR}/scene/scene_node_properties.h"
+    "${SRC_DIR}/scene/scene_node_properties.cpp"
     "${SRC_DIR}/graphics/vulkan_instance_layers_and_extensions.h"
     "${SRC_DIR}/graphics/vulkan_instance_layers_and_extensions.cpp"
     "${SRC_DIR}/graphics/vulkan_instance.h"
@@ -198,20 +222,24 @@ set(APP_SOURCES
     "${SRC_DIR}/graphics/vulkan_renderer.h"
     "${SRC_DIR}/graphics/vulkan_renderer.cpp"
 )
-set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders")
-set(TEXTURES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/textures")
-set(OBJECTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/objects")
+set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data/shaders")
+set(TEXTURES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data/textures")
+set(OBJECTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data/objects")
+set(COMPONENTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data/components")
 set(APP_SHADERS "${SHADER_DIR}/shader.frag" "${SHADER_DIR}/shader.vert")
 set(APP_RESOURCES "${TEXTURES_DIR}/texture.jpg" "${TEXTURES_DIR}/Sketchfab_UV_Checker.png")
 set(APP_OBJECTS "${OBJECTS_DIR}/cube.gltf" "${OBJECTS_DIR}/cube.bin")
+set(APP_COMPONENTS "${COMPONENTS_DIR}/BasicTransformComponent.xml" "${COMPONENTS_DIR}/LightComponent.xml")
 
 set(SPV_BIN_DIR "${CMAKE_BINARY_DIR}/Debug/shaders")
 set(CONFIG_DIR "${CMAKE_BINARY_DIR}/Debug/")
 set(SH_RESOURCES_DIR "${CMAKE_BINARY_DIR}/Debug/textures")
 set(SH_OBJ_DIR "${CMAKE_BINARY_DIR}/Debug/objects")
+set(COMPONENT_CONFIG_DIR "${CMAKE_BINARY_DIR}/Debug/components")
 file(MAKE_DIRECTORY ${SPV_BIN_DIR})
 file(MAKE_DIRECTORY ${SH_RESOURCES_DIR})
 file(MAKE_DIRECTORY ${SH_OBJ_DIR})
+file(MAKE_DIRECTORY ${COMPONENT_CONFIG_DIR})
 
 find_program(GLSLC glslc HINTS /usr/bin /usr/local/bin $ENV{VULKAN_SDK}/Bin/ $ENV{VULKAN_SDK}/Bin32/)
 if (NOT GLSLC)
@@ -261,6 +289,17 @@ function (CopyObjectFile FILE_PATH COPY_OUTPUT_DIRECTORY)
     set(SHADER_OBJECTS ${OBJECTS} PARENT_SCOPE)
 endfunction ()
 
+function (CopyComponentFile FILE_PATH COPY_OUTPUT_DIRECTORY)
+    get_filename_component(FILE_NAME ${FILE_PATH} NAME)
+    set(SH_COMPONENT_OUTPUT "${COMPONENT_CONFIG_DIR}/${FILE_NAME}")
+
+    message(STATUS ${FILE_PATH})
+    file(COPY ${FILE_PATH} DESTINATION ${SH_OBJ_DIR})
+
+    list(APPEND COMPONENT_FILES ${COMPONENTS_OUTPUT})
+    set(COMPONENT_FILES ${COMPONENTS} PARENT_SCOPE)
+endfunction ()
+
 function (CopyConfigFile FILE_PATH COPY_OUTPUT_DIRECTORY)
     get_filename_component(FILE_NAME ${FILE_PATH} NAME)
     set(CONFIG_OUTPUT "${CMAKE_BINARY_DIR}/Debug/${FILE_NAME}")
@@ -278,7 +317,9 @@ endforeach()
 foreach(OBJECT ${APP_OBJECTS})
     CopyObjectFile(${OBJECT} ${SH_OBJ_DIR})
 endforeach()
+
 CopyConfigFile("${SRC_DIR}/application_options.xml" "${CMAKE_BINARY_DIR}/Debug")
+CopyConfigFile("${SRC_DIR}/main_menu.xml" "${CMAKE_BINARY_DIR}/Debug")
 
 find_package(Vulkan REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
@@ -292,9 +333,11 @@ add_executable(vktutorial ${APP_SOURCES})
 add_custom_target(Shaders ALL DEPENDS ${SPIRV_SHADERS})
 add_custom_target(Textures ALL DEPENDS ${SHADER_RESOURCES})
 add_custom_target(Objects ALL DEPENDS ${SHADER_OBJECTS})
+add_custom_target(Components ALL DEPENDS ${COMPONENT_FILES})
 add_dependencies(vktutorial Shaders)
 add_dependencies(vktutorial Textures)
 add_dependencies(vktutorial Objects)
+add_dependencies(vktutorial Components)
 
 target_include_directories(vktutorial PRIVATE ${TINYGLTF_INCLUDE_DIRS} ${Stb_INCLUDE_DIR})
 target_link_libraries(vktutorial PRIVATE Vulkan::Vulkan glfw ${GLFW_LIBRARIES} glm::glm imgui::imgui pugixml::shared pugixml::pugixml)

@@ -19,7 +19,7 @@ std::shared_ptr<WindowSurface> Application::GetRenderWindow() {
     return Application::Get().m_window;
 }
 
-void Application::run(std::shared_ptr<Engine> pEngine) {
+void Application::run() {
     if (!glfwInit()) return;
     m_is_running = true;
     mainLoop();
@@ -31,6 +31,10 @@ bool Application::update() {
     m_event_manager->VQueueEvent(pEvent);
     bool window_close_evt = m_window->ProcessMessages();
     m_event_manager->VUpdate();
+
+    if (m_game) {
+		m_game->VOnUpdate(m_timer);
+	}
 
     return window_close_evt || m_request_quit;
 }
@@ -61,7 +65,7 @@ bool Application::Initialize(ApplicationOptions opt) {
     m_event_manager = std::make_unique<EventManager>("MasicApp Event Mgr", true);
 
     if (!glfwInit()) return false;
-        
+
     m_window = CreateRenderWindow();
     if (!m_window) {
         glfwTerminate();
@@ -73,6 +77,9 @@ bool Application::Initialize(ApplicationOptions opt) {
     VRegisterEvents();
     RegisterAllDelegates();
 
+    m_game = VCreateGameAndView();
+	if (!m_game) return false;
+
     return true;
 }
 
@@ -81,6 +88,29 @@ std::shared_ptr<WindowSurface> Application::CreateRenderWindow() {
     if(!pWindow->Initialize(m_options)) return nullptr;
     gs_window_by_name[pWindow->GetWindowTitle()] = pWindow->GetWindow();
     return pWindow;
+}
+
+void Application::ShowWindow() {
+	return m_window->Show();
+}
+
+const ApplicationOptions& Application::GetApplicationOptions() const {
+    return m_options;
+}
+
+GameTimer& Application::GetTimer() {
+    return m_timer;
+}
+
+std::shared_ptr<BaseEngineLogic> GetGameLogic() {
+    return nullptr;
+};
+
+std::shared_ptr<BaseEngineLogic> VCreateGameAndView() {
+    std::shared_ptr pGame = std::make_shared<BaseEngineLogic>();
+	pGame->Init();
+	
+	return pGame;
 }
 
 void Application::CloseWindow(IEventDataPtr pEventData) {

@@ -1,0 +1,86 @@
+#include "camera_component.h"
+
+#include "../tools/string_tools.h"
+#include "../scene/camera_node.h"
+#include "../scene/basic_camera_node.h"
+#include "../application.h"
+#include "../events/cicadas/evt_data_destroy_scene_component.h"
+#include "../events/ievent_manager.h"
+#include "transform_component.h"
+
+const std::string CameraComponent::g_name = "CameraComponent";
+
+CameraComponent::CameraComponent() {}
+
+CameraComponent::CameraComponent(const pugi::xml_node& data) {
+	Init(data);
+}
+
+CameraComponent::~CameraComponent() {}
+
+bool CameraComponent::Init(const pugi::xml_node& data) {
+	std::shared_ptr<Actor> act = GetOwner();
+
+	float fov = DirectX::XMConvertToRadians(data.child("Fov").text().as_float(90.0f));
+	float near = data.child("Near").text().as_float(0.1f);
+	float far = data.child("Far").text().as_float(1.0f);
+	float aspect_ratio = Application::Get().GetApplicationOptions().GetAspect();
+	std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->GetHumanView()->VGetScene();
+    Scene::NodeIndex node_index = scene_ptr->addNode();
+    std::shared_ptr<Actor> act = GetOwner();
+	std::string name = act->GetName();
+
+	
+
+	m_camera_node = std::make_shared<BasicCameraNode>(std::move(scene_ptr), std::move(name), fov, aspect_ratio, near, far);
+}
+
+
+
+const std::string& CameraComponent::VGetName() const {
+	return CameraComponent::g_name;
+}
+
+const ComponentDependecyList& CameraComponent::VGetComponentDependecy() const {
+	static const ComponentDependecyList component_dep = {TransformComponent::g_name};
+    return component_dep;
+}
+
+pugi::xml_node CameraComponent::VGenerateXml() {
+	return pugi::xml_node();
+}
+
+std::shared_ptr<BasicCameraNode> CameraComponent::VGetCameraNode() {
+	return m_loaded_scene_node;
+}
+
+float CameraComponent::GetFov() {
+	return m_fov;
+}
+
+void CameraComponent::SetFov(float fov) {
+	m_fov = fov;
+	m_loaded_scene_node->SetFovYRad(fov);
+}
+
+float CameraComponent::GetNear() {
+	return m_near;
+}
+
+void CameraComponent::SetNear(float near_cut) {
+	m_near = near_cut;
+	m_loaded_scene_node->SetNear(near_cut);
+}
+
+float CameraComponent::GetFar() {
+	return m_far;
+}
+
+void CameraComponent::SetFar(float far_cut) {
+	m_far = far_cut;
+	m_loaded_scene_node->SetFar(far_cut);
+}
+
+bool CameraComponent::Init(const pugi::xml_node& data) {
+	
+}

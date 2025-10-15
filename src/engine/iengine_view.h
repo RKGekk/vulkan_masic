@@ -1,5 +1,6 @@
 #pragma once
 
+#include <deque>
 #include <memory>
 #include <string>
 
@@ -10,14 +11,14 @@
 class IEngineView;
 
 typedef unsigned int EngineViewId;
-typedef std::list<std::shared_ptr<IEngineView>> GameViewList;
+typedef std::deque<std::shared_ptr<IEngineView>> GameViewList;
 
 class IEngineView {
 public:
 	virtual bool VOnRestore() = 0;
 	virtual bool VOnLostDevice() = 0;
 
-	virtual void VOnRender(const GameTimerDelta& delta) = 0;
+	virtual void VOnRender(CommandBatch& command_buffer) = 0;
 	virtual void VOnUpdate(const GameTimerDelta& delta) = 0;
 	
 	virtual EngineViewType VGetType() = 0;

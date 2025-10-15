@@ -1,21 +1,20 @@
 #pragma once
 
-#include <memory>
 #include <functional>
+#include <memory>
+#include <string>
+#include <vector>
+
 
 #include <pugixml.hpp>
 
 #include "actor.h"
 #include "../tools/game_timer.h"
 
+using ComponentDependecyList = std::vector<std::string>;
+
 class ActorComponent {
 	friend class ActorFactory;
-
-protected:
-	virtual void VRegisterEvents() = 0;
-
-	inline static bool m_events_registered = false;
-	StrongActorPtr m_pOwner;
 
 public:
 	virtual ~ActorComponent();
@@ -29,9 +28,19 @@ public:
 
 	virtual ComponentId VGetId() const;
 	virtual const std::string& VGetName() const = 0;
-	static ComponentId GetIdFromName(const std::string& componentStr);
+	virtual const ComponentDependecyList& VGetComponentDependecy() const = 0;
 
 	void SetOwner(StrongActorPtr pOwner);
 	StrongActorPtr GetOwner();
 	ActorId GetOwnerId();
+	bool GetIsInitialized();
+
+	static ComponentId GetIdFromName(const std::string& componentStr);
+
+protected:
+	virtual void VRegisterEvents() = 0;
+
+	inline static bool m_events_registered = false;
+	bool m_initialized = false;
+	StrongActorPtr m_pOwner;
 };

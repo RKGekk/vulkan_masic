@@ -1,8 +1,12 @@
 #define _ENABLE_EXTENDED_ALIGNED_STORAGE
 #include "scene.h"
+#include "scene_node.h"
 
 #include <algorithm>
 #include <numeric>
+
+const std::string Scene::NO_NAME = "NO NAME";
+const Material NO_MATERIAL = Material("NO MATERIAL");
 
 Scene::Scene() {
     m_local_transform.push_back(glm::mat4(1.0f));
@@ -32,6 +36,25 @@ int Scene::addNode(NodeIndex parent_index) {
     return new_node_index;
 }
 
+int Scene::addNode(std::string name, NodeIndex parent_index) {
+    Scene::NodeIndex new_node_index = addNode(parent_index);
+    setNodeName(new_node_index, std::move(name));
+    return new_node_index;
+}
+
+int Scene::addNode(const glm::mat4& local_transform, NodeIndex parent_index = 0) {
+    Scene::NodeIndex new_node_index = addNode(parent_index);
+    setNodeLocalTransform(new_node_index, local_transform);
+    return new_node_index;
+}
+
+int Scene::addNode(const glm::mat4& local_transform, std::string name, NodeIndex parent_index = 0) {
+    Scene::NodeIndex new_node_index = addNode(parent_index);
+    setNodeName(new_node_index, std::move(name));
+    setNodeLocalTransform(new_node_index, local_transform);
+    return new_node_index;
+}
+
 void Scene::markAsChanged(NodeIndex node_index) {
     const NodeLevel level = m_hierarchy[node_index].level;
     m_dirty_at_level[level].push_back(node_index);
@@ -41,7 +64,7 @@ void Scene::markAsChanged(NodeIndex node_index) {
     }
 }
 
-int Scene::findNodeByName(const std::string& name) {
+int Scene::findNodeByName(const std::string& name) const {
     // Extremely simple linear search without any hierarchy reference
     // To support DFS/BFS searches separate traversal routines are needed
 
@@ -58,6 +81,63 @@ int Scene::findNodeByName(const std::string& name) {
     }
 
     return NO_INDEX;
+}
+
+const std::string& Scene::getNodeName(Scene::NodeIndex node_index) const {
+    if(!m_node_name_map.contains(node_index)) return Scene::NO_NAME;
+    const Scene::NameIndex name_index = m_node_name_map.at(node_index);
+    return m_node_names[name_index];
+}
+
+const glm::mat4& Scene::getNodeLocalTransform(Scene::NodeIndex node_index) const {
+    return m_local_transform[node_index];
+}
+
+void Scene::setNodeLocalTransform(Scene::NodeIndex node_index, const glm::mat4& local_transform) {
+    m_local_transform[node_index] = local_transform;
+    markAsChanged(node_index);
+}
+
+const glm::mat4& Scene::getNodeGlobalTransform(Scene::NodeIndex node_index) const {
+    return m_global_transform[node_index];
+}
+
+const Scene::Hierarchy& Scene::getNodeHierarchy(Scene::NodeIndex node_index) const {
+    return m_hierarchy[node_index];
+}
+
+Scene::NodeTypeFlags Scene::getNodeTypeFlags(Scene::NodeIndex node_index) const {
+    return m_node_type_flags_map.at(node_index);
+}
+
+std::shared_ptr<Scene::Properties> Scene::getProperties(Scene::NodeIndex node_index) {
+    if(!m_node_property_map.contains(node_index)) return nullptr;
+    const Scene::PropertyIndex property_index = m_node_property_map.at(node_index);
+    return m_properties[property_index];
+}
+
+void Scene::addProperty(NodeIndex node_index, std::shared_ptr<SceneNode> property) {
+    Scene::PropertyIndex property_index;
+    if(!m_node_property_map.contains(node_index)) {
+        property_index = m_properties.size();
+        m_node_property_map[node_index] = property_index;
+        Properties new_props;
+        new_props[property->Get().GetNodeType()] = property;
+        m_properties.push_back(std::make_shared<Properties>(std::move(new_props)));
+        return;
+    }
+    property_index = m_node_property_map[node_index];
+    m_properties[property_index]->operator[](property->Get().GetNodeType()) = std::move(property);
+}
+
+void Scene::setNodeName(NodeIndex node_index, std::string name) {
+    const Scene::NameIndex name_index = m_node_names.size();
+    m_node_names.push_back(std::move(name));
+    m_node_name_map[node_index] = name_index;
+}
+
+int Scene::getNodeLevel(Scene::NodeIndex node_index) const {
+    return m_hierarchy[node_index].level;
 }
 
 // CPU version of global transform update []
@@ -178,9 +258,7 @@ void Scene::deleteSceneNodes(const std::vector<NodeIndex>& nodes_indices_to_dele
 
     // 4b) All the maps should change the key values with the newIndices[] array
     shiftMapIndices(m_node_type_flags_map, new_indices);
-    shiftMapIndices(m_node_mesh_map, new_indices);
-    shiftMapIndices(m_node_group_map, new_indices);
-    shiftMapIndices(m_node_material_map, new_indices);
+    shiftMapIndices(m_node_property_map, new_indices);
     shiftMapIndices(m_node_name_map, new_indices);
 
     // 5) scene node names list is not modified, but in principle it can be (remove all non-used items and adjust the nameForNode_ map)
@@ -247,7 +325,7 @@ void Scene::mergeScenes(const std::vector<Scene*>& scenes, const std::vector<glm
     auto mesh_count = mesh_counts.begin();
 
     if (!merge_materials) {
-        m_materials = scenes[0]->m_materials;
+        m_properties = scenes[0]->m_properties;
     }
 
     // FIXME: too much logic (for all the components in a scene, though mesh data and materials go separately - they're dedicated data lists)
@@ -259,7 +337,7 @@ void Scene::mergeScenes(const std::vector<Scene*>& scenes, const std::vector<glm
 
         mergeVectors(m_node_names, s->m_node_names);
         if (merge_materials) {
-            mergeVectors(m_materials, s->m_materials);
+            mergeVectors(m_properties, s->m_properties);
         }
 
         const int node_count = (int)s->m_hierarchy.size();
@@ -267,14 +345,12 @@ void Scene::mergeScenes(const std::vector<Scene*>& scenes, const std::vector<glm
         shiftNodes(offs, node_count, offs);
 
         mergeMaps(m_node_type_flags_map, s->m_node_type_flags_map, offs, merge_meshes ? mesh_offs : 0);
-        mergeMaps(m_node_mesh_map, s->m_node_mesh_map, offs, merge_meshes ? mesh_offs : 0);
-        mergeMaps(m_node_group_map, s->m_node_group_map, offs, merge_meshes ? mesh_offs : 0);
-        mergeMaps(m_node_material_map, s->m_node_material_map, offs, merge_materials ? material_offs : 0);
+        mergeMaps(m_node_property_map, s->m_node_property_map, offs, merge_meshes ? mesh_offs : 0);
         mergeMaps(m_node_name_map, s->m_node_name_map, offs, name_offs);
 
         offs += node_count;
 
-        material_offs += (int)s->m_materials.size();
+        material_offs += (int)s->m_properties.size();
         name_offs += (int)s->m_node_names.size();
 
         if (merge_meshes) {

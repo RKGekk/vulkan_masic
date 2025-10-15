@@ -18,9 +18,11 @@
 #include "../scene/scene.h"
 #include "../scene/camera_node.h"
 #include "../tools/mt_random.h"
+#include "human_view.h"
 
 class ActorFactory;
 class LevelManager;
+class CameraComponent;
 
 class BaseEngineLogic : IEngineLogic {
 	friend class Engine;
@@ -46,7 +48,6 @@ public:
 	virtual bool VCheckActorsExistByComponent(ComponentId cid);
 
 	virtual void VModifyActor(const ActorId actorId, const pugi::xml_node& overrides);
-	virtual void VMoveActor(const ActorId id, glm::mat4x4 mat) override;
 
 	std::string GetActorXml(const ActorId id);
 
@@ -62,8 +63,9 @@ public:
 	virtual void VChangeState(BaseEngineState new_state) override;
 	const BaseEngineState GetState() const;
 
-	std::shared_ptr<IEngineView> GetHumanView();
-	std::shared_ptr<IEngineView> GetHumanViewByName(std::string name);
+	std::shared_ptr<HumanView> GetHumanView();
+	std::shared_ptr<HumanView> GetHumanViewByName(std::string name);
+	const GameViewList& GetViews();
 
 	void AttachProcess(StrongProcessPtr pProcess);
 
@@ -101,10 +103,5 @@ protected:
 	ActorNamesMap m_actors_names;
 	ActorId m_last_actor_id;
 	BaseEngineState m_state;
-	std::shared_ptr<CameraNode> m_active_camera;
-
-	int m_expected_players;
-	int m_human_players_attached;
-	int m_human_games_loaded;
-	bool m_render_diagnostics;
+	std::shared_ptr<CameraComponent> m_active_camera;
 };

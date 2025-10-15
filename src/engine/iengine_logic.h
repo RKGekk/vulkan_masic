@@ -23,7 +23,7 @@ public:
 	virtual void VOnUpdate(const GameTimerDelta& delta) = 0;
 	virtual void VChangeState(const BaseEngineState new_state) = 0;
 
-	virtual void VMoveActor(const ActorId id, glm::mat4x4 mat) = 0;
+	virtual void VMoveActor(const ActorId id, const glm::mat4x4& mat) = 0;
 
 	virtual std::shared_ptr<IEnginePhysics> VGetGamePhysics() = 0;
 };

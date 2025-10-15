@@ -20,8 +20,9 @@
 
 constexpr const int MAX_NODE_LEVEL = 32;
 
-class Scene {
+class SceneNode;
 
+class Scene {
 public:
     static const uint32_t NODE_TYPE_FLAG_NONE = 0u;
     static const uint32_t NODE_TYPE_FLAG_MESH = 1u;
@@ -32,16 +33,17 @@ public:
 	static const uint32_t NODE_TYPE_FLAG_SPHERE = 32u;
 	static const uint32_t NODE_TYPE_FLAG_BONE = 64u;
 
-	using MaterialIndex = uint32_t;
-	using MeshIndex = uint32_t;
 	using NodeIndex = uint32_t;
     using NodeLevel = uint32_t;
 	using NameIndex = uint32_t;
-	using GroupIndex = uint32_t;
+	using NodeType = uint32_t;
     using NodeTypeFlags = uint32_t;
     using NodeIndexArray = std::vector<NodeIndex>;
+	using PropertyIndex = uint32_t;
+	using Properties = std::unordered_map<NodeType, std::shared_ptr<SceneNode>>;
 
     static const NodeIndex NO_INDEX = -1;
+	static const std::string NO_NAME;
 
 	struct Hierarchy {
 		NodeIndex parent = NO_INDEX;
@@ -53,11 +55,27 @@ public:
     Scene();
 
 	int addNode(NodeIndex parent_index = 0u);
+	int addNode(std::string name, NodeIndex parent_index = 0);
+	int addNode(const glm::mat4& local_transform, NodeIndex parent_index = 0);
+	int addNode(const glm::mat4& local_transform, std::string name, NodeIndex parent_index = 0);
+
     void markAsChanged(NodeIndex node_index);
-    int findNodeByName(const std::string& name);
-    const std::string& getNodeName(NodeIndex node_index);
-    void setNodeName(NodeIndex node_index, const std::string& name);
-    int getNodeLevel(NodeIndex node_index);
+    int findNodeByName(const std::string& name) const;
+
+    const std::string& getNodeName(NodeIndex node_index) const;
+	void setNodeName(NodeIndex node_index, std::string name);
+
+	const glm::mat4& getNodeLocalTransform(NodeIndex node_index) const;
+	void setNodeLocalTransform(NodeIndex node_index, const glm::mat4& local_transform);
+
+	const glm::mat4& getNodeGlobalTransform(NodeIndex node_index) const;
+	const Hierarchy& getNodeHierarchy(NodeIndex node_index) const;
+	NodeTypeFlags getNodeTypeFlags(NodeIndex node_index) const;
+
+	std::shared_ptr<Properties> getProperties(NodeIndex node_index);
+	void addProperty(NodeIndex node_index, std::shared_ptr<SceneNode> property);
+
+    int getNodeLevel(NodeIndex node_index) const;
     bool recalculateGlobalTransforms();
     void deleteSceneNodes(const std::vector<NodeIndex>& nodes_indices_to_delete);
 	void mergeScenes(const std::vector<Scene*>& scenes, const std::vector<glm::mat4>& root_transforms, const std::vector<uint32_t>& mesh_counts, bool merge_meshes, bool merge_materials);
@@ -72,11 +90,9 @@ private:
 	std::vector<NodeIndexArray> m_dirty_at_level;
 
     std::unordered_map<NodeIndex, NodeTypeFlags> m_node_type_flags_map;
-	std::unordered_map<NodeIndex, MeshIndex> m_node_mesh_map;
-	std::unordered_map<NodeIndex, GroupIndex> m_node_group_map;
-	std::unordered_map<NodeIndex, MaterialIndex> m_node_material_map;
+	std::unordered_map<NodeIndex, PropertyIndex> m_node_property_map;
 	std::unordered_map<NodeIndex, NameIndex> m_node_name_map;
 
 	std::vector<std::string> m_node_names;
-	std::vector<Material> m_materials;
+	std::vector<std::shared_ptr<Properties>> m_properties;
 };

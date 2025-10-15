@@ -21,6 +21,7 @@
 #include "vulkan_command_buffer.h"
 #include "vulkan_command_pool_type.h"
 #include "vulkan_uniform_buffer.h"
+#include "../engine/iengine_view.h"
 
 class VulkanRenderer {
 public:
@@ -37,7 +38,7 @@ public:
     RenderTarget getRenderTarget() const;
 
     void recordCommandBuffer(CommandBatch& command_buffer);
-    void drawFrame();
+    void drawFrame(const GameViewList& views);
     void setFramebufferResized();
     void update_frame(const GameTimerDelta& delta, uint32_t image_index);
     void addDrawable(std::shared_ptr<IVulkanDrawable> drawable);
