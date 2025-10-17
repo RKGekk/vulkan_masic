@@ -30,12 +30,18 @@ public:
 
 	const BoundingFrustum& GetFrustum() const;
 	void UpdateFrustum();
+
 	void SetFovYRad(float fovy);
 	void SetFovYDeg(float fovy);
+
 	float GetFovYRad() const;
 	float GetFovYDeg() const;
+
 	void SetNear(float near_cut);
 	void SetFar(float far_cut);
+
+	float GetNear() const;
+	float GetFar() const;
 
 	void SetProjection(const BoundingFrustum& frustum);
 	void SetProjection(float fovy, float aspect, float near_clip, float far_clip);

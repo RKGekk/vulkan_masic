@@ -57,6 +57,9 @@ public:
     glm::vec3 GetRight3f() const;
     const glm::vec4& GetRight4f() const;
 
+    std::shared_ptr<SceneNode> GetSceneNode();
+    Scene::NodeIndex GetSceneNodeIndex();
+
 protected:
     virtual void VRegisterEvents();
 

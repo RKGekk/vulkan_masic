@@ -51,14 +51,14 @@ public:
 
 	std::string GetActorXml(const ActorId id);
 
-	std::shared_ptr<CameraNode> GetActiveCamera();
+	std::shared_ptr<CameraComponent> GetActiveCamera();
 
 	std::shared_ptr<ActorAnimationPlayer> GetAnimationPlayer();
 
 	const LevelManager& GetLevelManager();
 	virtual std::shared_ptr<IEnginePhysics> VGetGamePhysics() override;
 	virtual bool VLoadGame(const std::string& level_resource) override;
-	virtual bool VLoadGame(const std::string& level_resource, std::shared_ptr<IEngineView> pHuman_view);
+	virtual bool VLoadGame(const std::string& level_resource, std::shared_ptr<HumanView> pHuman_view);
 	virtual void VOnUpdate(const GameTimerDelta& delta) override;
 	virtual void VChangeState(BaseEngineState new_state) override;
 	const BaseEngineState GetState() const;

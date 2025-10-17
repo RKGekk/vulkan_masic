@@ -31,12 +31,20 @@ bool SceneNode::VOnUpdate() {}
 
 bool SceneNode::VOnLostDevice() {}
 
-const Scene::NodeIndex SceneNode::VGetChild() const {
+Scene::NodeIndex SceneNode::VGetChild() const {
     return m_scene->getNodeHierarchy(m_node_index).first_child;
 }
 
-const Scene::NodeIndex SceneNode::VGetSibling() const {
+Scene::NodeIndex SceneNode::VGetSibling() const {
     return m_scene->getNodeHierarchy(m_node_index).next_sibling;
+}
+
+Scene::NodeIndex SceneNode::VGetNodeIndex() const {
+    return m_node_index;
+}
+
+Scene::NodeIndex SceneNode::GetParentIndex() const {
+    return m_scene->getNodeHierarchy(m_node_index).parent;
 }
 
 const SceneNodeProperties& SceneNode::Get() const {

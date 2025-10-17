@@ -29,10 +29,10 @@ bool CameraComponent::Init(const pugi::xml_node& data) {
     Scene::NodeIndex node_index = scene_ptr->addNode();
     std::shared_ptr<Actor> act = GetOwner();
 	std::string name = act->GetName();
+	std::shared_ptr<TransformComponent> tc = act->GetComponent<TransformComponent>(ActorComponent::GetIdFromName("TransformComponent")).lock();
+	Scene::NodeIndex node_idx = tc->GetSceneNodeIndex();
 
-	
-
-	m_camera_node = std::make_shared<BasicCameraNode>(std::move(scene_ptr), std::move(name), fov, aspect_ratio, near, far);
+	m_camera_node = std::make_shared<BasicCameraNode>(std::move(scene_ptr), node_idx, std::move(name), fov, aspect_ratio, near, far);
 }
 
 
@@ -51,36 +51,29 @@ pugi::xml_node CameraComponent::VGenerateXml() {
 }
 
 std::shared_ptr<BasicCameraNode> CameraComponent::VGetCameraNode() {
-	return m_loaded_scene_node;
+	return m_camera_node;
 }
 
 float CameraComponent::GetFov() {
-	return m_fov;
+	return m_camera_node->GetFovYRad();
 }
 
 void CameraComponent::SetFov(float fov) {
-	m_fov = fov;
-	m_loaded_scene_node->SetFovYRad(fov);
+	m_camera_node->SetFovYRad(fov);
 }
 
 float CameraComponent::GetNear() {
-	return m_near;
+	return m_camera_node->GetNear();
 }
 
 void CameraComponent::SetNear(float near_cut) {
-	m_near = near_cut;
-	m_loaded_scene_node->SetNear(near_cut);
+	m_camera_node->SetNear(near_cut);
 }
 
 float CameraComponent::GetFar() {
-	return m_far;
+	return m_camera_node->GetFar();
 }
 
 void CameraComponent::SetFar(float far_cut) {
-	m_far = far_cut;
-	m_loaded_scene_node->SetFar(far_cut);
-}
-
-bool CameraComponent::Init(const pugi::xml_node& data) {
-	
+	m_camera_node->SetFar(far_cut);
 }

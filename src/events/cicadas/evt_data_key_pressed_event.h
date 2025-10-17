@@ -3,8 +3,6 @@
 #include <iostream>
 #include <iomanip>
 
-#include <DirectXMath.h>
-
 #include "../base_event_data.h"
 #include "../../tools/string_tools.h"
 #include "key_event_args.h"

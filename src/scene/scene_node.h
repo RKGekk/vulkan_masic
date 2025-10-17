@@ -27,9 +27,12 @@ public:
 	virtual bool VOnUpdate();
 	virtual bool VOnLostDevice();
 
-	virtual const Scene::NodeIndex VGetChild() const;
-    virtual const Scene::NodeIndex VGetSibling() const;
+	virtual Scene::NodeIndex VGetChild() const;
+    virtual Scene::NodeIndex VGetSibling() const;
+	virtual Scene::NodeIndex VGetNodeIndex() const;
+	virtual Scene::NodeIndex GetParentIndex() const;
 
+	const SceneNode& GetParent();
 	const SceneNodeProperties& Get() const;
 
 	void SetTransform(const glm::mat4x4& to_parent);
@@ -37,11 +40,7 @@ public:
 	void SetTranslation3(const glm::vec3& pos);
 	void SetTranslation4(const glm::vec4& pos);
 
-	const SceneNode& GetParent();
-    Scene::NodeIndex GetParentIndex();
-
 	void SetName(std::string name);
-
 	void SetNodeType(uint32_t flags);
 
 protected:

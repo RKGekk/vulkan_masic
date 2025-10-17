@@ -87,6 +87,14 @@ void BasicCameraNode::SetNear(float near_cut) {
 	m_projection = glm::perspectiveLH(m_fovy, m_aspect, m_frustum.Near, m_frustum.Far);
 }
 
+float BasicCameraNode::GetNear() const {
+	return m_frustum.Near;
+}
+
+float BasicCameraNode::GetFar() const {
+	return m_frustum.Far;
+}
+
 void BasicCameraNode::SetFar(float far_cut) {
 	if (m_frustum.Far == far_cut) return;
 

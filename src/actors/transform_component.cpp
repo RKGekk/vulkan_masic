@@ -151,3 +151,11 @@ glm::vec3 TransformComponent::GetYawPitchRoll() const {
 bool TransformComponent::VInit(const pugi::xml_node& pData) {
     return Init(pData);
 }
+
+std::shared_ptr<SceneNode> TransformComponent::GetSceneNode() {
+    return m_scene_node;
+}
+
+Scene::NodeIndex TransformComponent::GetSceneNodeIndex() {
+    return m_scene_node->VGetNodeIndex();
+}
