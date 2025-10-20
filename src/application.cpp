@@ -102,11 +102,11 @@ GameTimer& Application::GetTimer() {
     return m_timer;
 }
 
-std::shared_ptr<BaseEngineLogic> GetGameLogic() {
+std::shared_ptr<BaseEngineLogic> Application::GetGameLogic() {
     return nullptr;
 };
 
-std::shared_ptr<BaseEngineLogic> VCreateGameAndView() {
+std::shared_ptr<BaseEngineLogic> Application::VCreateGameAndView() {
     std::shared_ptr pGame = std::make_shared<BaseEngineLogic>();
 	pGame->Init();
 	

@@ -10,6 +10,7 @@
 #include "../events/cicadas/evt_data_environment_loaded.h"
 #include "../events/cicadas/evt_data_request_destroy_actor.h"
 #include "../events/cicadas/evt_data_move_actor.h"
+#include "../events/cicadas/evt_data_destroy_actor.h"
 #include "../events/cicadas/evt_data_request_new_actor.h"
 #include "../events/cicadas/evt_data_request_start_game.h"
 #include "../events/cicadas/evt_data_sphere_particle_contact.h"
@@ -130,6 +131,14 @@ void BaseEngineLogic::VModifyActor(const ActorId actorId, const pugi::xml_node& 
 	auto findIt = m_actors.find(actorId);
 	if (findIt != m_actors.end()) {
 		m_actor_factory->ModifyActor(findIt->second, overrides);
+	}
+}
+
+void BaseEngineLogic::VMoveActor(const ActorId id, const glm::mat4x4& mat) {
+	StrongActorPtr pActor = MakeStrongPtr(VGetActor(id));
+	if (pActor) {
+		std::shared_ptr<TransformComponent> pTransformComponent = MakeStrongPtr(pActor->GetComponent<TransformComponent>(TransformComponent::g_name));
+		pTransformComponent->SetTransform(mat);
 	}
 }
 
@@ -325,6 +334,10 @@ std::shared_ptr<HumanView> BaseEngineLogic::GetHumanViewByName(std::string name)
 	return pView;
 }
 
+const GameViewList& BaseEngineLogic::GetViews() {
+	return m_game_views;
+}
+
 void BaseEngineLogic::AttachProcess(StrongProcessPtr pProcess) {
 	if (m_process_manager) {
 		m_process_manager->AttachProcess(pProcess);
@@ -372,9 +385,9 @@ void BaseEngineLogic::RegisterAllDelegates() {
 }
 
 void BaseEngineLogic::VRegisterEvents() {
-	//REGISTER_EVENT(EvtData_Environment_Loaded);
-	//REGISTER_EVENT(EvtData_Move_Actor);
-	//REGISTER_EVENT(EvtData_Destroy_Actor);
+	REGISTER_EVENT(EvtData_Environment_Loaded);
+	REGISTER_EVENT(EvtData_Move_Actor);
+	REGISTER_EVENT(EvtData_Destroy_Actor);
 	REGISTER_EVENT(EvtData_Request_New_Actor);
 }
 

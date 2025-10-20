@@ -5,20 +5,6 @@
 #include "bounding_frustum.h"
 #include "bounding_oriented_box.h"
 
-const glm::vec4 g_BoxOffset[8] = {
-    glm::vec4(-1.0f, -1.0f,  1.0f, 0.0f),
-    glm::vec4( 1.0f, -1.0f,  1.0f, 0.0f),
-    glm::vec4( 1.0f,  1.0f,  1.0f, 0.0f),
-    glm::vec4(-1.0f,  1.0f,  1.0f, 0.0f),
-    glm::vec4(-1.0f, -1.0f, -1.0f, 0.0f),
-    glm::vec4( 1.0f, -1.0f, -1.0f, 0.0f),
-    glm::vec4( 1.0f,  1.0f, -1.0f, 0.0f),
-    glm::vec4(-1.0f,  1.0f, -1.0f, 0.0f)
-};
-
-const glm::vec4 g_FltMin = glm::vec4(-3.402823466e+38F, -3.402823466e+38F, -3.402823466e+38F, -3.402823466e+38F);
-const glm::vec4 g_FltMax = glm::vec4(3.402823466e+38F, 3.402823466e+38F, 3.402823466e+38F, 3.402823466e+38F);
-
  //-----------------------------------------------------------------------------
  // Transform an axis aligned box by an angle preserving transform.
  //-----------------------------------------------------------------------------

@@ -11,6 +11,7 @@
 #include "base_engine_state.h"
 #include "../actors/camera_component.h"
 #include "screen_element_scene.h"
+#include "../procs/process_manager.h"
 
 #include <pugixml.hpp>
 
@@ -21,45 +22,45 @@ class HumanView : public IEngineView {
 	static const std::string g_name;
 
 public:
-	HumanView();
-	virtual ~HumanView();
+	HumanView() {};
+	virtual ~HumanView() {};
 
-	bool LoadGame(const pugi::xml_node& pLevelData);
+	bool LoadGame(const pugi::xml_node& pLevelData) { return true; };
 
-	virtual bool VOnRestore() override;
-	virtual bool VOnLostDevice() override;
+	virtual bool VOnRestore() override {return true;};
+	virtual bool VOnLostDevice() override {return true;};
 
-	virtual void VOnRender(CommandBatch& command_buffer) override;
-	virtual void VOnUpdate(const GameTimerDelta& delta) override;
+	virtual void VOnRender(CommandBatch& command_buffer) override {};
+	virtual void VOnUpdate(const GameTimerDelta& delta) override {};
 
-	virtual EngineViewType VGetType() override;
-	virtual EngineViewId VGetId() const override;
+	virtual EngineViewType VGetType() override { return EngineViewType::GameView_Human; };
+	virtual EngineViewId VGetId() const override { return 0; };
 
-	virtual void VOnAttach(EngineViewId vid, ActorId aid) override;
+	virtual void VOnAttach(EngineViewId vid, ActorId aid) override {};
 	
-	virtual void VPushElement(std::shared_ptr<IScreenElement> pElement);
-	virtual void VRemoveElement(std::shared_ptr<IScreenElement> pElement);
+	virtual void VPushElement(std::shared_ptr<IScreenElement> pElement) {};
+	virtual void VRemoveElement(std::shared_ptr<IScreenElement> pElement) {};
 
-	virtual void VActivateScene(bool is_active);
-	virtual void VCanDraw(bool is_can_draw);
+	virtual void VActivateScene(bool is_active) {};
+	virtual void VCanDraw(bool is_can_draw) {};
 
-	void TogglePause(bool active);
-	void HandleGameState(BaseEngineState newState);
+	void TogglePause(bool active) {};
+	void HandleGameState(BaseEngineState newState) {};
 
-	virtual void VSetControlledActor(std::shared_ptr<Actor> actor);
-	virtual std::shared_ptr<CameraComponent> VGetCamera();
-	virtual std::shared_ptr<Scene> VGetScene();
-	virtual void VSetCameraByName(std::string camera_name);
+	virtual void VSetControlledActor(std::shared_ptr<Actor> actor) {};
+	virtual std::shared_ptr<CameraComponent> VGetCamera() { return nullptr; };
+	virtual std::shared_ptr<Scene> VGetScene() { return nullptr; };
+	virtual void VSetCameraByName(std::string camera_name) {};
 
-	virtual const std::string& VGetName() override;
+	virtual const std::string& VGetName() override { return m_gameplay_text; };
 
-	void GameStateDelegate(IEventDataPtr pEventData);
-	void NewSceneNodeComponentDelegate(IEventDataPtr pEventData);
-	void DestroySceneNodeComponentDelegate(IEventDataPtr pEventData);
+	void GameStateDelegate(IEventDataPtr pEventData) {};
+	void NewSceneNodeComponentDelegate(IEventDataPtr pEventData) {};
+	void DestroySceneNodeComponentDelegate(IEventDataPtr pEventData) {};
 
 protected:
-	virtual bool VLoadGameDelegate(const pugi::xml_node& pLevelData);
-	virtual void VRenderText();
+	virtual bool VLoadGameDelegate(const pugi::xml_node& pLevelData) { return true; };
+	virtual void VRenderText() {};
 
 	EngineViewId m_view_id;
 	std::weak_ptr<Actor> m_actor;
@@ -81,7 +82,7 @@ protected:
 
 	bool m_bShow_ui;
 	bool m_bShow_debug_ui;
-	std::wstring m_gameplay_text;
+	std::string m_gameplay_text;
 	//std::shared_ptr<ActorMenuUI> m_actor_menu_ui;
 	//std::shared_ptr<NodeMenuUI> m_node_menu_ui;
 	//std::shared_ptr<AnimMenuUI> m_anim_menu_ui;
@@ -93,6 +94,6 @@ protected:
 	//std::shared_ptr<GUI> m_gui;
 
 private:
-	void RegisterAllDelegates();
-	void RemoveAllDelegates();
+	void RegisterAllDelegates() {};
+	void RemoveAllDelegates() {};
 };

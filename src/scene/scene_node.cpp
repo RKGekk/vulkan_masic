@@ -25,11 +25,17 @@ SceneNode::SceneNode(std::shared_ptr<Scene> scene, std::string name, glm::mat4x4
 
 SceneNode::~SceneNode() {}
 
-bool SceneNode::VOnRestore() {}
+bool SceneNode::VOnRestore() {
+    return true;
+}
 
-bool SceneNode::VOnUpdate() {}
+bool SceneNode::VOnUpdate() {
+    return true;
+}
 
-bool SceneNode::VOnLostDevice() {}
+bool SceneNode::VOnLostDevice() {
+    return true;
+}
 
 Scene::NodeIndex SceneNode::VGetChild() const {
     return m_scene->getNodeHierarchy(m_node_index).first_child;

@@ -63,7 +63,7 @@ ContainmentType BoundingSphere::Contains(const glm::vec3& V0, const glm::vec3& V
     DistanceSquared = glm::dot(offset, offset);
     Inside &= DistanceSquared <= RadiusSquared;
 
-    glm::vec3 offset = V2 - Center;
+    offset = V2 - Center;
     DistanceSquared = glm::dot(offset, offset);
     Inside &= DistanceSquared <= RadiusSquared;
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#define GLM_ENABLE_EXPERIMENTAL
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
@@ -17,9 +18,19 @@ struct BoundingSphere;
 struct BoundingOrientedBox;
 struct BoundingFrustum;
 
-static const glm::vec4 g_BoxOffset[8];
-static const glm::vec4 g_FltMin;
-static const glm::vec4 g_FltMax;
+static const glm::vec4 g_BoxOffset[8] = {
+    glm::vec4(-1.0f, -1.0f,  1.0f, 0.0f),
+    glm::vec4( 1.0f, -1.0f,  1.0f, 0.0f),
+    glm::vec4( 1.0f,  1.0f,  1.0f, 0.0f),
+    glm::vec4(-1.0f,  1.0f,  1.0f, 0.0f),
+    glm::vec4(-1.0f, -1.0f, -1.0f, 0.0f),
+    glm::vec4( 1.0f, -1.0f, -1.0f, 0.0f),
+    glm::vec4( 1.0f,  1.0f, -1.0f, 0.0f),
+    glm::vec4(-1.0f,  1.0f, -1.0f, 0.0f)
+};
+
+static const glm::vec4 g_FltMin = glm::vec4(-3.402823466e+38F, -3.402823466e+38F, -3.402823466e+38F, -3.402823466e+38F);
+static const glm::vec4 g_FltMax = glm::vec4(3.402823466e+38F, 3.402823466e+38F, 3.402823466e+38F, 3.402823466e+38F);
 
 // Axis-aligned bounding box
 struct BoundingBox {

@@ -5,15 +5,12 @@ const std::string EvtData_Request_New_Actor::sk_EventName = "EvtData_Request_New
 
 EvtData_Request_New_Actor::EvtData_Request_New_Actor() {
 	m_actorResource = "";
-	m_initialTransform = glm::mat4x4(1.0f);
 	m_serverActorId = -1;
 	m_viewId = 0;
 }
 
-EvtData_Request_New_Actor::EvtData_Request_New_Actor(const std::string& actorResource, const glm::mat4x4& initialTransform, const ActorId serverActorId, const EngineViewId viewId) {
+EvtData_Request_New_Actor::EvtData_Request_New_Actor(const std::string& actorResource, const ActorId serverActorId, const EngineViewId viewId) {
 	m_actorResource = actorResource;
-	m_initialTransform = initialTransform;
-	
 	m_serverActorId = serverActorId;
 	m_viewId = viewId;
 }
@@ -24,26 +21,15 @@ EventTypeId EvtData_Request_New_Actor::VGetEventType() const {
 
 void EvtData_Request_New_Actor::VDeserialize(std::istream& in) {
 	in >> m_actorResource;
-	for (int i = 0; i < 4; ++i) {
-		for (int j = 0; j < 4; ++j) {
-			in >> m_initialTransform[i][j];
-		}
-	}
-	
 	in >> m_serverActorId;
 }
 
 IEventDataPtr EvtData_Request_New_Actor::VCopy() const {
-	return IEventDataPtr(new EvtData_Request_New_Actor(m_actorResource, m_initialTransform, m_serverActorId));
+	return IEventDataPtr(new EvtData_Request_New_Actor(m_actorResource, m_serverActorId));
 }
 
 void EvtData_Request_New_Actor::VSerialize(std::ostream& out) const {
 	out << m_actorResource << " ";
-	for (int i = 0; i < 4; ++i) {
-		for (int j = 0; j < 4; ++j) {
-			out << m_initialTransform[i][j] << " ";
-		}
-	}
 	
 	out << m_serverActorId << " ";
 }
@@ -54,10 +40,6 @@ const std::string& EvtData_Request_New_Actor::GetName() const {
 
 const std::string& EvtData_Request_New_Actor::GetActorResource() const {
 	return m_actorResource;
-}
-
-const glm::mat4x4& EvtData_Request_New_Actor::GetInitialTransform() const {
-	return m_initialTransform;
 }
 
 const ActorId EvtData_Request_New_Actor::GetServerActorId() const {
@@ -75,7 +57,6 @@ std::ostream& operator<<(std::ostream& os, const EvtData_Request_New_Actor& evt)
 	os << "Event time stamp: " << evt.GetTimeStamp().time_since_epoch().count() << "ns" << std::endl;
 	os << "Event server actorId id: " << evt.m_serverActorId << std::endl;
 	os << "Event actor resource: " << evt.m_actorResource << std::endl;
-	os << "Event initial transform matrix: " << std::endl << evt.m_initialTransform << std::endl;
 
 	os.flags(oldFlag);
 	return os;

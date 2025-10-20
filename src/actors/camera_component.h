@@ -6,6 +6,7 @@
 #include <map>
 #include <vector>
 
+#define GLM_ENABLE_EXPERIMENTAL
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
@@ -34,6 +35,7 @@ public:
 	CameraComponent(const pugi::xml_node& data);
 	virtual ~CameraComponent();
 
+	virtual bool VInit(const pugi::xml_node& data) override;
 	virtual const std::string& VGetName() const override;
 	virtual const ComponentDependecyList& VGetComponentDependecy() const override;
 	virtual pugi::xml_node VGenerateXml() override;

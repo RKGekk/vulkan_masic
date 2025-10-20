@@ -1,5 +1,6 @@
 #pragma once
 
+#define GLM_ENABLE_EXPERIMENTAL
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
@@ -48,6 +49,7 @@ public:
 	virtual bool VCheckActorsExistByComponent(ComponentId cid);
 
 	virtual void VModifyActor(const ActorId actorId, const pugi::xml_node& overrides);
+	virtual void VMoveActor(const ActorId id, const glm::mat4x4& mat) override;
 
 	std::string GetActorXml(const ActorId id);
 
@@ -83,7 +85,6 @@ protected:
 	void RegisterAllDelegates();
 	virtual void VRegisterEvents();
 	void RemoveAllDelegates();
-
 
 	using ActorMap = std::unordered_map<ActorId, StrongActorPtr>;
 	using ComponentsMap = std::unordered_map<ComponentId, std::unordered_set<ActorId>>;

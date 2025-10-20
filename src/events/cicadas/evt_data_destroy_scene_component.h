@@ -5,7 +5,7 @@
 #include <iomanip>
 
 #include "../base_event_data.h"
-#include "../actors/actor.h"
+#include "../../actors/actor.h"
 
 class SceneNode;
 

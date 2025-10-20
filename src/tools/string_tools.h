@@ -15,6 +15,7 @@
 
 #include <pugixml.hpp>
 
+#define GLM_ENABLE_EXPERIMENTAL
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
@@ -27,7 +28,6 @@
 #define STR(x) STR1(x)
 #define WSTR1(x) L##x
 #define WSTR(x) WSTR1(x)
-#define NAME_D3D12_OBJECT(x) x->SetName( WSTR(__FILE__ "(" STR(__LINE__) "): " L#x) )
 
 #pragma warning( push )
 #pragma warning( disable : 4996)

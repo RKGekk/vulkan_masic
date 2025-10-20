@@ -2,6 +2,7 @@
 
 #include <cmath>
 
+#define GLM_ENABLE_EXPERIMENTAL
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
@@ -35,7 +36,7 @@ bool SolveCubic(float e, float f, float g, float* t, float* u, float* v) noexcep
 bool CalculateEigenVectors(float m11, float m12, float m13, float m22, float m23, float m33, float e1, float e2, float e3, glm::vec3* pV1, glm::vec3* pV2, glm::vec3* pV3) noexcept;
 glm::vec3 CalculateEigenVector(float m11, float m12, float m13, float m22, float m23, float m33, float e) noexcept;
 
-static const glm::vec4 g_RayEpsilon;
+static const glm::vec4 g_RayEpsilon = glm::vec4(1e-20f, 1e-20f, 1e-20f, 1e-20f);
 
 namespace TriangleTests {
     bool Intersects(const glm::vec3& Origin, const glm::vec3& Direction, const glm::vec3& V0, const glm::vec3& V1, const glm::vec3& V2, float& Dist) noexcept;

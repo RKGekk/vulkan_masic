@@ -9,7 +9,6 @@
 
 class EvtData_Request_New_Actor : public BaseEventData {
 	std::string m_actorResource;
-	glm::mat4x4 m_initialTransform;
 	ActorId m_serverActorId;
 	EngineViewId m_viewId;
 
@@ -18,7 +17,7 @@ public:
 	static const std::string sk_EventName;
 
 	EvtData_Request_New_Actor();
-	explicit EvtData_Request_New_Actor(const std::string& actorResource, const glm::mat4x4& initialTransform = nullptr, const ActorId serverActorId = 0, const EngineViewId viewId = 0);
+	explicit EvtData_Request_New_Actor(const std::string& actorResource, const ActorId serverActorId = 0, const EngineViewId viewId = 0);
 
 	virtual EventTypeId VGetEventType() const override;
 	virtual void VDeserialize(std::istream& in) override;
@@ -27,7 +26,6 @@ public:
 	virtual const std::string& GetName() const override;
 
 	const std::string& GetActorResource() const;
-	const glm::mat4x4& GetInitialTransform() const;
 	const ActorId GetServerActorId() const;
 	unsigned int GetViewId() const;
 

@@ -1,7 +1,5 @@
 #include "triangle_tests.h"
 
-const glm::vec4 g_RayEpsilon = glm::vec4(1e-20f, 1e-20f, 1e-20f, 1e-20f);
-
 glm::vec4 PlaneTransform(const glm::vec4& Plane, const glm::quat& Rotation, const glm::vec3& Translation) noexcept {
     glm::vec4 vNormal = glm::vec4(Plane.x, Plane.y, Plane.z, 0.0f) * Rotation;
     float vD = Plane.w - glm::dot(vNormal, glm::vec4(Translation, 1.0f));
@@ -119,7 +117,7 @@ void IntersectTrianglePlane(const glm::vec3& V0, const glm::vec3& V1, const glm:
     Inside = MaxDist < 0.0f;
 }
 
-void IntersectOrientedBoxPlane(const glm::vec3& Center, const glm::vec3& Extents, const glm::vec3& Axis0, const glm::vec3& Axis1, const glm::vec3& Axis2, const glm::vec4& Plane, bool & Outside, bool& Inside) noexcept {
+void IntersectOrientedBoxPlane(const glm::vec3& Center, const glm::vec3& Extents, const glm::vec3& Axis0, const glm::vec3& Axis1, glm::vec3& Axis2, const glm::vec4& Plane, bool& Outside, bool& Inside) noexcept {
         // Compute the distance to the center of the box.
         float Dist = glm::dot(glm::vec4(Center, 0.0f), Plane);
 

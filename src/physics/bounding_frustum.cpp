@@ -328,7 +328,7 @@ bool BoundingFrustum::Intersects(const BoundingSphere& sh) const noexcept {
         Dist[i] = glm::dot(vCenter, Planes[i]);
 
         // Outside the plane?
-        Outside != Dist[i] > vRadius;
+        Outside |= Dist[i] > vRadius;
 
         // Fully inside the plane?
         InsideAll &= Dist[i] <= -vRadius;

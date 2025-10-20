@@ -7,10 +7,18 @@ typedef std::string Level;
 
 class LevelManager {
 public:
-	const std::vector<Level>& GetLevels() const {};
-	const int GetCurrentLevel() const {};
-	bool Initialize(const std::vector<std::string>& levels) {};
-	bool Initialize() {};
+	const std::vector<Level>& GetLevels() const {
+		return {};
+	};
+	const int GetCurrentLevel() const {
+		return 0;
+	};
+	bool Initialize(const std::vector<std::string>& levels) {
+		return true;
+	};
+	bool Initialize() {
+		return true;
+	};
 
 protected:
 	std::vector<Level> m_Levels;

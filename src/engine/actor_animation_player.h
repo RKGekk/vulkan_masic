@@ -4,6 +4,7 @@
 #include <unordered_set>
 #include <vector>
 
+#define GLM_ENABLE_EXPERIMENTAL
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
@@ -22,8 +23,8 @@
 class ActorAnimationPlayer {
 public:
 	struct KeyframeTranslation {
-		KeyframeTranslation();
-		~KeyframeTranslation();
+		KeyframeTranslation() {};
+		~KeyframeTranslation() {};
 
 		float TimePos;
 		glm::vec3 Translation;
@@ -31,8 +32,8 @@ public:
 	friend bool operator<(const KeyframeTranslation& kf1, const KeyframeTranslation& kf2);
 
 	struct KeyframeScale {
-		KeyframeScale();
-		~KeyframeScale();
+		KeyframeScale() {};
+		~KeyframeScale() {};
 
 		float TimePos;
 		glm::vec3 Scale;
@@ -40,8 +41,8 @@ public:
 	friend bool operator<(const KeyframeScale& kf1, const KeyframeScale& kf2);
 
 	struct KeyframeRotation {
-		KeyframeRotation();
-		~KeyframeRotation();
+		KeyframeRotation() {};
+		~KeyframeRotation() {};
 
 		float TimePos;
 		glm::vec4 RotationQuat;
@@ -51,7 +52,7 @@ public:
 	friend bool operator<(const KeyframeRotation& kf1, const KeyframeRotation& kf2);
 
 	struct ActorAnimation {
-		void Interpolate(float t, glm::mat4x4& transform) const;
+		void Interpolate(float t, glm::mat4x4& transform) const {};
 
 		// ASC sorted by time
 		std::vector<KeyframeTranslation> TranslationKeyframes;
@@ -69,7 +70,9 @@ public:
 	ActorAnimationPlayer() {};
 	~ActorAnimationPlayer() {};
 
-	bool Initialize(const pugi::xml_node& pLevel_data) {};
+	bool Initialize(const pugi::xml_node& pLevel_data) {
+		return true;
+	};
 	void Update(const GameTimerDelta& delta) {};
 
 	void Pause() {};
@@ -78,9 +81,15 @@ public:
 	void SetDuration(float t) {};
 	void SetDuration(const GameTimerDelta& duration) {};
 
-	float GetTotalAnimationTime() {};
-	float GetCurrentAnimationTime() {};
-	AnimMap& GetAnimMap() {};
+	float GetTotalAnimationTime() {
+		return 0.0f;
+	};
+	float GetCurrentAnimationTime() {
+		return 0.0f;
+	};
+	const AnimMap& GetAnimMap() {
+		return {};
+	};
 	
 private:
 	void RegisterAllDelegates() {};

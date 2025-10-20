@@ -42,13 +42,13 @@ int Scene::addNode(std::string name, NodeIndex parent_index) {
     return new_node_index;
 }
 
-int Scene::addNode(const glm::mat4& local_transform, NodeIndex parent_index = 0) {
+int Scene::addNode(const glm::mat4& local_transform, NodeIndex parent_index) {
     Scene::NodeIndex new_node_index = addNode(parent_index);
     setNodeLocalTransform(new_node_index, local_transform);
     return new_node_index;
 }
 
-int Scene::addNode(const glm::mat4& local_transform, std::string name, NodeIndex parent_index = 0) {
+int Scene::addNode(const glm::mat4& local_transform, std::string name, NodeIndex parent_index) {
     Scene::NodeIndex new_node_index = addNode(parent_index);
     setNodeName(new_node_index, std::move(name));
     setNodeLocalTransform(new_node_index, local_transform);
