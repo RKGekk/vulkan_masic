@@ -19,6 +19,7 @@ set(APP_SOURCES
     "${SRC_DIR}/engine/renderer_enum.h"
     "${SRC_DIR}/engine/iengine_logic.h"
     "${SRC_DIR}/engine/iscreen_element.h"
+    "${SRC_DIR}/engine/base_ui.h"
     "${SRC_DIR}/engine/base_engine_logic.h"
     "${SRC_DIR}/engine/base_engine_logic.cpp"
     "${SRC_DIR}/engine/human_view.h"
@@ -206,6 +207,8 @@ set(APP_SOURCES
     "${SRC_DIR}/scene/basic_camera_node.cpp"
     "${SRC_DIR}/scene/scene_node_properties.h"
     "${SRC_DIR}/scene/scene_node_properties.cpp"
+    "${SRC_DIR}/graphics/vulkan_image_buffer.h"
+    "${SRC_DIR}/graphics/vulkan_image_buffer.cpp"
     "${SRC_DIR}/graphics/vulkan_instance_layers_and_extensions.h"
     "${SRC_DIR}/graphics/vulkan_instance_layers_and_extensions.cpp"
     "${SRC_DIR}/graphics/vulkan_instance.h"
@@ -249,12 +252,14 @@ set(APP_SOURCES
     "${SRC_DIR}/graphics/vulkan_uniform_buffer.cpp"
     "${SRC_DIR}/graphics/vulkan_renderer.h"
     "${SRC_DIR}/graphics/vulkan_renderer.cpp"
+    "${SRC_DIR}/graphics/imgui_drawable.h"
+    "${SRC_DIR}/graphics/imgui_drawable.cpp"
 )
 set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data/shaders")
 set(TEXTURES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data/textures")
 set(OBJECTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data/objects")
 set(COMPONENTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data/components")
-set(APP_SHADERS "${SHADER_DIR}/shader.frag" "${SHADER_DIR}/shader.vert")
+set(APP_SHADERS "${SHADER_DIR}/shader.frag" "${SHADER_DIR}/shader.vert" "${SHADER_DIR}/imgui.frag" "${SHADER_DIR}/imgui.vert")
 set(APP_RESOURCES "${TEXTURES_DIR}/texture.jpg" "${TEXTURES_DIR}/Sketchfab_UV_Checker.png")
 set(APP_OBJECTS "${OBJECTS_DIR}/cube.gltf" "${OBJECTS_DIR}/cube.bin")
 set(APP_COMPONENTS "${COMPONENTS_DIR}/BasicTransformComponent.xml" "${COMPONENTS_DIR}/LightComponent.xml")

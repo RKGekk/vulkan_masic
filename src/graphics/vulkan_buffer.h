@@ -3,29 +3,40 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#include "vulkan_device.h"
-#include "vulkan_command_buffer.h"
-
 #include <cstdint>
+#include <memory>
 
-class IVulkanBuffer {
+#include "render_resource.h"
+
+class VulkanDevice;
+
+class VulkanBuffer : public RenderResource {
 public:
-    virtual void destroy() = 0;
+    bool init(std::shared_ptr<VulkanDevice> device, const void* data, VkDeviceSize buffer_size, VkMemoryPropertyFlags properties, VkBufferUsageFlags usage);
+    bool init(std::shared_ptr<VulkanDevice> device, CommandBatch& command_buffer, const void* data, VkDeviceSize buffer_size, VkMemoryPropertyFlags properties, VkBufferUsageFlags usage);
 
-    virtual VulkanBuffer getBuffer(uint32_t copy_index) const = 0;
-    virtual void* getMappedBuffer(uint32_t copy_index) const = 0;
-    virtual VkDeviceSize getSize() const = 0;
-    virtual VkDescriptorBufferInfo getDescBufferInfo(uint32_t copy_index) const = 0;
-    virtual void update(VkCommandBuffer command_buffer, const void* data, uint32_t copy_index) = 0;
-};
+    void destroy() override;
 
-class IVulkanImageBuffer {
-public:
-    virtual void destroy() = 0;
+    VkBuffer getBuffer() const;
+    VkDeviceMemory getMemory() const;
+    void* getMappedBuffer() const;
+    VkDeviceSize getSize() const;
 
-    virtual ImageBuffer getImageBuffer() const = 0;
-    virtual ImageBufferAndView getImageBufferAndView() const = 0;
-    virtual VkSampler getSampler() const = 0;
-    virtual VkDeviceSize getSize() const = 0;
-    virtual VkDescriptorImageInfo getDescImageInfo() const = 0;
+    VkMemoryPropertyFlags getProperties() const;
+    VkBufferUsageFlags getUsage() const;
+
+    void update(CommandBatch& command_buffer, const void* src_data, VkDeviceSize buffer_size, VkAccessFlags dstAccessMask);
+    void update(CommandBatch& command_buffer, const void* src_data, VkDeviceSize buffer_size);
+    void update(const void* src_data, VkDeviceSize buffer_size);
+
+protected:
+    std::shared_ptr<VulkanDevice> m_device;
+
+    VkBuffer m_buffer;
+    VkDeviceMemory m_memory;
+    void* m_mapped;
+    VkDeviceSize m_size;
+
+    VkMemoryPropertyFlags m_properties;
+    VkBufferUsageFlags m_usage;
 };

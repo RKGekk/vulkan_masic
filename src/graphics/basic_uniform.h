@@ -14,3 +14,7 @@ struct UniformBufferObject {
     glm::mat4 view;
     glm::mat4 proj;
 };
+
+struct ImGuiUniformBufferObject {
+    glm::vec4 LRTB;
+};

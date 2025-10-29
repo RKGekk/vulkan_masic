@@ -12,6 +12,7 @@
 #include "vulkan_instance_layers_and_extensions.h"
 #include "vulkan_device_extensions.h"
 #include "vulkan_command_manager.h"
+#include "vulkan_buffer.h"
 #include "../tools/thread_pool.h"
 
 struct DeviceAbilities {
@@ -21,31 +22,6 @@ struct DeviceAbilities {
     VkPhysicalDeviceMemoryProperties memory_properties;
     bool host_visible_single_heap_memory;
     int score;
-};
-
-struct VulkanBuffer {
-    VkBuffer buf;
-    VkDeviceMemory mem;
-    VkDescriptorBufferInfo bufferInfo;
-    VkMemoryPropertyFlags properties;
-};
-
-struct ImageBufferAndView;
-struct ImageBuffer {
-    VkDeviceMemory memory;
-    VkImage image;
-    VkImageCreateInfo image_info;
-    VkDeviceSize image_size;
-    ImageBufferAndView getImageAndView() const;
-};
-
-struct ImageBufferAndView {
-    VkDeviceMemory memory;
-    VkImage image;
-    VkImageCreateInfo image_info;
-    VkDeviceSize image_size;
-    VkImageView image_view;
-    ImageBuffer getImage() const;
 };
 
 class VulkanDevice {
@@ -61,20 +37,13 @@ public:
     const VulkanCommandManager& getCommandManager() const;
     VulkanCommandManager& getCommandManager();
 
-    VulkanBuffer createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) const;
-
-    VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT, uint32_t mip_levels = 1u) const;
-    std::vector<VkImageView> createImageViews(const std::vector<VkImage>& images, VkFormat format, VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT, uint32_t mip_levels = 1u) const;
-    ImageBuffer createImage(const VkImageCreateInfo& image_info, VkMemoryPropertyFlags properties) const;
-    ImageBufferAndView createImage(const VkImageCreateInfo& image_info, VkMemoryPropertyFlags properties, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const;
-    ImageBuffer createImage(const std::string& path_to_file);
-    ImageBufferAndView createImageAndView(const std::string& path_to_file);
-
     uint32_t findMemoryType(uint32_t type_filter, VkMemoryPropertyFlags properties) const;
     VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const;
     VkFormat findDepthFormat();
 
     static bool hasStencilComponent(VkFormat format);
+    static VkAccessFlags getDstAccessMask(VkBufferUsageFlags usage);
+    static size_t getBytesCount(VkFormat format);
 
 private:
     template<typename Container>

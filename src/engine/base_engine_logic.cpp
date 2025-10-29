@@ -142,15 +142,6 @@ void BaseEngineLogic::VMoveActor(const ActorId id, const glm::mat4x4& mat) {
 	}
 }
 
-std::string BaseEngineLogic::GetActorXml(const ActorId id) {
-	StrongActorPtr pActor = MakeStrongPtr(VGetActor(id));
-	if (pActor) {
-		return pActor->ToXML();
-	}
-
-	return std::string();
-}
-
 std::shared_ptr<CameraComponent> BaseEngineLogic::GetActiveCamera() {
 	return m_active_camera;
 }

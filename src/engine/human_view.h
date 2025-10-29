@@ -30,7 +30,6 @@ public:
 	virtual bool VOnRestore() override {return true;};
 	virtual bool VOnLostDevice() override {return true;};
 
-	virtual void VOnRender(CommandBatch& command_buffer) override {};
 	virtual void VOnUpdate(const GameTimerDelta& delta) override {};
 
 	virtual EngineViewType VGetType() override { return EngineViewType::GameView_Human; };

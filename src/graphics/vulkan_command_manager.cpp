@@ -1,5 +1,6 @@
 #include "vulkan_command_manager.h"
 #include "vulkan_device.h"
+#include "render_resource.h"
 
 unsigned int LAST_COMMAND_BUFFER_ID = 0u;
 
@@ -73,6 +74,10 @@ bool VulkanCommandManager::init(VkPhysicalDevice physical_device, VkDevice logic
                 size_t fnc_id = m_submit_to_fnc_id.ValueFor(work_in_progress.getId(), -1);
                 m_free_fnc_idx.Push(fnc_id);
                 m_submit_to_fnc_id.RemoveMapping(work_in_progress.getId());
+
+                for(const std::shared_ptr<RenderResource>& resource : work_in_progress.getResources()) {
+                    resource->destroy();
+                }
             }
             return;
         }

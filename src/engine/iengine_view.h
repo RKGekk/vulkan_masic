@@ -18,7 +18,6 @@ public:
 	virtual bool VOnRestore() = 0;
 	virtual bool VOnLostDevice() = 0;
 
-	virtual void VOnRender(CommandBatch& command_buffer) = 0;
 	virtual void VOnUpdate(const GameTimerDelta& delta) = 0;
 	
 	virtual EngineViewType VGetType() = 0;

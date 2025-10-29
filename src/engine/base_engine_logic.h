@@ -51,8 +51,6 @@ public:
 	virtual void VModifyActor(const ActorId actorId, const pugi::xml_node& overrides);
 	virtual void VMoveActor(const ActorId id, const glm::mat4x4& mat) override;
 
-	std::string GetActorXml(const ActorId id);
-
 	std::shared_ptr<CameraComponent> GetActiveCamera();
 
 	std::shared_ptr<ActorAnimationPlayer> GetAnimationPlayer();

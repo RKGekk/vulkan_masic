@@ -3,11 +3,13 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <memory>
 #include <stdexcept>
 #include <utility>
 #include <vector>
 
 #include "vulkan_command_pool_type.h"
+#include "render_resource.h"
 
 class CommandBatch {
 public:
@@ -25,9 +27,11 @@ public:
     VkCommandBuffer getCommandBufer(size_t index = 0u) const;
     const VkCommandBuffer* getCommandBuferPtr(size_t index = 0u) const;
     size_t getCommandBuferCount() const;
-    const std::vector<VkCommandBuffer> getCommandBufers() const;
+    const std::vector<VkCommandBuffer>& getCommandBufers() const;
+    const std::vector<std::shared_ptr<RenderResource>>& getResources() const;
     void addCommandBufer(VkCommandBuffer command_buffer);
     void addCommandBufer(std::vector<VkCommandBuffer> command_buffers);
+    void addResource(std::shared_ptr<RenderResource> resource);
     void reserveCommandBufer(size_t sz);
 
     VkSemaphore getInProgressSemaphore() const;
@@ -50,6 +54,7 @@ private:
     unsigned int m_submit_id;
 
     std::vector<VkCommandBuffer> m_command_buffers;
+    std::vector<std::shared_ptr<RenderResource>> m_resources;
     VkSemaphore m_buffer_in_use_semaphore = VK_NULL_HANDLE;
     VkFence m_render_fence = VK_NULL_HANDLE;
     VkSubmitInfo m_submit_info;

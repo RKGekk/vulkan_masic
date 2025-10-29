@@ -3,17 +3,6 @@
 #include "vulkan_queue_family.h"
 #include "vulkan_command_manager.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
-ImageBufferAndView ImageBuffer::getImageAndView() const {
-    return {memory, image, image_info, image_size};
-}
-
-ImageBuffer ImageBufferAndView::getImage() const {
-    return {memory, image, image_info, image_size};
-}
-
 bool VulkanDevice::init(const VulkanInstance& instance, VkSurfaceKHR surface, std::shared_ptr<ThreadPool> thread_pool) {
     m_thread_pool = std::move(thread_pool);
     m_device_abilities = pickPhysicalDevice(instance.getInstance(), surface);
@@ -62,193 +51,6 @@ VulkanCommandManager& VulkanDevice::getCommandManager() {
     return m_command_manager;
 }
 
-VulkanBuffer VulkanDevice::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) const {
-    VulkanBuffer vulkan_buffer;
-    vulkan_buffer.properties = properties;
-
-    std::vector<uint32_t> family_indices = m_command_manager.getQueueFamilyIndices().getIndices();
-
-    VkBufferCreateInfo buffer_info{};
-    buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    buffer_info.size = size;
-    buffer_info.usage = usage;
-    buffer_info.sharingMode = m_command_manager.getQueueFamilyIndices().getBufferSharingMode();
-    buffer_info.queueFamilyIndexCount = static_cast<uint32_t>(family_indices.size());
-    buffer_info.pQueueFamilyIndices = family_indices.data();
-    
-    VkResult result = vkCreateBuffer(m_device, &buffer_info, nullptr, &vulkan_buffer.buf);
-    if (result != VK_SUCCESS) {
-        throw std::runtime_error("failed to create buffer!");
-    }
-    
-    VkMemoryRequirements mem_req;
-    vkGetBufferMemoryRequirements(m_device, vulkan_buffer.buf, &mem_req);
-    uint32_t mem_type_idx = findMemoryType(mem_req.memoryTypeBits, properties);
-
-    VkMemoryAllocateInfo alloc_info{};
-    alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    alloc_info.allocationSize = mem_req.size;
-    alloc_info.memoryTypeIndex = mem_type_idx;
-    
-    result = vkAllocateMemory(m_device, &alloc_info, nullptr, &vulkan_buffer.mem);
-    if(result != VK_SUCCESS) {
-        throw std::runtime_error("failed to allocate buffer memory!");
-    }
-    
-    VkDeviceSize offset = 0u;
-
-    vkBindBufferMemory(m_device, vulkan_buffer.buf, vulkan_buffer.mem, offset);
-
-    vulkan_buffer.bufferInfo.buffer = vulkan_buffer.buf;
-    vulkan_buffer.bufferInfo.offset = offset;
-    vulkan_buffer.bufferInfo.range = mem_req.size;
-
-    return vulkan_buffer;
-}
-
-VkImageView VulkanDevice::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const {
-    VkImageViewCreateInfo view_info{};
-    view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    view_info.image = image;
-    view_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    view_info.format = format;
-    view_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view_info.subresourceRange.aspectMask = aspect_flags;
-    view_info.subresourceRange.baseMipLevel = 0u;
-    view_info.subresourceRange.levelCount = mip_levels;
-    view_info.subresourceRange.baseMipLevel = 0u;
-    view_info.subresourceRange.layerCount = 1u;
-    
-    VkImageView image_view;
-    VkResult result = vkCreateImageView(m_device, &view_info, nullptr, &image_view);
-    if(result != VK_SUCCESS) {
-        throw std::runtime_error("failed to create texture image view!");
-    }
-    
-    return image_view;
-}
-
-std::vector<VkImageView> VulkanDevice::createImageViews(const std::vector<VkImage>& images, VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const {
-    uint32_t sz = static_cast<uint32_t>(images.size());
-    std::vector<VkImageView> image_views(sz);
-    for(uint32_t i = 0u; i < sz; ++i) {
-        image_views[i] = createImageView(images[i], format, aspect_flags, mip_levels);
-    }
-    
-    return image_views;
-}
-
-ImageBuffer VulkanDevice::createImage(const VkImageCreateInfo& image_info, VkMemoryPropertyFlags properties) const {
-    ImageBuffer image_buffer{};
-    image_buffer.image_info = image_info;
-    VkResult result = vkCreateImage(m_device, &image_info, nullptr, &image_buffer.image);
-    if(result != VK_SUCCESS) {
-        throw std::runtime_error("failed to create image!");
-    }
-    
-    VkMemoryRequirements mem_req{};
-    vkGetImageMemoryRequirements(m_device, image_buffer.image, &mem_req);
-    image_buffer.image_size = mem_req.size;
-    
-    uint32_t mem_type_idx = findMemoryType(mem_req.memoryTypeBits, properties);
-    VkMemoryAllocateInfo alloc_info{};
-    alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    alloc_info.allocationSize = mem_req.size;
-    alloc_info.memoryTypeIndex = mem_type_idx;
-    
-    result = vkAllocateMemory(m_device, &alloc_info, nullptr, &image_buffer.memory);
-    if(result != VK_SUCCESS) {
-        throw std::runtime_error("failed to allocate image memory!");
-    }
-
-    VkDeviceSize offset = 0u;
-    vkBindImageMemory(m_device, image_buffer.image, image_buffer.memory, offset);
-
-    return image_buffer;
-}
-
-ImageBufferAndView VulkanDevice::createImage(const VkImageCreateInfo& image_info, VkMemoryPropertyFlags properties, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const {
-    ImageBuffer image_buffer = createImage(image_info, properties);
-    ImageBufferAndView image_and_view = image_buffer.getImageAndView();
-    image_and_view.image_view = createImageView(image_buffer.image, image_info.format, aspect_flags, 1u);
-    return image_and_view;
-}
-
-ImageBuffer VulkanDevice::createImage(const std::string& path_to_file) {
-    int tex_width;
-    int tex_height;
-    int tex_channels;
-    stbi_uc* pixels = stbi_load(path_to_file.c_str(), &tex_width, &tex_height, &tex_channels, STBI_rgb_alpha);
-    if (!pixels) {
-        throw std::runtime_error("failed to load texture image!");
-    }
-    VkDeviceSize image_size = tex_width * tex_height * 4;
-    
-    VulkanBuffer staging_buffer = createBuffer(image_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-    
-    void* data;
-    vkMapMemory(m_device, staging_buffer.mem, 0, image_size, 0, &data);
-    memcpy(data, pixels, static_cast<size_t>(image_size));
-    vkUnmapMemory(m_device, staging_buffer.mem);
-    
-    stbi_image_free(pixels);
-
-    uint32_t mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(tex_width, tex_height)))) + 1u;
-
-    VkFormat image_format = findSupportedFormat(
-        {
-            VK_FORMAT_R8G8B8A8_SRGB
-        },
-        VK_IMAGE_TILING_OPTIMAL,
-        VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT
-    );
-    
-    std::vector<uint32_t> families = m_command_manager.getQueueFamilyIndices().getIndices();
-    VkImageCreateInfo image_info{};
-    image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-    image_info.imageType = VK_IMAGE_TYPE_2D;
-    image_info.extent.width = static_cast<uint32_t>(tex_width);
-    image_info.extent.height = static_cast<uint32_t>(tex_height);
-    image_info.extent.depth = 1u;
-    image_info.mipLevels = mip_levels;
-    image_info.arrayLayers = 1u;
-    //image_info.format = VK_FORMAT_R8G8B8A8_SRGB;
-    image_info.format = image_format;
-    image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
-    image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    image_info.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-    image_info.sharingMode = m_command_manager.getBufferSharingMode();
-    image_info.queueFamilyIndexCount = static_cast<uint32_t>(families.size());
-    image_info.pQueueFamilyIndices = families.data();
-    image_info.samples = VK_SAMPLE_COUNT_1_BIT;
-    image_info.flags = 0u;
-    
-    ImageBuffer image = createImage(image_info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-    
-    CommandBatch command_buffer = m_command_manager.allocCommandBuffer(PoolTypeEnum::TRANSFER);
-    m_command_manager.transitionImageLayout(command_buffer.getCommandBufer(), image.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mip_levels);
-    m_command_manager.copyBufferToImage(command_buffer.getCommandBufer(), staging_buffer.buf, image.image, static_cast<uint32_t>(tex_width), static_cast<uint32_t>(tex_height));
-    m_command_manager.generateMipmaps(command_buffer.getCommandBufer(), image.image, VK_FORMAT_R8G8B8A8_SRGB, tex_width, tex_height, mip_levels);
-    //m_command_manager.transitionImageLayout(image.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mip_levels);
-    m_command_manager.submitCommandBuffer(command_buffer);
-    m_command_manager.wait(PoolTypeEnum::TRANSFER);
-    
-    vkDestroyBuffer(m_device, staging_buffer.buf, nullptr);
-    vkFreeMemory(m_device, staging_buffer.mem, nullptr);
-    
-    return image;
-}
-
-ImageBufferAndView VulkanDevice::createImageAndView(const std::string& path_to_file) {
-    ImageBuffer image_buffer = createImage(path_to_file);
-    ImageBufferAndView image_and_view = image_buffer.getImageAndView();
-    image_and_view.image_view = createImageView(image_buffer.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, image_buffer.image_info.mipLevels);
-    return image_and_view;
-}
-
 uint32_t VulkanDevice::findMemoryType(uint32_t type_filter, VkMemoryPropertyFlags properties) const {
     VkPhysicalDeviceMemoryProperties mem_prop{};
     vkGetPhysicalDeviceMemoryProperties(getDeviceAbilities().physical_device, &mem_prop);
@@ -291,6 +93,293 @@ VkFormat VulkanDevice::findDepthFormat() {
 
 bool VulkanDevice::hasStencilComponent(VkFormat format) {
     return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
+}
+
+VkAccessFlags VulkanDevice::getDstAccessMask(VkBufferUsageFlags usage) {
+    switch (usage) {
+        case VK_BUFFER_USAGE_TRANSFER_SRC_BIT: return VK_ACCESS_MEMORY_READ_BIT;
+        case VK_BUFFER_USAGE_TRANSFER_DST_BIT: return VK_ACCESS_MEMORY_READ_BIT;
+        case VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT: return VK_ACCESS_MEMORY_READ_BIT;
+        case VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT: return VK_ACCESS_MEMORY_READ_BIT;
+        case VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT: return VK_ACCESS_UNIFORM_READ_BIT;
+        case VK_BUFFER_USAGE_STORAGE_BUFFER_BIT: return VK_ACCESS_MEMORY_READ_BIT;
+        case VK_BUFFER_USAGE_INDEX_BUFFER_BIT: return VK_ACCESS_MEMORY_READ_BIT;
+        case VK_BUFFER_USAGE_VERTEX_BUFFER_BIT: return VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+        case VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT: return VK_ACCESS_MEMORY_READ_BIT;
+        case VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT: return VK_ACCESS_MEMORY_READ_BIT;
+        case VK_BUFFER_USAGE_VIDEO_DECODE_SRC_BIT_KHR: return VK_ACCESS_MEMORY_READ_BIT;
+        case VK_BUFFER_USAGE_VIDEO_DECODE_DST_BIT_KHR: return VK_ACCESS_MEMORY_READ_BIT;
+        case VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT: return VK_ACCESS_MEMORY_READ_BIT;
+        case VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT: return VK_ACCESS_MEMORY_READ_BIT;
+        case VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT: return VK_ACCESS_MEMORY_READ_BIT;
+        case VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR: return VK_ACCESS_MEMORY_READ_BIT;
+        case VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR: return VK_ACCESS_MEMORY_READ_BIT;
+        case VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR: return VK_ACCESS_MEMORY_READ_BIT;
+        case VK_BUFFER_USAGE_VIDEO_ENCODE_DST_BIT_KHR: return VK_ACCESS_MEMORY_READ_BIT;
+        case VK_BUFFER_USAGE_VIDEO_ENCODE_SRC_BIT_KHR: return VK_ACCESS_MEMORY_READ_BIT;
+        case VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT: return VK_ACCESS_MEMORY_READ_BIT;
+        case VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT: return VK_ACCESS_MEMORY_READ_BIT;
+        case VK_BUFFER_USAGE_PUSH_DESCRIPTORS_DESCRIPTOR_BUFFER_BIT_EXT: return VK_ACCESS_MEMORY_READ_BIT;
+        case VK_BUFFER_USAGE_MICROMAP_BUILD_INPUT_READ_ONLY_BIT_EXT: return VK_ACCESS_MEMORY_READ_BIT;
+        case VK_BUFFER_USAGE_MICROMAP_STORAGE_BIT_EXT: return VK_ACCESS_MEMORY_READ_BIT;
+        default: return VK_ACCESS_MEMORY_READ_BIT;
+    }
+}
+
+size_t VulkanDevice::getBytesCount(VkFormat format) {
+    switch (format) {
+        case VK_FORMAT_UNDEFINED : return 4;
+        case VK_FORMAT_R4G4_UNORM_PACK8 : return 4;
+        case VK_FORMAT_R4G4B4A4_UNORM_PACK16 : return 4;
+        case VK_FORMAT_B4G4R4A4_UNORM_PACK16 : return 4;
+        case VK_FORMAT_R5G6B5_UNORM_PACK16 : return 4;
+        case VK_FORMAT_B5G6R5_UNORM_PACK16 : return 4;
+        case VK_FORMAT_R5G5B5A1_UNORM_PACK16 : return 4;
+        case VK_FORMAT_B5G5R5A1_UNORM_PACK16 : return 4;
+        case VK_FORMAT_A1R5G5B5_UNORM_PACK16 : return 4;
+        case VK_FORMAT_R8_UNORM : return 4;
+        case VK_FORMAT_R8_SNORM : return 4;
+        case VK_FORMAT_R8_USCALED : return 4;
+        case VK_FORMAT_R8_SSCALED : return 4;
+        case VK_FORMAT_R8_UINT : return 4;
+        case VK_FORMAT_R8_SINT : return 4;
+        case VK_FORMAT_R8_SRGB : return 4;
+        case VK_FORMAT_R8G8_UNORM : return 4;
+        case VK_FORMAT_R8G8_SNORM : return 4;
+        case VK_FORMAT_R8G8_USCALED : return 4;
+        case VK_FORMAT_R8G8_SSCALED : return 4;
+        case VK_FORMAT_R8G8_UINT : return 4;
+        case VK_FORMAT_R8G8_SINT : return 4;
+        case VK_FORMAT_R8G8_SRGB : return 4;
+        case VK_FORMAT_R8G8B8_UNORM : return 4;
+        case VK_FORMAT_R8G8B8_SNORM : return 4;
+        case VK_FORMAT_R8G8B8_USCALED : return 4;
+        case VK_FORMAT_R8G8B8_SSCALED : return 4;
+        case VK_FORMAT_R8G8B8_UINT : return 4;
+        case VK_FORMAT_R8G8B8_SINT : return 4;
+        case VK_FORMAT_R8G8B8_SRGB : return 4;
+        case VK_FORMAT_B8G8R8_UNORM : return 4;
+        case VK_FORMAT_B8G8R8_SNORM : return 4;
+        case VK_FORMAT_B8G8R8_USCALED : return 4;
+        case VK_FORMAT_B8G8R8_SSCALED : return 4;
+        case VK_FORMAT_B8G8R8_UINT : return 4;
+        case VK_FORMAT_B8G8R8_SINT : return 4;
+        case VK_FORMAT_B8G8R8_SRGB : return 4;
+        case VK_FORMAT_R8G8B8A8_UNORM : return 4;
+        case VK_FORMAT_R8G8B8A8_SNORM : return 4;
+        case VK_FORMAT_R8G8B8A8_USCALED : return 4;
+        case VK_FORMAT_R8G8B8A8_SSCALED : return 4;
+        case VK_FORMAT_R8G8B8A8_UINT : return 4;
+        case VK_FORMAT_R8G8B8A8_SINT : return 4;
+        case VK_FORMAT_R8G8B8A8_SRGB : return 4;
+        case VK_FORMAT_B8G8R8A8_UNORM : return 4;
+        case VK_FORMAT_B8G8R8A8_SNORM : return 4;
+        case VK_FORMAT_B8G8R8A8_USCALED : return 4;
+        case VK_FORMAT_B8G8R8A8_SSCALED : return 4;
+        case VK_FORMAT_B8G8R8A8_UINT : return 4;
+        case VK_FORMAT_B8G8R8A8_SINT : return 4;
+        case VK_FORMAT_B8G8R8A8_SRGB : return 4;
+        case VK_FORMAT_A8B8G8R8_UNORM_PACK32 : return 4;
+        case VK_FORMAT_A8B8G8R8_SNORM_PACK32 : return 4;
+        case VK_FORMAT_A8B8G8R8_USCALED_PACK32 : return 4;
+        case VK_FORMAT_A8B8G8R8_SSCALED_PACK32 : return 4;
+        case VK_FORMAT_A8B8G8R8_UINT_PACK32 : return 4;
+        case VK_FORMAT_A8B8G8R8_SINT_PACK32 : return 4;
+        case VK_FORMAT_A8B8G8R8_SRGB_PACK32 : return 4;
+        case VK_FORMAT_A2R10G10B10_UNORM_PACK32 : return 4;
+        case VK_FORMAT_A2R10G10B10_SNORM_PACK32 : return 4;
+        case VK_FORMAT_A2R10G10B10_USCALED_PACK32 : return 4;
+        case VK_FORMAT_A2R10G10B10_SSCALED_PACK32 : return 4;
+        case VK_FORMAT_A2R10G10B10_UINT_PACK32 : return 4;
+        case VK_FORMAT_A2R10G10B10_SINT_PACK32 : return 4;
+        case VK_FORMAT_A2B10G10R10_UNORM_PACK32 : return 4;
+        case VK_FORMAT_A2B10G10R10_SNORM_PACK32 : return 4;
+        case VK_FORMAT_A2B10G10R10_USCALED_PACK32 : return 4;
+        case VK_FORMAT_A2B10G10R10_SSCALED_PACK32 : return 4;
+        case VK_FORMAT_A2B10G10R10_UINT_PACK32 : return 4;
+        case VK_FORMAT_A2B10G10R10_SINT_PACK32 : return 4;
+        case VK_FORMAT_R16_UNORM : return 4;
+        case VK_FORMAT_R16_SNORM : return 4;
+        case VK_FORMAT_R16_USCALED : return 4;
+        case VK_FORMAT_R16_SSCALED : return 4;
+        case VK_FORMAT_R16_UINT : return 4;
+        case VK_FORMAT_R16_SINT : return 4;
+        case VK_FORMAT_R16_SFLOAT : return 4;
+        case VK_FORMAT_R16G16_UNORM : return 4;
+        case VK_FORMAT_R16G16_SNORM : return 4;
+        case VK_FORMAT_R16G16_USCALED : return 4;
+        case VK_FORMAT_R16G16_SSCALED : return 4;
+        case VK_FORMAT_R16G16_UINT : return 4;
+        case VK_FORMAT_R16G16_SINT : return 4;
+        case VK_FORMAT_R16G16_SFLOAT : return 4;
+        case VK_FORMAT_R16G16B16_UNORM : return 4;
+        case VK_FORMAT_R16G16B16_SNORM : return 4;
+        case VK_FORMAT_R16G16B16_USCALED : return 4;
+        case VK_FORMAT_R16G16B16_SSCALED : return 4;
+        case VK_FORMAT_R16G16B16_UINT : return 4;
+        case VK_FORMAT_R16G16B16_SINT : return 4;
+        case VK_FORMAT_R16G16B16_SFLOAT : return 4;
+        case VK_FORMAT_R16G16B16A16_UNORM : return 4;
+        case VK_FORMAT_R16G16B16A16_SNORM : return 4;
+        case VK_FORMAT_R16G16B16A16_USCALED : return 4;
+        case VK_FORMAT_R16G16B16A16_SSCALED : return 4;
+        case VK_FORMAT_R16G16B16A16_UINT : return 4;
+        case VK_FORMAT_R16G16B16A16_SINT : return 4;
+        case VK_FORMAT_R16G16B16A16_SFLOAT : return 4;
+        case VK_FORMAT_R32_UINT : return 4;
+        case VK_FORMAT_R32_SINT : return 4;
+        case VK_FORMAT_R32_SFLOAT : return 4;
+        case VK_FORMAT_R32G32_UINT : return 4;
+        case VK_FORMAT_R32G32_SINT : return 4;
+        case VK_FORMAT_R32G32_SFLOAT : return 4;
+        case VK_FORMAT_R32G32B32_UINT : return 4;
+        case VK_FORMAT_R32G32B32_SINT : return 4;
+        case VK_FORMAT_R32G32B32_SFLOAT : return 4;
+        case VK_FORMAT_R32G32B32A32_UINT : return 4;
+        case VK_FORMAT_R32G32B32A32_SINT : return 4;
+        case VK_FORMAT_R32G32B32A32_SFLOAT : return 4;
+        case VK_FORMAT_R64_UINT : return 4;
+        case VK_FORMAT_R64_SINT : return 4;
+        case VK_FORMAT_R64_SFLOAT : return 4;
+        case VK_FORMAT_R64G64_UINT : return 4;
+        case VK_FORMAT_R64G64_SINT : return 4;
+        case VK_FORMAT_R64G64_SFLOAT : return 4;
+        case VK_FORMAT_R64G64B64_UINT : return 4;
+        case VK_FORMAT_R64G64B64_SINT : return 4;
+        case VK_FORMAT_R64G64B64_SFLOAT : return 4;
+        case VK_FORMAT_R64G64B64A64_UINT : return 4;
+        case VK_FORMAT_R64G64B64A64_SINT : return 4;
+        case VK_FORMAT_R64G64B64A64_SFLOAT : return 4;
+        case VK_FORMAT_B10G11R11_UFLOAT_PACK32 : return 4;
+        case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32 : return 4;
+        case VK_FORMAT_D16_UNORM : return 4;
+        case VK_FORMAT_X8_D24_UNORM_PACK32 : return 4;
+        case VK_FORMAT_D32_SFLOAT : return 4;
+        case VK_FORMAT_S8_UINT : return 4;
+        case VK_FORMAT_D16_UNORM_S8_UINT : return 4;
+        case VK_FORMAT_D24_UNORM_S8_UINT : return 4;
+        case VK_FORMAT_D32_SFLOAT_S8_UINT : return 4;
+        case VK_FORMAT_BC1_RGB_UNORM_BLOCK : return 4;
+        case VK_FORMAT_BC1_RGB_SRGB_BLOCK : return 4;
+        case VK_FORMAT_BC1_RGBA_UNORM_BLOCK : return 4;
+        case VK_FORMAT_BC1_RGBA_SRGB_BLOCK : return 4;
+        case VK_FORMAT_BC2_UNORM_BLOCK : return 4;
+        case VK_FORMAT_BC2_SRGB_BLOCK : return 4;
+        case VK_FORMAT_BC3_UNORM_BLOCK : return 4;
+        case VK_FORMAT_BC3_SRGB_BLOCK : return 4;
+        case VK_FORMAT_BC4_UNORM_BLOCK : return 4;
+        case VK_FORMAT_BC4_SNORM_BLOCK : return 4;
+        case VK_FORMAT_BC5_UNORM_BLOCK : return 4;
+        case VK_FORMAT_BC5_SNORM_BLOCK : return 4;
+        case VK_FORMAT_BC6H_UFLOAT_BLOCK : return 4;
+        case VK_FORMAT_BC6H_SFLOAT_BLOCK : return 4;
+        case VK_FORMAT_BC7_UNORM_BLOCK : return 4;
+        case VK_FORMAT_BC7_SRGB_BLOCK : return 4;
+        case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK : return 4;
+        case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK : return 4;
+        case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK : return 4;
+        case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK : return 4;
+        case VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK : return 4;
+        case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK : return 4;
+        case VK_FORMAT_EAC_R11_UNORM_BLOCK : return 4;
+        case VK_FORMAT_EAC_R11_SNORM_BLOCK : return 4;
+        case VK_FORMAT_EAC_R11G11_UNORM_BLOCK : return 4;
+        case VK_FORMAT_EAC_R11G11_SNORM_BLOCK : return 4;
+        case VK_FORMAT_ASTC_4x4_UNORM_BLOCK : return 4;
+        case VK_FORMAT_ASTC_4x4_SRGB_BLOCK : return 4;
+        case VK_FORMAT_ASTC_5x4_UNORM_BLOCK : return 4;
+        case VK_FORMAT_ASTC_5x4_SRGB_BLOCK : return 4;
+        case VK_FORMAT_ASTC_5x5_UNORM_BLOCK : return 4;
+        case VK_FORMAT_ASTC_5x5_SRGB_BLOCK : return 4;
+        case VK_FORMAT_ASTC_6x5_UNORM_BLOCK : return 4;
+        case VK_FORMAT_ASTC_6x5_SRGB_BLOCK : return 4;
+        case VK_FORMAT_ASTC_6x6_UNORM_BLOCK : return 4;
+        case VK_FORMAT_ASTC_6x6_SRGB_BLOCK : return 4;
+        case VK_FORMAT_ASTC_8x5_UNORM_BLOCK : return 4;
+        case VK_FORMAT_ASTC_8x5_SRGB_BLOCK : return 4;
+        case VK_FORMAT_ASTC_8x6_UNORM_BLOCK : return 4;
+        case VK_FORMAT_ASTC_8x6_SRGB_BLOCK : return 4;
+        case VK_FORMAT_ASTC_8x8_UNORM_BLOCK : return 4;
+        case VK_FORMAT_ASTC_8x8_SRGB_BLOCK : return 4;
+        case VK_FORMAT_ASTC_10x5_UNORM_BLOCK : return 4;
+        case VK_FORMAT_ASTC_10x5_SRGB_BLOCK : return 4;
+        case VK_FORMAT_ASTC_10x6_UNORM_BLOCK : return 4;
+        case VK_FORMAT_ASTC_10x6_SRGB_BLOCK : return 4;
+        case VK_FORMAT_ASTC_10x8_UNORM_BLOCK : return 4;
+        case VK_FORMAT_ASTC_10x8_SRGB_BLOCK : return 4;
+        case VK_FORMAT_ASTC_10x10_UNORM_BLOCK : return 4;
+        case VK_FORMAT_ASTC_10x10_SRGB_BLOCK : return 4;
+        case VK_FORMAT_ASTC_12x10_UNORM_BLOCK : return 4;
+        case VK_FORMAT_ASTC_12x10_SRGB_BLOCK : return 4;
+        case VK_FORMAT_ASTC_12x12_UNORM_BLOCK : return 4;
+        case VK_FORMAT_ASTC_12x12_SRGB_BLOCK : return 4;
+        case VK_FORMAT_G8B8G8R8_422_UNORM : return 4;
+        case VK_FORMAT_B8G8R8G8_422_UNORM : return 4;
+        case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM : return 4;
+        case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM : return 4;
+        case VK_FORMAT_G8_B8_R8_3PLANE_422_UNORM : return 4;
+        case VK_FORMAT_G8_B8R8_2PLANE_422_UNORM : return 4;
+        case VK_FORMAT_G8_B8_R8_3PLANE_444_UNORM : return 4;
+        case VK_FORMAT_R10X6_UNORM_PACK16 : return 4;
+        case VK_FORMAT_R10X6G10X6_UNORM_2PACK16 : return 4;
+        case VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16 : return 4;
+        case VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16 : return 4;
+        case VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16 : return 4;
+        case VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16 : return 4;
+        case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16 : return 4;
+        case VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16 : return 4;
+        case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16 : return 4;
+        case VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16 : return 4;
+        case VK_FORMAT_R12X4_UNORM_PACK16 : return 4;
+        case VK_FORMAT_R12X4G12X4_UNORM_2PACK16 : return 4;
+        case VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16 : return 4;
+        case VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16 : return 4;
+        case VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16 : return 4;
+        case VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16 : return 4;
+        case VK_FORMAT_G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16 : return 4;
+        case VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16 : return 4;
+        case VK_FORMAT_G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16 : return 4;
+        case VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16 : return 4;
+        case VK_FORMAT_G16B16G16R16_422_UNORM : return 4;
+        case VK_FORMAT_B16G16R16G16_422_UNORM : return 4;
+        case VK_FORMAT_G16_B16_R16_3PLANE_420_UNORM : return 4;
+        case VK_FORMAT_G16_B16R16_2PLANE_420_UNORM : return 4;
+        case VK_FORMAT_G16_B16_R16_3PLANE_422_UNORM : return 4;
+        case VK_FORMAT_G16_B16R16_2PLANE_422_UNORM : return 4;
+        case VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM : return 4;
+        case VK_FORMAT_G8_B8R8_2PLANE_444_UNORM : return 4;
+        case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16 : return 4;
+        case VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16 : return 4;
+        case VK_FORMAT_G16_B16R16_2PLANE_444_UNORM : return 4;
+        case VK_FORMAT_A4R4G4B4_UNORM_PACK16 : return 4;
+        case VK_FORMAT_A4B4G4R4_UNORM_PACK16 : return 4;
+        case VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK : return 4;
+        case VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK : return 4;
+        case VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK : return 4;
+        case VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK : return 4;
+        case VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK : return 4;
+        case VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK : return 4;
+        case VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK : return 4;
+        case VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK : return 4;
+        case VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK : return 4;
+        case VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK : return 4;
+        case VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK : return 4;
+        case VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK : return 4;
+        case VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK : return 4;
+        case VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK : return 4;
+        case VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG : return 4;
+        case VK_FORMAT_PVRTC1_4BPP_UNORM_BLOCK_IMG : return 4;
+        case VK_FORMAT_PVRTC2_2BPP_UNORM_BLOCK_IMG : return 4;
+        case VK_FORMAT_PVRTC2_4BPP_UNORM_BLOCK_IMG : return 4;
+        case VK_FORMAT_PVRTC1_2BPP_SRGB_BLOCK_IMG : return 4;
+        case VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG : return 4;
+        case VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG : return 4;
+        case VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG : return 4;
+        case VK_FORMAT_R16G16_SFIXED5_NV : return 4;
+        case VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR : return 4;
+        case VK_FORMAT_A8_UNORM_KHR : return 4;
+        default: return 4;
+    }
 }
 
 DeviceAbilities VulkanDevice::pickPhysicalDevice(VkInstance vk_instance, VkSurfaceKHR surface) {

@@ -92,8 +92,12 @@ size_t CommandBatch::getCommandBuferCount() const {
     return m_command_buffers.size();
 }
 
-const std::vector<VkCommandBuffer> CommandBatch::getCommandBufers() const {
+const std::vector<VkCommandBuffer>& CommandBatch::getCommandBufers() const {
     return m_command_buffers;
+}
+
+const std::vector<std::shared_ptr<RenderResource>>& CommandBatch::getResources() const {
+    return m_resources;
 }
 
 void CommandBatch::addCommandBufer(VkCommandBuffer command_buffer) {

@@ -119,7 +119,7 @@ void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer) {
     VulkanCommandManager::endCommandBuffer(command_buffer);
 }
 
-void VulkanRenderer::drawFrame(const GameViewList& views) {
+void VulkanRenderer::drawFrame() {
     bool next_frame_available = m_swapchain.setNextFrame(m_command_buffers[m_swapchain.fetchNextSync()].getRenderFence());
     if (!next_frame_available || m_framebuffer_resized) {
         recreate();
@@ -127,9 +127,6 @@ void VulkanRenderer::drawFrame(const GameViewList& views) {
     }
 
     m_command_buffers[m_swapchain.getCurrentSync()].reset();
-    for (GameViewList::const_iterator i = views.cbegin(), end = views.cend(); i != end; ++i) {
-	    (*i)->VOnRender(m_command_buffers[m_swapchain.getCurrentSync()]);
-	}
     recordCommandBuffer(m_command_buffers[m_swapchain.getCurrentSync()]);
     
     CommandBatch::BatchWaitInfo wait_info;

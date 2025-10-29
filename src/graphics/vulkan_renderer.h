@@ -38,7 +38,7 @@ public:
     RenderTarget getRenderTarget() const;
 
     void recordCommandBuffer(CommandBatch& command_buffer);
-    void drawFrame(const GameViewList& views);
+    void drawFrame();
     void setFramebufferResized();
     void update_frame(const GameTimerDelta& delta, uint32_t image_index);
     void addDrawable(std::shared_ptr<IVulkanDrawable> drawable);

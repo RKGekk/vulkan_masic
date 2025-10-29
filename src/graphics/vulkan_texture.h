@@ -4,27 +4,25 @@
 #include <GLFW/glfw3.h>
 
 #include "vulkan_buffer.h"
+#include "vulkan_image_buffer.h"
 #include "vulkan_device.h"
 
-class VulkanTexture : public IVulkanImageBuffer {
+class VulkanTexture : public VulkanImageBuffer {
 public:
 
+    bool init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, int width, int height, VkFormat format = VK_FORMAT_R8G8B8A8_SRGB);
+    bool init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, int width, int height, VkSampler sampler, VkFormat format = VK_FORMAT_R8G8B8A8_SRGB);
     bool init(std::shared_ptr<VulkanDevice> device, const std::string& path_to_file);
+    bool init(std::shared_ptr<VulkanDevice> device, const std::string& path_to_file, VkSampler sampler);
+
     void destroy() override;
 
-    ImageBuffer getImageBuffer() const override;
-    ImageBufferAndView getImageBufferAndView() const override;
-    VkSampler getSampler() const override;
-    VkDeviceSize getSize() const override;
-    VkDescriptorImageInfo getDescImageInfo() const override;
+    VkSampler getSampler() const;
+    VkDescriptorImageInfo getDescImageInfo() const;
 
 private:
     VkSampler createTextureSampler(uint32_t mip_levels) const;
 
-    std::shared_ptr<VulkanDevice> m_device;
-
     VkSampler m_texture_sampler = VK_NULL_HANDLE;
-    ImageBufferAndView m_texture_image;
-
-    VkDescriptorImageInfo m_image_info;
+    VkDescriptorImageInfo m_image_desc_info;
 };

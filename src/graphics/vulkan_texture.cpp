@@ -1,45 +1,55 @@
 #include "vulkan_texture.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
-bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, const std::string& path_to_file) {
-    m_device = std::move(device);
+bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, int width, int height, VkFormat format) {
+    return init(std::move(device), pixels, width, height, createTextureSampler(m_image_info.mipLevels), format);
+}
 
-    m_texture_image = m_device->createImageAndView(path_to_file);
-    m_texture_sampler = createTextureSampler(m_texture_image.image_info.mipLevels);
+bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, int width, int height, VkSampler sampler, VkFormat format) {
+    VulkanImageBuffer::init(device, pixels, width, height, format);
 
-    m_image_info = VkDescriptorImageInfo{};
-    m_image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    m_image_info.imageView = m_texture_image.image_view;
-    m_image_info.sampler = m_texture_sampler;
+    m_texture_sampler = sampler;
+
+    m_image_desc_info.imageLayout = m_layout;
+    m_image_desc_info.imageView = m_image_view;
+    m_image_desc_info.sampler = m_texture_sampler;
 
     return true;
 }
 
+bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, const std::string& path_to_file) {
+    return init(std::move(device), path_to_file, createTextureSampler(m_image_info.mipLevels));
+}
+
+bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, const std::string& path_to_file, VkSampler sampler) {
+    int tex_width;
+    int tex_height;
+    int tex_channels;
+    stbi_uc* pixels = stbi_load(path_to_file.c_str(), &tex_width, &tex_height, &tex_channels, STBI_rgb_alpha);
+    if (!pixels) {
+        throw std::runtime_error("failed to load texture image!");
+    }
+
+    bool result = init(std::move(device), pixels, tex_width, tex_height, sampler);
+
+    stbi_image_free(pixels);
+
+    return result;
+}
+
 void VulkanTexture::destroy() {
+    VulkanImageBuffer::destroy();
     vkDestroySampler(m_device->getDevice(), m_texture_sampler, nullptr);
-    vkDestroyImageView(m_device->getDevice(), m_texture_image.image_view, nullptr);
-    vkDestroyImage(m_device->getDevice(), m_texture_image.image, nullptr);
-    vkFreeMemory(m_device->getDevice(), m_texture_image.memory, nullptr);
-}
-
-ImageBuffer VulkanTexture::getImageBuffer() const {
-    return m_texture_image.getImage();
-}
-
-ImageBufferAndView VulkanTexture::getImageBufferAndView() const {
-    return m_texture_image;
 }
 
 VkSampler VulkanTexture::getSampler() const {
     return m_texture_sampler;
 }
 
-VkDeviceSize VulkanTexture::getSize() const {
-    return m_texture_image.image_size;
-}
-
 VkDescriptorImageInfo VulkanTexture::getDescImageInfo() const {
-    return m_image_info;
+    return m_image_desc_info;
 }
 
 VkSampler VulkanTexture::createTextureSampler(uint32_t mip_levels) const {
