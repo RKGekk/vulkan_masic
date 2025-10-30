@@ -5,12 +5,19 @@ bool VertexBuffer::init(std::shared_ptr<VulkanDevice> device, const void* vertic
     m_indices_count = indices_count;
     m_index_type = index_type;
 
+    CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
     VkDeviceSize vertices_buffer_size = vertex_info.pVertexBindingDescriptions->stride * vertices_count;
-    createAndTransferVertexBuffer(vertices_data, vertices_buffer_size);
+    m_vertex_buffer = std::make_shared<VulkanBuffer>();
+    bool result = m_vertex_buffer->init(m_device, command_buffer, vertices_data, vertices_buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
     VkDeviceSize indices_buffer_size = getIndexBytesCount(index_type) * indices_count;
-    createAndTransferIndexBuffer(indices_data, indices_buffer_size);
+    m_index_buffer = std::make_shared<VulkanBuffer>();
+    result &= m_index_buffer->init(m_device, command_buffer, indices_data, indices_buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    
     m_vertex_info = vertex_info;
+
+    m_device->getCommandManager().submitCommandBuffer(command_buffer);
+    m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
 
     return true;
 }

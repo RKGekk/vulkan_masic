@@ -29,25 +29,27 @@ bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarge
     m_render_target_fmt = rt.render_target_fmt;
     m_rt_aspect = (float)rt.render_target_fmt.viewportExtent.width / (float)rt.render_target_fmt.viewportExtent.height;
 
-    std::shared_ptr<VertexBuffer> vertex_buffer = std::make_shared<VertexBuffer>();
-    vertex_buffer->init<Vertex, uint16_t>(m_device, g_vertices, g_indices, Vertex::getVertextInputInfo());
-    m_vertex_buffer = std::move(vertex_buffer);
-
-    std::shared_ptr<VulkanUniformBuffer<UniformBufferObject>> uniform_buffer = std::make_shared<VulkanUniformBuffer<UniformBufferObject>>();
-    uniform_buffer->init(m_device, rt.frame_count, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-    m_uniform_buffers = std::move(uniform_buffer);
-
     m_texture.init(m_device, "textures/texture.jpg");
 
     std::vector<VulkanDescriptor::Binding> binding(rt.frame_count);
+    m_vertex_buffers.resize(rt.frame_count);
+    m_uniform_buffers.resize(rt.frame_count);
     for(size_t i = 0u; i < rt.frame_count; ++i) {
+        std::shared_ptr<VertexBuffer> vertex_buffer = std::make_shared<VertexBuffer>();
+        vertex_buffer->init<Vertex, uint16_t>(m_device, g_vertices, g_indices, Vertex::getVertextInputInfo());
+        m_vertex_buffers[i] = std::move(vertex_buffer);
+
+        std::shared_ptr<VulkanUniformBuffer> uniform_buffer = std::make_shared<VulkanUniformBuffer>();
+        uniform_buffer->init<UniformBufferObject>(m_device, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        m_uniform_buffers[i] = std::move(uniform_buffer);
+
         binding[i].resize(2u);
         binding[i][0u].layout_binding.binding = 0u;
         binding[i][0u].layout_binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         binding[i][0u].layout_binding.descriptorCount = 1u;
         binding[i][0u].layout_binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
         binding[i][0u].layout_binding.pImmutableSamplers = nullptr;
-        binding[i][0u].buffer_info = std::make_shared<VkDescriptorBufferInfo>(m_uniform_buffers->getDescBufferInfo(i));
+        binding[i][0u].buffer_info = std::make_shared<VkDescriptorBufferInfo>(m_uniform_buffers[i]->getDescBufferInfo(i));
         
         binding[i][1u].layout_binding.binding = 1u;
         binding[i][1u].layout_binding.descriptorCount = 1u;
@@ -69,7 +71,7 @@ bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarge
     pipeline_shaders_info.push_back(m_vert_shader.getShaderInfo());
 
     m_render_pass = createRenderPass(rt.render_target_fmt.colorAttachmentFormat.format, rt.render_target_fmt.depthAttachmentFormat);
-    m_pipeline.init(m_device->getDevice(), {m_descriptor.getDescLayouts()}, m_render_pass, rt.render_target_fmt.viewportExtent, std::move(pipeline_shaders_info), m_vertex_buffer->getVertextInputInfo(), m_device->getMsaaSamples());
+    m_pipeline.init(m_device->getDevice(), {m_descriptor.getDescLayouts()}, m_render_pass, rt.render_target_fmt.viewportExtent, std::move(pipeline_shaders_info), m_vertex_buffers[0]->getVertextInputInfo(), m_device->getMsaaSamples());
     m_out_framebuffers = createFramebuffers(rt);
 
     return true;
@@ -91,13 +93,11 @@ void BasicDrawable::reset(const RenderTarget& rt) {
 
     m_descriptor.init(m_device->getDevice(), std::move(bindings), rt.frame_count);
     m_render_pass = createRenderPass(rt.render_target_fmt.colorAttachmentFormat.format, rt.render_target_fmt.depthAttachmentFormat);
-    m_pipeline.init(m_device->getDevice(), {m_descriptor.getDescLayouts()}, m_render_pass, rt.render_target_fmt.viewportExtent, std::move(pipeline_shaders), m_vertex_buffer->getVertextInputInfo(), m_device->getMsaaSamples());
+    m_pipeline.init(m_device->getDevice(), {m_descriptor.getDescLayouts()}, m_render_pass, rt.render_target_fmt.viewportExtent, std::move(pipeline_shaders), m_vertex_buffers[0]->getVertextInputInfo(), m_device->getMsaaSamples());
     m_out_framebuffers = createFramebuffers(rt);
 }
 
 void BasicDrawable::destroy() {
-    m_vertex_buffer->destroy();
-    m_uniform_buffers->destroy();
     m_pipeline.destroy();
     m_descriptor.destroy();
     m_vert_shader.destroy();
@@ -107,11 +107,13 @@ void BasicDrawable::destroy() {
     m_texture.destroy();
 
     for(size_t i = 0u; i < m_out_framebuffers.size(); ++i) {
+        m_vertex_buffers[i]->destroy();
+        m_uniform_buffers[i]->destroy();
         vkDestroyFramebuffer(m_device->getDevice(), m_out_framebuffers[i], nullptr);
     }
 }
 
-void BasicDrawable::recordCommandBuffer(const CommandBatch& command_buffer, uint32_t image_index) {
+void BasicDrawable::recordCommandBuffer(CommandBatch& command_buffer, uint32_t image_index) {
 
     VkRenderPassBeginInfo renderpass_info{};
     renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -147,12 +149,12 @@ void BasicDrawable::recordCommandBuffer(const CommandBatch& command_buffer, uint
         
     vkCmdBindPipeline(command_buffer.getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.getPipeline());
 
-    VkBuffer vertex_buffers[] = {m_vertex_buffer->getVertexBuffer().buf};
+    VkBuffer vertex_buffers[] = {m_vertex_buffers[image_index]->getVertexBuffer()->getBuffer()};
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(command_buffer.getCommandBufer(), 0, 1, vertex_buffers, offsets);
-    vkCmdBindIndexBuffer(command_buffer.getCommandBufer(), m_vertex_buffer->getIndexBuffer().buf, 0u, m_vertex_buffer->getIndexType());
+    vkCmdBindIndexBuffer(command_buffer.getCommandBufer(), m_vertex_buffers[image_index]->getIndexBuffer()->getBuffer(), 0u, m_vertex_buffers[image_index]->getIndexType());
 
-    vkCmdDrawIndexed(command_buffer.getCommandBufer(), static_cast<uint32_t>(m_vertex_buffer->getIndicesCount()), 1u, 0u, 0u, 0u);
+    vkCmdDrawIndexed(command_buffer.getCommandBufer(), static_cast<uint32_t>(m_vertex_buffers[image_index]->getIndicesCount()), 1u, 0u, 0u, 0u);
 
     vkCmdEndRenderPass(command_buffer.getCommandBufer());
 }
@@ -167,7 +169,7 @@ void BasicDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     ubo.proj = glm::perspective(glm::radians(45.0f), m_rt_aspect, 0.1f, 10.0f);
     ubo.proj[1][1] *= -1.0f;
 
-    m_uniform_buffers->update(VK_NULL_HANDLE, &ubo, image_index);
+    m_uniform_buffers[image_index]->update(&ubo, sizeof(UniformBufferObject));
 }
 
 VkRenderPass BasicDrawable::createRenderPass(VkFormat color_format, VkFormat depth_format) {

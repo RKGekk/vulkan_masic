@@ -7,10 +7,6 @@ layout (location = 0) out vec4 out_color;
 
 const bool kNonLinearColorSpace = false;
 
-layout(set = 0, binding = 0) uniform UniformBufferObject {
-    vec4 LRTB;
-} ubo;
-
 layout(set = 0, binding = 1) uniform sampler2D texSampler;
 
 void main() {

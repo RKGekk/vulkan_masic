@@ -33,7 +33,7 @@ public:
     bool init(std::shared_ptr<VulkanDevice> device, const RenderTarget& rt);
     void reset(const RenderTarget& rt) override;
     void destroy() override;
-    void recordCommandBuffer(const CommandBatch& command_buffer, uint32_t frame_index) override;
+    void recordCommandBuffer(CommandBatch& command_buffer, uint32_t frame_index) override;
     void update(const GameTimerDelta& delta, uint32_t image_index) override;
 
 private:
@@ -43,8 +43,8 @@ private:
 
     std::shared_ptr<VulkanDevice> m_device;
 
-    std::shared_ptr<IVulkanBuffer> m_uniform_buffers;
-    std::shared_ptr<IVertexBuffer> m_vertex_buffer;
+    std::vector<std::shared_ptr<VulkanUniformBuffer>> m_uniform_buffers;
+    std::vector<std::shared_ptr<VertexBuffer>> m_vertex_buffers;
     float m_rt_aspect = 1.0f;
     RenderTargetFormat m_render_target_fmt;
 

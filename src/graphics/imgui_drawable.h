@@ -32,20 +32,27 @@ class ImGUIDrawable : public IVulkanDrawable {
 public:
     bool init(std::shared_ptr<VulkanDevice> device, const RenderTarget& rt);
 
+    void reset(const RenderTarget& rt) override;
+    void destroy() override;
+    void recordCommandBuffer(CommandBatch& command_buffer, uint32_t frame_index) override;
+    void update(const GameTimerDelta& delta, uint32_t image_index) override;
+
 private:
+    std::vector<VkFramebuffer> createFramebuffers(const RenderTarget& rt);
 
     std::shared_ptr<VulkanDevice> m_device;
 
     VulkanPipeline m_pipeline;
     VulkanDescriptor m_descriptor;
     VkRenderPass m_render_pass = VK_NULL_HANDLE;
+    std::vector<VkFramebuffer> m_out_framebuffers;
 
     VulkanShader m_vert_shader;
     VulkanShader m_frag_shader;
 
     std::shared_ptr<VulkanTexture> m_font_texture;
-    std::shared_ptr<VertexBuffer> m_vertex_buffer;
-    std::shared_ptr<VulkanUniformBuffer> m_uniform_buffer;
+    std::vector<std::shared_ptr<VertexBuffer>> m_vertex_buffers;
+    std::vector<std::shared_ptr<VulkanUniformBuffer>> m_uniform_buffers;
 
     float m_rt_aspect = 1.0f;
     RenderTargetFormat m_render_target_fmt;

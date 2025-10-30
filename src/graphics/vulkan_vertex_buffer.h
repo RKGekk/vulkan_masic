@@ -34,7 +34,7 @@ public:
 
         VkDeviceSize vertices_buffer_size = sizeof(VertexType) * vertices.size();
         m_vertex_buffer = std::make_shared<VulkanBuffer>();
-        bool result = m_vertex_buffer->init(m_device, command_buffer, vertices.data(), m_vertex_buffer, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        bool result = m_vertex_buffer->init(m_device, command_buffer, vertices.data(), vertices_buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
         VkDeviceSize indices_buffer_size = sizeof(IndexType) * indices.size();
         m_index_buffer = std::make_shared<VulkanBuffer>();

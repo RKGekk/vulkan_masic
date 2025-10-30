@@ -210,22 +210,23 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarge
     m_frag_shader.init(m_device->getDevice(), "shaders/imgui.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
     m_vert_shader.init(m_device->getDevice(), "shaders/imgui.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
 
-    m_vertex_buffer = std::make_shared<VertexBuffer>();
-    m_vertex_buffer->init(m_device, nullptr, 0u, nullptr, 0u, VK_INDEX_TYPE_UINT16, getImVertextInputInfo());
-
-    /// ImGuiUniformBufferObject
-    m_uniform_buffer = std::make_shared<VulkanUniformBuffer>();
-    m_uniform_buffer->init<ImGuiUniformBufferObject>(m_device, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
     std::vector<VulkanDescriptor::Binding> binding(rt.frame_count);
+    m_vertex_buffers.resize(rt.frame_count);
+    m_uniform_buffers.resize(rt.frame_count);
     for(size_t i = 0u; i < rt.frame_count; ++i) {
+        m_vertex_buffers[i] = std::make_shared<VertexBuffer>();
+        m_vertex_buffers[i]->init(m_device, nullptr, 0u, nullptr, 0u, VK_INDEX_TYPE_UINT16, getImVertextInputInfo());
+
+        m_uniform_buffers[i] = std::make_shared<VulkanUniformBuffer>();
+        m_uniform_buffers[i]->init<ImGuiUniformBufferObject>(m_device, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
         binding[i].resize(2u);
         binding[i][0u].layout_binding.binding = 0u;
         binding[i][0u].layout_binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         binding[i][0u].layout_binding.descriptorCount = 1u;
         binding[i][0u].layout_binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
         binding[i][0u].layout_binding.pImmutableSamplers = nullptr;
-        binding[i][0u].buffer_info = std::make_shared<VkDescriptorBufferInfo>(m_uniform_buffers->getDescBufferInfo(i));
+        binding[i][0u].buffer_info = std::make_shared<VkDescriptorBufferInfo>(m_uniform_buffers[i]->getDescBufferInfo());
         
         binding[i][1u].layout_binding.binding = 1u;
         binding[i][1u].layout_binding.descriptorCount = 1u;
@@ -244,6 +245,159 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarge
     pipeline_shaders_info.push_back(m_vert_shader.getShaderInfo());
 
     m_render_pass = createRenderPass(m_device, rt.render_target_fmt.colorAttachmentFormat.format, rt.render_target_fmt.depthAttachmentFormat);
-    m_pipeline.init(m_device->getDevice(), {m_descriptor.getDescLayouts()}, m_render_pass, rt.render_target_fmt.viewportExtent, std::move(pipeline_shaders_info), m_vertex_buffer->getVertextInputInfo(), m_device->getMsaaSamples());
+    m_pipeline.init(m_device->getDevice(), {m_descriptor.getDescLayouts()}, m_render_pass, rt.render_target_fmt.viewportExtent, std::move(pipeline_shaders_info), m_vertex_buffers[0]->getVertextInputInfo(), m_device->getMsaaSamples());
     
+    m_out_framebuffers = createFramebuffers(rt);
+}
+
+std::vector<VkFramebuffer> ImGUIDrawable::createFramebuffers(const RenderTarget& rt) {
+    std::vector<VkFramebuffer> result_framebuffers(rt.frame_count);
+    for(size_t i = 0u; i < rt.frame_count; ++i) {
+        VkFramebufferCreateInfo framebuffer_info{};
+        framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebuffer_info.renderPass = m_render_pass;
+        framebuffer_info.attachmentCount = static_cast<uint32_t>(rt.frames[i].size());
+        framebuffer_info.pAttachments = rt.frames[i].data();
+        framebuffer_info.width = rt.render_target_fmt.viewportExtent.width;
+        framebuffer_info.height = rt.render_target_fmt.viewportExtent.height;
+        framebuffer_info.layers = 1u;
+        
+        VkResult result = vkCreateFramebuffer(m_device->getDevice(), &framebuffer_info, nullptr, &result_framebuffers[i]);
+        if(result != VK_SUCCESS) {
+            throw std::runtime_error("failed to create framebuffer!");
+        }
+    }
+    
+    return result_framebuffers;
+}
+
+void ImGUIDrawable::reset(const RenderTarget& rt) {
+    std::vector<VulkanDescriptor::Binding> bindings = m_descriptor.getBingingsForSets();
+    std::vector<VkPipelineShaderStageCreateInfo> pipeline_shaders = m_pipeline.getShadersInfo();
+
+    m_descriptor.destroy();
+    vkDestroyRenderPass(m_device->getDevice(), m_render_pass, nullptr);
+    m_pipeline.destroy();
+    for(size_t i = 0u; i < m_out_framebuffers.size(); ++i) {
+        vkDestroyFramebuffer(m_device->getDevice(), m_out_framebuffers[i], nullptr);
+    }
+
+    m_render_target_fmt = rt.render_target_fmt;
+    m_rt_aspect = (float)rt.render_target_fmt.viewportExtent.width / (float)rt.render_target_fmt.viewportExtent.height;
+
+    m_descriptor.init(m_device->getDevice(), std::move(bindings), rt.frame_count);
+    m_render_pass = createRenderPass(m_device, rt.render_target_fmt.colorAttachmentFormat.format, rt.render_target_fmt.depthAttachmentFormat);
+    m_pipeline.init(m_device->getDevice(), {m_descriptor.getDescLayouts()}, m_render_pass, rt.render_target_fmt.viewportExtent, std::move(pipeline_shaders), m_vertex_buffers[0]->getVertextInputInfo(), m_device->getMsaaSamples());
+    m_out_framebuffers = createFramebuffers(rt);
+}
+
+void ImGUIDrawable::destroy() {
+    m_pipeline.destroy();
+    m_descriptor.destroy();
+    m_vert_shader.destroy();
+    m_frag_shader.destroy();
+    vkDestroyRenderPass(m_device->getDevice(), m_render_pass, nullptr);
+
+    m_font_texture->destroy();
+
+    for(size_t i = 0u; i < m_out_framebuffers.size(); ++i) {
+        m_vertex_buffers[i]->destroy();
+        m_uniform_buffers[i]->destroy();
+        vkDestroyFramebuffer(m_device->getDevice(), m_out_framebuffers[i], nullptr);
+    }
+}
+
+void ImGUIDrawable::recordCommandBuffer(CommandBatch& command_buffer, uint32_t image_index) {
+
+    VkRenderPassBeginInfo renderpass_info{};
+    renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderpass_info.renderPass = m_render_pass;
+    renderpass_info.framebuffer = m_out_framebuffers[image_index];
+    renderpass_info.renderArea.offset = {0, 0};
+    renderpass_info.renderArea.extent = m_render_target_fmt.viewportExtent;
+    
+    std::array<VkClearValue, 2> clear_values{};
+    clear_values[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+    clear_values[1].depthStencil = {1.0f, 0};
+    renderpass_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
+    renderpass_info.pClearValues = clear_values.data();
+
+    VkViewport view_port{};
+    view_port.x = 0.0f;
+    view_port.y = 0.0f;
+    view_port.width = static_cast<float>(m_render_target_fmt.viewportExtent.width);
+    view_port.height = static_cast<float>(m_render_target_fmt.viewportExtent.height);
+    view_port.minDepth = 0.0f;
+    view_port.maxDepth = 1.0f;
+
+    vkCmdBeginRenderPass(command_buffer.getCommandBufer(), &renderpass_info, VK_SUBPASS_CONTENTS_INLINE);
+        
+    vkCmdSetViewport(command_buffer.getCommandBufer(), 0u, 1u, &view_port);
+
+    vkCmdBindDescriptorSets(command_buffer.getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.getPipelineLayout(), 0, 1, &m_descriptor.getDescriptorSets()[image_index], 0, nullptr);
+        
+    vkCmdBindPipeline(command_buffer.getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.getPipeline());
+
+    VkBuffer vertex_buffers[] = {m_vertex_buffers[image_index]->getVertexBuffer()->getBuffer()};
+    VkDeviceSize offsets[] = {0};
+
+    ImDrawData* dd = ImGui::GetDrawData();
+
+    ImGuiUniformBufferObject ubo{};
+    const float L = dd->DisplayPos.x;
+    const float R = dd->DisplayPos.x + dd->DisplaySize.x;
+    const float T = dd->DisplayPos.y;
+    const float B = dd->DisplayPos.y + dd->DisplaySize.y;
+    const float fb_width = dd->DisplaySize.x * dd->FramebufferScale.x;
+    const float fb_height = dd->DisplaySize.y * dd->FramebufferScale.y;
+    const ImVec2 clip_off = dd->DisplayPos;
+    const ImVec2 clip_scale = dd->FramebufferScale;
+
+    uint32_t idxOffset = 0;
+    uint32_t vtxOffset = 0;
+    ImDrawVert* vtx = (ImDrawVert*)m_vertex_buffers[image_index]->getVertexBuffer()->getMappedBuffer();
+    uint16_t* idx = (uint16_t*)m_vertex_buffers[image_index]->getVertexBuffer()->getMappedBuffer();
+    for (const ImDrawList* cmdList : dd->CmdLists) {
+        memcpy(vtx, cmdList->VtxBuffer.Data, cmdList->VtxBuffer.Size * sizeof(ImDrawVert));
+        memcpy(idx, cmdList->IdxBuffer.Data, cmdList->IdxBuffer.Size * sizeof(ImDrawIdx));
+        vtx += cmdList->VtxBuffer.Size;
+        idx += cmdList->IdxBuffer.Size;
+    }
+    vkCmdBindVertexBuffers(command_buffer.getCommandBufer(), 0, 1, vertex_buffers, offsets);
+    vkCmdBindIndexBuffer(command_buffer.getCommandBufer(), m_vertex_buffers[image_index]->getIndexBuffer()->getBuffer(), 0u, VK_INDEX_TYPE_UINT16);
+
+    for (const ImDrawList* cmdList : dd->CmdLists) {
+        for (int cmd_i = 0; cmd_i < cmdList->CmdBuffer.Size; cmd_i++) {
+            const ImDrawCmd cmd = cmdList->CmdBuffer[cmd_i];
+
+            ImVec2 clipMin((cmd.ClipRect.x - clip_off.x) * clip_scale.x, (cmd.ClipRect.y - clip_off.y) * clip_scale.y);
+            ImVec2 clipMax((cmd.ClipRect.z - clip_off.x) * clip_scale.x, (cmd.ClipRect.w - clip_off.y) * clip_scale.y);
+            
+            if (clipMin.x < 0.0f) clipMin.x = 0.0f;
+            if (clipMin.y < 0.0f) clipMin.y = 0.0f;
+            if (clipMax.x > fb_width ) clipMax.x = fb_width;
+            if (clipMax.y > fb_height) clipMax.y = fb_height;
+            if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y)
+                continue;
+            
+            ImGuiUniformBufferObject bindData;
+            bindData.LRTB = {L, R, T, B};
+            m_uniform_buffers[image_index]->update(command_buffer, &ubo, sizeof(ImGuiUniformBufferObject), VK_ACCESS_UNIFORM_READ_BIT);
+      
+            VkRect2D scissor{};
+            scissor.offset = VkOffset2D{(int32_t)clipMin.x, (int32_t)clipMin.y};
+            scissor.extent = VkExtent2D{uint32_t(clipMax.x - clipMin.x), uint32_t(clipMax.y - clipMin.y)};
+            vkCmdSetScissor(command_buffer.getCommandBufer(), 0u, 1u, &scissor);
+            vkCmdDrawIndexed(command_buffer.getCommandBufer(), cmd.ElemCount, 1u, idxOffset + cmd.IdxOffset, int32_t(vtxOffset + cmd.VtxOffset), 0u);
+        }
+        idxOffset += cmdList->IdxBuffer.Size;
+        vtxOffset += cmdList->VtxBuffer.Size;
+    }
+
+    vkCmdEndRenderPass(command_buffer.getCommandBufer());
+}
+
+void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
+    float angle = delta.fGetTotalSeconds() * glm::radians(90.f);
+    glm::vec3 rotation_axis = glm::vec3(0.0f, 0.0f, 1.0f);
 }
