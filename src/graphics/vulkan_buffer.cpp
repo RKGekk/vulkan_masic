@@ -51,9 +51,7 @@ bool VulkanBuffer::init(std::shared_ptr<VulkanDevice> device, CommandBatch& comm
   
      vkBindBufferMemory(device->getDevice(), m_buffer, m_memory, offset);
 
-     CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
      update(command_buffer, data, buffer_size);
-     m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
  
      return true;
  }
@@ -122,8 +120,8 @@ void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, Vk
 
     VkMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-    VkAccessFlags srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-    VkAccessFlags dstAccessMask = dstAccessMask;
+    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    barrier.dstAccessMask = dstAccessMask;
 
     vkCmdPipelineBarrier(command_buffer.getCommandBufer(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0u, 1u, &barrier, 0u, nullptr, 0u, nullptr);
 }

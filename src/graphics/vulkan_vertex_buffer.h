@@ -60,25 +60,24 @@ public:
 
     template<typename VertexType, typename IndexType>
     void update(CommandBatch& command_buffer, const std::vector<VertexType>& vertices, const std::vector<IndexType>& indices, VkAccessFlags dstAccessMask) {
-        if(vertices.size() > m_vertex_count || indices.size() > m_indices_count) {
+        VkDeviceSize new_vertices_buffer_size = m_vertex_info.pVertexBindingDescriptions->stride * vertices.size();
+        VkDeviceSize new_indices_buffer_size = getIndexBytesCount(m_index_type) * indices.size();
+        if(new_vertices_buffer_size > m_vertex_buffer->getSize() || new_indices_buffer_size > m_index_buffer->getSize()) {
             destroy();
             init(m_device, vertices, indices, m_vertex_info);
             return;
         }
         m_indices_count = indices.size();
         m_vertex_count = vertices.size();
-
-        VkDeviceSize vertices_buffer_size = vertex_info.pVertexBindingDescriptions->stride * vertices_count;
-        m_vertex_buffer->update(command_buffer, vertices.data(), vertices_buffer_size, dstAccessMask);
-
-        VkDeviceSize indices_buffer_size = getIndexBytesCount(index_type) * indices_count;
-        m_index_buffer->update(command_buffer, indices.data(), indices_buffer_size, dstAccessMask);
+        
+        m_vertex_buffer->update(command_buffer, vertices.data(), new_vertices_buffer_size, dstAccessMask);
+        m_index_buffer->update(command_buffer, indices.data(), new_indices_buffer_size, dstAccessMask);
     }
 
     template<typename VertexType, typename IndexType>
     void update(const std::vector<VertexType>& vertices, const std::vector<IndexType>& indices) {
         CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
-        bool result = update(command_buffer, vertices, indices, VulkanDevice::getDstAccessMask(m_usage));
+        bool result = update(command_buffer, vertices, indices);
         m_device->getCommandManager().submitCommandBuffer(command_buffer);
         m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
     }

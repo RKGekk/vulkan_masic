@@ -100,6 +100,10 @@ const std::vector<std::shared_ptr<RenderResource>>& CommandBatch::getResources()
     return m_resources;
 }
 
+void CommandBatch::addResource(std::shared_ptr<RenderResource> resource) {
+    m_resources.push_back(std::move(resource));
+}
+
 void CommandBatch::addCommandBufer(VkCommandBuffer command_buffer) {
     m_command_buffers.push_back(command_buffer);
 }

@@ -24,13 +24,8 @@ void VulkanRenderer::destroy() {
     for(size_t i = 0u; i < sz; ++i) {
         m_command_buffers[i].destroy();
 
-        vkDestroyImageView(m_device->getDevice(), m_out_color_images[i].image_view, nullptr);
-        vkDestroyImage(m_device->getDevice(), m_out_color_images[i].image, nullptr);
-        vkFreeMemory(m_device->getDevice(), m_out_color_images[i].memory, nullptr);
-        
-        vkDestroyImageView(m_device->getDevice(), m_out_depth_images[i].image_view, nullptr);
-        vkDestroyImage(m_device->getDevice(), m_out_depth_images[i].image, nullptr);
-        vkFreeMemory(m_device->getDevice(), m_out_depth_images[i].memory, nullptr);
+        m_out_color_images[i].destroy();
+        m_out_depth_images[i].destroy();
     }
 
     for (const std::shared_ptr<IVulkanDrawable>& drawable : m_drawable_list) {
@@ -46,13 +41,8 @@ void VulkanRenderer::recreate() {
     for(size_t i = 0u; i < sz; ++i) {
         m_command_buffers[i].destroy();
 
-        vkDestroyImageView(m_device->getDevice(), m_out_color_images[i].image_view, nullptr);
-        vkDestroyImage(m_device->getDevice(), m_out_color_images[i].image, nullptr);
-        vkFreeMemory(m_device->getDevice(), m_out_color_images[i].memory, nullptr);
-        
-        vkDestroyImageView(m_device->getDevice(), m_out_depth_images[i].image_view, nullptr);
-        vkDestroyImage(m_device->getDevice(), m_out_depth_images[i].image, nullptr);
-        vkFreeMemory(m_device->getDevice(), m_out_depth_images[i].memory, nullptr);
+        m_out_color_images[i].destroy();
+        m_out_depth_images[i].destroy();
     }
     
     createColorResources();
@@ -71,11 +61,11 @@ const VulkanSwapChain& VulkanRenderer::getSwapchain() const {
     return m_swapchain;
 }
 
-const std::vector<ImageBufferAndView>& VulkanRenderer::getColorImages() const {
+const std::vector<VulkanImageBuffer>& VulkanRenderer::getColorImages() const {
     return m_out_color_images;
 }
 
-const std::vector<ImageBufferAndView>& VulkanRenderer::getDepthImages() const {
+const std::vector<VulkanImageBuffer>& VulkanRenderer::getDepthImages() const {
     return m_out_depth_images;
 }
 
@@ -88,12 +78,12 @@ RenderTarget VulkanRenderer::getRenderTarget() const {
         if(msaa_samples == VK_SAMPLE_COUNT_1_BIT) {
             attachment.resize(2u);
             attachment[0u] = m_swapchain.getSwapchainImages()[i].view;
-            attachment[1u] = m_out_depth_images[i].image_view;
+            attachment[1u] = m_out_depth_images[i].getImageBufferView();
         }
         else {
             attachment.resize(3u);
-            attachment[0u] = m_out_color_images[i].image_view;
-            attachment[1u] = m_out_depth_images[i].image_view;
+            attachment[0u] = m_out_color_images[i].getImageBufferView();
+            attachment[1u] = m_out_depth_images[i].getImageBufferView();
             attachment[2u] = m_swapchain.getSwapchainImages()[i].view;
         }
         frames.push_back(std::move(attachment));
@@ -102,7 +92,7 @@ RenderTarget VulkanRenderer::getRenderTarget() const {
     RenderTarget rt;
     rt.frame_count = m_swapchain.getMaxFrames();
     rt.render_target_fmt.colorAttachmentFormat = m_swapchain.getSwapchainParams().surface_format;
-    rt.render_target_fmt.depthAttachmentFormat = m_out_depth_images[0u].image_info.format;
+    rt.render_target_fmt.depthAttachmentFormat = m_out_depth_images[0u].getImageInfo().format;
     rt.render_target_fmt.viewportExtent = m_swapchain.getSwapchainParams().extent;
     rt.frames = std::move(frames);
 
@@ -188,7 +178,8 @@ void VulkanRenderer::createColorResources() {
 
     m_out_color_images.resize(m_swapchain.getMaxFrames());
     for(uint32_t i = 0; i < m_swapchain.getMaxFrames(); ++i) {
-        m_out_color_images[i] = m_device->createImage(image_info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_IMAGE_ASPECT_COLOR_BIT, 1u);
+        m_out_color_images[i] = VulkanImageBuffer();
+        m_out_color_images[i].init(m_device, nullptr, image_info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
     }
 }
 
@@ -216,9 +207,10 @@ void VulkanRenderer::createDepthResources() {
 
     m_out_depth_images.resize(m_swapchain.getMaxFrames());
     for(uint32_t i = 0; i < m_swapchain.getMaxFrames(); ++i) {
-        m_out_depth_images[i] = m_device->createImage(image_info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image_aspect, 1u);
+        m_out_depth_images[i] = VulkanImageBuffer();
+        m_out_depth_images[i].init(m_device, nullptr, image_info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image_aspect);
         CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
-        m_device->getCommandManager().transitionImageLayout(command_buffer.getCommandBufer(), m_out_depth_images[i].image, depth_format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1u);
+        m_device->getCommandManager().transitionImageLayout(command_buffer.getCommandBufer(), m_out_depth_images[i].getImageBuffer(), depth_format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1u);
         m_device->getCommandManager().submitCommandBuffer(command_buffer);
         m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
     }

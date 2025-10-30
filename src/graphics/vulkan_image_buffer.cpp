@@ -3,13 +3,39 @@
 #include "vulkan_device.h"
 #include "vulkan_buffer.h"
 
-bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, VkImageCreateInfo image_info, VkImageAspectFlags aspect_flags) {
+VkImageView VulkanImageBuffer::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const {
+    VkImageViewCreateInfo view_info{};
+    view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    view_info.image = image;
+    view_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    view_info.format = format;
+    view_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+    view_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+    view_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+    view_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+    view_info.subresourceRange.aspectMask = aspect_flags;
+    view_info.subresourceRange.baseMipLevel = 0u;
+    view_info.subresourceRange.levelCount = mip_levels;
+    view_info.subresourceRange.baseMipLevel = 0u;
+    view_info.subresourceRange.layerCount = 1u;
+    
+    VkImageView image_view;
+    VkResult result = vkCreateImageView(m_device->getDevice(), &view_info, nullptr, &image_view);
+    if(result != VK_SUCCESS) {
+        throw std::runtime_error("failed to create texture image view!");
+    }
+    
+    return image_view;
+}
+
+bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, VkImageCreateInfo image_info, VkMemoryPropertyFlags properties, VkImageAspectFlags aspect_flags) {
     size_t bytes_count = VulkanDevice::getBytesCount(image_info.format);
     uint32_t mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(image_info.extent.width, image_info.extent.height)))) + 1u;
 
     m_device = std::move(device);
     m_image_info = image_info;
     m_layout = image_info.initialLayout;
+    m_properties = properties;
     
     VkResult result = vkCreateImage(m_device->getDevice(), &image_info, nullptr, &m_image);
     if(result != VK_SUCCESS) {
@@ -20,7 +46,7 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char
     vkGetImageMemoryRequirements(m_device->getDevice(), m_image, &mem_req);
     m_image_size = mem_req.size;
     
-    uint32_t mem_type_idx = device->findMemoryType(mem_req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    uint32_t mem_type_idx = device->findMemoryType(mem_req.memoryTypeBits, properties);
     VkMemoryAllocateInfo alloc_info{};
     alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     alloc_info.allocationSize = mem_req.size;
@@ -57,12 +83,12 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char
     staging_buffer.destroy();
 
     m_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    m_image_view = device->createImageView(m_image, m_image_info.format, aspect_flags, m_image_info.mipLevels);
+    m_image_view = createImageView(m_image, m_image_info.format, aspect_flags, m_image_info.mipLevels);
 
     return true;
 }
 
-bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, size_t width, size_t height, VkFormat format, VkImageAspectFlags aspect_flags) {
+bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, size_t width, size_t height, VkFormat format, VkMemoryPropertyFlags properties, VkImageAspectFlags aspect_flags) {
     uint32_t mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1u;
 
     VkFormat image_format = device->findSupportedFormat(
@@ -73,7 +99,7 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char
         VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT
     );
     
-    std::vector<uint32_t> families = device->getCommandManager().getQueueFamilyIndices().getIndices();
+    static std::vector<uint32_t> families = device->getCommandManager().getQueueFamilyIndices().getIndices();
     VkImageCreateInfo image_info;
     image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     image_info.imageType = VK_IMAGE_TYPE_2D;
@@ -92,7 +118,7 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char
     image_info.samples = VK_SAMPLE_COUNT_1_BIT;
     image_info.flags = 0u;
 
-    return init(std::move(device), pixels, image_info, aspect_flags);
+    return init(std::move(device), pixels, image_info, properties, aspect_flags);
 }
 
 void VulkanImageBuffer::destroy() {
@@ -119,4 +145,8 @@ VkDeviceSize VulkanImageBuffer::getSize() const {
 
 VkImageLayout VulkanImageBuffer::getLayout() const {
     return m_layout;
+}
+
+const VkImageCreateInfo& VulkanImageBuffer::getImageInfo() const {
+    return m_image_info;
 }

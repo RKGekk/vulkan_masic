@@ -68,20 +68,6 @@ std::shared_ptr<VulkanTexture> makeFontTexture(std::shared_ptr<VulkanDevice> dev
     return font_texture;
 }
 
-VkRenderPass createRenderPass(std::shared_ptr<VulkanDevice> device, VkFormat color_format, VkFormat depth_format) {
-    VkRenderPass result;
-    VkSubpassDependency pass_dependency{};
-    pass_dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-    pass_dependency.dstSubpass = 0;
-    pass_dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-    pass_dependency.srcAccessMask = 0u;
-    pass_dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-    pass_dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-    result = createRenderPass(device, color_format, depth_format, pass_dependency);
-
-    return result;
-}
-
 VkRenderPass createRenderPass(std::shared_ptr<VulkanDevice> device, VkFormat color_format, VkFormat depth_format, VkSubpassDependency subpass_dependency) {
     VkAttachmentDescription color_attachment{};
     color_attachment.format = color_format;
@@ -152,6 +138,20 @@ VkRenderPass createRenderPass(std::shared_ptr<VulkanDevice> device, VkFormat col
     }
     
     return render_pass;
+}
+
+VkRenderPass createRenderPass(std::shared_ptr<VulkanDevice> device, VkFormat color_format, VkFormat depth_format) {
+    VkRenderPass result;
+    VkSubpassDependency pass_dependency{};
+    pass_dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    pass_dependency.dstSubpass = 0;
+    pass_dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    pass_dependency.srcAccessMask = 0u;
+    pass_dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    pass_dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    result = createRenderPass(device, color_format, depth_format, pass_dependency);
+
+    return result;
 }
 
 VkPipelineVertexInputStateCreateInfo getImVertextInputInfo() {
@@ -248,6 +248,8 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarge
     m_pipeline.init(m_device->getDevice(), {m_descriptor.getDescLayouts()}, m_render_pass, rt.render_target_fmt.viewportExtent, std::move(pipeline_shaders_info), m_vertex_buffers[0]->getVertextInputInfo(), m_device->getMsaaSamples());
     
     m_out_framebuffers = createFramebuffers(rt);
+
+    return true;
 }
 
 std::vector<VkFramebuffer> ImGUIDrawable::createFramebuffers(const RenderTarget& rt) {

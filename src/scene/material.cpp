@@ -98,7 +98,7 @@ void Material::SetBumpIntensity(float bump_intensity) {
     m_material_properties->BumpIntensity = bump_intensity;
 }
 
-std::shared_ptr<IVulkanImageBuffer> Material::GetTexture(TextureType ID) const {
+std::shared_ptr<VulkanTexture> Material::GetTexture(TextureType ID) const {
     TextureMap::const_iterator iter = m_textures.find(ID);
     if (iter != m_textures.end()) {
         return iter->second;
@@ -111,7 +111,7 @@ Material::TextureMap& Material::GetTextureMap() {
     return m_textures;
 }
 
-void Material::SetTexture(TextureType type, std::shared_ptr<IVulkanImageBuffer> texture) {
+void Material::SetTexture(TextureType type, std::shared_ptr<VulkanTexture> texture) {
     m_textures[type] = texture;
     bool has_texture = (texture != nullptr);
     uint32_t texture_type_bit = 0u;

@@ -69,6 +69,8 @@ private:
     std::vector<SwapChainBuffer> retriveSwapchainBuffers(VkFormat format) const;
 
     VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+    VkImageView createImageView(VkImage image, VkFormat format,  VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT, uint32_t mip_levels = 1u) const;
+    std::vector<VkImageView> createImageViews(const std::vector<VkImage>& images, VkFormat format, VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT, uint32_t mip_levels = 1u) const;
 
     SwapchainSupportDetails m_swapchain_support_details;
     SwapchainParams m_swapchain_params;

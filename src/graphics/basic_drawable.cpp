@@ -49,7 +49,7 @@ bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarge
         binding[i][0u].layout_binding.descriptorCount = 1u;
         binding[i][0u].layout_binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
         binding[i][0u].layout_binding.pImmutableSamplers = nullptr;
-        binding[i][0u].buffer_info = std::make_shared<VkDescriptorBufferInfo>(m_uniform_buffers[i]->getDescBufferInfo(i));
+        binding[i][0u].buffer_info = std::make_shared<VkDescriptorBufferInfo>(m_uniform_buffers[i]->getDescBufferInfo());
         
         binding[i][1u].layout_binding.binding = 1u;
         binding[i][1u].layout_binding.descriptorCount = 1u;

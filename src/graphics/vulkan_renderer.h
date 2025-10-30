@@ -18,6 +18,7 @@
 #include "vulkan_drawable.h"
 #include "vulkan_shader.h"
 #include "vulkan_pipeline.h"
+#include "vulkan_image_buffer.h"
 #include "vulkan_command_buffer.h"
 #include "vulkan_command_pool_type.h"
 #include "vulkan_uniform_buffer.h"
@@ -33,8 +34,8 @@ public:
 
     static std::shared_ptr<WindowSurface> GetRenderWindow();
     const VulkanSwapChain& getSwapchain() const;
-    const std::vector<ImageBufferAndView>& getColorImages() const;
-    const std::vector<ImageBufferAndView>& getDepthImages() const;
+    const std::vector<VulkanImageBuffer>& getColorImages() const;
+    const std::vector<VulkanImageBuffer>& getDepthImages() const;
     RenderTarget getRenderTarget() const;
 
     void recordCommandBuffer(CommandBatch& command_buffer);
@@ -52,8 +53,8 @@ private:
 
     VulkanSwapChain m_swapchain;
 
-    std::vector<ImageBufferAndView> m_out_color_images;
-    std::vector<ImageBufferAndView> m_out_depth_images;
+    std::vector<VulkanImageBuffer> m_out_color_images;
+    std::vector<VulkanImageBuffer> m_out_depth_images;
 
     std::vector<CommandBatch> m_command_buffers;
     std::shared_ptr<ThreadPool> m_thread_pool;
