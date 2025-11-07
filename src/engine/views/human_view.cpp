@@ -32,6 +32,7 @@ HumanView::HumanView(std::shared_ptr<ProcessManager> process_manager) {
 	std::shared_ptr<VulkanDevice> device = renderer.GetDevice();
 	m_gui = std::make_shared<ImGUIDrawable>();
     m_gui->init(device, renderer.getRenderTarget());
+	renderer.addDrawable(m_gui);
 }
 
 HumanView::~HumanView() {

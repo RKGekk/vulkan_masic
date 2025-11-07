@@ -46,7 +46,7 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char
     vkGetImageMemoryRequirements(m_device->getDevice(), m_image, &mem_req);
     m_image_size = mem_req.size;
     
-    uint32_t mem_type_idx = device->findMemoryType(mem_req.memoryTypeBits, properties);
+    uint32_t mem_type_idx = m_device->findMemoryType(mem_req.memoryTypeBits, properties);
     VkMemoryAllocateInfo alloc_info{};
     alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     alloc_info.allocationSize = mem_req.size;
@@ -65,12 +65,8 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char
     }
 
     VulkanBuffer staging_buffer;
-    staging_buffer.init(device, nullptr, m_image_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-    
-    void* data;
-    vkMapMemory(m_device->getDevice(), staging_buffer.getMemory(), 0, m_image_size, 0, &data);
-    memcpy(data, pixels, static_cast<size_t>(m_image_size));
-    vkUnmapMemory(m_device->getDevice(), staging_buffer.getMemory());
+    staging_buffer.init(m_device, nullptr, m_image_size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    staging_buffer.update(pixels, static_cast<size_t>(m_image_size));
     
     CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
     m_device->getCommandManager().transitionImageLayout(command_buffer.getCommandBufer(), m_image, image_info.format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mip_levels);
@@ -100,7 +96,7 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char
     );
     
     static std::vector<uint32_t> families = device->getCommandManager().getQueueFamilyIndices().getIndices();
-    VkImageCreateInfo image_info;
+    VkImageCreateInfo image_info = {};
     image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     image_info.imageType = VK_IMAGE_TYPE_2D;
     image_info.extent.width = static_cast<uint32_t>(width);
@@ -118,7 +114,7 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char
     image_info.samples = VK_SAMPLE_COUNT_1_BIT;
     image_info.flags = 0u;
 
-    return init(std::move(device), pixels, image_info, properties, aspect_flags);
+    return init(device, pixels, image_info, properties, aspect_flags);
 }
 
 void VulkanImageBuffer::destroy() {

@@ -59,8 +59,9 @@ std::shared_ptr<VulkanTexture> makeFontTexture(std::shared_ptr<VulkanDevice> dev
     int width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-    std::shared_ptr<VulkanTexture> font_texture;
-    font_texture->init(std::move(device), pixels, width, height, createFontTextureSampler(device), VK_FORMAT_R8G8B8A8_UNORM);
+    std::shared_ptr<VulkanTexture> font_texture = std::make_shared<VulkanTexture>();
+    VkSampler fonts_sampler = createFontTextureSampler(device);
+    font_texture->init(device, pixels, width, height, fonts_sampler, VK_FORMAT_R8G8B8A8_UNORM);
 
     io.Fonts->TexID = 0u;
     io.FontDefault = font;
@@ -193,7 +194,9 @@ VkPipelineVertexInputStateCreateInfo getImVertextInputInfo() {
 }
 
 bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarget& rt) {
-    static const std::string TTF_font_file_name = "OpenSans-Light.ttf";
+    m_device = std::move(device);
+
+    static const std::string TTF_font_file_name = "fonts/OpenSans-Light.ttf";
     static const float font_size_pixels = 30.0f;
 
     ImGui::CreateContext();
