@@ -3,7 +3,7 @@
 #include <list>
 #include <memory>
 
-#include "../tools/game_timer.h"
+#include "../../tools/game_timer.h"
 
 class CommandList;
 class IScreenElement;
@@ -15,7 +15,7 @@ public:
 
 	virtual bool VOnRestore() = 0;
 	virtual bool VOnLostDevice() = 0;
-	virtual bool VOnRender(const GameTimerDelta& delta, std::shared_ptr<CommandList>) = 0;
+	virtual bool VOnRender(const GameTimerDelta& delta) = 0;
 	virtual void VOnUpdate(const GameTimerDelta& delta) = 0;
 
 	virtual int VGetZOrder() const = 0;

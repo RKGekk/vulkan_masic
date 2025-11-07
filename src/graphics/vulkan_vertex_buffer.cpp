@@ -1,6 +1,6 @@
 #include "vulkan_vertex_buffer.h"
 
-bool VertexBuffer::init(std::shared_ptr<VulkanDevice> device, const void* vertices_data, size_t vertices_count, const void* indices_data, size_t indices_count, VkIndexType index_type, VkPipelineVertexInputStateCreateInfo vertex_info) {
+bool VertexBuffer::init(std::shared_ptr<VulkanDevice> device, const void* vertices_data, size_t vertices_count, const void* indices_data, size_t indices_count, VkIndexType index_type, VkPipelineVertexInputStateCreateInfo vertex_info, VkMemoryPropertyFlags properties) {
     m_device = std::move(device);
     m_indices_count = indices_count;
     m_index_type = index_type;
@@ -8,11 +8,11 @@ bool VertexBuffer::init(std::shared_ptr<VulkanDevice> device, const void* vertic
     CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
     VkDeviceSize vertices_buffer_size = vertex_info.pVertexBindingDescriptions->stride * vertices_count;
     m_vertex_buffer = std::make_shared<VulkanBuffer>();
-    bool result = m_vertex_buffer->init(m_device, command_buffer, vertices_data, vertices_buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    bool result = m_vertex_buffer->init(m_device, command_buffer, vertices_data, vertices_buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, properties);
 
     VkDeviceSize indices_buffer_size = getIndexBytesCount(index_type) * indices_count;
     m_index_buffer = std::make_shared<VulkanBuffer>();
-    result &= m_index_buffer->init(m_device, command_buffer, indices_data, indices_buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    result &= m_index_buffer->init(m_device, command_buffer, indices_data, indices_buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, properties);
     
     m_vertex_info = vertex_info;
 

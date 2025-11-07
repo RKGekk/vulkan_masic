@@ -12,14 +12,14 @@
 #include "actor_animation_player.h"
 #include "base_engine_state.h"
 #include "iengine_logic.h"
-#include "iengine_view.h"
 #include "level_manager.h"
+#include "views/iengine_view.h"
+#include "views/human_view.h"
 #include "../procs/process.h"
 #include "../procs/process_manager.h"
 #include "../scene/scene.h"
 #include "../scene/camera_node.h"
 #include "../tools/mt_random.h"
-#include "human_view.h"
 
 class ActorFactory;
 class LevelManager;
@@ -91,7 +91,7 @@ protected:
 	GameClockDuration m_life_time;
 
 	GameViewList m_game_views;
-	std::unique_ptr<ProcessManager> m_process_manager;
+	std::shared_ptr<ProcessManager> m_process_manager;
 	std::unique_ptr<ActorFactory> m_actor_factory;
 	std::shared_ptr<IEnginePhysics> m_physics;
 	std::unique_ptr<LevelManager> m_level_manager;

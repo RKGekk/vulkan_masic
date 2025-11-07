@@ -226,7 +226,7 @@ void BaseEngineLogic::VOnUpdate(const GameTimerDelta& delta) {
 
 	switch (m_state) {
 		case BaseEngineState::BGS_Initializing: {
-			std::shared_ptr<IEngineView> menuView = std::make_shared<HumanView>();
+			std::shared_ptr<IEngineView> menuView = std::make_shared<HumanView>(m_process_manager);
 			VAddView(menuView);
 			VChangeState(BaseEngineState::BGS_MainMenu);
 		}
@@ -273,8 +273,8 @@ void BaseEngineLogic::VChangeState(BaseEngineState newState) {
 			std::shared_ptr<DelayProcess> delay = std::make_shared<DelayProcess>(std::chrono::duration_cast<GameClockDuration>(2.0s), [](const GameTimerDelta& delta, float n) {
 				return true;
 			});
-			std::shared_ptr<ExecProcess> exec2 = std::make_shared<ExecProcess>([]() {
-				std::shared_ptr<HumanView> gameView(new HumanView());
+			std::shared_ptr<ExecProcess> exec2 = std::make_shared<ExecProcess>([this]() {
+				std::shared_ptr<HumanView> gameView(new HumanView(m_process_manager));
 				Application::Get().GetGameLogic()->VLoadGame("World.xml", gameView);
 				gameView->VCanDraw(false);
 				Application::Get().GetGameLogic()->VAddView(gameView);

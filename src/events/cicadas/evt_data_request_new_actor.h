@@ -5,7 +5,7 @@
 
 #include "../base_event_data.h"
 #include "../../actors/actor.h"
-#include "../../engine/iengine_view.h"
+#include "../../engine/views/iengine_view.h"
 
 class EvtData_Request_New_Actor : public BaseEventData {
 	std::string m_actorResource;

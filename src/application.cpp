@@ -3,7 +3,11 @@
 #include "events/cicadas/evt_data_update_tick.h"
 #include "events/cicadas/evt_data_window_close.h"
 #include "events/event_manager.h"
-#include "vulkan_application.h"
+
+#include "graphics/basic_vertex.h"
+#include "graphics/basic_uniform.h"
+#include "graphics/basic_drawable.h"
+#include "graphics/gltf_drawable.h"
 
 std::unique_ptr<Application> gs_pSingeton;
 std::once_flag gs_only_once;
@@ -11,12 +15,16 @@ std::once_flag gs_only_once;
 static WindowSurface::WindowNameMap gs_window_by_name;
 
 Application& Application::Get() {
-    std::call_once(gs_only_once, [](){gs_pSingeton.reset(new VulkanApplication()); });
+    std::call_once(gs_only_once, [](){gs_pSingeton.reset(new Application()); });
     return *gs_pSingeton.get();
 }
 
 std::shared_ptr<WindowSurface> Application::GetRenderWindow() {
     return Application::Get().m_window;
+}
+
+VulkanRenderer& Application::GetRenderer() {
+    return Application::Get().m_renderer;
 }
 
 void Application::run() {
@@ -46,19 +54,6 @@ void Application::Quit(int exitCode) {
 
 Application::Application() : m_is_running(false), m_request_quit(false), m_thread_pool(std::make_shared<ThreadPool>()) {}
 
-Application::~Application() {
-    glfwTerminate();
-}
-
-void Application::VRegisterEvents() {
-    REGISTER_EVENT(EvtData_Update_Tick);
-}
-
-void Application::RegisterAllDelegates() {
-    IEventManager* pGlobalEventManager = IEventManager::Get();
-    pGlobalEventManager->VAddListener({ connect_arg<&Application::CloseWindow>, this }, EvtData_Window_Close::sk_EventType);
-}
-
 bool Application::Initialize(ApplicationOptions opt) {
     m_timer.Start();
     m_options = std::move(opt);
@@ -72,15 +67,38 @@ bool Application::Initialize(ApplicationOptions opt) {
         return false;
     }
     
-    initGraphics(m_window->GetWindow());
+    m_vulkan_instance.init("Masic"s);
+    m_surface = VulkanSwapChain::createSurface(m_vulkan_instance.getInstance(), m_window->GetWindow());
+
+    m_vulkan_device = std::make_shared<VulkanDevice>();
+    m_vulkan_device->init(m_vulkan_instance, m_surface, m_thread_pool);
+
+    m_renderer.init(m_vulkan_device, m_surface, m_window->GetWindow(), m_thread_pool);
 
     VRegisterEvents();
     RegisterAllDelegates();
 
-    m_game = VCreateGameAndView();
-	if (!m_game) return false;
+    m_game = std::make_shared<BaseEngineLogic>();
+    m_game->Init();
 
     return true;
+}
+
+Application::~Application() {
+    m_renderer.destroy();
+    m_vulkan_device->destroy();
+    vkDestroySurfaceKHR(m_vulkan_instance.getInstance(), m_surface, nullptr);
+    m_vulkan_instance.destroy();
+    glfwTerminate();
+}
+
+void Application::VRegisterEvents() {
+    REGISTER_EVENT(EvtData_Update_Tick);
+}
+
+void Application::RegisterAllDelegates() {
+    IEventManager* pGlobalEventManager = IEventManager::Get();
+    pGlobalEventManager->VAddListener({ connect_arg<&Application::CloseWindow>, this }, EvtData_Window_Close::sk_EventType);
 }
 
 std::shared_ptr<WindowSurface> Application::CreateRenderWindow() {
@@ -103,14 +121,15 @@ GameTimer& Application::GetTimer() {
 }
 
 std::shared_ptr<BaseEngineLogic> Application::GetGameLogic() {
-    return nullptr;
+    return m_game;
 };
 
-std::shared_ptr<BaseEngineLogic> Application::VCreateGameAndView() {
-    std::shared_ptr pGame = std::make_shared<BaseEngineLogic>();
-	pGame->Init();
-	
-	return pGame;
+void Application::mainLoop() {
+    while(!update()) {
+        if(m_window->SkipDraw()) continue;
+        m_renderer.update_frame(m_timer, m_renderer.getSwapchain().getCurrentFrame());
+        m_renderer.drawFrame();
+    }
 }
 
 void Application::CloseWindow(IEventDataPtr pEventData) {

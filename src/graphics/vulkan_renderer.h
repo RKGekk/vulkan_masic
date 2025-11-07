@@ -22,7 +22,7 @@
 #include "vulkan_command_buffer.h"
 #include "vulkan_command_pool_type.h"
 #include "vulkan_uniform_buffer.h"
-#include "../engine/iengine_view.h"
+#include "../engine/views/iengine_view.h"
 
 class VulkanRenderer {
 public:
@@ -30,13 +30,11 @@ public:
     void destroy();
     void recreate();
 
-    static std::shared_ptr<WindowSurface> CreateRenderWindow(const ApplicationOptions& options);
-
-    static std::shared_ptr<WindowSurface> GetRenderWindow();
     const VulkanSwapChain& getSwapchain() const;
     const std::vector<VulkanImageBuffer>& getColorImages() const;
     const std::vector<VulkanImageBuffer>& getDepthImages() const;
     RenderTarget getRenderTarget() const;
+    const std::shared_ptr<VulkanDevice>& GetDevice();
 
     void recordCommandBuffer(CommandBatch& command_buffer);
     void drawFrame();

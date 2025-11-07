@@ -14,26 +14,30 @@
 #include "tools/thread_pool.h"
 #include "events/ievent_manager.h"
 
+#include "graphics/vulkan_instance.h"
+#include "graphics/vulkan_device.h"
+#include "graphics/vulkan_renderer.h"
+
 class VulkanApplication;
 
 class Application {
 public:
     static Application& Get();
     static std::shared_ptr<WindowSurface> GetRenderWindow();
+    static VulkanRenderer& GetRenderer();
 
-    virtual void run();
+    void run();
     bool update();
     void Quit(int exit_code = 0);
 
     Application();
-    virtual bool Initialize(ApplicationOptions opt);
-    virtual ~Application();
+    bool Initialize(ApplicationOptions opt);
+    ~Application();
 
-    virtual void VRegisterEvents();
-    virtual void RegisterAllDelegates();
+    void VRegisterEvents();
+    void RegisterAllDelegates();
 
-    virtual std::shared_ptr<WindowSurface> CreateRenderWindow();
-    virtual bool initGraphics(WindowSurface::WindowPtr window) = 0;
+    std::shared_ptr<WindowSurface> CreateRenderWindow();
 
     void ShowWindow();
 
@@ -41,10 +45,9 @@ public:
     GameTimer& GetTimer();
     std::shared_ptr<BaseEngineLogic> GetGameLogic();;
     
-    virtual void mainLoop() = 0;
+    void mainLoop();
 
 protected:
-    virtual std::shared_ptr<BaseEngineLogic> VCreateGameAndView();
     void CloseWindow(IEventDataPtr pEventData);
 
     std::shared_ptr<WindowSurface> m_window;
@@ -59,6 +62,12 @@ protected:
     ApplicationOptions m_options;
 
     std::shared_ptr<BaseEngineLogic> m_game;
+
+    VkSurfaceKHR m_surface = VK_NULL_HANDLE;
+    VulkanInstance m_vulkan_instance;
+    std::shared_ptr<VulkanDevice> m_vulkan_device;
+    
+    VulkanRenderer m_renderer;
 
 private:
     Application(const Application& other) = delete;

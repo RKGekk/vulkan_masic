@@ -23,7 +23,7 @@ bool VulkanBuffer::init(std::shared_ptr<VulkanDevice> device, CommandBatch& comm
     VkBufferCreateInfo buffer_info{};
     buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     buffer_info.size = buffer_size;
-    buffer_info.usage = data ? VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage : usage;
+    buffer_info.usage = data || (m_properties & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) ? VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage : usage;
     buffer_info.sharingMode = m_device->getCommandManager().getBufferSharingMode();
     buffer_info.queueFamilyIndexCount = static_cast<uint32_t>(family_indices.size());
     buffer_info.pQueueFamilyIndices = family_indices.data();
@@ -33,28 +33,32 @@ bool VulkanBuffer::init(std::shared_ptr<VulkanDevice> device, CommandBatch& comm
         throw std::runtime_error("failed to create buffer!");
     }
      
-     VkMemoryRequirements mem_req;
-     vkGetBufferMemoryRequirements(device->getDevice(), m_buffer, &mem_req);
-     uint32_t mem_type_idx = device->findMemoryType(mem_req.memoryTypeBits, properties);
+    VkMemoryRequirements mem_req;
+    vkGetBufferMemoryRequirements(device->getDevice(), m_buffer, &mem_req);
+    uint32_t mem_type_idx = device->findMemoryType(mem_req.memoryTypeBits, properties);
   
-     VkMemoryAllocateInfo alloc_info{};
-     alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-     alloc_info.allocationSize = mem_req.size;
-     alloc_info.memoryTypeIndex = mem_type_idx;
+    VkMemoryAllocateInfo alloc_info{};
+    alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    alloc_info.allocationSize = mem_req.size;
+    alloc_info.memoryTypeIndex = mem_type_idx;
  
-     result = vkAllocateMemory(device->getDevice(), &alloc_info, nullptr, &m_memory);
-     if(result != VK_SUCCESS) {
-         throw std::runtime_error("failed to allocate buffer memory!");
-     }
- 
-     VkDeviceSize offset = 0u;
-  
-     vkBindBufferMemory(device->getDevice(), m_buffer, m_memory, offset);
+    result = vkAllocateMemory(device->getDevice(), &alloc_info, nullptr, &m_memory);
+    if(result != VK_SUCCESS) {
+        throw std::runtime_error("failed to allocate buffer memory!");
+    }
 
-     update(command_buffer, data, buffer_size);
+    VkDeviceSize offset = 0u;
+
+    if(m_properties & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
+        vkMapMemory(m_device->getDevice(), m_memory, 0, m_size, 0u, &m_mapped);
+    }
+    
+    vkBindBufferMemory(device->getDevice(), m_buffer, m_memory, offset);
+
+    update(command_buffer, data, buffer_size);
  
-     return true;
- }
+    return true;
+}
 
 void VulkanBuffer::destroy() {
     if(m_properties & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
@@ -92,6 +96,14 @@ VkBufferUsageFlags VulkanBuffer::getUsage() const {
 }
 
 void VulkanBuffer::update(const void* src_data, VkDeviceSize buffer_size) {
+    if (buffer_size > m_size) {
+        destroy();
+        init(m_device, src_data, buffer_size, m_properties, m_usage);
+        return;
+    }
+    if(!src_data) {
+        return;
+    }
     CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
     update(command_buffer, src_data, buffer_size);
     m_device->getCommandManager().submitCommandBuffer(command_buffer);
@@ -102,6 +114,9 @@ void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, Vk
     if (buffer_size > m_size) {
         destroy();
         init(m_device, src_data, buffer_size, m_properties, m_usage);
+        return;
+    }
+    if(!src_data) {
         return;
     }
     if(m_properties & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {

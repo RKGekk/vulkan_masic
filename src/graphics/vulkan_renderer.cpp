@@ -99,6 +99,10 @@ RenderTarget VulkanRenderer::getRenderTarget() const {
     return rt;
 }
 
+const std::shared_ptr<VulkanDevice>& VulkanRenderer::GetDevice() {
+    return m_device;
+}
+
 void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer) {
     VulkanCommandManager::beginCommandBuffer(command_buffer);
 

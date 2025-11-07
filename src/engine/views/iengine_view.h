@@ -4,9 +4,9 @@
 #include <memory>
 #include <string>
 
-#include "engine_view_type.h"
-#include "../actors/actor.h"
-#include "../tools/game_timer.h"
+#include "../engine_view_type.h"
+#include "../../actors/actor.h"
+#include "../../tools/game_timer.h"
 
 class IEngineView;
 
@@ -18,6 +18,7 @@ public:
 	virtual bool VOnRestore() = 0;
 	virtual bool VOnLostDevice() = 0;
 
+	virtual void VOnRender(const GameTimerDelta& delta) = 0;
 	virtual void VOnUpdate(const GameTimerDelta& delta) = 0;
 	
 	virtual EngineViewType VGetType() = 0;

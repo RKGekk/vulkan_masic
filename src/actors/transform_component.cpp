@@ -2,7 +2,7 @@
 
 #include "../tools/string_tools.h"
 #include "../application.h"
-#include "../engine/human_view.h"
+#include "../engine/views/human_view.h"
 #include "../engine/base_engine_logic.h"
 #include "../events/cicadas/evt_data_destroy_scene_component.h"
 

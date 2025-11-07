@@ -37,6 +37,9 @@ public:
     void recordCommandBuffer(CommandBatch& command_buffer, uint32_t frame_index) override;
     void update(const GameTimerDelta& delta, uint32_t image_index) override;
 
+    void beginFrame(const RenderTarget& rt);
+    void endFrame();
+
 private:
     std::vector<VkFramebuffer> createFramebuffers(const RenderTarget& rt);
 
@@ -51,8 +54,11 @@ private:
     VulkanShader m_frag_shader;
 
     std::shared_ptr<VulkanTexture> m_font_texture;
-    std::vector<std::shared_ptr<VertexBuffer>> m_vertex_buffers;
     std::vector<std::shared_ptr<VulkanUniformBuffer>> m_uniform_buffers;
+
+    std::vector<std::shared_ptr<VertexBuffer>> m_vertex_buffers;
+    std::vector<std::vector<ImDrawVert>> m_imgui_vtx;
+    std::vector<std::vector<ImDrawIdx>> m_imgui_idx;
 
     float m_rt_aspect = 1.0f;
     RenderTargetFormat m_render_target_fmt;

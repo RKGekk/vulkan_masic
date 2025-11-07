@@ -215,7 +215,7 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarge
     m_uniform_buffers.resize(rt.frame_count);
     for(size_t i = 0u; i < rt.frame_count; ++i) {
         m_vertex_buffers[i] = std::make_shared<VertexBuffer>();
-        m_vertex_buffers[i]->init(m_device, nullptr, 0u, nullptr, 0u, VK_INDEX_TYPE_UINT16, getImVertextInputInfo());
+        m_vertex_buffers[i]->init(m_device, nullptr, 0u, nullptr, 0u, VK_INDEX_TYPE_UINT16, getImVertextInputInfo(), VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
         m_uniform_buffers[i] = std::make_shared<VulkanUniformBuffer>();
         m_uniform_buffers[i]->init<ImGuiUniformBufferObject>(m_device, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
@@ -355,16 +355,24 @@ void ImGUIDrawable::recordCommandBuffer(CommandBatch& command_buffer, uint32_t i
     const ImVec2 clip_off = dd->DisplayPos;
     const ImVec2 clip_scale = dd->FramebufferScale;
 
+    if(m_vertex_buffers[image_index]->getVertexCount() < dd->TotalVtxCount || m_vertex_buffers[image_index]->getIndicesCount() < dd->TotalIdxCount) {
+        m_imgui_vtx[image_index].resize(m_vertex_buffers[image_index]->getVertexCount());
+        m_imgui_idx[image_index].resize(m_vertex_buffers[image_index]->getIndicesCount());
+        m_vertex_buffers[image_index]->destroy();
+        m_vertex_buffers[image_index]->init(m_device, nullptr, dd->TotalVtxCount, nullptr, dd->TotalIdxCount, VK_INDEX_TYPE_UINT16, getImVertextInputInfo());
+    }
+
     uint32_t idxOffset = 0;
     uint32_t vtxOffset = 0;
-    ImDrawVert* vtx = (ImDrawVert*)m_vertex_buffers[image_index]->getVertexBuffer()->getMappedBuffer();
-    uint16_t* idx = (uint16_t*)m_vertex_buffers[image_index]->getVertexBuffer()->getMappedBuffer();
+    ImDrawVert* vtx = (ImDrawVert*)m_imgui_vtx[image_index].data();
+    uint16_t* idx = (uint16_t*)m_imgui_idx[image_index].data();
     for (const ImDrawList* cmdList : dd->CmdLists) {
         memcpy(vtx, cmdList->VtxBuffer.Data, cmdList->VtxBuffer.Size * sizeof(ImDrawVert));
         memcpy(idx, cmdList->IdxBuffer.Data, cmdList->IdxBuffer.Size * sizeof(ImDrawIdx));
         vtx += cmdList->VtxBuffer.Size;
         idx += cmdList->IdxBuffer.Size;
     }
+    m_vertex_buffers[image_index]->update(m_imgui_vtx[image_index], m_imgui_idx[image_index]);
     vkCmdBindVertexBuffers(command_buffer.getCommandBufer(), 0, 1, vertex_buffers, offsets);
     vkCmdBindIndexBuffer(command_buffer.getCommandBufer(), m_vertex_buffers[image_index]->getIndexBuffer()->getBuffer(), 0u, VK_INDEX_TYPE_UINT16);
 
@@ -402,4 +410,18 @@ void ImGUIDrawable::recordCommandBuffer(CommandBatch& command_buffer, uint32_t i
 void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     float angle = delta.fGetTotalSeconds() * glm::radians(90.f);
     glm::vec3 rotation_axis = glm::vec3(0.0f, 0.0f, 1.0f);
+}
+
+void ImGUIDrawable::beginFrame(const RenderTarget& rt) {
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(rt.render_target_fmt.viewportExtent.width, rt.render_target_fmt.viewportExtent.height);
+    io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
+    io.IniFilename = nullptr;
+
+    ImGui::NewFrame();
+}
+
+void ImGUIDrawable::endFrame() {
+    ImGui::EndFrame();
+    ImGui::Render();
 }
