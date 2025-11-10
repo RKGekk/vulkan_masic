@@ -2,7 +2,7 @@
 <World>
   <Actors>
     
-    <Actor name="camera1" type="BasicTransformComponent" resource="data\actors\BasicTransformComponent.xml">
+    <Actor name="camera1" type="BasicTransformComponent" resource="components\BasicTransformComponent.xml">
       <TransformComponent>
         <Position x="-0.300000" y="0.500000" z="-1.000000" />
         <YawPitchRoll x="0.000000" y="0.000000" z="0.000000" />

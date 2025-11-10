@@ -9,6 +9,7 @@
 #include "../../tools/game_timer.h"
 
 class IEngineView;
+class IScreenElement;
 
 typedef unsigned int EngineViewId;
 typedef std::deque<std::shared_ptr<IEngineView>> GameViewList;
@@ -26,6 +27,8 @@ public:
 	virtual EngineViewId VGetId() const = 0;
 
 	virtual void VOnAttach(EngineViewId vid, ActorId aid) = 0;
+	virtual void VPushElement(std::shared_ptr<IScreenElement> pElement) = 0;
+	virtual void VRemoveElement(std::shared_ptr<IScreenElement> pElement) = 0;
 
 	virtual ~IEngineView() {};
 };

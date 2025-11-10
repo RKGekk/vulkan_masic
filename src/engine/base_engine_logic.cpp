@@ -14,6 +14,7 @@
 #include "../events/cicadas/evt_data_request_new_actor.h"
 #include "../events/cicadas/evt_data_request_start_game.h"
 #include "../events/cicadas/evt_data_sphere_particle_contact.h"
+#include "screen_elements/screen_element_scene.h"
 
 BaseEngineLogic::BaseEngineLogic() {
 	m_last_actor_id = 0u;
@@ -25,6 +26,7 @@ BaseEngineLogic::BaseEngineLogic() {
 	m_level_manager = std::make_unique<LevelManager>();
 	m_level_manager->Initialize();
 	m_animation_player = std::make_shared<ActorAnimationPlayer>();
+	m_scene = std::make_shared<ScreenElementScene>();
 	//m_physics = std::make_unique<XPhysics>();
 	//m_physics->VInitialize();
 }
@@ -123,6 +125,10 @@ const std::unordered_set<ActorId>& BaseEngineLogic::VGetActorsByComponent(Compon
 
 bool BaseEngineLogic::VCheckActorsExistByComponent(ComponentId cid) {
 	return m_components.count(cid);
+}
+
+const std::shared_ptr<Scene>& BaseEngineLogic::VGetScene() {
+	return m_scene;
 }
 
 void BaseEngineLogic::VModifyActor(const ActorId actorId, const pugi::xml_node& overrides) {
@@ -227,6 +233,7 @@ void BaseEngineLogic::VOnUpdate(const GameTimerDelta& delta) {
 	switch (m_state) {
 		case BaseEngineState::BGS_Initializing: {
 			std::shared_ptr<IEngineView> menuView = std::make_shared<HumanView>(m_process_manager);
+			//menuView->VPushElement(std::dynamic_pointer_cast<IScreenElement>(m_scene));
 			VAddView(menuView);
 			VChangeState(BaseEngineState::BGS_MainMenu);
 		}

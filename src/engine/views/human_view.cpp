@@ -23,8 +23,6 @@ HumanView::HumanView(std::shared_ptr<ProcessManager> process_manager) {
 	RegisterAllDelegates();
 	m_base_game_state = BaseEngineState::BGS_Initializing;
 	
-	m_scene = std::make_shared<ScreenElementScene>();
-
 	m_current_tick = {};
 	m_last_draw = {};
 
@@ -116,7 +114,7 @@ void HumanView::VRemoveElement(std::shared_ptr<IScreenElement> pElement) {
 }
 
 void HumanView::VActivateScene(bool is_active) {
-	if (m_scene) {}
+	
 }
 
 void HumanView::VCanDraw(bool is_can_draw) {
@@ -157,10 +155,6 @@ std::shared_ptr<CameraComponent> HumanView::VGetCamera() {
 		return m_camera.lock();
 	}
 	return nullptr;
-}
-
-std::shared_ptr<Scene> HumanView::VGetScene() {
-	return std::static_pointer_cast<Scene>(m_scene);
 }
 
 void HumanView::VSetCameraByName(std::string camera_name) {

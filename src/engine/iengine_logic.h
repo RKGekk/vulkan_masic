@@ -19,6 +19,8 @@ public:
 	virtual StrongActorPtr VCreateActor(const std::string& actor_resource, const pugi::xml_node& overrides, const ActorId servers_actorId = INVALID_ACTOR_ID) = 0;
 	virtual void VDestroyActor(const ActorId actorId) = 0;
 
+	virtual const std::shared_ptr<Scene>& VGetScene() = 0;
+
 	virtual bool VLoadGame(const std::string& level_resource) = 0;
 
 	virtual void VOnUpdate(const GameTimerDelta& delta) = 0;

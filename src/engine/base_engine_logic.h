@@ -20,6 +20,7 @@
 #include "../scene/scene.h"
 #include "../scene/camera_node.h"
 #include "../tools/mt_random.h"
+#include "../scene/scene.h"
 
 class ActorFactory;
 class LevelManager;
@@ -47,6 +48,8 @@ public:
 	virtual WeakActorPtr VGetActorByName(const std::string& actor_name);
 	virtual const std::unordered_set<ActorId>& VGetActorsByComponent(ComponentId cid);
 	virtual bool VCheckActorsExistByComponent(ComponentId cid);
+
+	virtual const std::shared_ptr<Scene>& VGetScene() override;
 
 	virtual void VModifyActor(const ActorId actorId, const pugi::xml_node& overrides);
 	virtual void VMoveActor(const ActorId id, const glm::mat4x4& mat) override;
@@ -103,4 +106,5 @@ protected:
 	ActorId m_last_actor_id;
 	BaseEngineState m_state;
 	std::shared_ptr<CameraComponent> m_active_camera;
+	std::shared_ptr<Scene> m_scene;
 };

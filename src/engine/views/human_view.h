@@ -35,8 +35,8 @@ public:
 
 	virtual void VOnAttach(EngineViewId vid, ActorId aid);
 	
-	virtual void VPushElement(std::shared_ptr<IScreenElement> pElement);
-	virtual void VRemoveElement(std::shared_ptr<IScreenElement> pElement);
+	virtual void VPushElement(std::shared_ptr<IScreenElement> pElement) override;
+	virtual void VRemoveElement(std::shared_ptr<IScreenElement> pElement) override;
 
 	virtual void VActivateScene(bool is_active);
 	virtual void VCanDraw(bool is_can_draw);
@@ -46,7 +46,6 @@ public:
 
 	virtual void VSetControlledActor(std::shared_ptr<Actor> actor);
 	virtual std::shared_ptr<CameraComponent> VGetCamera();
-	virtual std::shared_ptr<Scene> VGetScene();
 	virtual void VSetCameraByName(std::string camera_name);
 
 	virtual const std::string& VGetName() override;
@@ -70,7 +69,6 @@ protected:
 
 	std::shared_ptr<ProcessManager> m_process_manager;
 	ScreenElementList m_screen_elements;
-	std::shared_ptr<ScreenElementScene> m_scene;
 	std::weak_ptr<CameraComponent> m_camera;
 
 	float m_pointer_radius;

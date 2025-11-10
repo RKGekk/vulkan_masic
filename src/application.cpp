@@ -120,7 +120,7 @@ GameTimer& Application::GetTimer() {
     return m_timer;
 }
 
-std::shared_ptr<BaseEngineLogic> Application::GetGameLogic() {
+const std::shared_ptr<BaseEngineLogic>& Application::GetGameLogic() const {
     return m_game;
 };
 

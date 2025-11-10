@@ -17,6 +17,10 @@ TransformComponent::TransformComponent() {
 }
 
 TransformComponent::TransformComponent(const pugi::xml_node& data) {
+    m_forward = DEFAULT_FORWARD_VECTOR;
+    m_up = DEFAULT_UP_VECTOR;
+    m_right = DEFAULT_RIGHT_VECTOR;
+
     Init(data);
 }
 
@@ -121,8 +125,8 @@ glm::mat4x4 makeRotationMatrixFromYawPitchRoll(float yaw_radians, float pitch_ra
 }
 
 bool TransformComponent::Init(const pugi::xml_node& data) {
-    glm::vec position = posfromattr3f(data.child("Position"), GetTranslation3f());
-    glm::vec yawPitchRoll = anglesfromattr3f(data.child("YawPitchRoll"), GetYawPitchRoll());
+    glm::vec position = posfromattr3f(data.child("Position"));
+    glm::vec yawPitchRoll = anglesfromattr3f(data.child("YawPitchRoll"));
     glm::vec scale = posfromattr3f(data.child("Scale"), {1.0f, 1.0f, 1.0f});
 
     glm::mat4x4 translation_xm = glm::translate(glm::mat4(1.0f), glm::vec3(position.x, position.y, position.z));
@@ -131,7 +135,7 @@ bool TransformComponent::Init(const pugi::xml_node& data) {
 
     glm::mat4x4 result = (scale_xm * rotation_xm) * translation_xm;
 
-    std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->GetHumanView()->VGetScene();
+    std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->VGetScene();
     Scene::NodeIndex node_index = scene_ptr->addNode();
     std::shared_ptr<Actor> act = GetOwner();
 	std::string name = act->GetName();

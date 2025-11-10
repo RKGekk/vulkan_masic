@@ -43,7 +43,7 @@ public:
 
     const ApplicationOptions& GetApplicationOptions() const;
     GameTimer& GetTimer();
-    std::shared_ptr<BaseEngineLogic> GetGameLogic();;
+    const std::shared_ptr<BaseEngineLogic>& GetGameLogic() const;
     
     void mainLoop();
 

@@ -15,7 +15,7 @@ Scene::Scene() {
 }
 
 int Scene::addNode(NodeIndex parent_index) {
-    assert(parent_index > NO_INDEX);
+    assert(parent_index != NO_INDEX);
 
     const NodeIndex new_node_index = (NodeIndex)m_hierarchy.size();
     Hierarchy hierarchy{}; 
@@ -28,7 +28,6 @@ int Scene::addNode(NodeIndex parent_index) {
     const NodeIndex old_child_index = m_hierarchy[parent_index].first_child;
     m_hierarchy[parent_index].first_child = new_node_index;
     if (old_child_index != NO_INDEX) {
-        m_hierarchy[parent_index].first_child = new_node_index;
         m_hierarchy[new_node_index].next_sibling = old_child_index;
     }
     m_hierarchy[new_node_index].level = m_hierarchy[parent_index].level + 1;
