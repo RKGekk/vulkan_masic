@@ -10,6 +10,8 @@ bool VulkanBuffer::init(std::shared_ptr<VulkanDevice> device, const void* data, 
     m_usage = usage;
     m_properties = properties;
 
+    if (!buffer_size) return true;
+    
     std::vector<uint32_t> family_indices = m_device->getCommandManager().getQueueFamilyIndices().getIndices();
     
     VkBufferCreateInfo buffer_info{};
@@ -67,8 +69,10 @@ void VulkanBuffer::destroy() {
     if(m_properties & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
         vkUnmapMemory(m_device->getDevice(), m_memory);
     }
-    vkDestroyBuffer(m_device->getDevice(), m_buffer, nullptr);
-    vkFreeMemory(m_device->getDevice(), m_memory, nullptr);
+    if(m_size) {
+        vkDestroyBuffer(m_device->getDevice(), m_buffer, nullptr);
+        vkFreeMemory(m_device->getDevice(), m_memory, nullptr);
+    }
 }
 
 VkBuffer VulkanBuffer::getBuffer() const {
@@ -107,10 +111,17 @@ void VulkanBuffer::update(const void* src_data, VkDeviceSize buffer_size) {
     if(!src_data) {
         return;
     }
-    CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
-    update(command_buffer, src_data, buffer_size);
-    m_device->getCommandManager().submitCommandBuffer(command_buffer);
-    m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
+    if(m_properties & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
+        memcpy(m_mapped, src_data, buffer_size);
+        return;
+    }
+    else {
+        CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
+        update(command_buffer, src_data, buffer_size);
+        m_device->getCommandManager().submitCommandBuffer(command_buffer);
+        m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
+        return;
+    }
 }
 
 void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, VkDeviceSize buffer_size, VkAccessFlags dstAccessMask) {
@@ -123,18 +134,14 @@ void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, Vk
         return;
     }
     if(m_properties & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
-        memcpy(m_mapped, src_data, m_size);
+        memcpy(m_mapped, src_data, buffer_size);
         return;
     }
     std::shared_ptr<VulkanBuffer> staging_buffer = std::make_shared<VulkanBuffer>();
     staging_buffer->init(m_device, nullptr, m_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     command_buffer.addResource(staging_buffer);
 
-    vkMapMemory(m_device->getDevice(), staging_buffer->getMemory(), 0, m_size, 0u, &m_mapped);
-    memcpy(m_mapped, src_data, m_size);
-    vkUnmapMemory(m_device->getDevice(), staging_buffer->getMemory());
-
-    m_device->getCommandManager().copyBuffer(command_buffer.getCommandBufer(), staging_buffer->getBuffer(), m_buffer, m_size);
+    m_device->getCommandManager().copyBuffer(command_buffer.getCommandBufer(), staging_buffer->getBuffer(), m_buffer, buffer_size);
 
     VkMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;

@@ -30,7 +30,8 @@ VkImageView VulkanImageBuffer::createImageView(VkImage image, VkFormat format, V
 
 bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, VkImageCreateInfo image_info, VkMemoryPropertyFlags properties, VkImageAspectFlags aspect_flags) {
     size_t bytes_count = VulkanDevice::getBytesCount(image_info.format);
-    uint32_t mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(image_info.extent.width, image_info.extent.height)))) + 1u;
+    size_t initial_image_size = image_info.extent.width * image_info.extent.height * bytes_count;
+    uint32_t mip_levels = image_info.mipLevels;
 
     m_device = std::move(device);
     m_image_info = image_info;
@@ -60,32 +61,32 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char
     VkDeviceSize offset = 0u;
     vkBindImageMemory(m_device->getDevice(), m_image, m_memory, offset);
 
+    m_image_view = createImageView(m_image, m_image_info.format, aspect_flags, m_image_info.mipLevels);
+
     if(!pixels) {
         return true;
     }
 
-    VulkanBuffer staging_buffer;
-    staging_buffer.init(m_device, nullptr, m_image_size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-    staging_buffer.update(pixels, static_cast<size_t>(m_image_size));
+    std::shared_ptr<VulkanBuffer> staging_buffer = std::make_shared<VulkanBuffer>();
+    staging_buffer->init(m_device, nullptr, m_image_size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    staging_buffer->update(pixels, initial_image_size);
     
     CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
+    command_buffer.addResource(staging_buffer);
     m_device->getCommandManager().transitionImageLayout(command_buffer.getCommandBufer(), m_image, image_info.format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mip_levels);
-    m_device->getCommandManager().copyBufferToImage(command_buffer.getCommandBufer(), staging_buffer.getBuffer(), m_image, static_cast<uint32_t>(image_info.extent.width), static_cast<uint32_t>(image_info.extent.height));
+    m_device->getCommandManager().copyBufferToImage(command_buffer.getCommandBufer(), staging_buffer->getBuffer(), m_image, static_cast<uint32_t>(image_info.extent.width), static_cast<uint32_t>(image_info.extent.height));
     m_device->getCommandManager().generateMipmaps(command_buffer.getCommandBufer(), m_image, image_info.format, image_info.extent.width, image_info.extent.height, mip_levels);
     //m_device->getCommandManager().transitionImageLayout(m_image, image_info.format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mip_levels);
     m_device->getCommandManager().submitCommandBuffer(command_buffer);
     m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
 
-    staging_buffer.destroy();
-
     m_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    m_image_view = createImageView(m_image, m_image_info.format, aspect_flags, m_image_info.mipLevels);
 
     return true;
 }
 
 bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, size_t width, size_t height, VkFormat format, VkMemoryPropertyFlags properties, VkImageAspectFlags aspect_flags) {
-    uint32_t mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1u;
+    uint32_t mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height))));
 
     VkFormat image_format = device->findSupportedFormat(
         {

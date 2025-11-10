@@ -20,5 +20,4 @@ private:
 
     VkDevice m_device;
     VkPipelineShaderStageCreateInfo m_shader_info;
-    VulkanDescriptor m_descriptor;
 };

@@ -46,6 +46,7 @@ std::shared_ptr<VulkanTexture> makeFontTexture(std::shared_ptr<VulkanDevice> dev
     cfg.OversampleH = 4;
     cfg.OversampleV = 4;
     ImFont* font = nullptr;
+
     if (TTF_font_file_name) {
         font = io.Fonts->AddFontFromFileTTF(TTF_font_file_name, cfg.SizePixels, &cfg);
     } else {
@@ -196,7 +197,7 @@ VkPipelineVertexInputStateCreateInfo getImVertextInputInfo() {
 bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarget& rt) {
     m_device = std::move(device);
 
-    static const std::string TTF_font_file_name = "fonts/OpenSans-Light.ttf";
+    static const std::string TTF_font_file_name = std::filesystem::current_path().append("fonts").append("OpenSans-Light.ttf").string();
     static const float font_size_pixels = 30.0f;
 
     ImGui::CreateContext();
