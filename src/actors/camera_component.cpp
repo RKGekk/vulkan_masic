@@ -10,9 +10,19 @@
 
 const std::string CameraComponent::g_name = "CameraComponent";
 
-CameraComponent::CameraComponent() {}
+CameraComponent::CameraComponent() {
+	std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->VGetScene();
+
+	m_camera_node = std::make_shared<BasicCameraNode>(std::move(scene_ptr), 90.0f, 16.0f/9.0f, 0.1f, 1.0f);
+	scene_ptr->addProperty(m_camera_node->VGetNodeIndex(), m_camera_node);
+}
 
 CameraComponent::CameraComponent(const pugi::xml_node& data) {
+	std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->VGetScene();
+
+	m_camera_node = std::make_shared<BasicCameraNode>(std::move(scene_ptr), 90.0f, 16.0f/9.0f, 0.1f, 1.0f);
+	scene_ptr->addProperty(m_camera_node->VGetNodeIndex(), m_camera_node);
+
 	Init(data);
 }
 
@@ -25,12 +35,10 @@ bool CameraComponent::Init(const pugi::xml_node& data) {
 	float near = data.child("Near").text().as_float(0.1f);
 	float far = data.child("Far").text().as_float(1.0f);
 	float aspect_ratio = Application::Get().GetApplicationOptions().GetAspect();
-	std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->VGetScene();
-    Scene::NodeIndex node_index = scene_ptr->addNode();
-	std::shared_ptr<TransformComponent> tc = act->GetComponent<TransformComponent>(ActorComponent::GetIdFromName("TransformComponent")).lock();
-	Scene::NodeIndex node_idx = tc->GetSceneNodeIndex();
 
-	m_camera_node = std::make_shared<BasicCameraNode>(std::move(scene_ptr), node_idx, fov, aspect_ratio, near, far);
+	std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->VGetScene();
+
+	m_camera_node->SetProjection(fov, aspect_ratio, near, far);
 
 	return true;
 }

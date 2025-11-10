@@ -12,6 +12,7 @@ Scene::Scene() {
     m_local_transform.push_back(glm::mat4(1.0f));
     m_global_transform.push_back(glm::mat4(1.0f));
     m_hierarchy.push_back({});
+    m_dirty_at_level = std::vector<NodeIndexArray>(MAX_NODE_LEVEL);
 }
 
 int Scene::addNode(NodeIndex parent_index) {

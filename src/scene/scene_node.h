@@ -10,6 +10,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/ext.hpp>
 
+#include <memory>
 #include <stdint.h>
 #include <string>
 
