@@ -127,6 +127,9 @@ const std::shared_ptr<BaseEngineLogic>& Application::GetGameLogic() const {
 void Application::mainLoop() {
     while(!update()) {
         if(m_window->SkipDraw()) continue;
+        for (GameViewList::const_iterator i = m_game->GetViews().begin(), end = m_game->GetViews().end(); i != end; ++i) {
+		    (*i)->VOnRender(Application::Get().GetTimer());
+	    }
         m_renderer.update_frame(m_timer, m_renderer.getSwapchain().getCurrentFrame());
         m_renderer.drawFrame();
     }

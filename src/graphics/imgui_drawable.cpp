@@ -197,6 +197,9 @@ VkPipelineVertexInputStateCreateInfo getImVertextInputInfo() {
 bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarget& rt) {
     m_device = std::move(device);
 
+    m_imgui_vtx.resize(rt.frame_count);
+    m_imgui_idx.resize(rt.frame_count);
+
     static const std::string TTF_font_file_name = std::filesystem::current_path().append("fonts").append("OpenSans-Light.ttf").string();
     static const float font_size_pixels = 30.0f;
 
@@ -344,9 +347,6 @@ void ImGUIDrawable::recordCommandBuffer(CommandBatch& command_buffer, uint32_t i
         
     vkCmdBindPipeline(command_buffer.getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.getPipeline());
 
-    VkBuffer vertex_buffers[] = {m_vertex_buffers[image_index]->getVertexBuffer()->getBuffer()};
-    VkDeviceSize offsets[] = {0};
-
     ImDrawData* dd = ImGui::GetDrawData();
 
     ImGuiUniformBufferObject ubo{};
@@ -360,8 +360,8 @@ void ImGUIDrawable::recordCommandBuffer(CommandBatch& command_buffer, uint32_t i
     const ImVec2 clip_scale = dd->FramebufferScale;
 
     if(m_vertex_buffers[image_index]->getVertexCount() < dd->TotalVtxCount || m_vertex_buffers[image_index]->getIndicesCount() < dd->TotalIdxCount) {
-        m_imgui_vtx[image_index].resize(m_vertex_buffers[image_index]->getVertexCount());
-        m_imgui_idx[image_index].resize(m_vertex_buffers[image_index]->getIndicesCount());
+        m_imgui_vtx[image_index].resize(dd->TotalVtxCount);
+        m_imgui_idx[image_index].resize(dd->TotalIdxCount);
         m_vertex_buffers[image_index]->destroy();
         m_vertex_buffers[image_index]->init(m_device, nullptr, dd->TotalVtxCount, nullptr, dd->TotalIdxCount, VK_INDEX_TYPE_UINT16, getImVertextInputInfo());
     }
@@ -377,6 +377,10 @@ void ImGUIDrawable::recordCommandBuffer(CommandBatch& command_buffer, uint32_t i
         idx += cmdList->IdxBuffer.Size;
     }
     m_vertex_buffers[image_index]->update(m_imgui_vtx[image_index], m_imgui_idx[image_index]);
+
+    VkBuffer vertex_buffers[] = {m_vertex_buffers[image_index]->getVertexBuffer()->getBuffer()};
+    VkDeviceSize offsets[] = {0};
+    
     vkCmdBindVertexBuffers(command_buffer.getCommandBufer(), 0, 1, vertex_buffers, offsets);
     vkCmdBindIndexBuffer(command_buffer.getCommandBufer(), m_vertex_buffers[image_index]->getIndexBuffer()->getBuffer(), 0u, VK_INDEX_TYPE_UINT16);
 

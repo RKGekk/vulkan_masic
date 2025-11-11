@@ -13,14 +13,14 @@ const std::string CameraComponent::g_name = "CameraComponent";
 CameraComponent::CameraComponent() {
 	std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->VGetScene();
 
-	m_camera_node = std::make_shared<BasicCameraNode>(std::move(scene_ptr), 90.0f, 16.0f/9.0f, 0.1f, 1.0f);
+	m_camera_node = std::make_shared<BasicCameraNode>(scene_ptr, g_name, glm::mat4(1.0f),  glm::radians(90.0f), 16.0f/9.0f, 0.1f, 1.0f);
 	scene_ptr->addProperty(m_camera_node->VGetNodeIndex(), m_camera_node);
 }
 
 CameraComponent::CameraComponent(const pugi::xml_node& data) {
 	std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->VGetScene();
 
-	m_camera_node = std::make_shared<BasicCameraNode>(std::move(scene_ptr), 90.0f, 16.0f/9.0f, 0.1f, 1.0f);
+	m_camera_node = std::make_shared<BasicCameraNode>(scene_ptr, g_name, glm::mat4(1.0f),  glm::radians(90.0f), 16.0f/9.0f, 0.1f, 1.0f);
 	scene_ptr->addProperty(m_camera_node->VGetNodeIndex(), m_camera_node);
 
 	Init(data);
@@ -31,7 +31,7 @@ CameraComponent::~CameraComponent() {}
 bool CameraComponent::Init(const pugi::xml_node& data) {
 	std::shared_ptr<Actor> act = GetOwner();
 
-	float fov = DirectX::XMConvertToRadians(data.child("Fov").text().as_float(90.0f));
+	float fov =  glm::radians(data.child("Fov").text().as_float(90.0f));
 	float near = data.child("Near").text().as_float(0.1f);
 	float far = data.child("Far").text().as_float(1.0f);
 	float aspect_ratio = Application::Get().GetApplicationOptions().GetAspect();

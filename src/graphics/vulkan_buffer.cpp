@@ -66,10 +66,10 @@ bool VulkanBuffer::init(std::shared_ptr<VulkanDevice> device, CommandBatch& comm
 }
 
 void VulkanBuffer::destroy() {
-    if(m_properties & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
-        vkUnmapMemory(m_device->getDevice(), m_memory);
-    }
     if(m_size) {
+        if(m_properties & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
+            vkUnmapMemory(m_device->getDevice(), m_memory);
+        }
         vkDestroyBuffer(m_device->getDevice(), m_buffer, nullptr);
         vkFreeMemory(m_device->getDevice(), m_memory, nullptr);
     }

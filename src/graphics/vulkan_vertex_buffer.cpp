@@ -3,6 +3,7 @@
 bool VertexBuffer::init(std::shared_ptr<VulkanDevice> device, const void* vertices_data, size_t vertices_count, const void* indices_data, size_t indices_count, VkIndexType index_type, VkPipelineVertexInputStateCreateInfo vertex_info, VkMemoryPropertyFlags properties) {
     m_device = std::move(device);
     m_indices_count = indices_count;
+    m_vertex_count = vertices_count;
     m_index_type = index_type;
     m_vertex_info = vertex_info;
 
