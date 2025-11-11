@@ -173,6 +173,7 @@ void VulkanRenderer::createColorResources() {
     image_info.format = color_format;
     image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
     image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    //image_info.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     image_info.usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     image_info.sharingMode = m_swapchain.getSwapchainParams().images_sharing_mode;
     image_info.queueFamilyIndexCount = static_cast<uint32_t>(families.size());

@@ -15,20 +15,20 @@ bool VertexBuffer::init(std::shared_ptr<VulkanDevice> device, const void* vertic
         CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
         
         m_vertex_buffer = std::make_shared<VulkanBuffer>();
-        bool result = m_vertex_buffer->init(m_device, command_buffer, vertices_data, vertices_buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, properties);
+        bool result = m_vertex_buffer->init(m_device, command_buffer, vertices_data, vertices_buffer_size, properties, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
         
         m_index_buffer = std::make_shared<VulkanBuffer>();
-        result &= m_index_buffer->init(m_device, command_buffer, indices_data, indices_buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, properties);
+        result &= m_index_buffer->init(m_device, command_buffer, indices_data, indices_buffer_size, properties, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
         
         m_device->getCommandManager().submitCommandBuffer(command_buffer);
         m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
     }
     else {
         m_vertex_buffer = std::make_shared<VulkanBuffer>();
-        bool result = m_vertex_buffer->init(m_device, vertices_data, vertices_buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, properties);
+        bool result = m_vertex_buffer->init(m_device, vertices_data, vertices_buffer_size, properties, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
         
         m_index_buffer = std::make_shared<VulkanBuffer>();
-        result &= m_index_buffer->init(m_device, indices_data, indices_buffer_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, properties);
+        result &= m_index_buffer->init(m_device, indices_data, indices_buffer_size, properties, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
     }
 
     return result;

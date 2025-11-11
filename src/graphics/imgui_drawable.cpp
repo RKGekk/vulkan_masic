@@ -74,11 +74,13 @@ VkRenderPass createRenderPass(std::shared_ptr<VulkanDevice> device, VkFormat col
     VkAttachmentDescription color_attachment{};
     color_attachment.format = color_format;
     color_attachment.samples = device->getMsaaSamples();
-    color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+    //color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+    color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     color_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     color_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    color_attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    //color_attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     color_attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     
     VkAttachmentReference color_attachment_ref{};
@@ -88,11 +90,13 @@ VkRenderPass createRenderPass(std::shared_ptr<VulkanDevice> device, VkFormat col
     VkAttachmentDescription depth_attachment{};
     depth_attachment.format = depth_format;
     depth_attachment.samples = device->getMsaaSamples();
-    depth_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+    //depth_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+    depth_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     depth_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     depth_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     depth_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depth_attachment.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    //depth_attachment.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    depth_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     depth_attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     
     VkAttachmentReference depth_attachment_ref{};
@@ -102,11 +106,13 @@ VkRenderPass createRenderPass(std::shared_ptr<VulkanDevice> device, VkFormat col
     VkAttachmentDescription color_attachment_resolve{};
     color_attachment_resolve.format = color_format;
     color_attachment_resolve.samples = VK_SAMPLE_COUNT_1_BIT;
-    color_attachment_resolve.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+    //color_attachment_resolve.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+    color_attachment_resolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     color_attachment_resolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     color_attachment_resolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     color_attachment_resolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    color_attachment_resolve.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    //color_attachment_resolve.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    color_attachment_resolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     color_attachment_resolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
     
     VkAttachmentReference color_attachment_resolve_ref{};
