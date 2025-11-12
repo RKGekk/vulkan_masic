@@ -355,7 +355,6 @@ void ImGUIDrawable::recordCommandBuffer(CommandBatch& command_buffer, uint32_t i
 
     ImDrawData* dd = ImGui::GetDrawData();
 
-    ImGuiUniformBufferObject ubo{};
     const float L = dd->DisplayPos.x;
     const float R = dd->DisplayPos.x + dd->DisplaySize.x;
     const float T = dd->DisplayPos.y;
@@ -406,7 +405,7 @@ void ImGUIDrawable::recordCommandBuffer(CommandBatch& command_buffer, uint32_t i
             
             ImGuiUniformBufferObject bindData;
             bindData.LRTB = {L, R, T, B};
-            m_uniform_buffers[image_index]->update(command_buffer, &ubo, sizeof(ImGuiUniformBufferObject), VK_ACCESS_UNIFORM_READ_BIT);
+            m_uniform_buffers[image_index]->update(command_buffer, &bindData, sizeof(ImGuiUniformBufferObject), VK_ACCESS_UNIFORM_READ_BIT);
       
             VkRect2D scissor{};
             scissor.offset = VkOffset2D{(int32_t)clipMin.x, (int32_t)clipMin.y};

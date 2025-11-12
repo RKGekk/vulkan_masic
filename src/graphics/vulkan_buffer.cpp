@@ -138,7 +138,7 @@ void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, Vk
         return;
     }
     std::shared_ptr<VulkanBuffer> staging_buffer = std::make_shared<VulkanBuffer>();
-    staging_buffer->init(m_device, nullptr, m_size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    staging_buffer->init(m_device, src_data, m_size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
     command_buffer.addResource(staging_buffer);
 
     m_device->getCommandManager().copyBuffer(command_buffer.getCommandBufer(), staging_buffer->getBuffer(), m_buffer, buffer_size);
