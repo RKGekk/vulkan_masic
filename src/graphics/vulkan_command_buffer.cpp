@@ -165,8 +165,8 @@ VkSubmitInfo CommandBatch::getSubmitInfo(BatchWaitInfo* wait_info) const {
         submit_info.pWaitDstStageMask = nullptr;
         submit_info.commandBufferCount = static_cast<uint32_t>(m_command_buffers.size());
         submit_info.pCommandBuffers = m_command_buffers.data();
-        submit_info.signalSemaphoreCount = 1u;
-        submit_info.pSignalSemaphores = &m_buffer_in_use_semaphore;
+        submit_info.signalSemaphoreCount = 0u;
+        submit_info.pSignalSemaphores = nullptr;
     }
 
     return submit_info;

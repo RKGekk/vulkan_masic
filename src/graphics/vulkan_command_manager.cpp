@@ -40,7 +40,7 @@ bool VulkanCommandManager::init(VkPhysicalDevice physical_device, VkDevice logic
         if(result != VK_SUCCESS) {
             throw std::runtime_error("failed to create fence!");
         }
-        m_free_smp_idx.Push(i);
+        m_free_fnc_idx.Push(i);
     
         VkSemaphoreCreateInfo buffer_available_sema_info{};
         buffer_available_sema_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -48,7 +48,7 @@ bool VulkanCommandManager::init(VkPhysicalDevice physical_device, VkDevice logic
         if(result != VK_SUCCESS) {
             throw std::runtime_error("failed to create semaphore!");
         }
-        m_free_fnc_idx.Push(i);
+        m_free_smp_idx.Push(i);
     }
 
     m_cmd_buff_thread = std::thread(
