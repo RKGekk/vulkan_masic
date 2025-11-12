@@ -68,8 +68,8 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char
     }
 
     std::shared_ptr<VulkanBuffer> staging_buffer = std::make_shared<VulkanBuffer>();
-    staging_buffer->init(m_device, nullptr, m_image_size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-    staging_buffer->update(pixels, initial_image_size);
+    staging_buffer->init(m_device, pixels, initial_image_size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    //staging_buffer->update(pixels, initial_image_size);
     
     CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
     command_buffer.addResource(staging_buffer);

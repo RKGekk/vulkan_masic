@@ -4,7 +4,8 @@
 #include <stb_image.h>
 
 bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, int width, int height, VkFormat format) {
-    return init(std::move(device), pixels, width, height, createTextureSampler(m_image_info.mipLevels), format);
+    m_device = device;
+    return init(device, pixels, width, height, createTextureSampler(m_image_info.mipLevels), format);
 }
 
 bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, int width, int height, VkSampler sampler, VkFormat format) {
@@ -20,7 +21,8 @@ bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, unsigned char* pi
 }
 
 bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, const std::string& path_to_file) {
-    return init(std::move(device), path_to_file, createTextureSampler(m_image_info.mipLevels));
+    m_device = device;
+    return init(device, path_to_file, createTextureSampler(m_image_info.mipLevels));
 }
 
 bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, const std::string& path_to_file, VkSampler sampler) {
@@ -32,7 +34,7 @@ bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, const std::string
         throw std::runtime_error("failed to load texture image!");
     }
 
-    bool result = init(std::move(device), pixels, tex_width, tex_height, sampler);
+    bool result = init(std::move(device), pixels, tex_width, tex_height, sampler, tex_channels == 4 ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8_SRGB);
 
     stbi_image_free(pixels);
 

@@ -40,19 +40,15 @@ bool VulkanBuffer::init(std::shared_ptr<VulkanDevice> device, const void* data, 
     if(result != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate buffer memory!");
     }
-
     VkDeviceSize offset = 0u;
+    vkBindBufferMemory(m_device->getDevice(), m_buffer, m_memory, offset);
 
     if(m_properties & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
         vkMapMemory(m_device->getDevice(), m_memory, 0, m_size, 0u, &m_mapped);
     }
     
-    vkBindBufferMemory(m_device->getDevice(), m_buffer, m_memory, offset);
     if(data) {
-        CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
-        update(command_buffer, data, buffer_size);
-        m_device->getCommandManager().submitCommandBuffer(command_buffer);
-        m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
+        update(data, buffer_size);
     }
  
     return true;
