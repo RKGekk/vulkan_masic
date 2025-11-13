@@ -42,6 +42,7 @@ public:
 private:
     VkRenderPass createRenderPass(VkFormat color_format, VkFormat depth_format);
     VkRenderPass createRenderPass(VkFormat color_format, VkFormat depth_format, VkSubpassDependency subpass_dependency);
+    VulkanPipeline::PipelineCfg createPipelineCfg(const std::vector<VkDescriptorSetLayout>& desc_set_layouts, VkRenderPass render_pass, VkExtent2D viewport_extent, std::vector<VkPipelineShaderStageCreateInfo> shaders_info, const VkPipelineVertexInputStateCreateInfo& vertex_input_info, VkSampleCountFlagBits msaa_samples);
     std::vector<VkFramebuffer> createFramebuffers(const RenderTarget& rt);
 
     std::shared_ptr<VulkanDevice> m_device;
@@ -52,6 +53,7 @@ private:
     RenderTargetFormat m_render_target_fmt;
 
 	VulkanPipeline m_pipeline;
+    VulkanPipeline::PipelineCfg m_pipeline_cfg;
     VulkanDescriptor m_descriptor;
 
     VulkanShader m_vert_shader;

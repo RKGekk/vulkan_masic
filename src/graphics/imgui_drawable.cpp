@@ -49,9 +49,12 @@ std::shared_ptr<VulkanTexture> makeFontTexture(std::shared_ptr<VulkanDevice> dev
 
     if (TTF_font_file_name) {
         font = io.Fonts->AddFontFromFileTTF(TTF_font_file_name, cfg.SizePixels, &cfg);
-    } else {
+    }
+    else {
         font = io.Fonts->AddFontDefault(&cfg);
     }
+    //font = io.Fonts->AddFontDefault(&cfg);
+    
 
     io.Fonts->Flags |= ImFontAtlasFlags_NoPowerOfTwoHeight;
 
@@ -63,6 +66,10 @@ std::shared_ptr<VulkanTexture> makeFontTexture(std::shared_ptr<VulkanDevice> dev
     std::shared_ptr<VulkanTexture> font_texture = std::make_shared<VulkanTexture>();
     VkSampler fonts_sampler = createFontTextureSampler(device);
     font_texture->init(device, pixels, width, height, fonts_sampler, VK_FORMAT_R8G8B8A8_UNORM);
+    //VkSampler fonts_sampler = createFontTextureSampler(device);
+    //font_texture->init(device, pixels, width, height, VK_FORMAT_R8G8B8A8_UNORM);
+    //const std::string texture_name = std::filesystem::current_path().append("textures").append("Sketchfab_UV_Checker.png").string();// "textures/Sketchfab_UV_Checker.png"s;
+    //font_texture->init(device, texture_name);
 
     io.Fonts->TexID = 0u;
     io.FontDefault = font;
@@ -200,7 +207,60 @@ VkPipelineVertexInputStateCreateInfo getImVertextInputInfo() {
     return vertex_input_info;
 }
 
+VulkanPipeline::PipelineCfg ImGUIDrawable::createPipelineCfg(const std::vector<VkDescriptorSetLayout>& desc_set_layouts, VkRenderPass render_pass, VkExtent2D viewport_extent, std::vector<VkPipelineShaderStageCreateInfo> shaders_info, const VkPipelineVertexInputStateCreateInfo& vertex_input_info, VkSampleCountFlagBits msaa_samples) {
+    VulkanPipeline::PipelineCfg pipeline_cfg = {};
+
+    pipeline_cfg.dynamic_states = {
+        VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_SCISSOR
+    };
+
+    pipeline_cfg.desc_set_layouts = desc_set_layouts;
+    pipeline_cfg.render_pass = render_pass;
+    pipeline_cfg.viewport_extent = viewport_extent;
+    pipeline_cfg.shaders_info = std::move(shaders_info);
+    pipeline_cfg.vertex_input_info = vertex_input_info;
+    pipeline_cfg.msaa_samples = msaa_samples;
+
+    pipeline_cfg.depth_stencil_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    pipeline_cfg.depth_stencil_info.depthTestEnable = VK_FALSE;
+    pipeline_cfg.depth_stencil_info.depthWriteEnable = VK_FALSE;
+    pipeline_cfg.depth_stencil_info.depthCompareOp = VK_COMPARE_OP_LESS;
+    pipeline_cfg.depth_stencil_info.depthBoundsTestEnable = VK_FALSE;
+    pipeline_cfg.depth_stencil_info.minDepthBounds = 0.0f;
+    pipeline_cfg.depth_stencil_info.maxDepthBounds = 1.0f;
+    pipeline_cfg.depth_stencil_info.stencilTestEnable = VK_FALSE;
+    pipeline_cfg.depth_stencil_info.front = {};
+    pipeline_cfg.depth_stencil_info.back = {};
+
+    pipeline_cfg.rasterizer_info.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    pipeline_cfg.rasterizer_info.depthBiasClamp = VK_FALSE;
+    pipeline_cfg.rasterizer_info.rasterizerDiscardEnable = VK_FALSE;
+    pipeline_cfg.rasterizer_info.polygonMode = VK_POLYGON_MODE_FILL;
+    pipeline_cfg.rasterizer_info.cullMode = VK_CULL_MODE_NONE;
+    //m_pipeline_cfg.rasterizer_info.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    pipeline_cfg.rasterizer_info.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    pipeline_cfg.rasterizer_info.depthBiasEnable = VK_FALSE;
+    pipeline_cfg.rasterizer_info.depthBiasConstantFactor = 0.0f;
+    pipeline_cfg.rasterizer_info.depthBiasClamp = 0.0f;
+    pipeline_cfg.rasterizer_info.depthBiasSlopeFactor = 0.0f;
+    pipeline_cfg.rasterizer_info.lineWidth = 1.0f;
+
+    pipeline_cfg.color_blend_state.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    pipeline_cfg.color_blend_state.blendEnable = VK_TRUE;
+    pipeline_cfg.color_blend_state.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+    pipeline_cfg.color_blend_state.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    pipeline_cfg.color_blend_state.colorBlendOp = VK_BLEND_OP_ADD;
+    pipeline_cfg.color_blend_state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    pipeline_cfg.color_blend_state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+    pipeline_cfg.color_blend_state.alphaBlendOp = VK_BLEND_OP_ADD;
+
+    return pipeline_cfg;
+}
+
 bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarget& rt) {
+    using namespace std::literals;
+
     m_device = std::move(device);
 
     m_imgui_vtx.resize(rt.frame_count);
@@ -209,7 +269,8 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarge
     static const std::string TTF_font_file_name = std::filesystem::current_path().append("fonts").append("OpenSans-Light.ttf").string();
     static const float font_size_pixels = 30.0f;
 
-    ImGui::CreateContext();
+    m_pImgui_ctx = ImGui::CreateContext();
+    ImGui::SetCurrentContext(m_pImgui_ctx);
 
     m_render_target_fmt = rt.render_target_fmt;
     m_rt_aspect = (float)rt.render_target_fmt.viewportExtent.width / (float)rt.render_target_fmt.viewportExtent.height;
@@ -217,6 +278,8 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarge
     ImGuiIO& io = ImGui::GetIO();
     io.BackendRendererName = "imgui-lvk";
     io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
+    io.FontAllowUserScaling = true;
+    io.FontGlobalScale = 1.0f;
 
     m_font_texture = makeFontTexture(m_device, TTF_font_file_name.c_str(), font_size_pixels);
 
@@ -258,7 +321,10 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarge
     pipeline_shaders_info.push_back(m_vert_shader.getShaderInfo());
 
     m_render_pass = createRenderPass(m_device, rt.render_target_fmt.colorAttachmentFormat.format, rt.render_target_fmt.depthAttachmentFormat);
-    m_pipeline.init(m_device->getDevice(), {m_descriptor.getDescLayouts()}, m_render_pass, rt.render_target_fmt.viewportExtent, std::move(pipeline_shaders_info), m_vertex_buffers[0]->getVertextInputInfo(), m_device->getMsaaSamples());
+
+    VulkanPipeline::PipelineCfg m_pipeline_cfg = createPipelineCfg({m_descriptor.getDescLayouts()}, m_render_pass, rt.render_target_fmt.viewportExtent, std::move(pipeline_shaders_info), m_vertex_buffers[0]->getVertextInputInfo(), m_device->getMsaaSamples());
+
+    m_pipeline.init(m_device->getDevice(), m_pipeline_cfg);
     
     m_out_framebuffers = createFramebuffers(rt);
 
@@ -302,11 +368,16 @@ void ImGUIDrawable::reset(const RenderTarget& rt) {
 
     m_descriptor.init(m_device->getDevice(), std::move(bindings), rt.frame_count);
     m_render_pass = createRenderPass(m_device, rt.render_target_fmt.colorAttachmentFormat.format, rt.render_target_fmt.depthAttachmentFormat);
-    m_pipeline.init(m_device->getDevice(), {m_descriptor.getDescLayouts()}, m_render_pass, rt.render_target_fmt.viewportExtent, std::move(pipeline_shaders), m_vertex_buffers[0]->getVertextInputInfo(), m_device->getMsaaSamples());
+
+    VulkanPipeline::PipelineCfg m_pipeline_cfg = createPipelineCfg({m_descriptor.getDescLayouts()}, m_render_pass, rt.render_target_fmt.viewportExtent, std::move(pipeline_shaders), m_vertex_buffers[0]->getVertextInputInfo(), m_device->getMsaaSamples());
+
+    m_pipeline.init(m_device->getDevice(), m_pipeline_cfg);
     m_out_framebuffers = createFramebuffers(rt);
 }
 
 void ImGUIDrawable::destroy() {
+    ImGui::DestroyContext(m_pImgui_ctx);
+    m_pImgui_ctx = nullptr;
     m_pipeline.destroy();
     m_descriptor.destroy();
     m_vert_shader.destroy();
@@ -337,30 +408,29 @@ void ImGUIDrawable::recordCommandBuffer(CommandBatch& command_buffer, uint32_t i
     renderpass_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
     renderpass_info.pClearValues = clear_values.data();
 
-    VkViewport view_port{};
-    view_port.x = 0.0f;
-    view_port.y = 0.0f;
-    view_port.width = static_cast<float>(m_render_target_fmt.viewportExtent.width);
-    view_port.height = static_cast<float>(m_render_target_fmt.viewportExtent.height);
-    view_port.minDepth = 0.0f;
-    view_port.maxDepth = 1.0f;
-
     vkCmdBeginRenderPass(command_buffer.getCommandBufer(), &renderpass_info, VK_SUBPASS_CONTENTS_INLINE);
         
-    vkCmdSetViewport(command_buffer.getCommandBufer(), 0u, 1u, &view_port);
-
     vkCmdBindDescriptorSets(command_buffer.getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.getPipelineLayout(), 0, 1, &m_descriptor.getDescriptorSets()[image_index], 0, nullptr);
         
     vkCmdBindPipeline(command_buffer.getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.getPipeline());
 
     ImDrawData* dd = ImGui::GetDrawData();
 
+    const float fb_width = dd->DisplaySize.x * dd->FramebufferScale.x;
+    const float fb_height = dd->DisplaySize.y * dd->FramebufferScale.y;
+    VkViewport view_port{};
+    view_port.x = 0.0f;
+    view_port.y = 0.0f;
+    view_port.width = fb_width;
+    view_port.height = fb_height;
+    view_port.minDepth = 0.0f;
+    view_port.maxDepth = 1.0f;
+    vkCmdSetViewport(command_buffer.getCommandBufer(), 0u, 1u, &view_port);
+
     const float L = dd->DisplayPos.x;
     const float R = dd->DisplayPos.x + dd->DisplaySize.x;
     const float T = dd->DisplayPos.y;
     const float B = dd->DisplayPos.y + dd->DisplaySize.y;
-    const float fb_width = dd->DisplaySize.x * dd->FramebufferScale.x;
-    const float fb_height = dd->DisplaySize.y * dd->FramebufferScale.y;
     const ImVec2 clip_off = dd->DisplayPos;
     const ImVec2 clip_scale = dd->FramebufferScale;
 
@@ -385,6 +455,9 @@ void ImGUIDrawable::recordCommandBuffer(CommandBatch& command_buffer, uint32_t i
 
     VkBuffer vertex_buffers[] = {m_vertex_buffers[image_index]->getVertexBuffer()->getBuffer()};
     VkDeviceSize offsets[] = {0};
+
+
+    //glm::perspective(verticalFOV, aspectRatio, nearPlane, farPlane);
     
     vkCmdBindVertexBuffers(command_buffer.getCommandBufer(), 0, 1, vertex_buffers, offsets);
     vkCmdBindIndexBuffer(command_buffer.getCommandBufer(), m_vertex_buffers[image_index]->getIndexBuffer()->getBuffer(), 0u, VK_INDEX_TYPE_UINT16);
@@ -426,6 +499,7 @@ void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
 }
 
 void ImGUIDrawable::beginFrame(const RenderTarget& rt) {
+    ImGui::SetCurrentContext(m_pImgui_ctx);
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize = ImVec2(rt.render_target_fmt.viewportExtent.width, rt.render_target_fmt.viewportExtent.height);
     io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
@@ -435,6 +509,7 @@ void ImGUIDrawable::beginFrame(const RenderTarget& rt) {
 }
 
 void ImGUIDrawable::endFrame() {
+    ImGui::SetCurrentContext(m_pImgui_ctx);
     ImGui::EndFrame();
     ImGui::Render();
 }

@@ -236,6 +236,57 @@ VkPipelineVertexInputStateCreateInfo getVertextInputInfo() {
     return vertex_input_info;
 }
 
+VulkanPipeline::PipelineCfg GLTFDrawable::createPipelineCfg(const std::vector<VkDescriptorSetLayout>& desc_set_layouts, VkRenderPass render_pass, VkExtent2D viewport_extent, std::vector<VkPipelineShaderStageCreateInfo> shaders_info, const VkPipelineVertexInputStateCreateInfo& vertex_input_info, VkSampleCountFlagBits msaa_samples) {
+    VulkanPipeline::PipelineCfg pipeline_cfg = {};
+
+    pipeline_cfg.dynamic_states = {
+        VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_SCISSOR
+    };
+
+    pipeline_cfg.desc_set_layouts = desc_set_layouts;
+    pipeline_cfg.render_pass = render_pass;
+    pipeline_cfg.viewport_extent = viewport_extent;
+    pipeline_cfg.shaders_info = std::move(shaders_info);
+    pipeline_cfg.vertex_input_info = vertex_input_info;
+    pipeline_cfg.msaa_samples = msaa_samples;
+
+    pipeline_cfg.depth_stencil_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    pipeline_cfg.depth_stencil_info.depthTestEnable = VK_TRUE;
+    pipeline_cfg.depth_stencil_info.depthWriteEnable = VK_TRUE;
+    pipeline_cfg.depth_stencil_info.depthCompareOp = VK_COMPARE_OP_LESS;
+    pipeline_cfg.depth_stencil_info.depthBoundsTestEnable = VK_FALSE;
+    pipeline_cfg.depth_stencil_info.minDepthBounds = 0.0f;
+    pipeline_cfg.depth_stencil_info.maxDepthBounds = 1.0f;
+    pipeline_cfg.depth_stencil_info.stencilTestEnable = VK_FALSE;
+    pipeline_cfg.depth_stencil_info.front = {};
+    pipeline_cfg.depth_stencil_info.back = {};
+
+    pipeline_cfg.rasterizer_info.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    pipeline_cfg.rasterizer_info.depthBiasClamp = VK_FALSE;
+    pipeline_cfg.rasterizer_info.rasterizerDiscardEnable = VK_FALSE;
+    pipeline_cfg.rasterizer_info.polygonMode = VK_POLYGON_MODE_FILL;
+    pipeline_cfg.rasterizer_info.cullMode = VK_CULL_MODE_BACK_BIT;
+    //m_pipeline_cfg.rasterizer_info.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    pipeline_cfg.rasterizer_info.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    pipeline_cfg.rasterizer_info.depthBiasEnable = VK_FALSE;
+    pipeline_cfg.rasterizer_info.depthBiasConstantFactor = 0.0f;
+    pipeline_cfg.rasterizer_info.depthBiasClamp = 0.0f;
+    pipeline_cfg.rasterizer_info.depthBiasSlopeFactor = 0.0f;
+    pipeline_cfg.rasterizer_info.lineWidth = 1.0f;
+
+    pipeline_cfg.color_blend_state.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    pipeline_cfg.color_blend_state.blendEnable = VK_FALSE;
+    pipeline_cfg.color_blend_state.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+    pipeline_cfg.color_blend_state.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+    pipeline_cfg.color_blend_state.colorBlendOp = VK_BLEND_OP_ADD;
+    pipeline_cfg.color_blend_state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+    pipeline_cfg.color_blend_state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+    pipeline_cfg.color_blend_state.alphaBlendOp = VK_BLEND_OP_ADD;
+
+    return pipeline_cfg;
+}
+
 bool GLTFDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarget& rt) {
     using namespace std::literals;
     
@@ -322,7 +373,10 @@ bool GLTFDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarget
     pipeline_shaders_info.push_back(m_vert_shader.getShaderInfo());
 
     m_render_pass = createRenderPass(rt.render_target_fmt.colorAttachmentFormat.format, rt.render_target_fmt.depthAttachmentFormat);
-    m_pipeline.init(m_device->getDevice(), {m_descriptor.getDescLayouts()}, m_render_pass, rt.render_target_fmt.viewportExtent, std::move(pipeline_shaders_info), m_vertex_buffers[0]->getVertextInputInfo(), m_device->getMsaaSamples());
+
+    VulkanPipeline::PipelineCfg m_pipeline_cfg = createPipelineCfg({m_descriptor.getDescLayouts()}, m_render_pass, rt.render_target_fmt.viewportExtent, std::move(pipeline_shaders_info), m_vertex_buffers[0]->getVertextInputInfo(), m_device->getMsaaSamples());
+
+    m_pipeline.init(m_device->getDevice(), m_pipeline_cfg);
     m_out_framebuffers = createFramebuffers(rt);
 
     return true;
@@ -344,7 +398,10 @@ void GLTFDrawable::reset(const RenderTarget& rt) {
 
     m_descriptor.init(m_device->getDevice(), std::move(bindings), rt.frame_count);
     m_render_pass = createRenderPass(rt.render_target_fmt.colorAttachmentFormat.format, rt.render_target_fmt.depthAttachmentFormat);
-    m_pipeline.init(m_device->getDevice(), {m_descriptor.getDescLayouts()}, m_render_pass, rt.render_target_fmt.viewportExtent, std::move(pipeline_shaders), m_vertex_buffers[0]->getVertextInputInfo(), m_device->getMsaaSamples());
+
+    VulkanPipeline::PipelineCfg m_pipeline_cfg = createPipelineCfg({m_descriptor.getDescLayouts()}, m_render_pass, rt.render_target_fmt.viewportExtent, std::move(pipeline_shaders), m_vertex_buffers[0]->getVertextInputInfo(), m_device->getMsaaSamples());
+
+    m_pipeline.init(m_device->getDevice(), m_pipeline_cfg);
     m_out_framebuffers = createFramebuffers(rt);
 }
 

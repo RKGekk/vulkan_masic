@@ -30,7 +30,8 @@ void main() {
         0.0,               0.0,              -1.0, 0.0,
         (R + L) / (L - R), (T + B) / (B - T), 0.0, 1.0
     );
-    Vertex v = Vertex(inPosition.x, inPosition.y, inTexCoords.x, inTexCoords.y, inColor);
+    Vertex v = Vertex(inPosition.x, inPosition.y * -1 + B, inTexCoords.x, inTexCoords.y, inColor);
+    //Vertex v = Vertex(inPosition.x, inPosition.y, inTexCoords.x, inTexCoords.y, inColor);
     out_color = unpackUnorm4x8(v.rgba);
     out_uv = vec2(v.u, v.v);
     gl_Position = proj * vec4(v.x, v.y, 0, 1);

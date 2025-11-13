@@ -9,7 +9,20 @@
 
 class VulkanPipeline {
 public:
-    bool init(VkDevice device, const std::vector<VkDescriptorSetLayout>& desc_set_layouts, VkRenderPass render_pass, VkExtent2D viewport_extent, std::vector<VkPipelineShaderStageCreateInfo> shaders_info, const VkPipelineVertexInputStateCreateInfo& vertex_input_info, VkSampleCountFlagBits msaa_samples);
+    struct PipelineCfg {
+        std::vector<VkDescriptorSetLayout> desc_set_layouts;
+        VkRenderPass render_pass;
+        VkExtent2D viewport_extent;
+        std::vector<VkPipelineShaderStageCreateInfo> shaders_info;
+        VkPipelineVertexInputStateCreateInfo vertex_input_info;
+        VkSampleCountFlagBits msaa_samples;
+        std::vector<VkDynamicState> dynamic_states;
+        VkPipelineDepthStencilStateCreateInfo depth_stencil_info;
+        VkPipelineRasterizationStateCreateInfo rasterizer_info;
+        VkPipelineColorBlendAttachmentState color_blend_state;
+    };
+
+    bool init(VkDevice device, const PipelineCfg& pipeline_cfg);
     void destroy();
 
     VkPipeline getPipeline() const;
@@ -18,7 +31,7 @@ public:
 
 private:
     VkPipelineLayout createPipelineLayout(const std::vector<VkDescriptorSetLayout>& desc_set_layouts) const;
-    VkPipeline createPipeline(VkRenderPass render_pass, VkExtent2D viewport_extent, const std::vector<VkPipelineShaderStageCreateInfo>& shaders_info, const VkPipelineVertexInputStateCreateInfo& vertex_input_info, VkSampleCountFlagBits msaa_samples) const;
+    VkPipeline createPipeline(const PipelineCfg& pipeline_cfg) const;
 
     VkDevice m_device;
 
