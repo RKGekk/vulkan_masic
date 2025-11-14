@@ -22,8 +22,6 @@ public:
 	HumanView(std::shared_ptr<ProcessManager>);
 	virtual ~HumanView();
 
-	bool LoadGame(const pugi::xml_node& pLevelData);
-
 	virtual bool VOnRestore() override;
 	virtual bool VOnLostDevice() override;
 
@@ -42,7 +40,6 @@ public:
 	virtual void VCanDraw(bool is_can_draw);
 
 	void TogglePause(bool active);
-	void HandleGameState(BaseEngineState newState);
 
 	virtual void VSetControlledActor(std::shared_ptr<Actor> actor);
 	virtual std::shared_ptr<CameraComponent> VGetCamera();
@@ -50,12 +47,15 @@ public:
 
 	virtual const std::string& VGetName() override;
 
+	void MouseMotionDelegate(IEventDataPtr pEventData);
+	void MouseButtonPressDelegate(IEventDataPtr pEventData);
+	void MouseButtonReleaseDelegate(IEventDataPtr pEventData);
+	void MouseWheelDelegate(IEventDataPtr pEventData);
 	void GameStateDelegate(IEventDataPtr pEventData) {};
 	void NewSceneNodeComponentDelegate(IEventDataPtr pEventData) {};
 	void DestroySceneNodeComponentDelegate(IEventDataPtr pEventData) {};
 
 protected:
-	virtual bool VLoadGameDelegate(const pugi::xml_node& pLevelData) {return true;};
 	virtual void VRenderText() {};
 
 	EngineViewId m_view_id;
@@ -89,6 +89,6 @@ protected:
 	std::shared_ptr<ImGUIDrawable> m_gui;
 
 private:
-	void RegisterAllDelegates() {};
-	void RemoveAllDelegates() {};
+	void RegisterAllDelegates();
+	void RemoveAllDelegates();
 };

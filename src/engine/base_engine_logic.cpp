@@ -183,14 +183,6 @@ bool BaseEngineLogic::VLoadGame(const std::string& level_resource) {
 		}
 	}
 
-	for (auto it = m_game_views.begin(); it != m_game_views.end(); ++it) {
-		std::shared_ptr<IEngineView> pView = *it;
-		if (pView->VGetType() == EngineViewType::GameView_Human) {
-			std::shared_ptr<HumanView> pHumanView = std::static_pointer_cast<HumanView, IEngineView>(pView);
-			pHumanView->LoadGame(world_node);
-		}
-	}
-
 	m_animation_player->Initialize(world_node);
 
 	if (!VLoadGameDelegate(world_node)) { return false; }
@@ -217,7 +209,6 @@ bool BaseEngineLogic::VLoadGame(const std::string& level_resource, std::shared_p
 		}
 	}
 
-	pHumanView->LoadGame(root_node);
 	if (!VLoadGameDelegate(root_node)) return false;
 
 	return true;
@@ -233,7 +224,6 @@ void BaseEngineLogic::VOnUpdate(const GameTimerDelta& delta) {
 	switch (m_state) {
 		case BaseEngineState::BGS_Initializing: {
 			std::shared_ptr<IEngineView> menuView = std::make_shared<HumanView>(m_process_manager);
-			//menuView->VPushElement(std::dynamic_pointer_cast<IScreenElement>(m_scene));
 			VAddView(menuView);
 			VChangeState(BaseEngineState::BGS_MainMenu);
 		}

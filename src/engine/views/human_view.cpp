@@ -4,6 +4,10 @@
 #include "../../graphics/vulkan_renderer.h"
 #include "../../graphics/vulkan_device.h"
 #include "../../tools/memory_utility.h"
+#include "../../events/cicadas/evt_data_mouse_motion.h"
+#include "../../events/cicadas/evt_data_mouse_button_pressed.h"
+#include "../../events/cicadas/evt_data_mouse_button_released.h"
+#include "../../events/cicadas/evt_data_mouse_wheel.h"
 
 const std::string HumanView::g_name = "Level"s;
 
@@ -35,10 +39,6 @@ HumanView::HumanView(std::shared_ptr<ProcessManager> process_manager) {
 
 HumanView::~HumanView() {
 	RemoveAllDelegates();
-}
-
-bool HumanView::LoadGame(const pugi::xml_node& pLevelData) {
-	return VLoadGameDelegate(pLevelData);
 }
 
 bool HumanView::VOnRestore() {
@@ -123,8 +123,6 @@ void HumanView::VCanDraw(bool is_can_draw) {
 
 void HumanView::TogglePause(bool active) {}
 
-void HumanView::HandleGameState(BaseEngineState newState) {}
-
 void HumanView::VSetControlledActor(std::shared_ptr<Actor> actor) {
 	m_pTeapot = actor;
 	if (m_pTeapot.expired()) {
@@ -170,3 +168,56 @@ void HumanView::VSetCameraByName(std::string camera_name) {
 const std::string& HumanView::VGetName() {
 	return g_name;
 }
+
+void HumanView::MouseMotionDelegate(IEventDataPtr pEventData) {
+	std::shared_ptr<EvtData_Mouse_Motion> pCastEventData = std::static_pointer_cast<EvtData_Mouse_Motion>(pEventData);
+	ImGui::GetIO().MousePos = ImVec2(pCastEventData->GetX(), pCastEventData->GetY());
+}
+
+void HumanView::MouseButtonPressDelegate(IEventDataPtr pEventData) {
+	std::shared_ptr<EvtData_Mouse_Button_Pressed> pCastEventData = std::static_pointer_cast<EvtData_Mouse_Button_Pressed>(pEventData);
+	const ImGuiMouseButton_ imguiButton = (pCastEventData->GetMouseButton() == MouseButtonSide::Left)
+                                              ? ImGuiMouseButton_Left
+                                              : (pCastEventData->GetMouseButton() == MouseButtonSide::Right ? ImGuiMouseButton_Right : ImGuiMouseButton_Middle);
+	ImGuiIO& io                         = ImGui::GetIO();
+    io.MousePos                         = ImVec2((float)pCastEventData->GetX(), (float)pCastEventData->GetY());
+    io.MouseDown[imguiButton]           = true;
+
+	io.KeyShift = pCastEventData->GetShift();
+	io.KeyCtrl = pCastEventData->GetControl();
+};
+
+void HumanView::MouseButtonReleaseDelegate(IEventDataPtr pEventData) {
+	std::shared_ptr<EvtData_Mouse_Button_Pressed> pCastEventData = std::static_pointer_cast<EvtData_Mouse_Button_Pressed>(pEventData);
+	const ImGuiMouseButton_ imguiButton = (pCastEventData->GetMouseButton() == MouseButtonSide::Left)
+                                              ? ImGuiMouseButton_Left
+                                              : (pCastEventData->GetMouseButton() == MouseButtonSide::Right ? ImGuiMouseButton_Right : ImGuiMouseButton_Middle);
+	ImGuiIO& io                         = ImGui::GetIO();
+    io.MousePos                         = ImVec2((float)pCastEventData->GetX(), (float)pCastEventData->GetY());
+    io.MouseDown[imguiButton]           = false;
+
+	io.KeyShift = pCastEventData->GetShift();
+	io.KeyCtrl = pCastEventData->GetControl();
+};
+
+void HumanView::MouseWheelDelegate(IEventDataPtr pEventData) {
+	std::shared_ptr<EvtData_Mouse_Wheel> pCastEventData = std::static_pointer_cast<EvtData_Mouse_Wheel>(pEventData);
+	ImGuiIO& io                         = ImGui::GetIO();
+	io.MouseWheel = pCastEventData->GetWheelDelta();
+}
+
+void HumanView::RegisterAllDelegates() {
+	IEventManager* pGlobalEventManager = IEventManager::Get();
+    pGlobalEventManager->VAddListener({ connect_arg<&HumanView::MouseMotionDelegate>, this }, EvtData_Mouse_Motion::sk_EventType);
+	pGlobalEventManager->VAddListener({ connect_arg<&HumanView::MouseButtonPressDelegate>, this }, EvtData_Mouse_Button_Pressed::sk_EventType);
+	pGlobalEventManager->VAddListener({ connect_arg<&HumanView::MouseButtonReleaseDelegate>, this }, EvtData_Mouse_Button_Released::sk_EventType);
+	pGlobalEventManager->VAddListener({ connect_arg<&HumanView::MouseWheelDelegate>, this }, EvtData_Mouse_Wheel::sk_EventType);
+};
+
+void HumanView::RemoveAllDelegates() {
+	IEventManager* pGlobalEventManager = IEventManager::Get();
+	pGlobalEventManager->VRemoveListener({ connect_arg<&HumanView::MouseMotionDelegate>, this }, EvtData_Mouse_Motion::sk_EventType);
+	pGlobalEventManager->VRemoveListener({ connect_arg<&HumanView::MouseButtonPressDelegate>, this }, EvtData_Mouse_Button_Pressed::sk_EventType);
+	pGlobalEventManager->VRemoveListener({ connect_arg<&HumanView::MouseButtonReleaseDelegate>, this }, EvtData_Mouse_Button_Released::sk_EventType);
+	pGlobalEventManager->VRemoveListener({ connect_arg<&HumanView::MouseWheelDelegate>, this }, EvtData_Mouse_Wheel::sk_EventType);
+};

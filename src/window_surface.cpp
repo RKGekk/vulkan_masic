@@ -275,7 +275,7 @@ void WindowSurface::VRegisterEvents() {
             }
             else if (glfw_action == GLFW_RELEASE) {
                 KeyEventArgs key_event_args(key, c, KeyState::Released, control, shift, alt);
-                Application::GetRenderWindow()->OnKeyPressed(key_event_args);
+                Application::GetRenderWindow()->OnKeyReleased(key_event_args);
             }
         }
     );
@@ -344,7 +344,7 @@ void WindowSurface::VRegisterEvents() {
             }
             else if(action == GLFW_RELEASE) {
                 MBEventArgs mouse_button_event_args(DecodeMouseButton(button), MKState::Released, lButton, mButton, rButton, control, shift, x, y);
-                Application::GetRenderWindow()->OnMouseButtonPressed(mouse_button_event_args);
+                Application::GetRenderWindow()->OnMouseButtonReleased(mouse_button_event_args);
             }
         }
     );
