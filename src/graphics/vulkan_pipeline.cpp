@@ -98,8 +98,8 @@ VkPipeline VulkanPipeline::createPipeline(const PipelineCfg& pipeline_cfg) const
     multisample_info.rasterizationSamples = pipeline_cfg.msaa_samples;
     //multisample_info.minSampleShading = 1.0f;
     //multisample_info.pSampleMask = nullptr;
-    //multisample_info.alphaToCoverageEnable = VK_FALSE;
-    //multisample_info.alphaToOneEnable = VK_FALSE;
+    //multisample_info.alphaToCoverageEnable = VK_TRUE;
+    //multisample_info.alphaToOneEnable = VK_TRUE;
     
     VkPipelineColorBlendStateCreateInfo color_blend_info{};
     color_blend_info.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;

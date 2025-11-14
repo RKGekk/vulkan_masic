@@ -5,7 +5,7 @@ struct Vertex {
     float y;
     float u;
     float v;
-    uint rgba;
+    vec4 rgba;
 };
 
 layout (location = 0) out vec4 out_color;
@@ -13,7 +13,7 @@ layout (location = 1) out vec2 out_uv;
 
 layout(location = 0) in vec2 inPosition;
 layout(location = 1) in vec2 inTexCoords;
-layout(location = 2) in uint inColor;
+layout(location = 2) in vec4 inColor;
 
 layout(set = 0, binding = 0) uniform UniformBufferObject {
     vec4 LRTB;
@@ -30,9 +30,10 @@ void main() {
         0.0,               0.0,              -1.0, 0.0,
         (R + L) / (L - R), (T + B) / (B - T), 0.0, 1.0
     );
-    Vertex v = Vertex(inPosition.x, inPosition.y * -1 + B, inTexCoords.x, inTexCoords.y, inColor);
+    //Vertex v = Vertex(inPosition.x, inPosition.y * -1 + B, inTexCoords.x, inTexCoords.y, inColor);
+    Vertex v = Vertex(inPosition.x, B - inPosition.y, inTexCoords.x, inTexCoords.y, inColor);
     //Vertex v = Vertex(inPosition.x, inPosition.y, inTexCoords.x, inTexCoords.y, inColor);
-    out_color = unpackUnorm4x8(v.rgba);
+    out_color = v.rgba;
     out_uv = vec2(v.u, v.v);
     gl_Position = proj * vec4(v.x, v.y, 0, 1);
 }

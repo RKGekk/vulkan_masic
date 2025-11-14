@@ -40,11 +40,11 @@ std::shared_ptr<VulkanTexture> makeFontTexture(std::shared_ptr<VulkanDevice> dev
 
     ImFontConfig cfg = ImFontConfig();
     cfg.FontDataOwnedByAtlas = false;
-    cfg.RasterizerMultiply = 1.5f;
+    cfg.RasterizerMultiply = 1.0f;
     cfg.SizePixels = ceilf(fontSizePixels);
     cfg.PixelSnapH = true;
-    cfg.OversampleH = 4;
-    cfg.OversampleV = 4;
+    cfg.OversampleH = 1;
+    cfg.OversampleV = 1;
     ImFont* font = nullptr;
 
     if (TTF_font_file_name) {
@@ -184,17 +184,17 @@ VkPipelineVertexInputStateCreateInfo getImVertextInputInfo() {
         attribute_desc[0].binding = 0u;
         attribute_desc[0].location = 0u;
         attribute_desc[0].format = VK_FORMAT_R32G32_SFLOAT;
-        attribute_desc[0].offset = 0u;
+        attribute_desc[0].offset = offsetof(ImDrawVert, pos);
         
         attribute_desc[1].binding = 0u;
         attribute_desc[1].location = 1u;
         attribute_desc[1].format = VK_FORMAT_R32G32_SFLOAT;
-        attribute_desc[1].offset = 8u;
+        attribute_desc[1].offset = offsetof(ImDrawVert, uv);
         
         attribute_desc[2].binding = 0u;
         attribute_desc[2].location = 2u;
-        attribute_desc[2].format = VK_FORMAT_R32_UINT;
-        attribute_desc[2].offset = 12u;
+        attribute_desc[2].format = VK_FORMAT_R8G8B8A8_UNORM;
+        attribute_desc[2].offset = offsetof(ImDrawVert, col);
     });
 
     VkPipelineVertexInputStateCreateInfo vertex_input_info{};
@@ -267,7 +267,7 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarge
     m_imgui_idx.resize(rt.frame_count);
 
     static const std::string TTF_font_file_name = std::filesystem::current_path().append("fonts").append("OpenSans-Light.ttf").string();
-    static const float font_size_pixels = 30.0f;
+    static const float font_size_pixels = 15.0f;
 
     m_pImgui_ctx = ImGui::CreateContext();
     ImGui::SetCurrentContext(m_pImgui_ctx);
@@ -280,6 +280,7 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarge
     io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
     io.FontAllowUserScaling = true;
     io.FontGlobalScale = 1.0f;
+    ImGui::StyleColorsClassic();
 
     m_font_texture = makeFontTexture(m_device, TTF_font_file_name.c_str(), font_size_pixels);
 
