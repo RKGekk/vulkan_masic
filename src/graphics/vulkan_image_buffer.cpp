@@ -9,7 +9,7 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, VkImage image
 
     VkFormat image_format = m_device->findSupportedFormat(
         {
-            VK_FORMAT_R8G8B8A8_SRGB
+            format
         },
         VK_IMAGE_TILING_OPTIMAL,
         VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT
@@ -107,7 +107,7 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char
 
     VkFormat image_format = device->findSupportedFormat(
         {
-            VK_FORMAT_R8G8B8A8_SRGB
+            format
         },
         VK_IMAGE_TILING_OPTIMAL,
         VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT

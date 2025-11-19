@@ -8,7 +8,7 @@ bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR su
     m_surface = surface;
     m_swapchain_support_details = querySwapChainSupport(m_device->getDeviceAbilities().physical_device, m_surface);
 
-    m_swapchain_params.surface_format = chooseSwapSurfaceFormat(m_swapchain_support_details.formats);
+    m_swapchain_params.surface_format = chooseSwapSurfaceFormat(m_swapchain_support_details);
     m_swapchain_params.present_mode = chooseSwapPresentMode(m_swapchain_support_details.present_modes);
     m_swapchain_params.extent = chooseSwapExtent(m_swapchain_support_details.capabilities);
 
@@ -62,7 +62,7 @@ void VulkanSwapChain::recreate() {
 
     m_swapchain_support_details = querySwapChainSupport(m_device->getDeviceAbilities().physical_device, m_surface);
 
-    m_swapchain_params.surface_format = chooseSwapSurfaceFormat(m_swapchain_support_details.formats);
+    m_swapchain_params.surface_format = chooseSwapSurfaceFormat(m_swapchain_support_details);
     m_swapchain_params.present_mode = chooseSwapPresentMode(m_swapchain_support_details.present_modes);
     m_swapchain_params.extent = chooseSwapExtent(m_swapchain_support_details.capabilities);
 
@@ -203,13 +203,16 @@ SwapchainSupportDetails VulkanSwapChain::querySwapChainSupport(VkPhysicalDevice 
     return details;
 }
 
-VkSurfaceFormatKHR VulkanSwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& available_formats) {
-    for(const auto& available_format : available_formats) {
-        if(available_format.format == VK_FORMAT_B8G8R8A8_SRGB && available_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+VkSurfaceFormatKHR VulkanSwapChain::chooseSwapSurfaceFormat(const SwapchainSupportDetails& available_formats) {
+    for(const auto& available_format : available_formats.formats) {
+        if(available_format.format == VK_FORMAT_B8G8R8A8_SRGB && available_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR && available_formats.is_native_swapchain_BGR) {
+            return available_format;
+        }
+        if(available_format.format == VK_FORMAT_R8G8B8A8_SRGB && available_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR && !available_formats.is_native_swapchain_BGR) {
             return available_format;
         }
     }
-    return available_formats[0];
+    return available_formats.formats[0];
 }
 
 VkPresentModeKHR VulkanSwapChain::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& available_present_modes){

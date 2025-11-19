@@ -56,7 +56,7 @@ public:
     static SwapchainSupportDetails querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
 
 private:
-    static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& available_formats);
+    static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const SwapchainSupportDetails& available_formats);
     static VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& available_present_modes);
     static bool isNativeSwapChainBGR(const std::vector<VkSurfaceFormatKHR>& formats);
 
