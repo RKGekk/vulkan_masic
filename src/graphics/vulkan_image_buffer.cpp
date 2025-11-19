@@ -5,8 +5,9 @@
 
 bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, VkImage image, VkExtent2D extent, VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) {
     m_device = std::move(device);
+    m_image = image;
 
-    VkFormat image_format = device->findSupportedFormat(
+    VkFormat image_format = m_device->findSupportedFormat(
         {
             VK_FORMAT_R8G8B8A8_SRGB
         },
@@ -14,7 +15,7 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, VkImage image
         VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT
     );
     
-    static std::vector<uint32_t> families = device->getCommandManager().getQueueFamilyIndices().getIndices();
+    static std::vector<uint32_t> families = m_device->getCommandManager().getQueueFamilyIndices().getIndices();
     m_image_info = {};
     m_image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     m_image_info.imageType = VK_IMAGE_TYPE_2D;
@@ -27,11 +28,15 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, VkImage image
     m_image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
     m_image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     m_image_info.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-    m_image_info.sharingMode = device->getCommandManager().getBufferSharingMode();
+    m_image_info.sharingMode = m_device->getCommandManager().getBufferSharingMode();
     m_image_info.queueFamilyIndexCount = static_cast<uint32_t>(families.size());
     m_image_info.pQueueFamilyIndices = families.data();
     m_image_info.samples = VK_SAMPLE_COUNT_1_BIT;
     m_image_info.flags = 0u;
+
+    VkMemoryRequirements mem_req{};
+    vkGetImageMemoryRequirements(m_device->getDevice(), m_image, &mem_req);
+    m_image_size = mem_req.size;
 
     m_layout = m_image_info.initialLayout;
 
