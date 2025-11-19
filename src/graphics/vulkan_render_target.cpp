@@ -3,6 +3,7 @@
 bool RenderTarget::init(std::shared_ptr<VulkanDevice> device, const std::shared_ptr<VulkanSwapChain>& swapchain, int frame_index) {
     m_device = std::move(device);
     m_color_format = swapchain->getSwapchainParams().surface_format.format;
+    m_depth_format = m_device->findDepthFormat();
     m_viewport_extent = swapchain->getSwapchainParams().extent;
     m_sharing_mode = swapchain->getSwapchainParams().images_sharing_mode;
     m_msaa_samples = m_device->getMsaaSamples();
@@ -150,11 +151,11 @@ VkRenderPass RenderTarget::createRenderPass(VkAttachmentLoadOp load_op) const {
     VkAttachmentDescription color_attachment_resolve{};
     color_attachment_resolve.format = m_color_format;
     color_attachment_resolve.samples = VK_SAMPLE_COUNT_1_BIT;
-    color_attachment_resolve.loadOp = load_op;
+    color_attachment_resolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     color_attachment_resolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     color_attachment_resolve.stencilLoadOp = load_op;
     color_attachment_resolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    color_attachment_resolve.initialLayout = m_out_swap_chain_image.getLayout();
+    color_attachment_resolve.initialLayout = load_op == VkAttachmentLoadOp::VK_ATTACHMENT_LOAD_OP_CLEAR ? VK_IMAGE_LAYOUT_UNDEFINED : m_out_swap_chain_image.getLayout();
     color_attachment_resolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
     VkAttachmentReference color_attachment_ref{};
@@ -167,7 +168,7 @@ VkRenderPass RenderTarget::createRenderPass(VkAttachmentLoadOp load_op) const {
     
     VkAttachmentReference color_attachment_resolve_ref{};
     color_attachment_resolve_ref.attachment = 2u;
-    color_attachment_resolve_ref.layout = m_out_swap_chain_image.getLayout();
+    color_attachment_resolve_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     
     VkSubpassDescription subpass_desc{};
     subpass_desc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -177,7 +178,7 @@ VkRenderPass RenderTarget::createRenderPass(VkAttachmentLoadOp load_op) const {
     subpass_desc.pResolveAttachments = m_msaa_samples == VK_SAMPLE_COUNT_1_BIT ? nullptr : &color_attachment_resolve_ref;
     
     std::vector<VkAttachmentDescription> attachments;
-    if(m_msaa_samples == VK_SAMPLE_COUNT_1_BIT) {
+    if(m_msaa_samples != VK_SAMPLE_COUNT_1_BIT) {
         attachments = {color_attachment, depth_attachment, color_attachment_resolve};
     }
     else {
