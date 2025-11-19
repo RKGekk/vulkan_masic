@@ -27,29 +27,34 @@
 #include <array>
 #include <memory>
 #include <string>
+#include <type_traits>
+#include <vector>
 
 class ImGUIDrawable : public IVulkanDrawable {
 public:
-    bool init(std::shared_ptr<VulkanDevice> device, const RenderTarget& rt);
+    bool init(std::shared_ptr<VulkanDevice> device, const RenderTarget& rt, int max_frames);
 
     void reset(const RenderTarget& rt) override;
     void destroy() override;
-    void recordCommandBuffer(CommandBatch& command_buffer, uint32_t frame_index) override;
+    void recordCommandBuffer(CommandBatch& command_buffer, const RenderTarget& rt, uint32_t frame_index) override;
     void update(const GameTimerDelta& delta, uint32_t image_index) override;
 
     void beginFrame(const RenderTarget& rt);
     void endFrame();
 
 private:
-    std::vector<VkFramebuffer> createFramebuffers(const RenderTarget& rt);
     VulkanPipeline::PipelineCfg createPipelineCfg(const std::vector<VkDescriptorSetLayout>& desc_set_layouts, VkRenderPass render_pass, VkExtent2D viewport_extent, std::vector<VkPipelineShaderStageCreateInfo> shaders_info, const VkPipelineVertexInputStateCreateInfo& vertex_input_info, VkSampleCountFlagBits msaa_samples);
     std::shared_ptr<VulkanDevice> m_device;
 
-    VulkanPipeline m_pipeline;
-    VulkanPipeline::PipelineCfg m_pipeline_cfg;
+    struct GraphicsPipeline {
+        VulkanPipeline pipeline;
+        VulkanPipeline::PipelineCfg pipeline_cfg;
+    };
+    std::vector<GraphicsPipeline> m_pipelines;
+
     VulkanDescriptor m_descriptor;
-    VkRenderPass m_render_pass = VK_NULL_HANDLE;
-    std::vector<VkFramebuffer> m_out_framebuffers;
+    int m_max_frames;
+    
 
     VulkanShader m_vert_shader;
     VulkanShader m_frag_shader;
@@ -60,9 +65,6 @@ private:
     std::vector<std::shared_ptr<VertexBuffer>> m_vertex_buffers;
     std::vector<std::vector<ImDrawVert>> m_imgui_vtx;
     std::vector<std::vector<ImDrawIdx>> m_imgui_idx;
-
-    float m_rt_aspect = 1.0f;
-    RenderTargetFormat m_render_target_fmt;
 
     ImGuiContext* m_pImgui_ctx;
 };

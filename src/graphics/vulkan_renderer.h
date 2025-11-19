@@ -30,10 +30,8 @@ public:
     void destroy();
     void recreate();
 
-    const VulkanSwapChain& getSwapchain() const;
-    const std::vector<VulkanImageBuffer>& getColorImages() const;
-    const std::vector<VulkanImageBuffer>& getDepthImages() const;
-    RenderTarget getRenderTarget() const;
+    const std::shared_ptr<VulkanSwapChain>& getSwapchain() const;
+    const RenderTarget& getRenderTarget(uint32_t image_index = 0u) const;
     const std::shared_ptr<VulkanDevice>& GetDevice();
 
     void recordCommandBuffer(CommandBatch& command_buffer);
@@ -44,15 +42,10 @@ public:
 
 private:
 
-    void createColorResources();
-    void createDepthResources();
-
     std::shared_ptr<VulkanDevice> m_device;
 
-    VulkanSwapChain m_swapchain;
-
-    std::vector<VulkanImageBuffer> m_out_color_images;
-    std::vector<VulkanImageBuffer> m_out_depth_images;
+    std::shared_ptr<VulkanSwapChain> m_swapchain;
+    std::vector<RenderTarget> m_render_targets;
 
     std::vector<CommandBatch> m_command_buffers;
     std::shared_ptr<ThreadPool> m_thread_pool;

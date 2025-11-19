@@ -15,9 +15,3 @@ public:
 
     virtual void destroy() = 0;
 };
-
-struct RenderTargetFormat {
-    VkSurfaceFormatKHR colorAttachmentFormat;
-    VkFormat depthAttachmentFormat;
-    VkExtent2D viewportExtent;
-};

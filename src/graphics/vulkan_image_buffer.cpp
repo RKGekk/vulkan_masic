@@ -3,29 +3,41 @@
 #include "vulkan_device.h"
 #include "vulkan_buffer.h"
 
-VkImageView VulkanImageBuffer::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const {
-    VkImageViewCreateInfo view_info{};
-    view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    view_info.image = image;
-    view_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    view_info.format = format;
-    view_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view_info.subresourceRange.aspectMask = aspect_flags;
-    view_info.subresourceRange.baseMipLevel = 0u;
-    view_info.subresourceRange.levelCount = mip_levels;
-    view_info.subresourceRange.baseMipLevel = 0u;
-    view_info.subresourceRange.layerCount = 1u;
+bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, VkImage image, VkExtent2D extent, VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) {
+    m_device = std::move(device);
+
+    VkFormat image_format = device->findSupportedFormat(
+        {
+            VK_FORMAT_R8G8B8A8_SRGB
+        },
+        VK_IMAGE_TILING_OPTIMAL,
+        VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT
+    );
     
-    VkImageView image_view;
-    VkResult result = vkCreateImageView(m_device->getDevice(), &view_info, nullptr, &image_view);
-    if(result != VK_SUCCESS) {
-        throw std::runtime_error("failed to create texture image view!");
-    }
-    
-    return image_view;
+    static std::vector<uint32_t> families = device->getCommandManager().getQueueFamilyIndices().getIndices();
+    m_image_info = {};
+    m_image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    m_image_info.imageType = VK_IMAGE_TYPE_2D;
+    m_image_info.extent.width = static_cast<uint32_t>(extent.width);
+    m_image_info.extent.height = static_cast<uint32_t>(extent.height);
+    m_image_info.extent.depth = 1u;
+    m_image_info.mipLevels = mip_levels;
+    m_image_info.arrayLayers = 1u;
+    m_image_info.format = image_format;
+    m_image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
+    m_image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    m_image_info.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    m_image_info.sharingMode = device->getCommandManager().getBufferSharingMode();
+    m_image_info.queueFamilyIndexCount = static_cast<uint32_t>(families.size());
+    m_image_info.pQueueFamilyIndices = families.data();
+    m_image_info.samples = VK_SAMPLE_COUNT_1_BIT;
+    m_image_info.flags = 0u;
+
+    m_layout = m_image_info.initialLayout;
+
+    m_image_view = createImageView(m_image, m_image_info.format, aspect_flags, m_image_info.mipLevels);    
+
+    return true;
 }
 
 bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, VkImageCreateInfo image_info, VkMemoryPropertyFlags properties, VkImageAspectFlags aspect_flags) {
@@ -85,8 +97,8 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char
     return true;
 }
 
-bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, size_t width, size_t height, VkFormat format, VkMemoryPropertyFlags properties, VkImageAspectFlags aspect_flags) {
-    uint32_t mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height))));
+bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, VkExtent2D extent, VkFormat format, VkMemoryPropertyFlags properties, VkImageAspectFlags aspect_flags) {
+    uint32_t mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(extent.width, extent.height))));
 
     VkFormat image_format = device->findSupportedFormat(
         {
@@ -100,8 +112,8 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char
     VkImageCreateInfo image_info = {};
     image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     image_info.imageType = VK_IMAGE_TYPE_2D;
-    image_info.extent.width = static_cast<uint32_t>(width);
-    image_info.extent.height = static_cast<uint32_t>(height);
+    image_info.extent.width = static_cast<uint32_t>(extent.width);
+    image_info.extent.height = static_cast<uint32_t>(extent.height);
     image_info.extent.depth = 1u;
     image_info.mipLevels = mip_levels;
     image_info.arrayLayers = 1u;
@@ -146,4 +158,42 @@ VkImageLayout VulkanImageBuffer::getLayout() const {
 
 const VkImageCreateInfo& VulkanImageBuffer::getImageInfo() const {
     return m_image_info;
+}
+
+void VulkanImageBuffer::changeLayout(VkImageLayout new_layout) {
+    CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
+    changeLayout(command_buffer, new_layout);
+}
+
+void VulkanImageBuffer::changeLayout(CommandBatch& command_buffer, VkImageLayout new_layout) {
+    m_device->getCommandManager().transitionImageLayout(command_buffer.getCommandBufer(), m_image, m_image_info.format, m_layout, new_layout, m_image_info.mipLevels);
+    m_device->getCommandManager().submitCommandBuffer(command_buffer);
+    m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
+
+    m_layout = new_layout;
+}
+
+VkImageView VulkanImageBuffer::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const {
+    VkImageViewCreateInfo view_info{};
+    view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    view_info.image = image;
+    view_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    view_info.format = format;
+    view_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+    view_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+    view_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+    view_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+    view_info.subresourceRange.aspectMask = aspect_flags;
+    view_info.subresourceRange.baseMipLevel = 0u;
+    view_info.subresourceRange.levelCount = mip_levels;
+    view_info.subresourceRange.baseMipLevel = 0u;
+    view_info.subresourceRange.layerCount = 1u;
+    
+    VkImageView image_view;
+    VkResult result = vkCreateImageView(m_device->getDevice(), &view_info, nullptr, &image_view);
+    if(result != VK_SUCCESS) {
+        throw std::runtime_error("failed to create texture image view!");
+    }
+    
+    return image_view;
 }

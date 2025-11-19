@@ -130,7 +130,7 @@ void Application::mainLoop() {
         for (GameViewList::const_iterator i = m_game->GetViews().begin(), end = m_game->GetViews().end(); i != end; ++i) {
 		    (*i)->VOnRender(Application::Get().GetTimer());
 	    }
-        m_renderer.update_frame(m_timer, m_renderer.getSwapchain().getCurrentFrame());
+        m_renderer.update_frame(m_timer, m_renderer.getSwapchain()->getCurrentFrame());
         m_renderer.drawFrame();
     }
 }

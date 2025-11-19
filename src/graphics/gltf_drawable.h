@@ -32,35 +32,33 @@
 
 class GLTFDrawable : public IVulkanDrawable {
 public:
-    bool init(std::shared_ptr<VulkanDevice> device, const RenderTarget& rt);
+    bool init(std::shared_ptr<VulkanDevice> device, const RenderTarget& rt, int max_frames, std::filesystem::path model_path);
 
     void reset(const RenderTarget& rt) override;
     void destroy() override;
-    void recordCommandBuffer(CommandBatch& command_buffer, uint32_t frame_index) override;
+    void recordCommandBuffer(CommandBatch& command_buffer, const RenderTarget& rt, uint32_t frame_index) override;
     void update(const GameTimerDelta& delta, uint32_t image_index) override;
 
 private:
-    VkRenderPass createRenderPass(VkFormat color_format, VkFormat depth_format);
-    VkRenderPass createRenderPass(VkFormat color_format, VkFormat depth_format, VkSubpassDependency subpass_dependency);
     VulkanPipeline::PipelineCfg createPipelineCfg(const std::vector<VkDescriptorSetLayout>& desc_set_layouts, VkRenderPass render_pass, VkExtent2D viewport_extent, std::vector<VkPipelineShaderStageCreateInfo> shaders_info, const VkPipelineVertexInputStateCreateInfo& vertex_input_info, VkSampleCountFlagBits msaa_samples);
-    std::vector<VkFramebuffer> createFramebuffers(const RenderTarget& rt);
 
     std::shared_ptr<VulkanDevice> m_device;
 
     std::vector<std::shared_ptr<VulkanUniformBuffer>> m_uniform_buffers;
     std::vector<std::shared_ptr<VertexBuffer>> m_vertex_buffers;
     float m_rt_aspect = 1.0f;
-    RenderTargetFormat m_render_target_fmt;
 
-	VulkanPipeline m_pipeline;
-    VulkanPipeline::PipelineCfg m_pipeline_cfg;
+	struct GraphicsPipeline {
+        VulkanPipeline pipeline;
+        VulkanPipeline::PipelineCfg pipeline_cfg;
+    };
+    std::vector<GraphicsPipeline> m_pipelines;
+    
     VulkanDescriptor m_descriptor;
+    int m_max_frames;
 
     VulkanShader m_vert_shader;
     VulkanShader m_frag_shader;
-
-    VkRenderPass m_render_pass = VK_NULL_HANDLE;
-    std::vector<VkFramebuffer> m_out_framebuffers;
 
     VulkanTexture m_texture;
 

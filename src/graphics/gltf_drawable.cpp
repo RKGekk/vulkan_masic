@@ -287,16 +287,13 @@ VulkanPipeline::PipelineCfg GLTFDrawable::createPipelineCfg(const std::vector<Vk
     return pipeline_cfg;
 }
 
-bool GLTFDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarget& rt) {
+bool GLTFDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarget& rt, int max_frames, std::filesystem::path model_path) {
     using namespace std::literals;
     
     m_device = std::move(device);
-    m_render_target_fmt = rt.render_target_fmt;
-    m_rt_aspect = (float)rt.render_target_fmt.viewportExtent.width / (float)rt.render_target_fmt.viewportExtent.height;
+    m_max_frames = max_frames;
+    m_rt_aspect = rt.getAspect();
 
-    std::string file_name = "objects/cube.gltf"s;
-    std::filesystem::path model_path(file_name);
-    
     bool store_original_json_for_extras_and_extensions = true;
     m_gltf_ctx.SetStoreOriginalJSONForExtrasAndExtensions(store_original_json_for_extras_and_extensions);
 
@@ -333,10 +330,10 @@ bool GLTFDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarget
     const std::string texture_name = "textures/"s + gltf_image.uri;
     m_texture.init(m_device, texture_name);
 
-    std::vector<VulkanDescriptor::Binding> binding(rt.frame_count);
-    m_vertex_buffers.resize(rt.frame_count);
-    m_uniform_buffers.resize(rt.frame_count);
-    for(size_t i = 0u; i < rt.frame_count; ++i) {
+    std::vector<VulkanDescriptor::Binding> binding(max_frames);
+    m_vertex_buffers.resize(max_frames);
+    m_uniform_buffers.resize(max_frames);
+    for(size_t i = 0u; i < max_frames; ++i) {
         std::shared_ptr<VertexBuffer> vertex_buffer = std::make_shared<VertexBuffer>();
         vertex_buffer->init(m_device, vertices_data, vertex_count, indices_data, index_count, getIndexType(indices_accessor.componentType), getVertextInputInfo());
         m_vertex_buffers[i] = std::move(vertex_buffer);
@@ -362,8 +359,7 @@ bool GLTFDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarget
         binding[i][1u].sampler = m_texture.getSampler();
     }
 
-    m_descriptor.init(m_device->getDevice(), std::move(binding), rt.frame_count);
-
+    m_descriptor.init(m_device->getDevice(), std::move(binding), max_frames);
 
     m_frag_shader.init(m_device->getDevice(), "shaders/shader.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
     m_vert_shader.init(m_device->getDevice(), "shaders/shader.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
@@ -372,63 +368,88 @@ bool GLTFDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarget
     pipeline_shaders_info.push_back(m_frag_shader.getShaderInfo());
     pipeline_shaders_info.push_back(m_vert_shader.getShaderInfo());
 
-    m_render_pass = createRenderPass(rt.render_target_fmt.colorAttachmentFormat.format, rt.render_target_fmt.depthAttachmentFormat);
+    m_pipelines = std::vector<GraphicsPipeline>(2u);
+    m_pipelines[0].pipeline_cfg = createPipelineCfg(
+        {m_descriptor.getDescLayouts()},
+        rt.getRenderPass(RenderTarget::AttachmentLoadOp::LOAD),
+        rt.getViewportExtent(),
+        pipeline_shaders_info,
+        m_vertex_buffers[0]->getVertextInputInfo(),
+        m_device->getMsaaSamples()
+    );
+    m_pipelines[0].pipeline.init(m_device->getDevice(), m_pipelines[0].pipeline_cfg);
 
-    VulkanPipeline::PipelineCfg m_pipeline_cfg = createPipelineCfg({m_descriptor.getDescLayouts()}, m_render_pass, rt.render_target_fmt.viewportExtent, std::move(pipeline_shaders_info), m_vertex_buffers[0]->getVertextInputInfo(), m_device->getMsaaSamples());
-
-    m_pipeline.init(m_device->getDevice(), m_pipeline_cfg);
-    m_out_framebuffers = createFramebuffers(rt);
+    m_pipelines[1].pipeline_cfg = createPipelineCfg(
+        {m_descriptor.getDescLayouts()},
+        rt.getRenderPass(RenderTarget::AttachmentLoadOp::CLEAR),
+        rt.getViewportExtent(),
+        pipeline_shaders_info,
+        m_vertex_buffers[0]->getVertextInputInfo(),
+        m_device->getMsaaSamples()
+    );
+    m_pipelines[1].pipeline.init(m_device->getDevice(), m_pipelines[1].pipeline_cfg);
 
     return true;
 }
 
 void GLTFDrawable::reset(const RenderTarget& rt) {
     std::vector<VulkanDescriptor::Binding> bindings = m_descriptor.getBingingsForSets();
-    std::vector<VkPipelineShaderStageCreateInfo> pipeline_shaders = m_pipeline.getShadersInfo();
+    std::vector<VkPipelineShaderStageCreateInfo> pipeline_shaders_info = m_pipelines[0].pipeline.getShadersInfo();
 
     m_descriptor.destroy();
-    vkDestroyRenderPass(m_device->getDevice(), m_render_pass, nullptr);
-    m_pipeline.destroy();
-    for(size_t i = 0u; i < m_out_framebuffers.size(); ++i) {
-        vkDestroyFramebuffer(m_device->getDevice(), m_out_framebuffers[i], nullptr);
-    }
+    m_pipelines[0].pipeline.destroy();
+    m_pipelines[1].pipeline.destroy();
 
-    m_render_target_fmt = rt.render_target_fmt;
-    m_rt_aspect = (float)rt.render_target_fmt.viewportExtent.width / (float)rt.render_target_fmt.viewportExtent.height;
+    m_rt_aspect = rt.getAspect();
 
-    m_descriptor.init(m_device->getDevice(), std::move(bindings), rt.frame_count);
-    m_render_pass = createRenderPass(rt.render_target_fmt.colorAttachmentFormat.format, rt.render_target_fmt.depthAttachmentFormat);
+    m_descriptor.init(m_device->getDevice(), std::move(bindings), m_max_frames);
 
-    VulkanPipeline::PipelineCfg m_pipeline_cfg = createPipelineCfg({m_descriptor.getDescLayouts()}, m_render_pass, rt.render_target_fmt.viewportExtent, std::move(pipeline_shaders), m_vertex_buffers[0]->getVertextInputInfo(), m_device->getMsaaSamples());
+    m_pipelines[0].pipeline_cfg = createPipelineCfg(
+        {m_descriptor.getDescLayouts()},
+        rt.getRenderPass(RenderTarget::AttachmentLoadOp::LOAD),
+        rt.getViewportExtent(),
+        pipeline_shaders_info,
+        m_vertex_buffers[0]->getVertextInputInfo(),
+        m_device->getMsaaSamples()
+    );
+    m_pipelines[0].pipeline.init(m_device->getDevice(), m_pipelines[0].pipeline_cfg);
 
-    m_pipeline.init(m_device->getDevice(), m_pipeline_cfg);
-    m_out_framebuffers = createFramebuffers(rt);
+    m_pipelines[1].pipeline_cfg = createPipelineCfg(
+        {m_descriptor.getDescLayouts()},
+        rt.getRenderPass(RenderTarget::AttachmentLoadOp::CLEAR),
+        rt.getViewportExtent(),
+        pipeline_shaders_info,
+        m_vertex_buffers[0]->getVertextInputInfo(),
+        m_device->getMsaaSamples()
+    );
+    m_pipelines[1].pipeline.init(m_device->getDevice(), m_pipelines[1].pipeline_cfg);
 }
 
 void GLTFDrawable::destroy() {
-    m_pipeline.destroy();
+    m_pipelines[0].pipeline.destroy();
+    m_pipelines[0].pipeline.destroy();
     m_descriptor.destroy();
     m_vert_shader.destroy();
     m_frag_shader.destroy();
-    vkDestroyRenderPass(m_device->getDevice(), m_render_pass, nullptr);
 
     m_texture.destroy();
 
-    for(size_t i = 0u; i < m_out_framebuffers.size(); ++i) {
+    for(size_t i = 0u; i < m_max_frames; ++i) {
         m_vertex_buffers[i]->destroy();
         m_uniform_buffers[i]->destroy();
-        vkDestroyFramebuffer(m_device->getDevice(), m_out_framebuffers[i], nullptr);
     }
 }
 
-void GLTFDrawable::recordCommandBuffer(CommandBatch& command_buffer, uint32_t image_index) {
+void GLTFDrawable::recordCommandBuffer(CommandBatch& command_buffer, const RenderTarget& rt, uint32_t image_index) {
+
+    auto current_pipeline = std::underlying_type<RenderTarget::AttachmentLoadOp>::type(rt.getCurrentLoadOp());
 
     VkRenderPassBeginInfo renderpass_info{};
     renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderpass_info.renderPass = m_render_pass;
-    renderpass_info.framebuffer = m_out_framebuffers[image_index];
+    renderpass_info.renderPass = m_pipelines[current_pipeline].pipeline_cfg.render_pass;
+    renderpass_info.framebuffer = rt.getFrameBuffer();
     renderpass_info.renderArea.offset = {0, 0};
-    renderpass_info.renderArea.extent = m_render_target_fmt.viewportExtent;
+    renderpass_info.renderArea.extent = rt.getViewportExtent();
     
     std::array<VkClearValue, 2> clear_values{};
     clear_values[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
@@ -439,23 +460,23 @@ void GLTFDrawable::recordCommandBuffer(CommandBatch& command_buffer, uint32_t im
     VkViewport view_port{};
     view_port.x = 0.0f;
     view_port.y = 0.0f;
-    view_port.width = static_cast<float>(m_render_target_fmt.viewportExtent.width);
-    view_port.height = static_cast<float>(m_render_target_fmt.viewportExtent.height);
+    view_port.width = static_cast<float>(rt.getViewportExtent().width);
+    view_port.height = static_cast<float>(rt.getViewportExtent().height);
     view_port.minDepth = 0.0f;
     view_port.maxDepth = 1.0f;
 
     VkRect2D scissor{};
     scissor.offset = {0, 0};
-    scissor.extent = m_render_target_fmt.viewportExtent;
+    scissor.extent = rt.getViewportExtent();
 
     vkCmdBeginRenderPass(command_buffer.getCommandBufer(), &renderpass_info, VK_SUBPASS_CONTENTS_INLINE);
         
     vkCmdSetViewport(command_buffer.getCommandBufer(), 0u, 1u, &view_port);
     vkCmdSetScissor(command_buffer.getCommandBufer(), 0u, 1u, &scissor);
 
-    vkCmdBindDescriptorSets(command_buffer.getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.getPipelineLayout(), 0, 1, &m_descriptor.getDescriptorSets()[image_index], 0, nullptr);
+    vkCmdBindDescriptorSets(command_buffer.getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelines[current_pipeline].pipeline.getPipelineLayout(), 0, 1, &m_descriptor.getDescriptorSets()[image_index], 0, nullptr);
         
-    vkCmdBindPipeline(command_buffer.getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.getPipeline());
+    vkCmdBindPipeline(command_buffer.getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelines[current_pipeline].pipeline.getPipeline());
 
     VkBuffer vertex_buffers[] = {m_vertex_buffers[image_index]->getVertexBuffer()->getBuffer()};
     VkDeviceSize offsets[] = {0};
@@ -478,111 +499,4 @@ void GLTFDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     ubo.proj[1][1] *= -1.0f;
 
     m_uniform_buffers[image_index]->update(&ubo, sizeof(GLTFUniformBufferObject));
-}
-
-VkRenderPass GLTFDrawable::createRenderPass(VkFormat color_format, VkFormat depth_format) {
-    VkRenderPass result;
-    VkSubpassDependency pass_dependency{};
-    pass_dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-    pass_dependency.dstSubpass = 0;
-    pass_dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-    pass_dependency.srcAccessMask = 0u;
-    pass_dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-    pass_dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-    result = createRenderPass(color_format, depth_format, pass_dependency);
-
-    return result;
-}
-
-VkRenderPass GLTFDrawable::createRenderPass(VkFormat color_format, VkFormat depth_format, VkSubpassDependency subpass_dependency) {
-    VkAttachmentDescription color_attachment{};
-    color_attachment.format = color_format;
-    color_attachment.samples = m_device->getMsaaSamples();
-    color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-    color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    color_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    color_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    color_attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    color_attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    
-    VkAttachmentReference color_attachment_ref{};
-    color_attachment_ref.attachment = 0u;
-    color_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; 
-    
-    VkAttachmentDescription depth_attachment{};
-    depth_attachment.format = depth_format;
-    depth_attachment.samples = m_device->getMsaaSamples();
-    depth_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-    depth_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    depth_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    depth_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depth_attachment.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-    depth_attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-    
-    VkAttachmentReference depth_attachment_ref{};
-    depth_attachment_ref.attachment = 1u;
-    depth_attachment_ref.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-    
-    VkAttachmentDescription color_attachment_resolve{};
-    color_attachment_resolve.format = color_format;
-    color_attachment_resolve.samples = VK_SAMPLE_COUNT_1_BIT;
-    color_attachment_resolve.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-    color_attachment_resolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    color_attachment_resolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    color_attachment_resolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    color_attachment_resolve.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    color_attachment_resolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-    
-    VkAttachmentReference color_attachment_resolve_ref{};
-    color_attachment_resolve_ref.attachment = 2u;
-    color_attachment_resolve_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    
-    VkSubpassDescription subpass_desc{};
-    subpass_desc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpass_desc.colorAttachmentCount = 1u;
-    subpass_desc.pColorAttachments = &color_attachment_ref;
-    subpass_desc.pDepthStencilAttachment = &depth_attachment_ref;
-    subpass_desc.pResolveAttachments = &color_attachment_resolve_ref;
-    
-    std::array<VkAttachmentDescription, 3> attachments = {color_attachment, depth_attachment, color_attachment_resolve};
-    std::array<VkSubpassDescription, 1> subpases = {subpass_desc};
-    std::array<VkSubpassDependency, 1> subdependencies = {subpass_dependency};
-    
-    VkRenderPassCreateInfo render_pass_info{};
-    render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    render_pass_info.attachmentCount = static_cast<uint32_t>(attachments.size());
-    render_pass_info.pAttachments = attachments.data();
-    render_pass_info.subpassCount = static_cast<uint32_t>(subpases.size());
-    render_pass_info.pSubpasses = subpases.data();
-    render_pass_info.dependencyCount = static_cast<uint32_t>(subdependencies.size());
-    render_pass_info.pDependencies = subdependencies.data();
-    
-    VkRenderPass render_pass = VK_NULL_HANDLE;
-    VkResult result = vkCreateRenderPass(m_device->getDevice(), &render_pass_info, nullptr, &render_pass);
-    if (result != VK_SUCCESS) {
-        throw std::runtime_error("failed to create render pass!");
-    }
-    
-    return render_pass;
-}
-
-std::vector<VkFramebuffer> GLTFDrawable::createFramebuffers(const RenderTarget& rt) {
-    std::vector<VkFramebuffer> result_framebuffers(rt.frame_count);
-    for(size_t i = 0u; i < rt.frame_count; ++i) {
-        VkFramebufferCreateInfo framebuffer_info{};
-        framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebuffer_info.renderPass = m_render_pass;
-        framebuffer_info.attachmentCount = static_cast<uint32_t>(rt.frames[i].size());
-        framebuffer_info.pAttachments = rt.frames[i].data();
-        framebuffer_info.width = rt.render_target_fmt.viewportExtent.width;
-        framebuffer_info.height = rt.render_target_fmt.viewportExtent.height;
-        framebuffer_info.layers = 1u;
-        
-        VkResult result = vkCreateFramebuffer(m_device->getDevice(), &framebuffer_info, nullptr, &result_framebuffers[i]);
-        if(result != VK_SUCCESS) {
-            throw std::runtime_error("failed to create framebuffer!");
-        }
-    }
-    
-    return result_framebuffers;
 }

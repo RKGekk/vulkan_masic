@@ -33,7 +33,7 @@ HumanView::HumanView(std::shared_ptr<ProcessManager> process_manager) {
     VulkanRenderer& renderer = Application::GetRenderer();
 	std::shared_ptr<VulkanDevice> device = renderer.GetDevice();
 	m_gui = std::make_shared<ImGUIDrawable>();
-    m_gui->init(device, renderer.getRenderTarget());
+    m_gui->init(device, renderer.getRenderTarget(), renderer.getSwapchain()->getMaxFrames());
 	renderer.addDrawable(m_gui);
 }
 

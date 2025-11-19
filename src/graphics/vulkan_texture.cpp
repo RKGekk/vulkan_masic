@@ -9,7 +9,7 @@ bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, unsigned char* pi
 }
 
 bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, int width, int height, VkSampler sampler, VkFormat format) {
-    VulkanImageBuffer::init(device, pixels, width, height, format);
+    VulkanImageBuffer::init(device, pixels, {(uint32_t)width, (uint32_t)height}, format);
 
     m_texture_sampler = sampler;
 

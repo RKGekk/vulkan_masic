@@ -10,11 +10,7 @@
 
 #include "vulkan_device.h"
 #include "vulkan_command_manager.h"
-
-struct SwapChainBuffer{
-	VkImage image;
-	VkImageView view;
-};
+#include "vulkan_image_buffer.h"
 
 struct SwapchainSupportDetails {
     VkSurfaceCapabilitiesKHR capabilities;
@@ -54,7 +50,7 @@ public:
     GLFWwindow* getWindow() const;
     VkSwapchainKHR getSwapchain() const;
 
-    const std::vector<SwapChainBuffer>& getSwapchainImages() const;
+    const std::vector<VulkanImageBuffer>& getSwapchainImages() const;
 
     static VkSurfaceKHR createSurface(VkInstance vk_instance, GLFWwindow* glfw_window_ptr);
     static SwapchainSupportDetails querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
@@ -66,11 +62,9 @@ private:
 
     VkSwapchainKHR createSwapchain(VkSurfaceKHR surface, const SwapchainParams& swapchain_params, const SwapchainSupportDetails& swapchain_support_details, const QueueFamilyIndices& queue_family_indices) const;
     std::vector<VkImage> retriveSwapchainImages() const;
-    std::vector<SwapChainBuffer> retriveSwapchainBuffers(VkFormat format) const;
+    std::vector<VulkanImageBuffer> retriveSwapchainBuffers(VkFormat format) const;
 
     VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-    VkImageView createImageView(VkImage image, VkFormat format,  VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT, uint32_t mip_levels = 1u) const;
-    std::vector<VkImageView> createImageViews(const std::vector<VkImage>& images, VkFormat format, VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT, uint32_t mip_levels = 1u) const;
 
     SwapchainSupportDetails m_swapchain_support_details;
     SwapchainParams m_swapchain_params;
@@ -79,7 +73,7 @@ private:
     GLFWwindow* m_window = nullptr;
     VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;
 
-    std::vector<SwapChainBuffer> m_swapchain_images;
+    std::vector<VulkanImageBuffer> m_swapchain_images;
     std::vector<VkSemaphore> m_image_available_sem; // signaled when the presentation engine is finished using the image.
     std::vector<VkFence> m_image_available_fen; // signaled when the presentation engine is finished using the image.
 

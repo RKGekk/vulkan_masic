@@ -3,14 +3,16 @@
 bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR surface, GLFWwindow* window, std::shared_ptr<ThreadPool> thread_pool) {
     m_device = std::move(device);
     m_thread_pool = std::move(thread_pool);
+    m_swapchain = std::make_shared<VulkanSwapChain>();
+    m_swapchain->init(m_device, surface, window);
 
-    m_swapchain.init(m_device, surface, window);
-
-    createColorResources();
-    createDepthResources();
-
-    m_command_buffers.reserve(m_swapchain.getMaxFrames());
-    for(int i = 0; i < m_swapchain.getMaxFrames(); ++i) {
+    int max_frames = m_swapchain->getMaxFrames();
+    m_command_buffers.reserve(max_frames);
+    m_render_targets.reserve(max_frames);
+    for(int i = 0; i < max_frames; ++i) {
+        RenderTarget rt;
+        rt.init(m_device, m_swapchain, i);
+        m_render_targets.push_back(rt);
         m_command_buffers.push_back(m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::GRAPICS));
     }
 
@@ -19,13 +21,11 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR sur
 
 void VulkanRenderer::destroy() {
     vkDeviceWaitIdle(m_device->getDevice());
-    size_t sz = m_swapchain.getMaxFrames();
-    m_swapchain.destroy();
+    size_t sz = m_swapchain->getMaxFrames();
+    m_swapchain->destroy();
     for(size_t i = 0u; i < sz; ++i) {
         m_command_buffers[i].destroy();
-
-        m_out_color_images[i].destroy();
-        m_out_depth_images[i].destroy();
+        m_render_targets[i].destroy();
     }
 
     for (const std::shared_ptr<IVulkanDrawable>& drawable : m_drawable_list) {
@@ -35,68 +35,30 @@ void VulkanRenderer::destroy() {
 
 void VulkanRenderer::recreate() {
     vkDeviceWaitIdle(m_device->getDevice());
-    m_swapchain.recreate();
+    m_swapchain->recreate();
     
-    size_t sz = m_swapchain.getMaxFrames();
+    size_t sz = m_swapchain->getMaxFrames();
     for(size_t i = 0u; i < sz; ++i) {
         m_command_buffers[i].destroy();
-
-        m_out_color_images[i].destroy();
-        m_out_depth_images[i].destroy();
+        m_render_targets[i].destroy();
     }
     
-    createColorResources();
-    createDepthResources();
-
-    for(int i = 0; i < m_swapchain.getMaxFrames(); ++i) {
+    for(int i = 0; i < m_swapchain->getMaxFrames(); ++i) {
+        m_render_targets[i].init(m_device, m_swapchain, i);
         m_command_buffers[i] = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::GRAPICS);
     }
 
     for (const std::shared_ptr<IVulkanDrawable>& drawable : m_drawable_list) {
-        drawable->reset(getRenderTarget());
+        drawable->reset(m_render_targets[0]);
     }
 }
 
-const VulkanSwapChain& VulkanRenderer::getSwapchain() const {
+const std::shared_ptr<VulkanSwapChain>& VulkanRenderer::getSwapchain() const {
     return m_swapchain;
 }
 
-const std::vector<VulkanImageBuffer>& VulkanRenderer::getColorImages() const {
-    return m_out_color_images;
-}
-
-const std::vector<VulkanImageBuffer>& VulkanRenderer::getDepthImages() const {
-    return m_out_depth_images;
-}
-
-RenderTarget VulkanRenderer::getRenderTarget() const {
-    std::vector<RenderTarget::Attachment> frames;
-    frames.reserve(m_swapchain.getMaxFrames());
-    VkSampleCountFlagBits msaa_samples = m_device->getMsaaSamples();
-    for (int i = 0; i < m_swapchain.getMaxFrames(); ++i) {
-        RenderTarget::Attachment attachment;
-        if(msaa_samples == VK_SAMPLE_COUNT_1_BIT) {
-            attachment.resize(2u);
-            attachment[0u] = m_swapchain.getSwapchainImages()[i].view;
-            attachment[1u] = m_out_depth_images[i].getImageBufferView();
-        }
-        else {
-            attachment.resize(3u);
-            attachment[0u] = m_out_color_images[i].getImageBufferView();
-            attachment[1u] = m_out_depth_images[i].getImageBufferView();
-            attachment[2u] = m_swapchain.getSwapchainImages()[i].view;
-        }
-        frames.push_back(std::move(attachment));
-    }
-    
-    RenderTarget rt;
-    rt.frame_count = m_swapchain.getMaxFrames();
-    rt.render_target_fmt.colorAttachmentFormat = m_swapchain.getSwapchainParams().surface_format;
-    rt.render_target_fmt.depthAttachmentFormat = m_out_depth_images[0u].getImageInfo().format;
-    rt.render_target_fmt.viewportExtent = m_swapchain.getSwapchainParams().extent;
-    rt.frames = std::move(frames);
-
-    return rt;
+const RenderTarget& VulkanRenderer::getRenderTarget(uint32_t image_index) const {
+    return m_render_targets.at(image_index);
 }
 
 const std::shared_ptr<VulkanDevice>& VulkanRenderer::GetDevice() {
@@ -106,38 +68,41 @@ const std::shared_ptr<VulkanDevice>& VulkanRenderer::GetDevice() {
 void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer) {
     VulkanCommandManager::beginCommandBuffer(command_buffer);
 
+    uint32_t current_frame = m_swapchain->getCurrentFrame();
     for(const std::shared_ptr<IVulkanDrawable> renderable : m_drawable_list) {
-        renderable->recordCommandBuffer(command_buffer, m_swapchain.getCurrentFrame());
+        renderable->recordCommandBuffer(command_buffer, m_render_targets[current_frame], current_frame);
+        m_render_targets[current_frame].incExecCounter();
     }
     
     VulkanCommandManager::endCommandBuffer(command_buffer);
 }
 
 void VulkanRenderer::drawFrame() {
-    bool next_frame_available = m_swapchain.setNextFrame(m_command_buffers[m_swapchain.fetchNextSync()].getRenderFence());
+    bool next_frame_available = m_swapchain->setNextFrame(m_command_buffers[m_swapchain->fetchNextSync()].getRenderFence());
     if (!next_frame_available || m_framebuffer_resized) {
         recreate();
         return;
     }
 
-    m_command_buffers[m_swapchain.getCurrentSync()].reset();
-    recordCommandBuffer(m_command_buffers[m_swapchain.getCurrentSync()]);
+    m_command_buffers[m_swapchain->getCurrentSync()].reset();
+    m_render_targets[m_swapchain->getCurrentFrame()].resetExecCounter();
+    recordCommandBuffer(m_command_buffers[m_swapchain->getCurrentSync()]);
     
     CommandBatch::BatchWaitInfo wait_info;
-    wait_info.wait_for_semaphores.push_back(m_swapchain.getImageAvailableSemaphore());
+    wait_info.wait_for_semaphores.push_back(m_swapchain->getImageAvailableSemaphore());
     wait_info.wait_for_stages.push_back(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
-    VkSubmitInfo submit_info = m_command_buffers[m_swapchain.getCurrentSync()].getSubmitInfo(&wait_info);
+    VkSubmitInfo submit_info = m_command_buffers[m_swapchain->getCurrentSync()].getSubmitInfo(&wait_info);
 
-    m_device->getCommandManager().submitCommandBuffer(m_command_buffers[m_swapchain.getCurrentSync()], VulkanCommandManager::SELECT_ALL_BUFFERS, &submit_info);
+    m_device->getCommandManager().submitCommandBuffer(m_command_buffers[m_swapchain->getCurrentSync()], VulkanCommandManager::SELECT_ALL_BUFFERS, &submit_info);
     
-    VkSwapchainKHR swapchains[] = {m_swapchain.getSwapchain()};
+    VkSwapchainKHR swapchains[] = {m_swapchain->getSwapchain()};
     VkPresentInfoKHR present_info{};
     present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     present_info.waitSemaphoreCount = 1u;
-    present_info.pWaitSemaphores = m_command_buffers[m_swapchain.getCurrentSync()].getInProgressSemaphorePtr();
+    present_info.pWaitSemaphores = m_command_buffers[m_swapchain->getCurrentSync()].getInProgressSemaphorePtr();
     present_info.swapchainCount = 1u;
     present_info.pSwapchains = swapchains;
-    present_info.pImageIndices = m_swapchain.getCurrentFramePtr();
+    present_info.pImageIndices = m_swapchain->getCurrentFramePtr();
     present_info.pResults = nullptr;
     VkResult result = vkQueuePresentKHR(m_device->getCommandManager().getQueue(), &present_info);
     if (result != VK_SUCCESS) {
@@ -157,66 +122,4 @@ void VulkanRenderer::update_frame(const GameTimerDelta& delta, uint32_t image_in
 
 void VulkanRenderer::addDrawable(std::shared_ptr<IVulkanDrawable> drawable) {
     m_drawable_list.push_back(std::move(drawable));
-}
-
-void VulkanRenderer::createColorResources() {
-    VkFormat color_format = m_swapchain.getSwapchainParams().surface_format.format;
-    std::vector<uint32_t> families = m_device->getCommandManager().getQueueFamilyIndices().getIndices();
-    VkImageCreateInfo image_info{};
-    image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-    image_info.imageType = VK_IMAGE_TYPE_2D;
-    image_info.extent.width = static_cast<uint32_t>(m_swapchain.getSwapchainParams().extent.width);
-    image_info.extent.height = static_cast<uint32_t>(m_swapchain.getSwapchainParams().extent.height);
-    image_info.extent.depth = 1u;
-    image_info.mipLevels = 1u;
-    image_info.arrayLayers = 1u;
-    image_info.format = color_format;
-    image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
-    image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    //image_info.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    image_info.usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    image_info.sharingMode = m_swapchain.getSwapchainParams().images_sharing_mode;
-    image_info.queueFamilyIndexCount = static_cast<uint32_t>(families.size());
-    image_info.pQueueFamilyIndices = families.data();
-    image_info.samples = m_device->getMsaaSamples();
-    image_info.flags = 0u;
-
-    m_out_color_images.resize(m_swapchain.getMaxFrames());
-    for(uint32_t i = 0; i < m_swapchain.getMaxFrames(); ++i) {
-        m_out_color_images[i] = VulkanImageBuffer();
-        m_out_color_images[i].init(m_device, nullptr, image_info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
-    }
-}
-
-void VulkanRenderer::createDepthResources() {
-    VkFormat depth_format = m_device->findDepthFormat();
-    VkImageAspectFlags image_aspect = m_device->hasStencilComponent(depth_format) ? VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT : VK_IMAGE_ASPECT_DEPTH_BIT;
-    std::vector<uint32_t> families = m_device->getCommandManager().getQueueFamilyIndices().getIndices();
-    VkImageCreateInfo image_info{};
-    image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-    image_info.imageType = VK_IMAGE_TYPE_2D;
-    image_info.extent.width = static_cast<uint32_t>(m_swapchain.getSwapchainParams().extent.width);
-    image_info.extent.height = static_cast<uint32_t>(m_swapchain.getSwapchainParams().extent.height);
-    image_info.extent.depth = 1u;
-    image_info.mipLevels = 1u;
-    image_info.arrayLayers = 1u;
-    image_info.format = depth_format;
-    image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
-    image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    image_info.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-    image_info.sharingMode = m_swapchain.getSwapchainParams().images_sharing_mode;
-    image_info.queueFamilyIndexCount = static_cast<uint32_t>(families.size());
-    image_info.pQueueFamilyIndices = families.data();
-    image_info.samples = m_device->getMsaaSamples();
-    image_info.flags = 0u;
-
-    m_out_depth_images.resize(m_swapchain.getMaxFrames());
-    for(uint32_t i = 0; i < m_swapchain.getMaxFrames(); ++i) {
-        m_out_depth_images[i] = VulkanImageBuffer();
-        m_out_depth_images[i].init(m_device, nullptr, image_info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image_aspect);
-        CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
-        m_device->getCommandManager().transitionImageLayout(command_buffer.getCommandBufer(), m_out_depth_images[i].getImageBuffer(), depth_format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1u);
-        m_device->getCommandManager().submitCommandBuffer(command_buffer);
-        m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
-    }
 }

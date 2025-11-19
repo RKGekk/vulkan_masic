@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.25)
 project(vktutorial LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_BUILD_PARALLEL_LEVEL 18)
 
 set(SRC_DIR "src")
 set(APP_SOURCES
@@ -208,6 +209,10 @@ set(APP_SOURCES
     "${SRC_DIR}/scene/basic_camera_node.cpp"
     "${SRC_DIR}/scene/scene_node_properties.h"
     "${SRC_DIR}/scene/scene_node_properties.cpp"
+    "${SRC_DIR}/graphics/vulkan_layout_tracker.h"
+    "${SRC_DIR}/graphics/vulkan_layout_tracker.cpp"
+    "${SRC_DIR}/graphics/vulkan_render_target.h"
+    "${SRC_DIR}/graphics/vulkan_render_target.cpp"
     "${SRC_DIR}/graphics/vulkan_image_buffer.h"
     "${SRC_DIR}/graphics/vulkan_image_buffer.cpp"
     "${SRC_DIR}/graphics/vulkan_instance_layers_and_extensions.h"

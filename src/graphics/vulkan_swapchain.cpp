@@ -49,7 +49,7 @@ bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR su
 void VulkanSwapChain::destroy() {
     size_t sz = m_swapchain_images.size();
     for(size_t i = 0u; i < sz; ++i) {
-        vkDestroyImageView(m_device->getDevice(), m_swapchain_images[i].view, nullptr);
+        vkDestroyImageView(m_device->getDevice(), m_swapchain_images[i].getImageBufferView(), nullptr);
         vkDestroySemaphore(m_device->getDevice(), m_image_available_sem[i], nullptr);
         vkDestroyFence(m_device->getDevice(), m_image_available_fen[i], nullptr);
     }
@@ -167,7 +167,7 @@ VkSwapchainKHR VulkanSwapChain::getSwapchain() const {
     return m_swapchain;
 }
 
-const std::vector<SwapChainBuffer>& VulkanSwapChain::getSwapchainImages() const {
+const std::vector<VulkanImageBuffer>& VulkanSwapChain::getSwapchainImages() const {
     return m_swapchain_images;
 }
 
@@ -294,49 +294,12 @@ std::vector<VkImage> VulkanSwapChain::retriveSwapchainImages() const {
     return swapchain_images; 
 }
 
-VkImageView VulkanSwapChain::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const {
-    VkImageViewCreateInfo view_info{};
-    view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    view_info.image = image;
-    view_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    view_info.format = format;
-    view_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view_info.subresourceRange.aspectMask = aspect_flags;
-    view_info.subresourceRange.baseMipLevel = 0u;
-    view_info.subresourceRange.levelCount = mip_levels;
-    view_info.subresourceRange.baseMipLevel = 0u;
-    view_info.subresourceRange.layerCount = 1u;
-    
-    VkImageView image_view;
-    VkResult result = vkCreateImageView(m_device->getDevice(), &view_info, nullptr, &image_view);
-    if(result != VK_SUCCESS) {
-        throw std::runtime_error("failed to create texture image view!");
-    }
-    
-    return image_view;
-}
-
-std::vector<VkImageView> VulkanSwapChain::createImageViews(const std::vector<VkImage>& images, VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const {
-    uint32_t sz = static_cast<uint32_t>(images.size());
-    std::vector<VkImageView> image_views(sz);
-    for(uint32_t i = 0u; i < sz; ++i) {
-        image_views[i] = createImageView(images[i], format, aspect_flags, mip_levels);
-    }
-    
-    return image_views;
-}
-
-std::vector<SwapChainBuffer> VulkanSwapChain::retriveSwapchainBuffers(VkFormat format) const {
+std::vector<VulkanImageBuffer> VulkanSwapChain::retriveSwapchainBuffers(VkFormat format) const {
     std::vector<VkImage> swapchain_images = retriveSwapchainImages();
-    std::vector<VkImageView> swapchain_views = createImageViews(swapchain_images, format);
     size_t sz = swapchain_images.size();
-    std::vector<SwapChainBuffer> swapchain_buffers;
-    swapchain_buffers.reserve(sz);
+    std::vector<VulkanImageBuffer> swapchain_buffers(sz);
     for(size_t i = 0u; i < sz; ++i) {
-        swapchain_buffers.push_back({swapchain_images[i], swapchain_views[i]});
+        swapchain_buffers[i].init(m_device, swapchain_images[i], m_swapchain_params.extent, format);
     }
 
     return swapchain_buffers;
