@@ -14,6 +14,7 @@ public:
     bool init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, int width, int height, VkSampler sampler, VkFormat format = VK_FORMAT_R8G8B8A8_SRGB);
     bool init(std::shared_ptr<VulkanDevice> device, const std::string& path_to_file);
     bool init(std::shared_ptr<VulkanDevice> device, const std::string& path_to_file, VkSampler sampler);
+    bool init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, size_t size);
 
     void destroy() override;
 

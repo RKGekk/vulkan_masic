@@ -395,10 +395,47 @@ std::shared_ptr<Material> MeshNodeLoader::MakePropertySet(const tinygltf::Primit
 	return material;
 }
 
+bool IsImageFileMime(const std::string& mime_type) {
+	if(mime_type.empty()) return true;
+	bool result = 
+		   mime_type == "image/png"
+		|| mime_type == "image/jpeg";
+	return result;
+}
+
+void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, Material::TextureType texture_type_enum, std::shared_ptr<Material> material) {
+	int texture_sampler_idx = gltf_texture.sampler;
+	const tinygltf::Sampler& texture_sampler = m_gltf_model.samplers[texture_sampler_idx];
+	//color_texture_sampler.magFilter
+	//color_texture_sampler.magFilter
+	//  TINYGLTF_TEXTURE_FILTER_NEAREST (9728)
+	//  TINYGLTF_TEXTURE_FILTER_LINEAR (9729)
+	//  TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST (9984)
+	//  TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST (9985)
+	//  TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR (9986)
+	//  TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR (9987)
+
+	int texture_image_idx = gltf_texture.source;
+	const tinygltf::Image& texture_image = m_gltf_model.images[texture_image_idx];
+	bool mime_is_file = IsImageFileMime(texture_image.mimeType.c_str());
+	std::shared_ptr<VulkanTexture> texture = std::make_shared<VulkanTexture>();
+	if (mime_is_file) {
+		std::string texture_image_file_name = "textures/"s + texture_image.uri;
+		texture->init(m_device, texture_image_file_name);
+		material->SetTexture(texture_type_enum, std::move(texture));
+	}
+	else {
+		int texture_image_buffer_view_idx = texture_image.bufferView;
+		const tinygltf::BufferView& texture_image_view = m_gltf_model.bufferViews[texture_image_buffer_view_idx];
+		size_t texture_image_buffer_idx = texture_image_view.buffer;
+		tinygltf::Buffer& texture_image_buffer = m_gltf_model.buffers[texture_image_buffer_idx];
+
+		texture->init(m_device, texture_image_buffer.data.data(), texture_image_buffer.data.size());
+		material->SetTexture(texture_type_enum, std::move(texture));
+	}
+}
+
 void MeshNodeLoader::MakeTextureProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material> material) {
-	model::TexCoordsChannels texture_channels = MakeTextureChannels(gltf_material);
-	//model::TexCoordsChannels texture_channels;
-	prop_set.getTexCoordsChannels() = texture_channels;
 
 	if (gltf_material.pbrMetallicRoughness.baseColorTexture.index != -1) {
 		int color_texture_idx = gltf_material.pbrMetallicRoughness.baseColorTexture.index;

@@ -62,6 +62,7 @@ private:
     uint32_t GetIndice(const tinygltf::Buffer& gltf_buffer, size_t buffer_offset, size_t element_number, size_t element_size_in_bytes, size_t stride);
     std::shared_ptr<Material> MakePropertySet(const tinygltf::Primitive& primitive);
     void MakeTextureProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material> material);
+    void SetTextureProperty(const tinygltf::Texture& texture, Material::TextureType texture_type_enum, std::shared_ptr<Material> material);
 
     tinygltf::Model m_gltf_model;
     tinygltf::TinyGLTF m_gltf_ctx;
