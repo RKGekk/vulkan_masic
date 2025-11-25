@@ -18,6 +18,7 @@
 #include "../physics/bounding_sphere.h"
 #include "vulkan_vertex_buffer.h"
 #include "../scene/material.h"
+#include "vertex_format.h"
 
 #include <map>
 #include <memory>
@@ -49,9 +50,12 @@ public:
 	void SetName(std::string name);
 
 	VkPipelineVertexInputStateCreateInfo GetVertextInputInfo();
+	const VertexFormat& GetVertexFormat();
+	void SetVertexFormat(const VertexFormat& format);
 
 private:
 	std::shared_ptr<VertexBuffer> m_vertex_buffer;
+	VertexFormat m_vertex_format;
 	std::shared_ptr<Material> m_material;
 
 	VkPrimitiveTopology m_primitive_topology;

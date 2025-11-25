@@ -1,5 +1,6 @@
 #include "model_data.h"
 
+#include <mutex>
 #include <utility>
 
 ModelData::ModelData() : m_primitive_topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST) {}
@@ -65,4 +66,58 @@ const std::string& ModelData::GetName() const {
 
 void ModelData::SetName(std::string name) {
     m_name = std::move(name);
+}
+
+VkFormat getVkFormat(VertexFormat::VertexAttributeFormat attrib_format) {
+    switch (attrib_format) {
+        case VertexFormat::VertexAttributeFormat::FLOAT : return VK_FORMAT_R32_SFLOAT;
+        case VertexFormat::VertexAttributeFormat::FLOAT_VEC2 : return VK_FORMAT_R32G32_SFLOAT;
+        case VertexFormat::VertexAttributeFormat::FLOAT_VEC3 : return VK_FORMAT_R32G32B32_SFLOAT;
+        case VertexFormat::VertexAttributeFormat::FLOAT_VEC4 : return VK_FORMAT_R32G32B32A32_SFLOAT;
+        case VertexFormat::VertexAttributeFormat::INT : return VK_FORMAT_R32_SINT;
+        case VertexFormat::VertexAttributeFormat::INT_VEC2 : return VK_FORMAT_R32G32_SINT;
+        case VertexFormat::VertexAttributeFormat::INT_VEC3 : return VK_FORMAT_R32G32B32_SINT;
+        case VertexFormat::VertexAttributeFormat::INT_VEC4 : return VK_FORMAT_R32G32B32A32_SINT;
+        default : return VK_FORMAT_R32_SFLOAT;
+    }
+}
+
+VkPipelineVertexInputStateCreateInfo ModelData::GetVertextInputInfo() {
+    static std::vector<VkVertexInputBindingDescription> binding_desc(1);
+    static std::once_flag binding_exe_flag;
+    std::call_once(binding_exe_flag, [this](){
+        binding_desc[0].binding = 0u;
+        binding_desc[0].stride = m_vertex_format.getVertexSize();
+        binding_desc[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+    });
+
+    static std::vector<VkVertexInputAttributeDescription> attribute_desc;
+    static std::once_flag attribute_exe_flag;
+    std::call_once(attribute_exe_flag, [this](){
+        size_t sz = m_vertex_format.getVertexAttribCount();
+        attribute_desc.resize(sz);
+        for (size_t i = 0; i < sz; ++i) {
+            attribute_desc[i].binding = 0u;
+            attribute_desc[i].location = i;
+            attribute_desc[i].format = getVkFormat(m_vertex_format.getAttribFormat(i));
+            attribute_desc[i].offset = m_vertex_format.getStride(i);
+        }
+    });
+
+    VkPipelineVertexInputStateCreateInfo vertex_input_info{};
+    vertex_input_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vertex_input_info.vertexBindingDescriptionCount = static_cast<uint32_t>(binding_desc.size());
+    vertex_input_info.pVertexBindingDescriptions = binding_desc.data();
+    vertex_input_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribute_desc.size());
+    vertex_input_info.pVertexAttributeDescriptions = attribute_desc.data();
+
+    return vertex_input_info;
+}
+
+const VertexFormat& ModelData::GetVertexFormat() {
+    return m_vertex_format;
+}
+
+void ModelData::SetVertexFormat(const VertexFormat& format) {
+    m_vertex_format = format;
 }

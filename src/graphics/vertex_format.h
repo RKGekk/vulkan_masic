@@ -22,12 +22,14 @@ public:
     };
 
     enum class VertexAttributeFormat : int32_t {
-        FLOAT_VEC2 = 0,
-        FLOAT_VEC3 = 1,
-        FLOAT_VEC4 = 2,
-        INT_VEC2 = 3,
-        INT_VEC3 = 3,
-        INT_VEC4 = 4
+        FLOAT = 0,
+        FLOAT_VEC2 = 1,
+        FLOAT_VEC3 = 2,
+        FLOAT_VEC4 = 3,
+        INT = 4,
+        INT_VEC2 = 5,
+        INT_VEC3 = 6,
+        INT_VEC4 = 7
     };
 
     void addVertexAttribute(const SemanticName& name, VertexAttributeFormat format);
@@ -35,7 +37,11 @@ public:
     size_t getVertexAttribPos(const SemanticName& name) const;
     const SemanticName& getPosSemanticName(size_t pos) const;
 
+    VertexAttributeFormat getAttribFormat (size_t pos) const;
+    VertexAttributeFormat getAttribFormat (const SemanticName& name) const;
+
     size_t getStride(const SemanticName& name) const;
+    size_t getStride(size_t pos) const;
 
     template<typename ElementType>
     size_t getOffset(const SemanticName& name) const {
@@ -43,8 +49,6 @@ public:
 
         return result;
     };
-
-    bool hasNormal() const;
 
     size_t getVertexAttribCount() const;
 
