@@ -13,7 +13,7 @@
 #include <memory>
 #include <string>
 
-#include "scene.h"
+#include "../scene.h"
 
 class SceneNode;
 

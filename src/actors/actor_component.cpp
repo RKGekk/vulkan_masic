@@ -6,12 +6,6 @@ ActorComponent::~ActorComponent() {
 	m_pOwner.reset();
 }
 
-void ActorComponent::VPostInit() {}
-
-void ActorComponent::VUpdate(const GameTimerDelta& delta) {}
-
-void ActorComponent::VOnChanged() {}
-
 ComponentId ActorComponent::GetIdFromName(const std::string& componentStr) {
 	return static_cast<ComponentId>(std::hash<std::string>{}(componentStr));
 }

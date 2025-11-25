@@ -9,6 +9,7 @@ SceneNode::SceneNode(std::shared_ptr<Scene> scene, std::string name, Scene::Node
     : m_scene(scene)
     , m_node_index(m_scene->addNode(name, parent))
     , m_props(m_scene, m_node_index) {
+    
 }
 
 SceneNode::SceneNode(std::shared_ptr<Scene> scene, std::string name, glm::mat4x4 to, Scene::NodeIndex parent)

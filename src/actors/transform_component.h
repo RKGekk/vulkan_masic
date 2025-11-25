@@ -11,7 +11,7 @@
 #include <glm/gtx/euler_angles.hpp> 
 
 #include "actor_component.h"
-#include "../scene/scene_node.h"
+#include "../scene/nodes/scene_node.h"
 
 #include <pugixml.hpp>
 
@@ -60,9 +60,6 @@ public:
 
     std::shared_ptr<SceneNode> GetSceneNode();
     Scene::NodeIndex GetSceneNodeIndex();
-
-protected:
-    virtual void VRegisterEvents();
 
 private:
     bool Init(const pugi::xml_node& data);

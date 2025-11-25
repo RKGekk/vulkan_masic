@@ -8,8 +8,6 @@
 
 const std::string TransformComponent::g_name = "TransformComponent";
 
-void TransformComponent::VRegisterEvents() {}
-
 TransformComponent::TransformComponent() {
     m_forward = DEFAULT_FORWARD_VECTOR;
     m_up = DEFAULT_UP_VECTOR;

@@ -65,13 +65,6 @@ void Actor::AddComponent(StrongActorComponentPtr pComponent) {
     std::pair<ActorComponents::iterator, bool> success = m_components.insert(std::make_pair(pComponent->VGetId(), pComponent));
 }
 
-void Actor::VRegisterEvents() {
-    if (!m_events_registered) {
-        REGISTER_EVENT(EvtData_New_Actor);
-        m_events_registered = true;
-    }
-}
-
 std::string Actor::ToXML() {
     return "";
 }

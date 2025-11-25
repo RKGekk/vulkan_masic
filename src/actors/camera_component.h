@@ -20,13 +20,13 @@
 #include <pugixml.hpp>
 
 #include "actor_component.h"
+#include "base_scene_node_component.h"
 
 class CommandList;
 class Material;
-class Mesh;
 class BasicCameraNode;
 
-class CameraComponent : public ActorComponent {
+class CameraComponent : public BaseSceneNodeComponent {
 public:
 	static const std::string g_name;
 	static const std::vector<std::string> g_dependency_list;
@@ -40,7 +40,8 @@ public:
 	virtual const ComponentDependecyList& VGetComponentDependecy() const override;
 	virtual pugi::xml_node VGenerateXml() override;
 
-	virtual std::shared_ptr<BasicCameraNode> VGetCameraNode();
+	virtual const std::shared_ptr<BasicCameraNode>& VGetCameraNode();
+	virtual const std::shared_ptr<SceneNode>& VGetSceneNode() override;
 
 	virtual float GetFov();
 	virtual void SetFov(float fov);
@@ -51,12 +52,8 @@ public:
 	virtual float GetFar();
 	virtual void SetFar(float far_cut);
 
-protected:
-    virtual void VRegisterEvents();
-
 private:
     bool Init(const pugi::xml_node& data);
 
-private:
 	std::shared_ptr<BasicCameraNode> m_camera_node;
 };

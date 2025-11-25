@@ -1,5 +1,13 @@
 #include "application.h"
 
+#include <tiny_gltf.h>
+#include <pugixml.hpp>
+#include <stb_image.h>
+
+#define TINYGLTF_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+
 #include "events/cicadas/evt_data_update_tick.h"
 #include "events/cicadas/evt_data_window_close.h"
 #include "events/event_manager.h"

@@ -1,11 +1,9 @@
 #include "camera_component.h"
 
 #include "../tools/string_tools.h"
-#include "../scene/camera_node.h"
-#include "../scene/basic_camera_node.h"
+#include "../scene/nodes/camera_node.h"
+#include "../scene/nodes/basic_camera_node.h"
 #include "../application.h"
-#include "../events/cicadas/evt_data_destroy_scene_component.h"
-#include "../events/ievent_manager.h"
 #include "transform_component.h"
 
 const std::string CameraComponent::g_name = "CameraComponent";
@@ -60,7 +58,11 @@ pugi::xml_node CameraComponent::VGenerateXml() {
 	return pugi::xml_node();
 }
 
-std::shared_ptr<BasicCameraNode> CameraComponent::VGetCameraNode() {
+const std::shared_ptr<BasicCameraNode>& CameraComponent::VGetCameraNode() {
+	return m_camera_node;
+}
+
+const std::shared_ptr<SceneNode>& CameraComponent::VGetSceneNode() {
 	return m_camera_node;
 }
 
@@ -87,5 +89,3 @@ float CameraComponent::GetFar() {
 void CameraComponent::SetFar(float far_cut) {
 	m_camera_node->SetFar(far_cut);
 }
-
-void CameraComponent::VRegisterEvents() {}

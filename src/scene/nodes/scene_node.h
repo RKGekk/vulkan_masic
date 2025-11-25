@@ -14,7 +14,7 @@
 #include <stdint.h>
 #include <string>
 
-#include "scene.h"
+#include "../scene.h"
 #include "scene_node_properties.h"
 
 class SceneNode : public std::enable_shared_from_this<SceneNode> {

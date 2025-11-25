@@ -20,9 +20,9 @@ public:
 	virtual ~ActorComponent();
 
 	virtual bool VInit(const pugi::xml_node& data) = 0;
-	virtual void VPostInit();
-	virtual void VUpdate(const GameTimerDelta& delta);
-	virtual void VOnChanged();
+	virtual void VPostInit() = 0;
+	virtual void VUpdate(const GameTimerDelta& delta) = 0;
+	virtual void VOnChanged() = 0;
 
 	virtual pugi::xml_node VGenerateXml() = 0;
 
@@ -38,8 +38,6 @@ public:
 	static ComponentId GetIdFromName(const std::string& componentStr);
 
 protected:
-	virtual void VRegisterEvents() = 0;
-
 	inline static bool m_events_registered = false;
 	bool m_initialized = false;
 	StrongActorPtr m_pOwner;

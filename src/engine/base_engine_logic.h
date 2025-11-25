@@ -18,7 +18,7 @@
 #include "../procs/process.h"
 #include "../procs/process_manager.h"
 #include "../scene/scene.h"
-#include "../scene/camera_node.h"
+#include "../scene/nodes/camera_node.h"
 #include "../tools/mt_random.h"
 #include "../scene/scene.h"
 

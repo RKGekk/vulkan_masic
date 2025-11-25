@@ -114,7 +114,4 @@ public:
 
     const ActorComponents& GetComponents();
     void AddComponent(StrongActorComponentPtr pComponent);
-
-protected:
-    virtual void VRegisterEvents();
 };
