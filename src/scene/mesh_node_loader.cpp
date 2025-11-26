@@ -193,10 +193,27 @@ VertexFormat MeshNodeLoader::GetVertexFormat(std::map<std::string, int> attribut
 	return format;
 }
 
+VkIndexType getIndexType(int accessor_component_type) {
+    switch (accessor_component_type) {
+        case TINYGLTF_COMPONENT_TYPE_BYTE : return VK_INDEX_TYPE_UINT8_EXT;
+        case TINYGLTF_COMPONENT_TYPE_SHORT : return VK_INDEX_TYPE_UINT16;
+        case TINYGLTF_COMPONENT_TYPE_INT : return VK_INDEX_TYPE_UINT32;
+
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE : return VK_INDEX_TYPE_UINT8_EXT;
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT : return VK_INDEX_TYPE_UINT16;
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT : return VK_INDEX_TYPE_UINT32;
+        
+        default: return VK_INDEX_TYPE_UINT32;
+    }
+}
+
 std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& gltf_mesh, Scene::NodeIndex node, const ShaderSignature& pbr_shader_signature) {
     std::shared_ptr<MeshNode> mesh_node = std::make_shared<MeshNode>(m_scene, node);
     const std::string& mesh_name = gltf_mesh.name;
     size_t num_primitives = gltf_mesh.primitives.size();
+	std::shared_ptr<ModelData> model_data = std::make_shared<ModelData>();
+	model_data->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+	model_data->SetVertexFormat(pbr_shader_signature.getVertexFormat());
     for (size_t prim_idx = 0; prim_idx < num_primitives; ++prim_idx) {
     	const tinygltf::Primitive& primitive = gltf_mesh.primitives[prim_idx];
 
@@ -207,59 +224,36 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& g
 
     	std::vector<uint32_t> indices;
     	int indices_accessor_idx = primitive.indices;
+		int indices_component_type = TINYGLTF_COMPONENT_TYPE_INT;
     	if (indices_accessor_idx != -1) {
     		const tinygltf::Accessor& indices_accessor = m_gltf_model.accessors[indices_accessor_idx];
+			//indices_component_type = indices_accessor.componentType;
     		std::vector<uint32_t> indices = GetIndices(indices_accessor);
     	}
     	else {
     		indices = std::vector<uint32_t>(num_vertices);
     		std::iota(indices.begin(), indices.end(), 0u);
     	}
+		
+		const void* indices_data = indices.data();
+		size_t index_count = indices.size();
 
     	std::shared_ptr<Material> prop_set = MakePropertySet(primitive);
     	//VertexFormat vertex_format = GetVertexFormat(primitive.attributes);
+		model_data->SetMaterial(prop_set);
 
     	std::vector<float> vertices = GetVertices(primitive, pbr_shader_signature);
-    	model::Vertices uni_vertices = model::Vertices(vertices, num_vertices, uni_vertex_format);
+		int32_t vertex_count = GetNumVertices(primitive);
+		const void* vertices_data = vertices.data();
+		std::shared_ptr<VertexBuffer> vertex_buffer = std::make_shared<VertexBuffer>();
+        vertex_buffer->init(m_device, vertices_data, vertex_count, indices_data, index_count, getIndexType(indices_component_type), model_data->GetVertextInputInfo());
 
-    	/*if(primitive.material != -1 && m_gltf_model.materials[primitive.material].normalTexture.index != -1 && !primitive.attributes.count("TANGENT")) {
-    		model::fixNormalMap(prop_set->getTexCoordsChannels(), uni_indices, uni_vertices);
-    	}*/
-    	if (primitive.material != -1 && m_gltf_model.materials[primitive.material].normalTexture.index != -1) {
-    		model::generateTangentChannel(model::va::TANGENT, model::tex::NORMAL_MAP, prop_set->getTexCoordsChannels(), uni_indices, uni_vertices);
-    		prop_set->getVertexFormat() = uni_vertices.buildFormat();
-    	}
+		model_data->SetVertexBuffer(vertex_buffer);
+		
+    	model_data->SetName(mesh_name);
+    	//model_data->calculateBoundingBox();
 
-    	model::BaseRenderNode::Ptr render_node;
-    	if(gltf_node.skin == -1) {
-    		model::RenderNode::Ptr r_node = model::ModelFactory::inst().create<model::RenderNode>();
-    		r_node->setControlNode(0, m_transform_nodes[node_idx]);
-    		r_node->setPropertiesSet(prop_set.release());
-    		r_node->set(uni_vertices, uni_indices);
-
-    		render_node = r_node;
-    	}
-    	else {
-    		model::SkinNode::Ptr skin_node = model::ModelFactory::inst().create<model::SkinNode>();
-    		const tinygltf::Skin& gltf_skin = m_gltf_model.skins[gltf_node.skin];
-    		size_t sz = gltf_skin.joints.size() + 1;
-    		skin_node->resizeControlNodes(sz);
-    		skin_node->setControlNode(0, m_transform_nodes[node_idx]);
-    		for (int ct = 1; int current_skin_node_idx : gltf_skin.joints) {
-    			skin_node->setControlNode(ct, m_transform_nodes[current_skin_node_idx]);
-    			++ct;
-    		}
-    		skin_node->setPropertiesSet(prop_set.release());
-    		skin_node->set(uni_vertices, uni_indices);
-
-    		render_node = skin_node;
-    	}
-
-    	render_node->setName(mesh_name.c_str());
-    	render_node->calculateBoundingBox(0u);
-
-    	render_node->setRootNode(m_root_node.get());
-    	m_root_node->addRenderNode(render_node);
+    	mesh_node->AddMesh(model_data);
     }
 
     return mesh_node;
@@ -335,29 +329,9 @@ void MeshNodeLoader::MakeNodesHierarchy(int current_node_idx) {
     std::shared_ptr<SceneNode> transform_node = MakeSingleNode(gltf_node);
 	
 	bool is_render_node = IsRenderNode(gltf_node);
-	bool is_shell_node = IsShellNode(gltf_node);
-	bool is_segment_node = IsSegmentNode(gltf_node);
-
-    
 
 	if (is_render_node && !is_shell_node && !is_segment_node) {
 		MakeRenderNode(current_node_idx);
-	}
-
-	if (is_render_node && is_shell_node && !is_segment_node) {
-		MakeShellNodes(current_node_idx);
-	}
-
-	if (is_render_node && !is_shell_node && is_segment_node) {
-		MakeSegmentNodes(current_node_idx);
-	}
-
-	if(HaveLightExt(gltf_node)) {
-		MakeLightNodes(current_node_idx);
-	}
-
-	if(IsConnectorNode(gltf_node)) {
-		MakeConnectorNodes(current_node_idx);
 	}
 
 	size_t child_ct = gltf_node.children.size();

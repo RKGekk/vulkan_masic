@@ -82,7 +82,7 @@ VkFormat getVkFormat(VertexFormat::VertexAttributeFormat attrib_format) {
     }
 }
 
-VkPipelineVertexInputStateCreateInfo ModelData::GetVertextInputInfo() {
+VkPipelineVertexInputStateCreateInfo ModelData::GetVertextInputInfo() const {
     static std::vector<VkVertexInputBindingDescription> binding_desc(1);
     static std::once_flag binding_exe_flag;
     std::call_once(binding_exe_flag, [this](){

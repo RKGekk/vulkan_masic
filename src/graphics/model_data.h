@@ -49,7 +49,7 @@ public:
 	const std::string& GetName() const;
 	void SetName(std::string name);
 
-	VkPipelineVertexInputStateCreateInfo GetVertextInputInfo();
+	VkPipelineVertexInputStateCreateInfo GetVertextInputInfo() const;
 	const VertexFormat& GetVertexFormat();
 	void SetVertexFormat(const VertexFormat& format);
 
