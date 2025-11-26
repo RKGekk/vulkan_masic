@@ -223,8 +223,6 @@ set(APP_SOURCES
     "${SRC_DIR}/scene/nodes/aabb_node.cpp"
     "${SRC_DIR}/graphics/vulkan_layout_tracker.h"
     "${SRC_DIR}/graphics/vulkan_layout_tracker.cpp"
-    "${SRC_DIR}/graphics/vertex_type.h"
-    "${SRC_DIR}/graphics/vertex_type.cpp"
     "${SRC_DIR}/graphics/model_data.h"
     "${SRC_DIR}/graphics/model_data.cpp"
     "${SRC_DIR}/graphics/vulkan_render_target.h"

@@ -14,6 +14,10 @@ void VertexFormat::addVertexAttribute(const SemanticName& name, VertexAttributeF
     m_semantic_attrib_type[name] = type;
 }
 
+bool VertexFormat::checkVertexAttribExist(const VertexFormat::SemanticName& name) const {
+    return m_name_pos_map.count(name);
+}
+
 size_t VertexFormat::getVertexAttribPos(const VertexFormat::SemanticName& name) const {
     return m_name_pos_map.at(name);
 }
@@ -31,7 +35,22 @@ VertexFormat::VertexAttributeFormat VertexFormat::getAttribFormat (const VertexF
     return m_format_pos.at(m_name_pos_map.at(name));
 }
 
-size_t getBytesForType(VertexFormat::VertexAttributeFormat format) {
+VertexFormat::VertexAttributeType VertexFormat::getAttribType(size_t pos) const {
+    if(pos > m_names_pos.size()) return VertexFormat::VertexAttributeType::POSITION;
+    return m_semantic_attrib_type.at(m_names_pos.at(pos));
+}
+
+VertexFormat::VertexAttributeType VertexFormat::getAttribType(const VertexFormat::SemanticName& name) const {
+    if(!m_semantic_attrib_type.count(name)) VertexFormat::VertexAttributeType::POSITION;
+    return m_semantic_attrib_type.at(name);
+}
+
+size_t VertexFormat::GetNumComponentsInType(const VertexFormat::SemanticName& name) const {
+    if(!m_name_pos_map.count(name)) 1u;
+    return GetNumComponentsInType(getAttribFormat(name));
+}
+
+size_t VertexFormat::getBytesForType(VertexFormat::VertexAttributeFormat format) {
     switch (format) {
         case VertexFormat::VertexAttributeFormat::FLOAT : return 4;
         case VertexFormat::VertexAttributeFormat::FLOAT_VEC2 : return 8;
@@ -42,6 +61,20 @@ size_t getBytesForType(VertexFormat::VertexAttributeFormat format) {
         case VertexFormat::VertexAttributeFormat::INT_VEC3 : return 12;
         case VertexFormat::VertexAttributeFormat::INT_VEC4 : return 16;
         default : return 4;
+    }
+}
+
+size_t VertexFormat::GetNumComponentsInType(VertexFormat::VertexAttributeFormat format) {
+    switch (format) {
+        case VertexFormat::VertexAttributeFormat::FLOAT: return 1u;
+        case VertexFormat::VertexAttributeFormat::FLOAT_VEC2: return 2u;
+        case VertexFormat::VertexAttributeFormat::FLOAT_VEC3: return 3u;
+        case VertexFormat::VertexAttributeFormat::FLOAT_VEC4: return 4u;
+        case VertexFormat::VertexAttributeFormat::INT: return 1u;
+        case VertexFormat::VertexAttributeFormat::INT_VEC2: return 2u;
+        case VertexFormat::VertexAttributeFormat::INT_VEC3: return 3u;
+        case VertexFormat::VertexAttributeFormat::INT_VEC4: return 4u;
+        default: return 1u;
     }
 }
 

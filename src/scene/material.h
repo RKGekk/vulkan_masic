@@ -61,14 +61,19 @@ struct alignas(16) MaterialProperties {
 	float IndexOfRefraction;	// For transparent materials, IOR > 0.
 	float BumpIntensity;		// When using bump textures (height maps) we need to scale the height values so the normals are visible.
 	//6------------------------------------ ( 16 bytes )
-
-	uint32_t HasTexture;
+	float metallicFactor;
+	float roughnessFactor;
 	uint32_t Padding1;
 	uint32_t Padding2;
-	uint32_t Padding3;
 	//7------------------------------------ ( 16 bytes )
 
-	//Total:                                ( 16 * 8 = 112 bytes )
+	uint32_t HasTexture;
+	uint32_t Padding3;
+	uint32_t Padding4;
+	uint32_t Padding5;
+	//8------------------------------------ ( 16 bytes )
+
+	//Total:                                ( 16 * 8 = 128 bytes )
 };
 
 class Material {
@@ -115,6 +120,12 @@ public:
 
 	const glm::vec4& GetDiffuseColor() const;
 	void SetDiffuseColor(const glm::vec4& diffuse);
+
+	float GetMetallicFactor() const;
+	void SetMetallicFactor(float);
+
+	float GetRoughnessFactor() const;
+	void SetRoughnessFactor(float);
 
 	const glm::vec4& GetEmissiveColor() const;
 	void SetEmissiveColor(const glm::vec4& emissive);

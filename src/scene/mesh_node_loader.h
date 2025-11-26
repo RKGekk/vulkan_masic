@@ -26,6 +26,7 @@
 #include "nodes/scene_node.h"
 #include "nodes/mesh_node.h"
 #include "material.h"
+#include "shader_signature.h"
 
 class MeshNodeLoader {
 public:
@@ -34,7 +35,7 @@ public:
 	MeshNodeLoader& operator=(const MeshNodeLoader&) = delete;
 	MeshNodeLoader& operator=(MeshNodeLoader&&) = delete;
 
-	std::shared_ptr<SceneNode> ImportSceneNode(const std::filesystem::path& model_path);
+	std::shared_ptr<SceneNode> ImportSceneNode(const std::filesystem::path& model_path, const ShaderSignature& pbr_shader_signature);
 
 private:
 	MeshNodeLoader() = default;
@@ -47,7 +48,7 @@ private:
     struct SimpleHash { size_t operator()(const std::pair<int, int>& p) const { size_t h = (size_t)p.first; h <<= 32; h += p.second; return h; }};
 
     std::shared_ptr<SceneNode> MakeSingleNode(const tinygltf::Node& gltf_node, Scene::NodeIndex parent);
-    std::shared_ptr<MeshNode> MakeRenderNode(const tinygltf::Mesh& gltf_mesh, Scene::NodeIndex node);
+    std::shared_ptr<MeshNode> MakeRenderNode(const tinygltf::Mesh& gltf_mesh, Scene::NodeIndex node, const ShaderSignature& pbr_shader_signature);
     glm::mat4x4 MakeMatrix(const tinygltf::Node& gltf_node) const;
     glm::mat4x4 MakeMatrix(const std::vector<double>& mat) const;
     glm::mat4x4 MakeMatrix(const std::vector<double>& scale, const std::vector<double>& rotation, const std::vector<double>& translation) const;
@@ -64,6 +65,9 @@ private:
     void MakeTextureProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material> material);
     void SetTextureProperty(const tinygltf::Texture& texture, Material::TextureType texture_type_enum, std::shared_ptr<Material> material);
     VkSampler createTextureSampler(uint32_t mip_levels, const tinygltf::Sampler& texture_sampler);
+    void MakeMaterialProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material> material);
+    VertexFormat GetVertexFormat(std::map<std::string, int> attributes);
+    std::vector<float> GetVertices(const tinygltf::Primitive& primitive, const ShaderSignature& pbr_shader_signature);
 
     tinygltf::Model m_gltf_model;
     tinygltf::TinyGLTF m_gltf_ctx;

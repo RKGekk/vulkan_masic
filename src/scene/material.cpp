@@ -42,6 +42,22 @@ void Material::SetDiffuseColor(const glm::vec4& diffuse) {
     m_material_properties->Diffuse = diffuse;
 }
 
+float Material::GetMetallicFactor() const {
+    return m_material_properties->metallicFactor;
+}
+
+void Material::SetMetallicFactor(float fac) {
+    m_material_properties->metallicFactor = fac;
+}
+
+float Material::GetRoughnessFactor() const {
+    return m_material_properties->roughnessFactor;
+}
+
+void Material::SetRoughnessFactor(float fac) {
+    m_material_properties->roughnessFactor = fac;
+}
+
 const glm::vec4& Material::GetEmissiveColor() const {
     return m_material_properties->Emissive;
 }

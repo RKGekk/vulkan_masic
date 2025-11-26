@@ -2,6 +2,25 @@
 
 #include "../application.h"
 
+struct TextureMatInfo {
+	int index = -1; // required.
+	int texCoord; // The set index of texture's TEXCOORD attribute used for
+    
+	TextureMatInfo() : index(-1), texCoord(0) {}
+	bool operator==(const TextureMatInfo&) const;
+};
+
+struct SpecularGlossinessMat {
+	std::vector<double> diffusefactor; // len = 4. default [1,1,1,1]
+	TextureMatInfo diffuseTexture;
+	std::vector<double> specularFactor; // len = 3. default [1,1,1]
+	double glossinessFactor; // default 1
+	TextureMatInfo specularGlossinessTexture;
+
+	SpecularGlossinessMat() : diffusefactor(std::vector<double>{1.0, 1.0, 1.0, 1.0}), specularFactor(std::vector<double>{1.0, 1.0, 1.0}), glossinessFactor(1.0) {}
+	bool operator==(const SpecularGlossinessMat&) const;
+};
+
 std::unordered_map<MeshNodeLoader::NodeIdx, MeshNodeLoader::NodeIdx> MeshNodeLoader::make_parent_map() {
     std::unordered_map<NodeIdx, NodeIdx> node_parent_map;
     size_t num_nodes = m_gltf_model.nodes.size();
@@ -31,7 +50,7 @@ std::unordered_map<MeshNodeLoader::NodeIdx, std::shared_ptr<SceneNode>> MeshNode
     return root_scenes;
 }
 
-std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem::path& model_path) {
+std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem::path& model_path, const ShaderSignature& pbr_shader_signature) {
     Application& app = Application::Get();
     VulkanRenderer& renderer = app.GetRenderer();
     m_device = renderer.GetDevice();
@@ -132,7 +151,49 @@ int32_t MeshNodeLoader::GetNumPrimitives(const tinygltf::Primitive& primitive) c
 	}
 }
 
-std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& gltf_mesh, Scene::NodeIndex node) {
+VertexFormat::VertexAttributeFormat getAttribFormat(const tinygltf::Accessor& gltf_accessor) {
+	if(gltf_accessor.type == TINYGLTF_TYPE_SCALAR && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT) {
+		return VertexFormat::VertexAttributeFormat::INT;
+	}
+	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC2 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT) {
+		return VertexFormat::VertexAttributeFormat::INT_VEC2;
+	}
+	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC3 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT) {
+		return VertexFormat::VertexAttributeFormat::INT_VEC3;
+	}
+	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC4 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT) {
+		return VertexFormat::VertexAttributeFormat::INT_VEC4;
+	}
+	else if(gltf_accessor.type == TINYGLTF_TYPE_SCALAR && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
+		return VertexFormat::VertexAttributeFormat::FLOAT;
+	}
+	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC2 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
+		return VertexFormat::VertexAttributeFormat::FLOAT_VEC2;
+	}
+	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC3 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
+		return VertexFormat::VertexAttributeFormat::FLOAT_VEC3;
+	}
+	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC4 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
+		return VertexFormat::VertexAttributeFormat::FLOAT_VEC4;
+	}
+	else {
+		return VertexFormat::VertexAttributeFormat::FLOAT;
+	}
+}
+
+
+VertexFormat MeshNodeLoader::GetVertexFormat(std::map<std::string, int> attributes) {
+	VertexFormat format{};
+	std::vector<std::string> attributes_seq(attributes.size());
+	for (const auto &[semantic_name, accessor] : attributes) {
+		const tinygltf::Accessor& pos_vertex_attrib_accessor = m_gltf_model.accessors.at(accessor);
+		VertexFormat::VertexAttributeFormat attrib_format = getAttribFormat(pos_vertex_attrib_accessor);
+		format.addVertexAttribute(semantic_name, attrib_format);
+	}
+	return format;
+}
+
+std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& gltf_mesh, Scene::NodeIndex node, const ShaderSignature& pbr_shader_signature) {
     std::shared_ptr<MeshNode> mesh_node = std::make_shared<MeshNode>(m_scene, node);
     const std::string& mesh_name = gltf_mesh.name;
     size_t num_primitives = gltf_mesh.primitives.size();
@@ -155,12 +216,10 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& g
     		std::iota(indices.begin(), indices.end(), 0u);
     	}
 
-		//Material mat;
+    	std::shared_ptr<Material> prop_set = MakePropertySet(primitive);
+    	//VertexFormat vertex_format = GetVertexFormat(primitive.attributes);
 
-    	std::unique_ptr<model::PropertiesSet> prop_set = MakePropertySet(primitive);
-    	const model::VertexFormat& uni_vertex_format = prop_set->getVertexFormat();
-
-    	ed::vector<float> vertices = GetVertices(primitive, uni_vertex_format);
+    	std::vector<float> vertices = GetVertices(primitive, pbr_shader_signature);
     	model::Vertices uni_vertices = model::Vertices(vertices, num_vertices, uni_vertex_format);
 
     	/*if(primitive.material != -1 && m_gltf_model.materials[primitive.material].normalTexture.index != -1 && !primitive.attributes.count("TANGENT")) {
@@ -282,7 +341,7 @@ void MeshNodeLoader::MakeNodesHierarchy(int current_node_idx) {
     
 
 	if (is_render_node && !is_shell_node && !is_segment_node) {
-		MakeRenderNodes(current_node_idx);
+		MakeRenderNode(current_node_idx);
 	}
 
 	if (is_render_node && is_shell_node && !is_segment_node) {
@@ -388,8 +447,8 @@ std::shared_ptr<Material> MeshNodeLoader::MakePropertySet(const tinygltf::Primit
 	std::string gltf_material_name = gltf_material.name.c_str();
 	std::shared_ptr<Material> material = std::make_shared<Material>(gltf_material_name);
 
-	MakeTextureProperties(gltf_material, *prop_set);
-	MakeMaterialProperties(gltf_material, *prop_set);
+	MakeTextureProperties(gltf_material, material);
+	MakeMaterialProperties(gltf_material, material);
 
 	return material;
 }
@@ -573,4 +632,430 @@ void MeshNodeLoader::MakeTextureProperties(const tinygltf::Material& gltf_materi
 	// 		SetTextureProperty(specular_texture, model::tex::TS_SPECULAR, prop_set);
 	// 	}
 	// }
+}
+
+glm::vec3 GetColor3FromDoubleVec(const std::vector<double>& gltf_vec) {
+	glm::vec3 res{};
+	if (gltf_vec.size() == 1) {
+		res.x = gltf_vec[0];
+	}
+	else if (gltf_vec.size() == 2) {
+		res.x = gltf_vec[0];
+		res.y = gltf_vec[1];
+	}
+	else if (gltf_vec.size() >= 3) {
+		res.x = gltf_vec[0];
+		res.y = gltf_vec[1];
+		res.z = gltf_vec[2];
+	}
+	return res;
+}
+
+glm::vec4 GetColor4FromDoubleVec(const std::vector<double>& gltf_vec) {
+	glm::vec4 res{};
+	if (gltf_vec.size() == 1) {
+		res.x = gltf_vec[0];
+	}
+	else if (gltf_vec.size() == 2) {
+		res.x = gltf_vec[0];
+		res.y = gltf_vec[1];
+	}
+	else if (gltf_vec.size() == 3) {
+		res.x = gltf_vec[0];
+		res.y = gltf_vec[1];
+		res.z = gltf_vec[2];
+	}
+	else if (gltf_vec.size() >= 4) {
+		res.x = gltf_vec[0];
+		res.y = gltf_vec[1];
+		res.z = gltf_vec[2];
+		res.w = gltf_vec[3];
+	}
+	return res;
+}
+
+bool HaveSpecularGlossinessMat(const nlohmann::json& json_mat) {
+	return json_mat.contains("KHR_materials_pbrSpecularGlossiness");
+}
+
+bool HaveEmessiveMat(const nlohmann::json& json_mat) {
+	return json_mat.contains("KHR_materials_emissive_strength") && json_mat["KHR_materials_emissive_strength"].contains("emissiveStrength");
+}
+
+SpecularGlossinessMat GetSpecularGlossinessMat(const nlohmann::json& json_mat) {
+	if (!HaveSpecularGlossinessMat(json_mat)) return SpecularGlossinessMat();
+	
+	SpecularGlossinessMat result;
+
+	if (json_mat["KHR_materials_pbrSpecularGlossiness"].contains("diffuseFactor")) {
+		result.diffusefactor[0] = json_mat["KHR_materials_pbrSpecularGlossiness"]["diffuseFactor"][0].get<double>();
+		result.diffusefactor[1] = json_mat["KHR_materials_pbrSpecularGlossiness"]["diffuseFactor"][1].get<double>();
+		result.diffusefactor[2] = json_mat["KHR_materials_pbrSpecularGlossiness"]["diffuseFactor"][2].get<double>();
+		result.diffusefactor[3] = json_mat["KHR_materials_pbrSpecularGlossiness"]["diffuseFactor"][3].get<double>();
+	}
+
+	
+	if (json_mat["KHR_materials_pbrSpecularGlossiness"].contains("diffuseTexture")) {
+		result.diffuseTexture.index = json_mat["KHR_materials_pbrSpecularGlossiness"]["diffuseTexture"]["index"].get<int>();
+		if (json_mat["KHR_materials_pbrSpecularGlossiness"]["diffuseTexture"].contains("texCoord")) {
+			result.diffuseTexture.texCoord = json_mat["KHR_materials_pbrSpecularGlossiness"]["diffuseTexture"]["texCoord"].get<int>();
+		}
+	}
+
+	if (json_mat["KHR_materials_pbrSpecularGlossiness"].contains("specularFactor")) {
+		result.specularFactor[0] = json_mat["KHR_materials_pbrSpecularGlossiness"]["specularFactor"][0].get<double>();
+		result.specularFactor[1] = json_mat["KHR_materials_pbrSpecularGlossiness"]["specularFactor"][1].get<double>();
+		result.specularFactor[2] = json_mat["KHR_materials_pbrSpecularGlossiness"]["specularFactor"][2].get<double>();
+	}
+
+	if (json_mat["KHR_materials_pbrSpecularGlossiness"].contains("glossinessFactor")) {
+		result.glossinessFactor = json_mat["KHR_materials_pbrSpecularGlossiness"]["glossinessFactor"].get<double>();
+	}
+
+	if (json_mat["KHR_materials_pbrSpecularGlossiness"].contains("specularGlossinessTexture")) {
+		result.specularGlossinessTexture.index = json_mat["KHR_materials_pbrSpecularGlossiness"]["specularGlossinessTexture"]["index"].get<int>();
+		if (json_mat["KHR_materials_pbrSpecularGlossiness"]["specularGlossinessTexture"].contains("texCoord")) {
+			result.specularGlossinessTexture.texCoord = json_mat["KHR_materials_pbrSpecularGlossiness"]["specularGlossinessTexture"]["texCoord"].get<int>();
+		}
+	}
+	
+	return result;
+}
+
+void MeshNodeLoader::MakeMaterialProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material> prop_set) {
+	glm::vec4 base_color = GetColor4FromDoubleVec(gltf_material.pbrMetallicRoughness.baseColorFactor);
+	prop_set->SetDiffuseColor(base_color);
+
+	glm::vec4 emissive_color = GetColor4FromDoubleVec(gltf_material.emissiveFactor);
+	prop_set->SetEmissiveColor(base_color);
+
+	float metallic_color = gltf_material.pbrMetallicRoughness.metallicFactor;
+	prop_set->SetMetallicFactor(metallic_color);
+
+	float roughness_color = gltf_material.pbrMetallicRoughness.roughnessFactor;
+	prop_set->SetRoughnessFactor(roughness_color);
+
+	//gltf_material.alphaMode - "OPAQUE"
+	//gltf_material.doubleSided - false
+
+	if (gltf_material.extensions_json_string.empty()) return;
+	nlohmann::json mat_spec_ex = nlohmann::json::parse(gltf_material.extensions_json_string.begin(), gltf_material.extensions_json_string.end());
+
+	if (HaveEmessiveMat(mat_spec_ex)) {
+		float emissive_strength = mat_spec_ex["KHR_materials_emissive_strength"]["emissiveStrength"].get<float>();
+		prop_set->SetEmissiveColor(emissive_color * emissive_strength);
+	}
+
+	if (HaveSpecularGlossinessMat(mat_spec_ex)) {
+		SpecularGlossinessMat spec_mat = GetSpecularGlossinessMat(mat_spec_ex);
+
+		glm::vec4 dif_color = GetColor4FromDoubleVec(spec_mat.diffusefactor);
+		prop_set->SetDiffuseColor(dif_color);
+
+		glm::vec4 spec_color = GetColor4FromDoubleVec(spec_mat.specularFactor);
+		prop_set->SetSpecularColor(dif_color);
+
+		prop_set->SetSpecularPower(spec_mat.glossinessFactor);
+	}
+}
+
+bool ValidateVertexAttribute(const std::string& semantic_name) {
+	//POSITION, NORMAL, TANGENT, TEXCOORD_n, COLOR_n, JOINTS_n, and WEIGHTS_n
+
+	if (semantic_name == "POSITION") {
+		return true;
+	}
+	else if (semantic_name == "NORMAL") {
+		return true;
+	}
+	else if (semantic_name == "TANGENT") {
+		return true;
+	}
+	else if (semantic_name == "BINORMAL") {
+		return true;
+	}
+	else if (semantic_name == "TEXCOORD") {
+		return true;
+	}
+	else if (semantic_name == "TEXCOORD_0") {
+		return true;
+	}
+	else if (semantic_name == "TEXCOORD_1") {
+		return true;
+	}
+	else if (semantic_name == "TEXCOORD_2") {
+		return true;
+	}
+	else if (semantic_name == "TEXCOORD_3") {
+		return true;
+	}
+	else if (semantic_name == "TEXCOORD_4") {
+		return true;
+	}
+	else if (semantic_name == "TEXCOORD_5") {
+		return true;
+	}
+	else if (semantic_name == "TEXCOORD_6") {
+		return true;
+	}
+	else if (semantic_name == "TEXCOORD_7") {
+		return true;
+	}
+	else if (semantic_name == "TEXCOORD_8") {
+		return true;
+	}
+	else if (semantic_name == "TEXCOORD_9") {
+		return true;
+	}
+	else if (semantic_name == "TEXCOORD_10") {
+		return true;
+	}
+	else if (semantic_name == "TEXCOORD_11") {
+		return true;
+	}
+	else if (semantic_name == "TEXCOORD_12") {
+		return true;
+	}
+	else if (semantic_name == "TEXCOORD_13") {
+		return true;
+	}
+	else if (semantic_name == "TEXCOORD_14") {
+		return true;
+	}
+	else if (semantic_name == "TEXCOORD_15") {
+		return true;
+	}
+	else if (semantic_name == "COLOR") {
+		return true;
+	}
+	else if (semantic_name == "COLOR_0") {
+		return true;
+	}
+	else if (semantic_name == "COLOR_1") {
+		return true;
+	}
+	else if (semantic_name == "COLOR_2") {
+		return true;
+	}
+	else if (semantic_name == "COLOR_3") {
+		return true;
+	}
+	else if (semantic_name == "COLOR_4") {
+		return true;
+	}
+	else if (semantic_name == "COLOR_5") {
+		return true;
+	}
+	else if (semantic_name == "COLOR_6") {
+		return true;
+	}
+	else if (semantic_name == "COLOR_7") {
+		return true;
+	}
+	else if (semantic_name == "COLOR_8") {
+		return true;
+	}
+	else if (semantic_name == "COLOR_9") {
+		return true;
+	}
+	else if (semantic_name == "COLOR_10") {
+		return true;
+	}
+	else if (semantic_name == "COLOR_11") {
+		return true;
+	}
+	else if (semantic_name == "COLOR_12") {
+		return true;
+	}
+	else if (semantic_name == "COLOR_13") {
+		return true;
+	}
+	else if (semantic_name == "COLOR_14") {
+		return true;
+	}
+	else if (semantic_name == "COLOR_15") {
+		return true;
+	}
+	else if (semantic_name == "WEIGHTS") {
+		return true;
+	}
+	else if (semantic_name == "WEIGHTS_0") {
+		return true;
+	}
+	else if (semantic_name == "WEIGHTS_1") {
+		return true;
+	}
+	else if (semantic_name == "WEIGHTS_2") {
+		return true;
+	}
+	else if (semantic_name == "WEIGHTS_3") {
+		return true;
+	}
+	else if (semantic_name == "WEIGHTS_4") {
+		return true;
+	}
+	else if (semantic_name == "WEIGHTS_5") {
+		return true;
+	}
+	else if (semantic_name == "WEIGHTS_6") {
+		return true;
+	}
+	else if (semantic_name == "WEIGHTS_7") {
+		return true;
+	}
+	else if (semantic_name == "WEIGHTS_8") {
+		return true;
+	}
+	else if (semantic_name == "WEIGHTS_9") {
+		return true;
+	}
+	else if (semantic_name == "WEIGHTS_10") {
+		return true;
+	}
+	else if (semantic_name == "WEIGHTS_11") {
+		return true;
+	}
+	else if (semantic_name == "WEIGHTS_12") {
+		return true;
+	}
+	else if (semantic_name == "WEIGHTS_13") {
+		return true;
+	}
+	else if (semantic_name == "WEIGHTS_14") {
+		return true;
+	}
+	else if (semantic_name == "WEIGHTS_15") {
+		return true;
+	}
+	else if (semantic_name == "JOINTS") {
+		return true;
+	}
+	else if (semantic_name == "JOINTS_0") {
+		return true;
+	}
+	else if (semantic_name == "JOINTS_1") {
+		return true;
+	}
+	else if (semantic_name == "JOINTS_2") {
+		return true;
+	}
+	else if (semantic_name == "JOINTS_3") {
+		return true;
+	}
+	else if (semantic_name == "JOINTS_4") {
+		return true;
+	}
+	else if (semantic_name == "JOINTS_5") {
+		return true;
+	}
+	else if (semantic_name == "JOINTS_6") {
+		return true;
+	}
+	else if (semantic_name == "JOINTS_7") {
+		return true;
+	}
+	else if (semantic_name == "JOINTS_8") {
+		return true;
+	}
+	else if (semantic_name == "JOINTS_9") {
+		return true;
+	}
+	else if (semantic_name == "JOINTS_10") {
+		return true;
+	}
+	else if (semantic_name == "JOINTS_11") {
+		return true;
+	}
+	else if (semantic_name == "JOINTS_12") {
+		return true;
+	}
+	else if (semantic_name == "JOINTS_13") {
+		return true;
+	}
+	else if (semantic_name == "JOINTS_14") {
+		return true;
+	}
+	else if (semantic_name == "JOINTS_15") {
+		return true;
+	}
+	return false;
+}
+
+float GetAttribute(const unsigned char* raw_data_ptr, uint32_t component_type) {
+	float result;
+	switch (component_type) {
+		case TINYGLTF_COMPONENT_TYPE_BYTE: {
+			result = *((int8_t*)raw_data_ptr);
+		}
+		break;
+		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE: break;
+		case TINYGLTF_COMPONENT_TYPE_SHORT: break;
+		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT: break;
+		case TINYGLTF_COMPONENT_TYPE_INT: break;
+		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT: break;
+		case TINYGLTF_COMPONENT_TYPE_FLOAT: {
+			result = *((float*)raw_data_ptr);
+		}
+		break;
+		case TINYGLTF_COMPONENT_TYPE_DOUBLE: {
+			double value = *((double*)raw_data_ptr);
+			result = value;
+		}
+		break;
+		default: break;
+	}
+	return result;
+}
+
+std::vector<float> MeshNodeLoader::GetVertices(const tinygltf::Primitive& primitive, const ShaderSignature& pbr_shader_signature) {
+	const VertexFormat& uni_vertex_format = pbr_shader_signature.getVertexFormat();
+	int32_t num_vertices = GetNumVertices(primitive);
+	int32_t uni_stride_el = uni_vertex_format.getVertexSize();
+	size_t uni_number_of_components = uni_stride_el * num_vertices;
+	std::vector<float> result(uni_number_of_components);
+	for (const auto& [semantic_name, semantic_accessor_idx] : primitive.attributes) {
+		if(!ValidateVertexAttribute(semantic_name)) continue;
+		if(uni_vertex_format.checkVertexAttribExist(semantic_name)) continue;
+		size_t uni_current_offset = uni_vertex_format.getOffset<float>(semantic_name);
+
+		const tinygltf::Accessor& vertex_attrib_accessor = m_gltf_model.accessors[semantic_accessor_idx];
+		int32_t element_size = tinygltf::GetComponentSizeInBytes(vertex_attrib_accessor.componentType);
+		int32_t num_of_elements_in_type = tinygltf::GetNumComponentsInType(vertex_attrib_accessor.type);
+		//int32_t num_of_elements_to_copy = num_of_elements_in_type;
+		int32_t num_of_elements_to_copy = uni_vertex_format.GetNumComponentsInType(semantic_name);
+
+		size_t vertex_attrib_view_idx = vertex_attrib_accessor.bufferView;
+		const tinygltf::BufferView& vertex_attrib_view = m_gltf_model.bufferViews[vertex_attrib_view_idx];
+		size_t vertex_attrib_buffer_idx = vertex_attrib_view.buffer;
+		const tinygltf::Buffer& vertex_attrib_buffer = m_gltf_model.buffers[vertex_attrib_buffer_idx];
+
+		const unsigned char* begin_ptr = vertex_attrib_buffer.data.data();
+		size_t buffer_offset_bytes = vertex_attrib_accessor.byteOffset + vertex_attrib_view.byteOffset;
+		size_t buffer_stride_bytes = vertex_attrib_view.byteStride ? vertex_attrib_view.byteStride : element_size * num_of_elements_in_type;
+		size_t elements_count = vertex_attrib_accessor.count;
+
+		if (semantic_name == "JOINTS_0") {
+			for (size_t current_element = 0u; current_element < elements_count; ++current_element) {
+				uint8_t bone_indices[4] = {0};
+				for (int32_t current_component_num = 0; current_component_num < num_of_elements_to_copy; ++current_component_num) {
+					const unsigned char* raw_data_ptr = begin_ptr + buffer_offset_bytes + current_element * buffer_stride_bytes + current_component_num * element_size;
+					int8_t bone_indice = *((const int8_t*)raw_data_ptr);
+					bone_indices[current_component_num] = bone_indice;
+				}
+				float vertex_attrib_element = *((float*)bone_indices);
+				result[current_element * uni_stride_el + uni_current_offset + 3u] = vertex_attrib_element;
+			}
+		}
+		else {
+			for (size_t current_element = 0u; current_element < elements_count; ++current_element) {
+				for (int32_t current_component_num = 0; current_component_num < num_of_elements_to_copy; ++current_component_num) {
+					if(current_component_num >= uni_vertex_format.GetNumComponentsInType(semantic_name)) continue;
+					const unsigned char* raw_data_ptr = begin_ptr + buffer_offset_bytes + current_element * buffer_stride_bytes + current_component_num * element_size;
+					float vertex_attrib_element = GetAttribute(raw_data_ptr, vertex_attrib_accessor.componentType);
+					result[current_element * uni_stride_el + uni_current_offset + current_component_num] = vertex_attrib_element;
+				}
+			}
+		}
+	}
+	return result;
 }

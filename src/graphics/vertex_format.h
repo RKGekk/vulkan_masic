@@ -32,26 +32,41 @@ public:
         INT_VEC4 = 7
     };
 
+    static size_t getBytesForType(VertexFormat::VertexAttributeFormat format);
+    static size_t GetNumComponentsInType(VertexFormat::VertexAttributeFormat format);
+
     void addVertexAttribute(const SemanticName& name, VertexAttributeFormat format);
 
+    bool checkVertexAttribExist(const SemanticName& name) const;
     size_t getVertexAttribPos(const SemanticName& name) const;
     const SemanticName& getPosSemanticName(size_t pos) const;
 
     VertexAttributeFormat getAttribFormat (size_t pos) const;
     VertexAttributeFormat getAttribFormat (const SemanticName& name) const;
 
+    VertexAttributeType getAttribType(size_t pos) const;
+    VertexAttributeType getAttribType(const SemanticName& name) const;
+    size_t GetNumComponentsInType(const SemanticName& name) const;
+
     size_t getStride(const SemanticName& name) const;
     size_t getStride(size_t pos) const;
 
     template<typename ElementType>
     size_t getOffset(const SemanticName& name) const {
-        size_t result = -1;
-
-        return result;
+        size_t offset = -1;
+        if(!m_name_pos_map.count(name)) return offset;
+        size_t to = m_name_pos_map.at(name);
+        for(size_t i = 0u; i < to; ++i) {
+            VertexAttributeFormat curr_format = m_format_pos.at(i);
+            size_t bytes_ct = getBytesForType(curr_format);
+            size_t target_type_size = sizeof(ElementType);
+            size_t size_in_target_type = bytes_ct / target_type_size;
+            offset += size_in_target_type;
+        }
+        return offset;
     };
 
     size_t getVertexAttribCount() const;
-
     size_t getVertexSize() const;
 
     template<typename ElementType>
