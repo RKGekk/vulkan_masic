@@ -63,6 +63,7 @@ private:
     std::shared_ptr<Material> MakePropertySet(const tinygltf::Primitive& primitive);
     void MakeTextureProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material> material);
     void SetTextureProperty(const tinygltf::Texture& texture, Material::TextureType texture_type_enum, std::shared_ptr<Material> material);
+    VkSampler createTextureSampler(uint32_t mip_levels, const tinygltf::Sampler& texture_sampler);
 
     tinygltf::Model m_gltf_model;
     tinygltf::TinyGLTF m_gltf_ctx;

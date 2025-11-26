@@ -57,6 +57,22 @@ bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, unsigned char* pi
     return result;
 }
 
+bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, size_t size, VkSampler sampler) {
+    int tex_width;
+    int tex_height;
+    int tex_channels;
+    stbi_uc* pixels = stbi_load_from_memory(pixels, size, &tex_width, &tex_height, &tex_channels, STBI_rgb_alpha);
+    if (!pixels) {
+        throw std::runtime_error("failed to load texture image!");
+    }
+    uint32_t mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(tex_width, tex_height))));
+    bool result = init(std::move(device), pixels, tex_width, tex_height, sampler, tex_channels == 4 ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8_SRGB);
+
+    stbi_image_free(pixels);
+
+    return result;
+}
+
 void VulkanTexture::destroy() {
     VulkanImageBuffer::destroy();
     vkDestroySampler(m_device->getDevice(), m_texture_sampler, nullptr);

@@ -15,6 +15,7 @@ public:
     bool init(std::shared_ptr<VulkanDevice> device, const std::string& path_to_file);
     bool init(std::shared_ptr<VulkanDevice> device, const std::string& path_to_file, VkSampler sampler);
     bool init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, size_t size);
+    bool init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, size_t size, VkSampler sampler);
 
     void destroy() override;
 

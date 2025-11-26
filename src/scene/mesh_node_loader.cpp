@@ -390,7 +390,6 @@ std::shared_ptr<Material> MeshNodeLoader::MakePropertySet(const tinygltf::Primit
 
 	MakeTextureProperties(gltf_material, *prop_set);
 	MakeMaterialProperties(gltf_material, *prop_set);
-	
 
 	return material;
 }
@@ -403,25 +402,96 @@ bool IsImageFileMime(const std::string& mime_type) {
 	return result;
 }
 
-void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, Material::TextureType texture_type_enum, std::shared_ptr<Material> material) {
-	int texture_sampler_idx = gltf_texture.sampler;
-	const tinygltf::Sampler& texture_sampler = m_gltf_model.samplers[texture_sampler_idx];
-	//color_texture_sampler.magFilter
-	//color_texture_sampler.magFilter
-	//  TINYGLTF_TEXTURE_FILTER_NEAREST (9728)
-	//  TINYGLTF_TEXTURE_FILTER_LINEAR (9729)
-	//  TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST (9984)
-	//  TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST (9985)
-	//  TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR (9986)
-	//  TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR (9987)
+VkSampler MeshNodeLoader::createTextureSampler(uint32_t mip_levels, const tinygltf::Sampler& gltf_texture_sampler) {
+    VkPhysicalDeviceFeatures supported_features{};
+    vkGetPhysicalDeviceFeatures(m_device->getDeviceAbilities().physical_device, &supported_features);
 
+    VkPhysicalDeviceProperties device_props{};
+    vkGetPhysicalDeviceProperties(m_device->getDeviceAbilities().physical_device, &device_props);
+
+	VkSamplerMipmapMode mip_mode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	VkFilter min_filter = VK_FILTER_LINEAR;
+	switch (gltf_texture_sampler.minFilter) {
+		case TINYGLTF_TEXTURE_FILTER_NEAREST: min_filter = VK_FILTER_NEAREST; break;
+		case TINYGLTF_TEXTURE_FILTER_LINEAR: min_filter = VK_FILTER_LINEAR; break;
+		case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST:
+			min_filter = VK_FILTER_NEAREST;
+			mip_mode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+    		break;
+		case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST:
+			min_filter = VK_FILTER_LINEAR;
+			mip_mode = mip_mode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+			break;
+		case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR:
+			min_filter = VK_FILTER_NEAREST;
+			mip_mode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+			break;
+		case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR:
+			min_filter = VK_FILTER_LINEAR;
+			mip_mode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+			break;
+	};
+
+	VkFilter mag_filter = VK_FILTER_LINEAR;
+	switch (gltf_texture_sampler.magFilter) {
+		case TINYGLTF_TEXTURE_FILTER_NEAREST: mag_filter = VK_FILTER_NEAREST; break;
+		case TINYGLTF_TEXTURE_FILTER_LINEAR: mag_filter = VK_FILTER_LINEAR; break;
+	};
+
+	VkSamplerAddressMode wrapS = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	switch (gltf_texture_sampler.wrapS) {
+		case TINYGLTF_TEXTURE_WRAP_REPEAT: wrapS = VK_SAMPLER_ADDRESS_MODE_REPEAT; break;
+		case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: wrapS = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE; break;
+		case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: wrapS = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT; break;
+	}
+
+	VkSamplerAddressMode wrapT = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	switch (gltf_texture_sampler.wrapT) {
+		case TINYGLTF_TEXTURE_WRAP_REPEAT: wrapT = VK_SAMPLER_ADDRESS_MODE_REPEAT; break;
+		case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: wrapT = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE; break;
+		case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: wrapT = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT; break;
+	}
+    
+    VkSamplerCreateInfo sampler_info{};
+    sampler_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    sampler_info.magFilter = mag_filter;
+    sampler_info.minFilter = min_filter;
+    sampler_info.addressModeU = wrapS;
+    sampler_info.addressModeV = wrapT;
+    sampler_info.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    sampler_info.anisotropyEnable = supported_features.samplerAnisotropy;
+    sampler_info.maxAnisotropy = device_props.limits.maxSamplerAnisotropy;
+    sampler_info.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+    sampler_info.unnormalizedCoordinates = VK_FALSE;
+    sampler_info.compareEnable = VK_FALSE;
+    sampler_info.compareOp = VK_COMPARE_OP_ALWAYS;
+    sampler_info.mipmapMode = mip_mode;
+    sampler_info.mipLodBias = 0.0f;
+    sampler_info.minLod = 0.0f;
+    sampler_info.maxLod = static_cast<float>(mip_levels);;
+    
+    VkSampler texture_sampler;
+    VkResult result = vkCreateSampler(m_device->getDevice(), &sampler_info, nullptr, &texture_sampler);
+    if(result != VK_SUCCESS) {
+        throw std::runtime_error("failed to create texture sampler!");
+    }
+    return texture_sampler;
+}
+
+void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, Material::TextureType texture_type_enum, std::shared_ptr<Material> material) {
 	int texture_image_idx = gltf_texture.source;
 	const tinygltf::Image& texture_image = m_gltf_model.images[texture_image_idx];
 	bool mime_is_file = IsImageFileMime(texture_image.mimeType.c_str());
+
+	int texture_sampler_idx = gltf_texture.sampler;
+	const tinygltf::Sampler& texture_sampler = m_gltf_model.samplers[texture_sampler_idx];
+	uint32_t mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(texture_image.width, texture_image.height))));
+	VkSampler sampler = createTextureSampler(mip_levels, texture_sampler);
+
 	std::shared_ptr<VulkanTexture> texture = std::make_shared<VulkanTexture>();
 	if (mime_is_file) {
 		std::string texture_image_file_name = "textures/"s + texture_image.uri;
-		texture->init(m_device, texture_image_file_name);
+		texture->init(m_device, texture_image_file_name, sampler);
 		material->SetTexture(texture_type_enum, std::move(texture));
 	}
 	else {
@@ -430,55 +500,41 @@ void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, M
 		size_t texture_image_buffer_idx = texture_image_view.buffer;
 		tinygltf::Buffer& texture_image_buffer = m_gltf_model.buffers[texture_image_buffer_idx];
 
-		texture->init(m_device, texture_image_buffer.data.data(), texture_image_buffer.data.size());
+		texture->init(m_device, texture_image_buffer.data.data(), texture_image_buffer.data.size(), sampler);
 		material->SetTexture(texture_type_enum, std::move(texture));
 	}
 }
 
-void MeshNodeLoader::MakeTextureProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material> material) {
+void MeshNodeLoader::MakeTextureProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material> prop_set) {
 
 	if (gltf_material.pbrMetallicRoughness.baseColorTexture.index != -1) {
 		int color_texture_idx = gltf_material.pbrMetallicRoughness.baseColorTexture.index;
 		const tinygltf::Texture& color_texture = m_gltf_model.textures[color_texture_idx];
-
-		SetTextureProperty(color_texture, model::tex::TS_DIFFUSE, prop_set);
+		SetTextureProperty(color_texture, Material::TextureType::Diffuse, prop_set);
 	}
 
 	if (gltf_material.pbrMetallicRoughness.metallicRoughnessTexture.index != -1) {
 		int metal_rough_texture_idx = gltf_material.pbrMetallicRoughness.metallicRoughnessTexture.index;
 		const tinygltf::Texture& metal_rough_texture = m_gltf_model.textures[metal_rough_texture_idx];
-
-		SetTextureProperty(metal_rough_texture, model::tex::TS_METROUGH_MAP, prop_set);
-
-		if(gltf_material.occlusionTexture.index == -1) {
-			SetTextureProperty(metal_rough_texture, model::tex::TS_AMBIENT_OCCLUSION, prop_set);
-		}
+		SetTextureProperty(metal_rough_texture, Material::TextureType::Metalness, prop_set);
 	}
 
 	if (gltf_material.normalTexture.index != -1) {
 		int normal_texture_idx = gltf_material.normalTexture.index;
 		const tinygltf::Texture& normal_texture = m_gltf_model.textures[normal_texture_idx];
-
-		SetTextureProperty(normal_texture, model::tex::TS_NORMAL_MAP, prop_set);
-	}
-	else {
-		model::VertexFormat& vertex_format = prop_set.getVertexFormat();
-		vertex_format.sizes[model::va::TANGENT] = 0u;
-		vertex_format.sizes[model::va::BINORMAL] = 0u;
+		SetTextureProperty(normal_texture, Material::TextureType::Normal, prop_set);
 	}
 
 	if (gltf_material.emissiveTexture.index != -1) {
 		int emissive_texture_idx = gltf_material.emissiveTexture.index;
 		const tinygltf::Texture& emissive_texture = m_gltf_model.textures[emissive_texture_idx];
-
-		SetTextureProperty(emissive_texture, model::tex::TS_SELF_ILLUMINATION, prop_set);
+		SetTextureProperty(emissive_texture, Material::TextureType::Emissive, prop_set);
 	}
 
 	if (gltf_material.occlusionTexture.index != -1) {
 		int occlusion_texture_idx = gltf_material.occlusionTexture.index;
 		const tinygltf::Texture& occlusion_texture = m_gltf_model.textures[occlusion_texture_idx];
-
-		SetTextureProperty(occlusion_texture, model::tex::TS_AMBIENT_OCCLUSION, prop_set);
+		SetTextureProperty(occlusion_texture, Material::TextureType::Ambient, prop_set);
 	}
 
 	if(gltf_material.extensions_json_string.empty()) return;
@@ -491,30 +547,30 @@ void MeshNodeLoader::MakeTextureProperties(const tinygltf::Material& gltf_materi
 		SetTextureProperty(specular_texture, model::tex::TS_SPECULAR, prop_set);
 	}*/
 
-	if (mat_spec_ex.contains("KHR_materials_transmission") && mat_spec_ex["KHR_materials_transmission"].contains("transmissionTexture")) {
-		int transmission_texture_idx = mat_spec_ex["KHR_materials_transmission"]["transmissionTexture"]["index"].get<int>();
-		const tinygltf::Texture& transmission_texture = m_gltf_model.textures[transmission_texture_idx];
+	// if (mat_spec_ex.contains("KHR_materials_transmission") && mat_spec_ex["KHR_materials_transmission"].contains("transmissionTexture")) {
+	// 	int transmission_texture_idx = mat_spec_ex["KHR_materials_transmission"]["transmissionTexture"]["index"].get<int>();
+	// 	const tinygltf::Texture& transmission_texture = m_gltf_model.textures[transmission_texture_idx];
 
-		SetTextureProperty(transmission_texture, model::tex::TS_GLASS_COLOR_MAP, prop_set);
-	}
+	// 	SetTextureProperty(transmission_texture, model::tex::TS_GLASS_COLOR_MAP, prop_set);
+	// }
 
-	if (HaveSpecularGlossinessMat(mat_spec_ex)) {
-		SpecularGlossinessMat spec_mat = GetSpecularGlossinessMat(mat_spec_ex);
+	// if (HaveSpecularGlossinessMat(mat_spec_ex)) {
+	// 	SpecularGlossinessMat spec_mat = GetSpecularGlossinessMat(mat_spec_ex);
 
-		if (spec_mat.diffuseTexture.index != -1) {
-			int color_texture_idx = spec_mat.diffuseTexture.index;
-			const tinygltf::Texture& color_texture = m_gltf_model.textures[color_texture_idx];
+	// 	if (spec_mat.diffuseTexture.index != -1) {
+	// 		int color_texture_idx = spec_mat.diffuseTexture.index;
+	// 		const tinygltf::Texture& color_texture = m_gltf_model.textures[color_texture_idx];
 
-			SetTextureProperty(color_texture, model::tex::TS_DIFFUSE, prop_set);
-		}
+	// 		SetTextureProperty(color_texture, model::tex::TS_DIFFUSE, prop_set);
+	// 	}
 		
-		if (spec_mat.specularGlossinessTexture.index != -1) {
-			int specular_channel = spec_mat.specularGlossinessTexture.texCoord;
+	// 	if (spec_mat.specularGlossinessTexture.index != -1) {
+	// 		int specular_channel = spec_mat.specularGlossinessTexture.texCoord;
 
-			int specular_texture_idx = spec_mat.specularGlossinessTexture.index;
-			const tinygltf::Texture& specular_texture = m_gltf_model.textures[specular_texture_idx];
+	// 		int specular_texture_idx = spec_mat.specularGlossinessTexture.index;
+	// 		const tinygltf::Texture& specular_texture = m_gltf_model.textures[specular_texture_idx];
 
-			SetTextureProperty(specular_texture, model::tex::TS_SPECULAR, prop_set);
-		}
-	}
+	// 		SetTextureProperty(specular_texture, model::tex::TS_SPECULAR, prop_set);
+	// 	}
+	// }
 }
