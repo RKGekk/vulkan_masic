@@ -48,14 +48,13 @@ private:
     struct SimpleHash { size_t operator()(const std::pair<int, int>& p) const { size_t h = (size_t)p.first; h <<= 32; h += p.second; return h; }};
 
     std::shared_ptr<SceneNode> MakeSingleNode(const tinygltf::Node& gltf_node, Scene::NodeIndex parent);
-    std::shared_ptr<MeshNode> MakeRenderNode(const tinygltf::Mesh& gltf_mesh, Scene::NodeIndex node, const ShaderSignature& pbr_shader_signature);
+    std::shared_ptr<MeshNode> MakeRenderNode(const tinygltf::Mesh& gltf_mesh, Scene::NodeIndex node);
     glm::mat4x4 MakeMatrix(const tinygltf::Node& gltf_node) const;
     glm::mat4x4 MakeMatrix(const std::vector<double>& mat) const;
     glm::mat4x4 MakeMatrix(const std::vector<double>& scale, const std::vector<double>& rotation, const std::vector<double>& translation) const;
-    void MakeNodesHierarchy(NodeIdx current_node_idx);
+    void MakeNodesHierarchy(NodeIdx current_node_idx, std::shared_ptr<SceneNode> parent);
     NodeIdx getParrent(NodeIdx) const;
     std::unordered_map<NodeIdx, NodeIdx> make_parent_map();
-    std::unordered_map<NodeIdx, std::shared_ptr<SceneNode>> makeRootScenes();
     int32_t GetNumVertices(const tinygltf::Primitive& primitive) const;
     int32_t GetNumPrimitives(const tinygltf::Primitive& primitive) const;
     std::vector<uint32_t> GetIndices(const tinygltf::Accessor& gltf_accessor);
@@ -76,7 +75,7 @@ private:
     std::shared_ptr<VulkanDevice> m_device;
     std::shared_ptr<Scene> m_scene;
     std::shared_ptr<SceneNode> m_root_node;
+    ShaderSignature m_pbr_shader_signature;
 
-    std::unordered_map<NodeIdx, std::shared_ptr<SceneNode>> m_root_scenes;
     nlohmann::json m_extensions;
 };

@@ -32,6 +32,10 @@ bool SceneNode::VOnLostDevice() {
     return true;
 }
 
+bool SceneNode::VAddChild(std::shared_ptr<SceneNode> kid) {
+
+}
+
 Scene::NodeIndex SceneNode::VGetChild() const {
     return m_scene->getNodeHierarchy(m_node_index).first_child;
 }

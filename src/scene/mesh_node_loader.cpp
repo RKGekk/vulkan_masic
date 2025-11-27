@@ -34,27 +34,12 @@ std::unordered_map<MeshNodeLoader::NodeIdx, MeshNodeLoader::NodeIdx> MeshNodeLoa
     return node_parent_map;
 }
 
-std::unordered_map<MeshNodeLoader::NodeIdx, std::shared_ptr<SceneNode>> MeshNodeLoader::makeRootScenes() {
-    std::unordered_map<MeshNodeLoader::NodeIdx, std::shared_ptr<SceneNode>> root_scenes;
-    size_t num_scenes = m_gltf_model.scenes.size();
-    for (int scene_idx = 0; scene_idx < num_scenes; ++scene_idx) {
-    	const tinygltf::Scene gltf_current_scene = m_gltf_model.scenes[scene_idx];
-    	size_t num_nodes = gltf_current_scene.nodes.size();
-    	for (int node_ct = 0; node_ct < num_nodes; ++node_ct) {
-    		int node_idx = gltf_current_scene.nodes[node_ct];
-            const tinygltf::Node& gltf_node = m_gltf_model.nodes[node_idx];
-    		std::shared_ptr<SceneNode> transform_node = MakeSingleNode(gltf_node, m_root_node->VGetNodeIndex());
-            root_scenes[node_idx] = std::move(transform_node);
-    	}
-    }
-    return root_scenes;
-}
-
 std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem::path& model_path, const ShaderSignature& pbr_shader_signature) {
     Application& app = Application::Get();
     VulkanRenderer& renderer = app.GetRenderer();
     m_device = renderer.GetDevice();
     m_scene = Application::Get().GetGameLogic()->VGetScene();
+	m_pbr_shader_signature = pbr_shader_signature;
 
     bool store_original_json_for_extras_and_extensions = true;
     m_gltf_ctx.SetStoreOriginalJSONForExtrasAndExtensions(store_original_json_for_extras_and_extensions);
@@ -80,7 +65,6 @@ std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem
     }
 
     m_node_parent = make_parent_map();
-    m_root_scenes = makeRootScenes();
 
     size_t num_scenes = m_gltf_model.scenes.size();
     for (int scene_idx = 0; scene_idx < num_scenes; ++scene_idx) {
@@ -88,7 +72,7 @@ std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem
     	size_t num_nodes = gltf_current_scene.nodes.size();
     	for (int node_ct = 0; node_ct < num_nodes; ++node_ct) {
     		int node_idx = gltf_current_scene.nodes[node_ct];
-    		MakeNodesHierarchy(node_idx);
+    		MakeNodesHierarchy(node_idx, m_root_node);
     	}
     }
 }
@@ -207,13 +191,13 @@ VkIndexType getIndexType(int accessor_component_type) {
     }
 }
 
-std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& gltf_mesh, Scene::NodeIndex node, const ShaderSignature& pbr_shader_signature) {
+std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& gltf_mesh, Scene::NodeIndex node) {
     std::shared_ptr<MeshNode> mesh_node = std::make_shared<MeshNode>(m_scene, node);
     const std::string& mesh_name = gltf_mesh.name;
     size_t num_primitives = gltf_mesh.primitives.size();
 	std::shared_ptr<ModelData> model_data = std::make_shared<ModelData>();
 	model_data->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-	model_data->SetVertexFormat(pbr_shader_signature.getVertexFormat());
+	model_data->SetVertexFormat(m_pbr_shader_signature.getVertexFormat());
     for (size_t prim_idx = 0; prim_idx < num_primitives; ++prim_idx) {
     	const tinygltf::Primitive& primitive = gltf_mesh.primitives[prim_idx];
 
@@ -242,7 +226,7 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& g
     	//VertexFormat vertex_format = GetVertexFormat(primitive.attributes);
 		model_data->SetMaterial(prop_set);
 
-    	std::vector<float> vertices = GetVertices(primitive, pbr_shader_signature);
+    	std::vector<float> vertices = GetVertices(primitive, m_pbr_shader_signature);
 		int32_t vertex_count = GetNumVertices(primitive);
 		const void* vertices_data = vertices.data();
 		std::shared_ptr<VertexBuffer> vertex_buffer = std::make_shared<VertexBuffer>();
@@ -321,36 +305,22 @@ glm::mat4x4 MeshNodeLoader::MakeMatrix(const std::vector<double>& scale, const s
 	return  S * R * T;
 }
 
-void MeshNodeLoader::MakeNodesHierarchy(int current_node_idx) {
+void MeshNodeLoader::MakeNodesHierarchy(int current_node_idx, std::shared_ptr<SceneNode> parent) {
 	const tinygltf::Node& gltf_node = m_gltf_model.nodes[current_node_idx];
-    if(!gltf_node.children.size()) return;
 
-	//std::shared_ptr<SceneNode> transform_node = m_transform_nodes[current_node_idx];
-    std::shared_ptr<SceneNode> transform_node = MakeSingleNode(gltf_node);
+    std::shared_ptr<SceneNode> transform_node = MakeSingleNode(gltf_node, parent->VGetNodeIndex());
 	
-	bool is_render_node = IsRenderNode(gltf_node);
-
-	if (is_render_node && !is_shell_node && !is_segment_node) {
-		MakeRenderNode(current_node_idx);
+	if (gltf_node.mesh != -1) {
+		const tinygltf::Mesh& gltf_mesh = m_gltf_model.meshes[gltf_node.mesh];
+		MakeRenderNode(m_gltf_model.meshes[gltf_node.mesh], transform_node->VGetNodeIndex());
 	}
 
 	size_t child_ct = gltf_node.children.size();
 	for (size_t current_child_ct = 0u; current_child_ct < child_ct; ++current_child_ct) {
 		int current_child_idx = gltf_node.children[current_child_ct];
 		const tinygltf::Node& child_gltf_node = m_gltf_model.nodes[current_child_idx];
-		model::TransformNode::Ptr child_transform_node = MakeNodesHierarchy(current_child_idx);
-		bool is_skin = gltf_node.skin != -1;
-		if (sm_bypass_parent_transform) {
-			if (!is_skin) {
-				transform_node->add(child_transform_node.release());
-			}
-		}
-		else {
-			transform_node->add(child_transform_node.release());
-		}
+		MakeNodesHierarchy(current_child_idx, transform_node);
 	}
-
-	return transform_node;
 }
 
 MeshNodeLoader::NodeIdx MeshNodeLoader::getParrent(MeshNodeLoader::NodeIdx node_idx) const {
