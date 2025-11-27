@@ -2,37 +2,12 @@
 
 #include "transform_component.h"
 #include "../application.h"
+#include "../scene/mesh_node_loader.h"
 
 #include <cassert>
 #include <unordered_map>
 
 const std::string ModelComponent::g_name = "ModelComponent";
-
-std::shared_ptr<SceneNode> ImportSceneNode(const std::filesystem::path& model_path) {
-    Application& app = Application::Get();
-    VulkanRenderer& renderer = app.GetRenderer();
-    std::shared_ptr<VulkanDevice> device = renderer.GetDevice();
-    tinygltf::Model gltf_model;
-    tinygltf::TinyGLTF gltf_ctx;
-
-    bool store_original_json_for_extras_and_extensions = true;
-    gltf_ctx.SetStoreOriginalJSONForExtrasAndExtensions(store_original_json_for_extras_and_extensions);
-
-    bool load_result = false;
-    std::string ext = model_path.extension().string().c_str();
-    std::string load_error;
-    std::string load_warning;
-    if (ext.compare(".glb") == 0) {
-    	load_result = gltf_ctx.LoadBinaryFromFile(&gltf_model, &load_error, &load_warning, model_path.string().c_str());
-    }
-    else {
-    	load_result = gltf_ctx.LoadASCIIFromFile(&gltf_model, &load_error, &load_warning, model_path.string().c_str());
-    }
-
-    if (!load_result || gltf_model.scenes.empty()) return nullptr;
-    
-    
-}
 
 ModelComponent::ModelComponent() {}
 
@@ -75,13 +50,17 @@ bool ModelComponent::Init(const pugi::xml_node& data) {
 	if (m_resource_name.empty()) return false;
 	std::filesystem::path p(m_resource_name);
 	m_resource_directory = p.parent_path().string();
-	return LoadModel(p);
-}
 
-bool ModelComponent::LoadModel(const std::filesystem::path& file_name) {
-    std::string file_path_str = file_name.string();
+    VertexFormat vertex_format;
+    vertex_format.addVertexAttribute("POSITION", VertexFormat::VertexAttributeFormat::FLOAT_VEC3);
+    vertex_format.addVertexAttribute("COLOR_0", VertexFormat::VertexAttributeFormat::FLOAT_VEC3);
+    vertex_format.addVertexAttribute("TEXCOORD_0", VertexFormat::VertexAttributeFormat::FLOAT_VEC2);
 
-    m_loaded_scene_node = ImportSceneNode(file_name);
-    
-    return true;
+    ShaderSignature shader_signature;
+    shader_signature.setVertexFormat(vertex_format);
+
+    MeshNodeLoader node_loader;
+    m_loaded_scene_node = node_loader.ImportSceneNode(p, shader_signature);
+
+	return !!m_loaded_scene_node;
 }

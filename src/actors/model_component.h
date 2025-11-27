@@ -42,10 +42,9 @@ protected:
 
 private:
     bool Init(const pugi::xml_node& data);
-	bool LoadModel(const std::filesystem::path& file_name);
 
 	std::string m_resource_name;
 	std::string m_resource_directory;
 
-	std::shared_ptr<MeshNode> m_loaded_scene_node;
+	std::shared_ptr<SceneNode> m_loaded_scene_node;
 };

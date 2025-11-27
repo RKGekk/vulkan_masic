@@ -30,17 +30,11 @@
 
 class MeshNodeLoader {
 public:
-	MeshNodeLoader(const MeshNodeLoader&) = delete;
-	MeshNodeLoader(MeshNodeLoader&&) = delete;
-	MeshNodeLoader& operator=(const MeshNodeLoader&) = delete;
-	MeshNodeLoader& operator=(MeshNodeLoader&&) = delete;
+	MeshNodeLoader() = default;
 
 	std::shared_ptr<SceneNode> ImportSceneNode(const std::filesystem::path& model_path, const ShaderSignature& pbr_shader_signature);
 
 private:
-	MeshNodeLoader() = default;
-	~MeshNodeLoader() = default;
-
     using NodeIdx = int;
     using MatrixIdx = int;
     const int NO_PARENT = -1;
