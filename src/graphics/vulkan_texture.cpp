@@ -41,11 +41,11 @@ bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, const std::string
     return result;
 }
 
-bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, size_t size) {
+bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, unsigned char* data, size_t size) {
     int tex_width;
     int tex_height;
     int tex_channels;
-    stbi_uc* pixels = stbi_load_from_memory(pixels, size, &tex_width, &tex_height, &tex_channels, STBI_rgb_alpha);
+    stbi_uc* pixels = stbi_load_from_memory(data, size, &tex_width, &tex_height, &tex_channels, STBI_rgb_alpha);
     if (!pixels) {
         throw std::runtime_error("failed to load texture image!");
     }
@@ -57,11 +57,11 @@ bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, unsigned char* pi
     return result;
 }
 
-bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, size_t size, VkSampler sampler) {
+bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, unsigned char* data, size_t size, VkSampler sampler) {
     int tex_width;
     int tex_height;
     int tex_channels;
-    stbi_uc* pixels = stbi_load_from_memory(pixels, size, &tex_width, &tex_height, &tex_channels, STBI_rgb_alpha);
+    stbi_uc* pixels = stbi_load_from_memory(data, size, &tex_width, &tex_height, &tex_channels, STBI_rgb_alpha);
     if (!pixels) {
         throw std::runtime_error("failed to load texture image!");
     }

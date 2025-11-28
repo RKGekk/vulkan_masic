@@ -20,13 +20,14 @@
 #include <glm/gtx/transform.hpp>
 
 #include "tiny_gltf.h"
+#include "nlohmann/json.hpp"
 #include <pugixml.hpp>
 
 #include "scene.h"
 #include "nodes/scene_node.h"
 #include "nodes/mesh_node.h"
 #include "material.h"
-#include "shader_signature.h"
+#include "../graphics/shader_signature.h"
 
 class MeshNodeLoader {
 public:
@@ -61,6 +62,7 @@ private:
     void MakeMaterialProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material> material);
     VertexFormat GetVertexFormat(std::map<std::string, int> attributes);
     std::vector<float> GetVertices(const tinygltf::Primitive& primitive, const ShaderSignature& pbr_shader_signature);
+    VkIndexType getIndexType(int accessor_component_type);
 
     tinygltf::Model m_gltf_model;
     tinygltf::TinyGLTF m_gltf_ctx;

@@ -20,15 +20,15 @@ public:
 	virtual ~ActorComponent();
 
 	virtual bool VInit(const pugi::xml_node& data) = 0;
-	virtual void VPostInit() = 0;
-	virtual void VUpdate(const GameTimerDelta& delta) = 0;
-	virtual void VOnChanged() = 0;
+	virtual void VPostInit() {};
+	virtual void VUpdate(const GameTimerDelta& delta) {};
+	virtual void VOnChanged() {};
 
 	virtual pugi::xml_node VGenerateXml() = 0;
 
 	virtual ComponentId VGetId() const;
 	virtual const std::string& VGetName() const = 0;
-	virtual const ComponentDependecyList& VGetComponentDependecy() const = 0;
+	virtual const ComponentDependecyList& VGetComponentDependecy() const { static ComponentDependecyList dl{}; return dl;};
 
 	void SetOwner(StrongActorPtr pOwner);
 	StrongActorPtr GetOwner();

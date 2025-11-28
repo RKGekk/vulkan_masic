@@ -40,6 +40,17 @@ public:
     void update(const GameTimerDelta& delta, uint32_t image_index) override;
 
 private:
+    int32_t getNumVertices(size_t mesh_idx, size_t primitive_idx, const tinygltf::Model& gltf_model);
+    bool ValidateVertexAttribute(const std::string& semantic_name);
+    int32_t getVertexStride(size_t mesh_idx, size_t primitive_idx, const tinygltf::Model& gltf_model);
+    float GetAttributeFloat(const unsigned char* raw_data_ptr, uint32_t component_type);
+    VkIndexType getIndexType(int accessor_component_type);
+    size_t getShaderFloatOffset(const std::string& semantic_name);
+    size_t getShaderStride();
+    uint32_t getShaderNumElementsToCopy(const std::string& semantic_name);
+    std::vector<float> getVertices(const tinygltf::Model& gltf_model);
+    VkPipelineVertexInputStateCreateInfo getVertextInputInfo();
+
     VulkanPipeline::PipelineCfg createPipelineCfg(const std::vector<VkDescriptorSetLayout>& desc_set_layouts, VkRenderPass render_pass, VkExtent2D viewport_extent, std::vector<VkPipelineShaderStageCreateInfo> shaders_info, const VkPipelineVertexInputStateCreateInfo& vertex_input_info, VkSampleCountFlagBits msaa_samples);
 
     std::shared_ptr<VulkanDevice> m_device;

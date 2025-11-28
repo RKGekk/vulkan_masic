@@ -1,7 +1,7 @@
 #include "basic_camera_node.h"
 
-#include "../application.h"
-#include "../tools/memory_utility.h"
+#include "../../application.h"
+#include "../../tools/memory_utility.h"
 
 BasicCameraNode::BasicCameraNode(std::shared_ptr<Scene> scene, const std::string& name, const glm::mat4x4& camera_transform, float fovy, float aspect, float near_clip, float far_clip, Scene::NodeIndex parent) 
 	: CameraNode(std::move(scene), std::move(name), camera_transform, parent)

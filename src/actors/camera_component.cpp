@@ -12,14 +12,14 @@ CameraComponent::CameraComponent() {
 	std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->VGetScene();
 
 	m_camera_node = std::make_shared<BasicCameraNode>(scene_ptr, g_name, glm::mat4(1.0f),  glm::radians(90.0f), 16.0f/9.0f, 0.1f, 1.0f);
-	scene_ptr->addProperty(m_camera_node->VGetNodeIndex(), m_camera_node);
+	scene_ptr->addProperty(m_camera_node);
 }
 
 CameraComponent::CameraComponent(const pugi::xml_node& data) {
 	std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->VGetScene();
 
 	m_camera_node = std::make_shared<BasicCameraNode>(scene_ptr, g_name, glm::mat4(1.0f),  glm::radians(90.0f), 16.0f/9.0f, 0.1f, 1.0f);
-	scene_ptr->addProperty(m_camera_node->VGetNodeIndex(), m_camera_node);
+	scene_ptr->addProperty(m_camera_node);
 
 	Init(data);
 }
@@ -62,7 +62,7 @@ const std::shared_ptr<BasicCameraNode>& CameraComponent::VGetCameraNode() {
 	return m_camera_node;
 }
 
-const std::shared_ptr<SceneNode>& CameraComponent::VGetSceneNode() {
+std::shared_ptr<SceneNode> CameraComponent::VGetSceneNode() {
 	return m_camera_node;
 }
 

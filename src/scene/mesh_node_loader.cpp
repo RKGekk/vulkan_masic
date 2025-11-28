@@ -75,6 +75,8 @@ std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem
     		MakeNodesHierarchy(node_idx, m_root_node);
     	}
     }
+
+	return m_root_node;
 }
 
 bool PrimitiveSupported(int GLTF_primitive_mode) {
@@ -177,7 +179,7 @@ VertexFormat MeshNodeLoader::GetVertexFormat(std::map<std::string, int> attribut
 	return format;
 }
 
-VkIndexType getIndexType(int accessor_component_type) {
+VkIndexType MeshNodeLoader::getIndexType(int accessor_component_type) {
     switch (accessor_component_type) {
         case TINYGLTF_COMPONENT_TYPE_BYTE : return VK_INDEX_TYPE_UINT8_EXT;
         case TINYGLTF_COMPONENT_TYPE_SHORT : return VK_INDEX_TYPE_UINT16;

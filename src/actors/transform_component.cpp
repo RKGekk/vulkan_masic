@@ -15,7 +15,7 @@ TransformComponent::TransformComponent() {
 
     std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->VGetScene();
     m_scene_node = std::make_shared<SceneNode>(scene_ptr, g_name, glm::mat4(1.0f));
-    scene_ptr->addProperty(m_scene_node->VGetNodeIndex(), m_scene_node);
+    scene_ptr->addProperty(m_scene_node);
 }
 
 TransformComponent::TransformComponent(const pugi::xml_node& data) {
@@ -25,7 +25,7 @@ TransformComponent::TransformComponent(const pugi::xml_node& data) {
 
     std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->VGetScene();
     m_scene_node = std::make_shared<SceneNode>(scene_ptr, g_name, glm::mat4(1.0f));
-    scene_ptr->addProperty(m_scene_node->VGetNodeIndex(), m_scene_node);
+    scene_ptr->addProperty(m_scene_node);
 
     Init(data);
 }

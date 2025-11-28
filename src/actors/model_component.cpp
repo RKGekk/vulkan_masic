@@ -17,6 +17,10 @@ ModelComponent::ModelComponent(const pugi::xml_node& data) {
 
 ModelComponent::~ModelComponent() {}
 
+bool ModelComponent::VInit(const pugi::xml_node& data) {
+    return Init(data);
+}
+
 void ModelComponent::VDelegatePostInit() {
     using namespace std::literals;
     std::shared_ptr<Actor> act = GetOwner();
@@ -33,7 +37,7 @@ pugi::xml_node ModelComponent::VGenerateXml() {
 	return pugi::xml_node();
 }
 
-const std::shared_ptr<SceneNode>& ModelComponent::VGetSceneNode() {
+std::shared_ptr<SceneNode> ModelComponent::VGetSceneNode() {
     return m_loaded_scene_node;
 }
 

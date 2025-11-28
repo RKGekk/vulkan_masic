@@ -15,7 +15,7 @@
 
 #include "scene_node.h"
 #include "camera_node.h"
-#include "../physics/bounding_frustum.h"
+#include "../../physics/bounding_frustum.h"
 
 class BasicCameraNode : public CameraNode {
 public:

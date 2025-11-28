@@ -1,6 +1,6 @@
 #define _ENABLE_EXTENDED_ALIGNED_STORAGE
 #include "scene.h"
-#include "scene_node.h"
+#include "nodes/scene_node.h"
 
 #include <algorithm>
 #include <numeric>

@@ -13,7 +13,7 @@ struct GLTFUniformBufferObject {
     glm::mat4 proj;
 };
 
-VkIndexType getIndexType(int accessor_component_type) {
+VkIndexType GLTFDrawable::getIndexType(int accessor_component_type) {
     switch (accessor_component_type) {
         case TINYGLTF_COMPONENT_TYPE_BYTE : return VK_INDEX_TYPE_UINT8_EXT;
         case TINYGLTF_COMPONENT_TYPE_SHORT : return VK_INDEX_TYPE_UINT16;
@@ -27,7 +27,7 @@ VkIndexType getIndexType(int accessor_component_type) {
     }
 }
 
-float GetAttributeFloat(const unsigned char* raw_data_ptr, uint32_t component_type) {
+float GLTFDrawable::GetAttributeFloat(const unsigned char* raw_data_ptr, uint32_t component_type) {
 	float result = 0.0f;
 	switch (component_type) {
 		case TINYGLTF_COMPONENT_TYPE_BYTE: {
@@ -68,7 +68,7 @@ float GetAttributeFloat(const unsigned char* raw_data_ptr, uint32_t component_ty
 	return result;
 }
 
-int32_t getVertexStride(size_t mesh_idx, size_t primitive_idx, const tinygltf::Model& gltf_model) {
+int32_t GLTFDrawable::getVertexStride(size_t mesh_idx, size_t primitive_idx, const tinygltf::Model& gltf_model) {
     int32_t vertex_stride = 0u;
     const tinygltf::Mesh& mesh = gltf_model.meshes[mesh_idx];
     const tinygltf::Primitive& primitive = mesh.primitives[primitive_idx];
@@ -82,7 +82,7 @@ int32_t getVertexStride(size_t mesh_idx, size_t primitive_idx, const tinygltf::M
     return vertex_stride;
 }
 
-int32_t getNumVertices(size_t mesh_idx, size_t primitive_idx, const tinygltf::Model& gltf_model) {
+int32_t GLTFDrawable::getNumVertices(size_t mesh_idx, size_t primitive_idx, const tinygltf::Model& gltf_model) {
     const tinygltf::Mesh& mesh = gltf_model.meshes[mesh_idx];
     const tinygltf::Primitive& primitive = mesh.primitives[primitive_idx];
 	auto pos_semantic_accessor_idx = primitive.attributes.at("POSITION");
@@ -91,7 +91,7 @@ int32_t getNumVertices(size_t mesh_idx, size_t primitive_idx, const tinygltf::Mo
 	return num_vertices;
 }
 
-bool ValidateVertexAttribute(const std::string& semantic_name) {
+bool GLTFDrawable::ValidateVertexAttribute(const std::string& semantic_name) {
 	if (semantic_name == "POSITION") {
 		return true;
 	}
@@ -134,7 +134,7 @@ bool ValidateVertexAttribute(const std::string& semantic_name) {
 	return false;
 }
 
-size_t getShaderFloatOffset(const std::string& semantic_name) {
+size_t GLTFDrawable::getShaderFloatOffset(const std::string& semantic_name) {
     if (semantic_name == "POSITION") {
 		return 0u;
 	}
@@ -147,11 +147,11 @@ size_t getShaderFloatOffset(const std::string& semantic_name) {
 	return -1;
 }
 
-size_t getShaderStride() {
+size_t GLTFDrawable::getShaderStride() {
     return 12 + 12 + 8;
 }
 
-uint32_t getShaderNumElementsToCopy(const std::string& semantic_name) {
+uint32_t GLTFDrawable::getShaderNumElementsToCopy(const std::string& semantic_name) {
     if (semantic_name == "POSITION") {
 		return 3u;
 	}
@@ -164,7 +164,7 @@ uint32_t getShaderNumElementsToCopy(const std::string& semantic_name) {
 	return -1;
 }
 
-std::vector<float> getVertices(const tinygltf::Model& gltf_model) {
+std::vector<float> GLTFDrawable::getVertices(const tinygltf::Model& gltf_model) {
     int32_t vertex_stride = getVertexStride(0u, 0u, gltf_model);
     int32_t num_vertices = getNumVertices(0u, 0u, gltf_model);
     int32_t shader_stride = getShaderStride();
@@ -198,7 +198,7 @@ std::vector<float> getVertices(const tinygltf::Model& gltf_model) {
     return result;
 }
 
-VkPipelineVertexInputStateCreateInfo getVertextInputInfo() {
+VkPipelineVertexInputStateCreateInfo GLTFDrawable::getVertextInputInfo() {
     static std::vector<VkVertexInputBindingDescription> binding_desc(1);
     static std::once_flag binding_exe_flag;
     std::call_once(binding_exe_flag, [](){

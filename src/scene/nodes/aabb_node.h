@@ -18,6 +18,7 @@
 
 class AABBNode : public SceneNode {
 public:
+	AABBNode(std::shared_ptr<Scene> scene, Scene::NodeIndex node_index);
 	AABBNode(std::shared_ptr<Scene> scene, std::string name, Scene::NodeIndex parent = 0u);
 	AABBNode(std::shared_ptr<Scene> scene, std::string name, glm::mat4x4 transform, Scene::NodeIndex parent = 0u);
 	AABBNode(std::shared_ptr<Scene> scene, std::string name, glm::mat4x4 transform, BoundingBox aabb, Scene::NodeIndex parent = 0u);

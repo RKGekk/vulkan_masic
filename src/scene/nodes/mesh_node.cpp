@@ -68,5 +68,5 @@ void MeshNode::CalcAABB() {
     }
     std::shared_ptr<AABBNode> aabb = std::make_shared<AABBNode>(m_scene, m_node_index);
     aabb->setAABB(aabb_max);
-    m_scene->addProperty(m_node_index, std::move(aabb));
+    m_scene->addProperty(std::move(aabb));
 }
