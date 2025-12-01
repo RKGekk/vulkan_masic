@@ -21,13 +21,7 @@ bool ModelComponent::VInit(const pugi::xml_node& data) {
     return Init(data);
 }
 
-void ModelComponent::VDelegatePostInit() {
-    using namespace std::literals;
-    std::shared_ptr<Actor> act = GetOwner();
-    std::string name = act->GetName() + "-MeshComponent"s;
-    std::shared_ptr<SceneNode> scene_node = VGetSceneNode();
-    scene_node->SetName(name);
-}
+void ModelComponent::VDelegatePostInit() {}
 
 const std::string& ModelComponent::VGetName() const {
 	return ModelComponent::g_name;
@@ -63,8 +57,18 @@ bool ModelComponent::Init(const pugi::xml_node& data) {
     ShaderSignature shader_signature;
     shader_signature.setVertexFormat(vertex_format);
 
+    std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->VGetScene();
+    std::shared_ptr<Actor> act = GetOwner();
+
+	std::shared_ptr<TransformComponent> tc = act->GetComponent<TransformComponent>(ActorComponent::GetIdFromName("TransformComponent")).lock();
+	if (!tc) {
+		return false;
+	}
+
+    std::shared_ptr<SceneNode> transform_node = tc->GetSceneNode();
+
     MeshNodeLoader node_loader;
-    m_loaded_scene_node = node_loader.ImportSceneNode(p, shader_signature);
+    m_loaded_scene_node = node_loader.ImportSceneNode(p, shader_signature, transform_node);
 
 	return !!m_loaded_scene_node;
 }

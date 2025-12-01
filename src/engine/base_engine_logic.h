@@ -41,7 +41,7 @@ public:
 	virtual void VAddView(std::shared_ptr<IEngineView> pView, ActorId actorId = INVALID_ACTOR_ID);
 	virtual void VRemoveView(std::shared_ptr<IEngineView> pView);
 
-	virtual StrongActorPtr VCreateActor(const std::string& actor_resource, const pugi::xml_node& overrides, const ActorId servers_actorId = INVALID_ACTOR_ID) override;
+	virtual StrongActorPtr VCreateActor(const pugi::xml_node& overrides, const ActorId servers_actorId = INVALID_ACTOR_ID) override;
 	virtual void VDestroyActor(const ActorId actorId) override;
 
 	virtual WeakActorPtr VGetActor(const ActorId actorId) override;
@@ -51,7 +51,6 @@ public:
 
 	virtual const std::shared_ptr<Scene>& VGetScene() override;
 
-	virtual void VModifyActor(const ActorId actorId, const pugi::xml_node& overrides);
 	virtual void VMoveActor(const ActorId id, const glm::mat4x4& mat) override;
 
 	std::shared_ptr<CameraComponent> GetActiveCamera();
@@ -61,7 +60,6 @@ public:
 	const LevelManager& GetLevelManager();
 	virtual std::shared_ptr<IEnginePhysics> VGetGamePhysics() override;
 	virtual bool VLoadGame(const std::string& level_resource) override;
-	virtual bool VLoadGame(const std::string& level_resource, std::shared_ptr<HumanView> pHuman_view);
 	virtual void VOnUpdate(const GameTimerDelta& delta) override;
 	virtual void VChangeState(BaseEngineState new_state) override;
 	const BaseEngineState GetState() const;

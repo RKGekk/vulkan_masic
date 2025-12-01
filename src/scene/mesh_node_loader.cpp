@@ -34,7 +34,7 @@ std::unordered_map<MeshNodeLoader::NodeIdx, MeshNodeLoader::NodeIdx> MeshNodeLoa
     return node_parent_map;
 }
 
-std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem::path& model_path, const ShaderSignature& pbr_shader_signature) {
+std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem::path& model_path, const ShaderSignature& pbr_shader_signature, std::shared_ptr<SceneNode> root_transform) {
     Application& app = Application::Get();
     VulkanRenderer& renderer = app.GetRenderer();
     m_device = renderer.GetDevice();
@@ -57,8 +57,8 @@ std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem
 
     if (!load_result || m_gltf_model.scenes.empty()) return nullptr;
     
-    m_root_node = std::make_shared<SceneNode>(m_scene, model_path.string());
-    m_scene->addProperty(m_root_node);
+    m_root_node = std::make_shared<SceneNode>(m_scene, root_transform->VGetNodeIndex());
+    //m_scene->addProperty(m_root_node);
 
     if(!m_gltf_model.extensions.empty()) {
 	    m_extensions = nlohmann::json::parse(m_gltf_model.extensions_json_string.begin(), m_gltf_model.extensions_json_string.end());

@@ -9,6 +9,7 @@
 #include "../procs/delay_process.h"
 #include "../events/cicadas/evt_data_environment_loaded.h"
 #include "../events/cicadas/evt_data_request_destroy_actor.h"
+#include "../events/cicadas/evt_data_new_actor.h"
 #include "../events/cicadas/evt_data_move_actor.h"
 #include "../events/cicadas/evt_data_destroy_actor.h"
 #include "../events/cicadas/evt_data_request_new_actor.h"
@@ -73,8 +74,8 @@ void BaseEngineLogic::VRemoveView(std::shared_ptr<IEngineView> pView) {
 	std::erase(m_game_views, pView);
 }
 
-StrongActorPtr BaseEngineLogic::VCreateActor(const std::string& actor_resource, const pugi::xml_node& overrides, const ActorId servers_actorId) {
-	StrongActorPtr pActor = m_actor_factory->CreateActor(actor_resource, overrides, servers_actorId);
+StrongActorPtr BaseEngineLogic::VCreateActor(const pugi::xml_node& actor_data, const ActorId servers_actorId) {
+	StrongActorPtr pActor = m_actor_factory->CreateActor(actor_data, servers_actorId);
 	if (pActor) {
 		ActorId actid = pActor->GetId();
 		m_actors.insert(std::make_pair(actid, pActor));
@@ -83,6 +84,8 @@ StrongActorPtr BaseEngineLogic::VCreateActor(const std::string& actor_resource, 
 		for (const auto& [k, v] : components) {
 			m_components[k].insert(actid);
 		}
+		std::shared_ptr<EvtData_New_Actor> pNewActorEvent = std::make_shared<EvtData_New_Actor>(actid);
+    	IEventManager::Get()->VQueueEvent(pNewActorEvent);
 		return pActor;
 	}
 	else {
@@ -131,15 +134,6 @@ const std::shared_ptr<Scene>& BaseEngineLogic::VGetScene() {
 	return m_scene;
 }
 
-void BaseEngineLogic::VModifyActor(const ActorId actorId, const pugi::xml_node& overrides) {
-	if (!m_actor_factory) { return; }
-
-	auto findIt = m_actors.find(actorId);
-	if (findIt != m_actors.end()) {
-		m_actor_factory->ModifyActor(findIt->second, overrides);
-	}
-}
-
 void BaseEngineLogic::VMoveActor(const ActorId id, const glm::mat4x4& mat) {
 	StrongActorPtr pActor = MakeStrongPtr(VGetActor(id));
 	if (pActor) {
@@ -178,8 +172,7 @@ bool BaseEngineLogic::VLoadGame(const std::string& level_resource) {
 	pugi::xml_node actors_node = world_node.child("Actors");
 	if (actors_node) {
 		for (pugi::xml_node node = actors_node.first_child(); node; node = node.next_sibling()) {
-			const char* actor_resource = node.attribute("resource").value();
-			StrongActorPtr pActor = VCreateActor(actor_resource, node, GetNewActorID());
+			StrongActorPtr pActor = VCreateActor(node, GetNewActorID());
 		}
 	}
 
@@ -189,27 +182,6 @@ bool BaseEngineLogic::VLoadGame(const std::string& level_resource) {
 
 	//std::shared_ptr<EvtData_Environment_Loaded> pNewGameEvent(new EvtData_Environment_Loaded);
 	//IEventManager::Get()->VTriggerEvent(pNewGameEvent);
-
-	return true;
-}
-
-bool BaseEngineLogic::VLoadGame(const std::string& level_resource, std::shared_ptr<HumanView> pHumanView) {
-	pugi::xml_document xml_doc;
-	pugi::xml_parse_result parse_res = xml_doc.load_file(level_resource.c_str());
-	if (!parse_res) return false;
-
-	pugi::xml_node root_node = xml_doc.root();
-	if (!root_node) return false;
-
-	pugi::xml_node actors_node = root_node.child("Actors");
-	if (actors_node) {
-		for (pugi::xml_node node = actors_node.first_child(); node; node = node.next_sibling()) {
-			const char* actor_resource = node.attribute("resource").value();
-			StrongActorPtr pActor = VCreateActor(actor_resource, node, GetNewActorID());
-		}
-	}
-
-	if (!VLoadGameDelegate(root_node)) return false;
 
 	return true;
 }
@@ -272,7 +244,7 @@ void BaseEngineLogic::VChangeState(BaseEngineState newState) {
 			});
 			std::shared_ptr<ExecProcess> exec2 = std::make_shared<ExecProcess>([this]() {
 				std::shared_ptr<HumanView> gameView(new HumanView(m_process_manager));
-				Application::Get().GetGameLogic()->VLoadGame("World.xml", gameView);
+				Application::Get().GetGameLogic()->VLoadGame("World.xml");
 				gameView->VCanDraw(false);
 				Application::Get().GetGameLogic()->VAddView(gameView);
 				return true;
@@ -345,7 +317,7 @@ void BaseEngineLogic::MoveActorDelegate(IEventDataPtr pEventData) {
 void BaseEngineLogic::RequestNewActorDelegate(IEventDataPtr pEventData) {
 	std::shared_ptr<EvtData_Request_New_Actor> pCastEventData = std::static_pointer_cast<EvtData_Request_New_Actor>(pEventData);
 
-	StrongActorPtr pActor = VCreateActor(pCastEventData->GetActorResource(), pugi::xml_node(), pCastEventData->GetServerActorId());
+	//StrongActorPtr pActor = VCreateActor(pCastEventData->GetActorName(), pugi::xml_node(), pCastEventData->GetServerActorId());
 }
 
 void BaseEngineLogic::RequestStartGameDelegate(IEventDataPtr pEventData) {}

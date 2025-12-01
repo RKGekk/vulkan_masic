@@ -4,15 +4,13 @@
 const std::string EvtData_Request_New_Actor::sk_EventName = "EvtData_Request_New_Actor";
 
 EvtData_Request_New_Actor::EvtData_Request_New_Actor() {
-	m_actorResource = "";
+	m_actor_name = "";
 	m_serverActorId = -1;
-	m_viewId = 0;
 }
 
-EvtData_Request_New_Actor::EvtData_Request_New_Actor(const std::string& actorResource, const ActorId serverActorId, const EngineViewId viewId) {
-	m_actorResource = actorResource;
+EvtData_Request_New_Actor::EvtData_Request_New_Actor(std::string actor_name, const ActorId serverActorId) {
+	m_actor_name = actor_name;
 	m_serverActorId = serverActorId;
-	m_viewId = viewId;
 }
 
 EventTypeId EvtData_Request_New_Actor::VGetEventType() const {
@@ -20,17 +18,16 @@ EventTypeId EvtData_Request_New_Actor::VGetEventType() const {
 }
 
 void EvtData_Request_New_Actor::VDeserialize(std::istream& in) {
-	in >> m_actorResource;
+	in >> m_actor_name;
 	in >> m_serverActorId;
 }
 
 IEventDataPtr EvtData_Request_New_Actor::VCopy() const {
-	return IEventDataPtr(new EvtData_Request_New_Actor(m_actorResource, m_serverActorId));
+	return IEventDataPtr(new EvtData_Request_New_Actor(m_actor_name, m_serverActorId));
 }
 
 void EvtData_Request_New_Actor::VSerialize(std::ostream& out) const {
-	out << m_actorResource << " ";
-	
+	out << m_actor_name << " ";
 	out << m_serverActorId << " ";
 }
 
@@ -38,16 +35,12 @@ const std::string& EvtData_Request_New_Actor::GetName() const {
 	return sk_EventName;
 }
 
-const std::string& EvtData_Request_New_Actor::GetActorResource() const {
-	return m_actorResource;
+const std::string& EvtData_Request_New_Actor::GetActorName() const {
+	return m_actor_name;
 }
 
 const ActorId EvtData_Request_New_Actor::GetServerActorId() const {
 	return m_serverActorId;
-}
-
-unsigned int EvtData_Request_New_Actor::GetViewId() const {
-	return m_viewId;
 }
 
 std::ostream& operator<<(std::ostream& os, const EvtData_Request_New_Actor& evt) {
@@ -56,7 +49,7 @@ std::ostream& operator<<(std::ostream& os, const EvtData_Request_New_Actor& evt)
 	os << "Event name: " << evt.sk_EventName << std::endl;
 	os << "Event time stamp: " << evt.GetTimeStamp().time_since_epoch().count() << "ns" << std::endl;
 	os << "Event server actorId id: " << evt.m_serverActorId << std::endl;
-	os << "Event actor resource: " << evt.m_actorResource << std::endl;
+	os << "Event actor name: " << evt.m_actor_name << std::endl;
 
 	os.flags(oldFlag);
 	return os;

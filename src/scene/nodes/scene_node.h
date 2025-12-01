@@ -34,7 +34,8 @@ public:
 	virtual Scene::NodeIndex VGetNodeIndex() const;
 	virtual Scene::NodeIndex GetParentIndex() const;
 
-	const SceneNode& GetParent();
+	const std::shared_ptr<Scene>& GetScene();
+	const std::shared_ptr<SceneNode>& GetParent();
 	const SceneNodeProperties& Get() const;
 
 	void SetTransform(const glm::mat4x4& to_parent);
@@ -46,7 +47,5 @@ public:
 	void SetNodeType(uint32_t flags);
 
 protected:
-    std::shared_ptr<Scene> m_scene;
-	Scene::NodeIndex m_node_index;
 	SceneNodeProperties m_props;
 };

@@ -21,7 +21,7 @@ class SceneNodeProperties {
 public:
 	friend SceneNode;
 
-	SceneNodeProperties(std::shared_ptr<Scene> scene, Scene::NodeIndex node_index);
+	SceneNodeProperties(std::shared_ptr<Scene> scene, Scene::NodeIndex node_index, Scene::NodeType node_type = Scene::NODE_TYPE_FLAG_NONE);
 
 	const glm::mat4x4& ToParent() const;
 	glm::mat4x4 ToParentT() const;

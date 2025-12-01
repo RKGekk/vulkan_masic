@@ -49,6 +49,12 @@ pugi::xml_node TransformComponent::VGenerateXml() {
     return pugi::xml_node();
 }
 
+void TransformComponent::VPostInit() {
+    std::shared_ptr<Actor> act = GetOwner();
+    std::string name = act->GetName();
+    m_scene_node->SetName(name + VGetName());
+}
+
 const glm::mat4x4& TransformComponent::GetTransform() const {
     return m_scene_node->Get().ToParent();
 }

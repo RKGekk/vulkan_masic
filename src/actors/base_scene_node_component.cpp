@@ -13,11 +13,6 @@ void BaseSceneNodeComponent::VPostInit() {
 	std::shared_ptr<Actor> act = GetOwner();
 	std::string name = act->GetName();
 	std::shared_ptr<SceneNode> scene_node = VGetSceneNode();
-	scene_node->SetName(name);
-	std::shared_ptr<TransformComponent> tc = act->GetComponent<TransformComponent>(ActorComponent::GetIdFromName("TransformComponent")).lock();
-	if (tc) {
-		scene_node->SetTransform(tc->GetTransform());
-	}
 	VDelegatePostInit();
 	std::shared_ptr<EvtData_New_Scene_Component> pNewSceneNodeEvent = std::make_shared<EvtData_New_Scene_Component>(act->GetId(), VGetId(), scene_node);
 	IEventManager::Get()->VQueueEvent(pNewSceneNodeEvent);

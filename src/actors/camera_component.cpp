@@ -8,19 +8,9 @@
 
 const std::string CameraComponent::g_name = "CameraComponent";
 
-CameraComponent::CameraComponent() {
-	std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->VGetScene();
-
-	m_camera_node = std::make_shared<BasicCameraNode>(scene_ptr, g_name, glm::mat4(1.0f),  glm::radians(90.0f), 16.0f/9.0f, 0.1f, 1.0f);
-	scene_ptr->addProperty(m_camera_node);
-}
+CameraComponent::CameraComponent() {}
 
 CameraComponent::CameraComponent(const pugi::xml_node& data) {
-	std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->VGetScene();
-
-	m_camera_node = std::make_shared<BasicCameraNode>(scene_ptr, g_name, glm::mat4(1.0f),  glm::radians(90.0f), 16.0f/9.0f, 0.1f, 1.0f);
-	scene_ptr->addProperty(m_camera_node);
-
 	Init(data);
 }
 
@@ -36,7 +26,15 @@ bool CameraComponent::Init(const pugi::xml_node& data) {
 
 	std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->VGetScene();
 
-	m_camera_node->SetProjection(fov, aspect_ratio, near, far);
+	std::shared_ptr<TransformComponent> tc = act->GetComponent<TransformComponent>(ActorComponent::GetIdFromName("TransformComponent")).lock();
+	if (!tc) {
+		return false;
+	}
+
+	Scene::NodeIndex node_index = tc->GetSceneNodeIndex();
+
+	m_camera_node = std::make_shared<BasicCameraNode>(scene_ptr, node_index, glm::radians(fov), aspect_ratio, near, far);
+	scene_ptr->addProperty(m_camera_node);
 
 	return true;
 }

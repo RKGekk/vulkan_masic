@@ -1,6 +1,6 @@
 #include "scene_node_properties.h"
 
-SceneNodeProperties::SceneNodeProperties(std::shared_ptr<Scene> scene, Scene::NodeIndex node_index) : m_scene(std::move(scene)), m_node_index(node_index), m_node_type(0u) {}
+SceneNodeProperties::SceneNodeProperties(std::shared_ptr<Scene> scene, Scene::NodeIndex node_index, Scene::NodeType node_type) : m_scene(std::move(scene)), m_node_index(node_index), m_node_type(node_type) {}
 
 const glm::mat4x4& SceneNodeProperties::ToParent() const {
     return m_scene->getNodeLocalTransform(m_node_index);

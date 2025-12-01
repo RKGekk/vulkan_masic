@@ -1,21 +1,27 @@
 #include "mesh_node.h"
 #include "aabb_node.h"
 
-MeshNode::MeshNode(std::shared_ptr<Scene> scene, Scene::NodeIndex node_index) : SceneNode(std::move(scene), node_index) {}
+MeshNode::MeshNode(std::shared_ptr<Scene> scene, Scene::NodeIndex node_index) : SceneNode(std::move(scene), node_index) {
+    SetNodeType(Scene::NODE_TYPE_FLAG_MESH);
+}
 
 MeshNode::MeshNode(std::shared_ptr<Scene> scene, const std::string& name, const glm::mat4x4& transform, Scene::NodeIndex parent)
-    : SceneNode(std::move(scene), std::move(name), transform, parent) {}
+    : SceneNode(std::move(scene), std::move(name), transform, parent) {
+    SetNodeType(Scene::NODE_TYPE_FLAG_MESH);
+}
 
 MeshNode::MeshNode(std::shared_ptr<Scene> scene, const std::string& name, const glm::mat4x4& transform, const MeshList& meshes, Scene::NodeIndex parent) : SceneNode(std::move(scene), std::move(name), transform, parent) {
     for (const auto& mesh : meshes) {
         AddMesh(mesh);
     }
+    SetNodeType(Scene::NODE_TYPE_FLAG_MESH);
 }
 
 MeshNode::MeshNode(std::shared_ptr<Scene> scene, const std::string& name, const MeshList& meshes, Scene::NodeIndex parent) : SceneNode(std::move(scene), std::move(name), parent) {
     for (const auto& mesh : meshes) {
         AddMesh(mesh);
     }
+    SetNodeType(Scene::NODE_TYPE_FLAG_MESH);
 }
 
 bool MeshNode::VOnRestore() {
@@ -66,7 +72,8 @@ void MeshNode::CalcAABB() {
         if (i == 0) aabb_max = aabb_original;
         else BoundingBox::CreateMerged(aabb_max, aabb_max, aabb_original);
     }
-    std::shared_ptr<AABBNode> aabb = std::make_shared<AABBNode>(m_scene, m_node_index);
+    std::shared_ptr<Scene> scene = GetScene();
+    std::shared_ptr<AABBNode> aabb = std::make_shared<AABBNode>(scene, VGetNodeIndex());
     aabb->setAABB(aabb_max);
-    m_scene->addProperty(std::move(aabb));
+    scene->addProperty(std::move(aabb));
 }

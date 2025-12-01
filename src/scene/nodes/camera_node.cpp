@@ -1,18 +1,26 @@
 #include "camera_node.h"
 
-CameraNode::CameraNode(std::shared_ptr<Scene> scene, Scene::NodeIndex node_index) : SceneNode(std::move(scene), node_index) {}
+CameraNode::CameraNode(std::shared_ptr<Scene> scene, Scene::NodeIndex node_index) : SceneNode(std::move(scene), node_index) {
+    SetNodeType(Scene::NODE_TYPE_FLAG_CAMERA);
+}
 
 CameraNode::CameraNode(std::shared_ptr<Scene> scene, std::string name, Scene::NodeIndex parent) 
     : SceneNode(std::move(scene), std::move(name), parent)
-    , m_projection(glm::mat4(1.0f)) {}
+    , m_projection(glm::mat4(1.0f)) {
+    SetNodeType(Scene::NODE_TYPE_FLAG_CAMERA);
+}
 
 CameraNode::CameraNode(std::shared_ptr<Scene> scene, std::string name, glm::mat4x4 camera_transform, Scene::NodeIndex parent)
     : SceneNode(std::move(scene), std::move(name), camera_transform, parent)
-    , m_projection(glm::mat4(1.0f)) {}
+    , m_projection(glm::mat4(1.0f)) {
+    SetNodeType(Scene::NODE_TYPE_FLAG_CAMERA);
+}
 
 CameraNode::CameraNode(std::shared_ptr<Scene> scene, std::string name, glm::mat4x4 camera_transform, glm::mat4x4 proj, Scene::NodeIndex parent)
     : SceneNode(std::move(scene), std::move(name), camera_transform, parent)
-    , m_projection(proj) {}
+    , m_projection(proj) {
+    SetNodeType(Scene::NODE_TYPE_FLAG_CAMERA);
+}
 
 bool CameraNode::VOnRestore() {
     return SceneNode::VOnRestore();

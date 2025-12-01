@@ -74,6 +74,7 @@ public:
 	NodeTypeFlags getNodeTypeFlags(NodeIndex node_index) const;
 
 	std::shared_ptr<Properties> getProperties(NodeIndex node_index);
+	std::shared_ptr<SceneNode> getProperty(NodeIndex node_index, NodeType node_type);
 	void addProperty(std::shared_ptr<SceneNode> property, NodeIndex node_index = NO_INDEX);
 
     int getNodeLevel(NodeIndex node_index) const;

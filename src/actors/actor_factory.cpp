@@ -29,59 +29,39 @@ std::unordered_map<std::string, std::pair<std::shared_ptr<ActorComponent>, pugi:
     return result;
 }
 
-void initializeComponent(const std::string& name, const std::unordered_map<std::string, std::pair<std::shared_ptr<ActorComponent>, pugi::xml_node>>& all_components) {
-    for (auto[comp_name, data] : all_components) {
-        std::shared_ptr<ActorComponent> pComponent = data.first;
-        if (!pComponent || pComponent->GetIsInitialized()) continue;
+void initializeComponent(const std::string& name, std::shared_ptr<Actor> pActor, const std::unordered_map<std::string, std::pair<std::shared_ptr<ActorComponent>, pugi::xml_node>>& all_components) {
+    
+    auto&[pComponent, xml_data] = all_components.at(name);
+    if (!pComponent || pComponent->GetIsInitialized()) return;
+    
+    const ComponentDependecyList& dep = pComponent->VGetComponentDependecy();
+    for(const auto& dep_cp_name : dep) {
+        std::shared_ptr<ActorComponent> pDepComponent = all_components.at(dep_cp_name).first;
+        if (!pDepComponent || pDepComponent->GetIsInitialized()) continue;
         
-        const ComponentDependecyList& dep = pComponent->VGetComponentDependecy();
-        for(const auto& dep_cp_name : dep) {
-            initializeComponent(dep_cp_name, all_components);
-        }
-
-        pugi::xml_node xml_data = data.second;
-        pComponent->VInit(xml_data);
+        initializeComponent(dep_cp_name, pActor, all_components);
     }
+
+    pComponent->SetOwner(pActor);
+    pComponent->VInit(xml_data);
+    pActor->AddComponent(pComponent);
 }
 
-std::shared_ptr<Actor> ActorFactory::CreateActor(const std::string& actor_resource, const pugi::xml_node& overrides, const ActorId servers_actorId) {
-
-    pugi::xml_document xml_doc;
-    pugi::xml_parse_result parse_res = xml_doc.load_file(actor_resource.c_str());
-    if (!parse_res) return std::shared_ptr<Actor>();
-
-    pugi::xml_node root_node = xml_doc.root();
-    if (!root_node) return std::shared_ptr<Actor>();
-
-    pugi::xml_node actor_node = root_node.child("Actor");
-    if (!actor_node) return std::shared_ptr<Actor>();
+std::shared_ptr<Actor> ActorFactory::CreateActor(const pugi::xml_node& actor_data, const ActorId servers_actorId) {
 
     ActorId next_actorId = servers_actorId;
     if (next_actorId == 0) {
         next_actorId = GetNextActorId();
     }
-    std::shared_ptr<Actor> pActor(new Actor(next_actorId));
-    if (!pActor->Init(actor_node)) {
+
+    std::shared_ptr<Actor> pActor = std::make_shared<Actor>(next_actorId);
+    if (!pActor->Init(actor_data)) {
         return std::shared_ptr<Actor>();
     }
 
-    bool initial_transform_set = false;
-
-    std::unordered_map<std::string, std::pair<std::shared_ptr<ActorComponent>, pugi::xml_node>> all_components = getAllComponents(actor_node);
+    std::unordered_map<std::string, std::pair<std::shared_ptr<ActorComponent>, pugi::xml_node>> all_components = getAllComponents(actor_data);
     for (auto[comp_name, data] : all_components) {
-        std::shared_ptr<ActorComponent> pComponent = data.first;
-        initializeComponent(comp_name, all_components);
-        if (pComponent) {
-            pActor->AddComponent(pComponent);
-            pComponent->SetOwner(pActor);
-        }
-        else {
-            return std::shared_ptr<Actor>();
-        }
-    }
-
-    if (overrides) {
-        ModifyActor(pActor, overrides);
+        initializeComponent(comp_name, pActor, all_components);
     }
 
     pActor->PostInit();
@@ -89,7 +69,7 @@ std::shared_ptr<Actor> ActorFactory::CreateActor(const std::string& actor_resour
     return pActor;
 }
 
-std::shared_ptr<ActorComponent> ActorFactory::VCreateComponent(const pugi::xml_node& data) {
+std::shared_ptr<ActorComponent> ActorFactory::VCreateComponent(const pugi::xml_node& data, std::unordered_map<std::string, std::pair<std::shared_ptr<ActorComponent>, pugi::xml_node>> all_components) {
     const char* name = data.name();
     std::shared_ptr<ActorComponent> pComponent(m_component_factory.Create(ActorComponent::GetIdFromName(name)));
 
@@ -103,25 +83,4 @@ std::shared_ptr<ActorComponent> ActorFactory::VCreateComponent(const pugi::xml_n
     }
 
     return pComponent;
-}
-
-void ActorFactory::ModifyActor(std::shared_ptr<Actor> pActor, const pugi::xml_node& overrides) {
-    if (overrides.attribute("name")) {
-        pActor->SetName(overrides.attribute("name").as_string());
-    };
-    for (pugi::xml_node node = overrides.first_child(); node; node = node.next_sibling()) {
-        unsigned int componentId = ActorComponent::GetIdFromName(node.name());
-        std::shared_ptr<ActorComponent> pComponent = MakeStrongPtr(pActor->GetComponent<ActorComponent>(componentId));
-        if (pComponent) {
-            pComponent->VInit(node);
-            pComponent->VOnChanged();
-        }
-        else {
-            pComponent = VCreateComponent(node);
-            if (pComponent) {
-                pActor->AddComponent(pComponent);
-                pComponent->SetOwner(pActor);
-            }
-        }
-    }
 }

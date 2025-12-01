@@ -39,11 +39,9 @@ typedef std::unordered_map<ActorId, std::unordered_set<ComponentId>> ActorCompon
 
 class Actor {
 private:
-    std::string m_resource_name;
     inline static bool m_events_registered = false;
 
     ActorId m_id;
-    std::string m_type_name;
     std::string m_name;
     ActorComponents m_components;
 
@@ -59,7 +57,6 @@ public:
     std::string ToXML();
 
     unsigned int GetId() const;
-    const std::string& GetType() const;
     const std::string& GetName() const;
     void SetName(std::string new_name);
 

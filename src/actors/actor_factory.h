@@ -33,10 +33,8 @@ protected:
 public:
     ActorFactory();
 
-    std::shared_ptr<Actor> CreateActor(const std::string& actor_resource, const pugi::xml_node& overrides, const ActorId servers_actorId);
-    void ModifyActor(std::shared_ptr<Actor> pActor, const pugi::xml_node& overrides);
-
-    virtual std::shared_ptr<ActorComponent> VCreateComponent(const pugi::xml_node& pData);
+    std::shared_ptr<Actor> CreateActor(const pugi::xml_node& actor_data, const ActorId servers_actorId);
+    virtual std::shared_ptr<ActorComponent> VCreateComponent(const pugi::xml_node& pData, std::unordered_map<std::string, std::pair<std::shared_ptr<ActorComponent>, pugi::xml_node>> all_components);
 
 private:
     std::unordered_map<std::string, std::pair<std::shared_ptr<ActorComponent>, pugi::xml_node>> getAllComponents(pugi::xml_node actor_node);

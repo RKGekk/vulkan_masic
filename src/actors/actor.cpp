@@ -7,8 +7,7 @@
 
 Actor::Actor(ActorId id) {
     m_id = id;
-    m_type_name = "Unknown";
-    m_resource_name = "Unknown";
+    m_name = "NoName";
 }
 
 Actor::~Actor() {
@@ -17,9 +16,7 @@ Actor::~Actor() {
 }
 
 bool Actor::Init(const pugi::xml_node& data) {
-    m_name = "NoName";
-    m_type_name = data.attribute("type").value();
-    m_resource_name = data.attribute("resource").value();
+    m_name = data.attribute("name").value();
     return true;
 }
 
@@ -27,8 +24,6 @@ void Actor::PostInit() {
     for (auto it = m_components.begin(); it != m_components.end(); ++it) {
         it->second->VPostInit();
     }
-    std::shared_ptr<EvtData_New_Actor> pNewActorEvent = std::make_shared<EvtData_New_Actor>(GetId());
-    IEventManager::Get()->VQueueEvent(pNewActorEvent);
 }
 
 void Actor::Destroy() {
@@ -43,10 +38,6 @@ void Actor::Update(const GameTimerDelta& delta) {
 
 ActorId Actor::GetId() const {
     return m_id;
-}
-
-const std::string& Actor::GetType() const {
-    return m_type_name;
 }
 
 const std::string& Actor::GetName() const {

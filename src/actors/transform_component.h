@@ -31,6 +31,7 @@ public:
     virtual const std::string& VGetName() const override;
     virtual const ComponentDependecyList& VGetComponentDependecy() const override;
     virtual pugi::xml_node VGenerateXml() override;
+    virtual void VPostInit() override;
 
     const glm::mat4x4& GetTransform() const;
     glm::mat4x4 GetTransformT() const;

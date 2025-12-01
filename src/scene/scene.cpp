@@ -116,6 +116,12 @@ std::shared_ptr<Scene::Properties> Scene::getProperties(Scene::NodeIndex node_in
     return m_properties[property_index];
 }
 
+std::shared_ptr<SceneNode> Scene::getProperty(NodeIndex node_index, NodeType node_type) {
+    const std::shared_ptr<Scene::Properties>& props = getProperties(node_index);
+    if(!props || !props->contains(node_type)) return nullptr;
+    return props->at(node_type);
+}
+
 void Scene::addProperty(std::shared_ptr<SceneNode> property, NodeIndex node_index) {
     if (node_index == NO_INDEX) node_index = property->VGetNodeIndex();
     Scene::PropertyIndex property_index;

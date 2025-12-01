@@ -33,7 +33,7 @@ class MeshNodeLoader {
 public:
 	MeshNodeLoader() = default;
 
-	std::shared_ptr<SceneNode> ImportSceneNode(const std::filesystem::path& model_path, const ShaderSignature& pbr_shader_signature);
+	std::shared_ptr<SceneNode> ImportSceneNode(const std::filesystem::path& model_path, const ShaderSignature& pbr_shader_signature, std::shared_ptr<SceneNode> root_transform);
 
 private:
     using NodeIdx = int;
