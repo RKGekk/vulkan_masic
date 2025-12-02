@@ -138,6 +138,11 @@ void Scene::addProperty(std::shared_ptr<SceneNode> property, NodeIndex node_inde
 }
 
 void Scene::setNodeName(NodeIndex node_index, std::string name) {
+    if(m_node_name_map.count(node_index)) {
+        NameIndex name_index = m_node_name_map[node_index];
+        m_node_names[name_index] = name;
+        return;
+    }
     const Scene::NameIndex name_index = m_node_names.size();
     m_node_names.push_back(std::move(name));
     m_node_name_map[node_index] = name_index;

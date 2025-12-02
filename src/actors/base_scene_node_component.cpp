@@ -10,10 +10,5 @@
 BaseSceneNodeComponent::~BaseSceneNodeComponent() {}
 
 void BaseSceneNodeComponent::VPostInit() {
-	std::shared_ptr<Actor> act = GetOwner();
-	std::string name = act->GetName();
-	std::shared_ptr<SceneNode> scene_node = VGetSceneNode();
 	VDelegatePostInit();
-	std::shared_ptr<EvtData_New_Scene_Component> pNewSceneNodeEvent = std::make_shared<EvtData_New_Scene_Component>(act->GetId(), VGetId(), scene_node);
-	IEventManager::Get()->VQueueEvent(pNewSceneNodeEvent);
 }

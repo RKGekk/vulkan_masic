@@ -35,6 +35,11 @@ std::shared_ptr<SceneNode> ModelComponent::VGetSceneNode() {
     return m_loaded_scene_node;
 }
 
+const ComponentDependecyList& ModelComponent::VGetComponentDependecy() const {
+	static const ComponentDependecyList component_dep = {TransformComponent::g_name};
+    return component_dep;
+}
+
 const std::string& ModelComponent::GetResourceName() {
     return m_resource_name;
 }
@@ -57,7 +62,6 @@ bool ModelComponent::Init(const pugi::xml_node& data) {
     ShaderSignature shader_signature;
     shader_signature.setVertexFormat(vertex_format);
 
-    std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->VGetScene();
     std::shared_ptr<Actor> act = GetOwner();
 
 	std::shared_ptr<TransformComponent> tc = act->GetComponent<TransformComponent>(ActorComponent::GetIdFromName("TransformComponent")).lock();

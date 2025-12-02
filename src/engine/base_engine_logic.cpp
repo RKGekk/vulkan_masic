@@ -3,6 +3,7 @@
 #include "../actors/actor_factory.h"
 #include "../actors/actor_component.h"
 #include "../actors/transform_component.h"
+#include "../actors/base_scene_node_component.h"
 #include "../application.h"
 #include "../application_options.h"
 #include "../procs/exec_process.h"
@@ -10,6 +11,7 @@
 #include "../events/cicadas/evt_data_environment_loaded.h"
 #include "../events/cicadas/evt_data_request_destroy_actor.h"
 #include "../events/cicadas/evt_data_new_actor.h"
+#include "../events/cicadas/evt_data_new_scene_component.h"
 #include "../events/cicadas/evt_data_move_actor.h"
 #include "../events/cicadas/evt_data_destroy_actor.h"
 #include "../events/cicadas/evt_data_request_new_actor.h"
@@ -80,6 +82,11 @@ StrongActorPtr BaseEngineLogic::VCreateActor(const pugi::xml_node& actor_data, c
 		ActorId actid = pActor->GetId();
 		m_actors.insert(std::make_pair(actid, pActor));
 		if (pActor->GetName() != "NoName") { m_actors_names.insert(std::make_pair(pActor->GetName(), pActor)); }
+		std::shared_ptr<BaseSceneNodeComponent> scene_component = pActor->GetDynamicComponent<BaseSceneNodeComponent>().lock();
+		if(scene_component) {
+			std::shared_ptr<EvtData_New_Scene_Component> pNewSceneNodeEvent = std::make_shared<EvtData_New_Scene_Component>(actid, scene_component->VGetId(), scene_component->VGetSceneNode());
+			IEventManager::Get()->VQueueEvent(pNewSceneNodeEvent);
+		}
 		const ActorComponents& components = pActor->GetComponents();
 		for (const auto& [k, v] : components) {
 			m_components[k].insert(actid);
@@ -180,8 +187,8 @@ bool BaseEngineLogic::VLoadGame(const std::string& level_resource) {
 
 	if (!VLoadGameDelegate(world_node)) { return false; }
 
-	//std::shared_ptr<EvtData_Environment_Loaded> pNewGameEvent(new EvtData_Environment_Loaded);
-	//IEventManager::Get()->VTriggerEvent(pNewGameEvent);
+	std::shared_ptr<EvtData_Environment_Loaded> pNewGameEvent(new EvtData_Environment_Loaded);
+	IEventManager::Get()->VTriggerEvent(pNewGameEvent);
 
 	return true;
 }

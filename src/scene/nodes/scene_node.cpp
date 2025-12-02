@@ -1,7 +1,7 @@
 #include "scene_node.h"
 
 SceneNode::SceneNode(std::shared_ptr<Scene> scene, Scene::NodeIndex node_index)
-    : m_props(scene, m_props.m_node_index) {   
+    : m_props(scene, node_index) {
 }
 
 SceneNode::SceneNode(std::shared_ptr<Scene> scene, std::string name, Scene::NodeIndex parent)

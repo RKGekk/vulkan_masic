@@ -34,6 +34,7 @@ public:
 	virtual pugi::xml_node VGenerateXml() override;
 
     virtual std::shared_ptr<SceneNode> VGetSceneNode() override;
+	virtual const ComponentDependecyList& VGetComponentDependecy() const override;
 
 	const std::string& GetResourceName();
 	const std::string& GetResourceDirecory();
