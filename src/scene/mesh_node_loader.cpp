@@ -195,15 +195,16 @@ VkIndexType MeshNodeLoader::getIndexType(int accessor_component_type) {
 
 std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& gltf_mesh, Scene::NodeIndex node) {
     std::shared_ptr<MeshNode> mesh_node = std::make_shared<MeshNode>(m_scene, node);
+	m_scene->addProperty(mesh_node);
     const std::string& mesh_name = gltf_mesh.name;
     size_t num_primitives = gltf_mesh.primitives.size();
-	std::shared_ptr<ModelData> model_data = std::make_shared<ModelData>();
-	model_data->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-	model_data->SetVertexFormat(m_pbr_shader_signature.getVertexFormat());
     for (size_t prim_idx = 0; prim_idx < num_primitives; ++prim_idx) {
-    	const tinygltf::Primitive& primitive = gltf_mesh.primitives[prim_idx];
-
+		const tinygltf::Primitive& primitive = gltf_mesh.primitives[prim_idx];
     	if (!PrimitiveSupported(primitive.mode)) continue;
+
+		std::shared_ptr<ModelData> model_data = std::make_shared<ModelData>();
+		model_data->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+		model_data->SetVertexFormat(m_pbr_shader_signature.getVertexFormat());
 
     	size_t num_vertices = GetNumVertices(primitive);
     	int32_t num_primitives = GetNumPrimitives(primitive);
@@ -247,18 +248,12 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& g
 
 std::shared_ptr<SceneNode> MeshNodeLoader::MakeSingleNode(const tinygltf::Node& gltf_node, Scene::NodeIndex parent) {
     std::shared_ptr<SceneNode> transform_node = std::make_shared<SceneNode>(m_scene, gltf_node.name, parent);
-    m_scene->addProperty(m_root_node);
+    m_scene->addProperty(transform_node);
 	glm::mat4x4 mat = MakeMatrix(gltf_node);
 	const std::string& gltf_node_name = gltf_node.name;
 
 	transform_node->SetTransform(mat);
 	transform_node->SetName(gltf_node_name);
-
-    if(gltf_node.mesh != -1) {
-        const tinygltf::Mesh& gltf_mesh = m_gltf_model.meshes[gltf_node.mesh];
-        const std::string& mesh_name = gltf_mesh.name;
-
-    }
 
 	return transform_node;
 }
@@ -314,7 +309,7 @@ void MeshNodeLoader::MakeNodesHierarchy(int current_node_idx, std::shared_ptr<Sc
 	
 	if (gltf_node.mesh != -1) {
 		const tinygltf::Mesh& gltf_mesh = m_gltf_model.meshes[gltf_node.mesh];
-		MakeRenderNode(m_gltf_model.meshes[gltf_node.mesh], transform_node->VGetNodeIndex());
+		MakeRenderNode(gltf_mesh, transform_node->VGetNodeIndex());
 	}
 
 	size_t child_ct = gltf_node.children.size();

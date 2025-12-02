@@ -13,8 +13,8 @@ class VulkanDevice;
 
 class VulkanImageBuffer : public RenderResource {
 public:
-    bool init(std::shared_ptr<VulkanDevice> device, VkImage image, VkExtent2D extent, VkFormat format = VK_FORMAT_R8G8B8A8_SRGB, VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT, uint32_t mip_levels = 1u);
-    bool init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, VkExtent2D extent, VkFormat format = VK_FORMAT_R8G8B8A8_SRGB, VkMemoryPropertyFlags properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT);
+    bool init(std::shared_ptr<VulkanDevice> device, VkImage image, VkExtent2D extent, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM, VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT, uint32_t mip_levels = 1u);
+    bool init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, VkExtent2D extent, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM, VkMemoryPropertyFlags properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT);
     bool init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, VkImageCreateInfo image_info, VkMemoryPropertyFlags properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT);
 
     void destroy() override;

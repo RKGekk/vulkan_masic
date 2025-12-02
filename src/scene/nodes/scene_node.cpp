@@ -46,7 +46,7 @@ const std::shared_ptr<Scene>& SceneNode::GetScene() {
     return m_props.m_scene;
 };
 
-const std::shared_ptr<SceneNode>& SceneNode::GetParent() {
+std::shared_ptr<SceneNode> SceneNode::GetParent() {
     return m_props.m_scene->getProperty(m_props.m_node_index, Scene::NODE_TYPE_FLAG_NONE);
 }
 

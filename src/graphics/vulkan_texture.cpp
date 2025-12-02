@@ -25,6 +25,17 @@ bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, const std::string
     return init(device, path_to_file, createTextureSampler(m_image_info.mipLevels));
 }
 
+void fast_unpack(char* rgba, const char* rgb, const int count) {
+    if(count==0)
+        return;
+    for(int i=count; --i; rgba+=4, rgb+=3) {
+        *(uint32_t*)(void*)rgba = *(const uint32_t*)(const void*)rgb;
+    }
+    for(int j=0; j<3; ++j) {
+        rgba[j] = rgb[j];
+    }
+}
+
 bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, const std::string& path_to_file, VkSampler sampler) {
     int tex_width;
     int tex_height;
@@ -34,7 +45,15 @@ bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, const std::string
         throw std::runtime_error("failed to load texture image!");
     }
 
-    bool result = init(std::move(device), pixels, tex_width, tex_height, sampler, tex_channels == 4 ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8_SRGB);
+    bool result = false;
+    if(tex_channels == 3) {
+        std::vector<uint32_t> mem(tex_width * tex_height);
+        fast_unpack(reinterpret_cast<char*>(mem.data()), reinterpret_cast<char*>(pixels), tex_width * tex_height);
+        result = init(std::move(device), reinterpret_cast<unsigned char*>(mem.data()), tex_width, tex_height, sampler, VK_FORMAT_R8G8B8A8_UNORM);
+    }
+    else {
+        result = init(std::move(device), pixels, tex_width, tex_height, sampler, VK_FORMAT_R8G8B8A8_UNORM);
+    }
 
     stbi_image_free(pixels);
 
@@ -50,7 +69,16 @@ bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, unsigned char* da
         throw std::runtime_error("failed to load texture image!");
     }
     uint32_t mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(tex_width, tex_height))));
-    bool result = init(std::move(device), pixels, tex_width, tex_height, createTextureSampler(mip_levels), tex_channels == 4 ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8_SRGB);
+
+    bool result = false;
+    if(tex_channels == 3) {
+        std::vector<uint32_t> mem(tex_width * tex_height);
+        fast_unpack(reinterpret_cast<char*>(mem.data()), reinterpret_cast<char*>(pixels), tex_width * tex_height);
+        result = init(std::move(device), reinterpret_cast<unsigned char*>(mem.data()), tex_width, tex_height, createTextureSampler(mip_levels), VK_FORMAT_R8G8B8A8_UNORM);
+    }
+    else {
+        result = init(std::move(device), pixels, tex_width, tex_height, createTextureSampler(mip_levels), VK_FORMAT_R8G8B8A8_UNORM);
+    }
 
     stbi_image_free(pixels);
 
@@ -66,7 +94,16 @@ bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, unsigned char* da
         throw std::runtime_error("failed to load texture image!");
     }
     uint32_t mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(tex_width, tex_height))));
-    bool result = init(std::move(device), pixels, tex_width, tex_height, sampler, tex_channels == 4 ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8_SRGB);
+
+    bool result = false;
+    if(tex_channels == 3) {
+        std::vector<uint32_t> mem(tex_width * tex_height);
+        fast_unpack(reinterpret_cast<char*>(mem.data()), reinterpret_cast<char*>(pixels), tex_width * tex_height);
+        result = init(std::move(device), reinterpret_cast<unsigned char*>(mem.data()), tex_width, tex_height, sampler, VK_FORMAT_R8G8B8A8_UNORM);
+    }
+    else {
+        result = init(std::move(device), pixels, tex_width, tex_height, sampler, VK_FORMAT_R8G8B8A8_UNORM);
+    }
 
     stbi_image_free(pixels);
 
