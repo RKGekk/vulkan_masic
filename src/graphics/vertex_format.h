@@ -55,6 +55,7 @@ public:
     size_t getOffset(const SemanticName& name) const {
         size_t offset = -1;
         if(!m_name_pos_map.count(name)) return offset;
+        offset = 0u;
         size_t to = m_name_pos_map.at(name);
         for(size_t i = 0u; i < to; ++i) {
             VertexAttributeFormat curr_format = m_format_pos.at(i);

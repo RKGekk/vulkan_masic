@@ -57,8 +57,7 @@ std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem
 
     if (!load_result || m_gltf_model.scenes.empty()) return nullptr;
     
-    m_root_node = std::make_shared<SceneNode>(m_scene, root_transform->VGetNodeIndex());
-    //m_scene->addProperty(m_root_node);
+    m_root_node = root_transform;
 
     if(!m_gltf_model.extensions.empty()) {
 	    m_extensions = nlohmann::json::parse(m_gltf_model.extensions_json_string.begin(), m_gltf_model.extensions_json_string.end());
@@ -215,7 +214,7 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& g
     	if (indices_accessor_idx != -1) {
     		const tinygltf::Accessor& indices_accessor = m_gltf_model.accessors[indices_accessor_idx];
 			//indices_component_type = indices_accessor.componentType;
-    		std::vector<uint32_t> indices = GetIndices(indices_accessor);
+    		indices = GetIndices(indices_accessor);
     	}
     	else {
     		indices = std::vector<uint32_t>(num_vertices);
@@ -951,12 +950,12 @@ float GetAttribute(const unsigned char* raw_data_ptr, uint32_t component_type) {
 std::vector<float> MeshNodeLoader::GetVertices(const tinygltf::Primitive& primitive, const ShaderSignature& pbr_shader_signature) {
 	const VertexFormat& uni_vertex_format = pbr_shader_signature.getVertexFormat();
 	int32_t num_vertices = GetNumVertices(primitive);
-	int32_t uni_stride_el = uni_vertex_format.getVertexSize();
+	int32_t uni_stride_el = uni_vertex_format.getVertexSize() / sizeof(float);
 	size_t uni_number_of_components = uni_stride_el * num_vertices;
 	std::vector<float> result(uni_number_of_components);
 	for (const auto& [semantic_name, semantic_accessor_idx] : primitive.attributes) {
 		if(!ValidateVertexAttribute(semantic_name)) continue;
-		if(uni_vertex_format.checkVertexAttribExist(semantic_name)) continue;
+		if(!uni_vertex_format.checkVertexAttribExist(semantic_name)) continue;
 		size_t uni_current_offset = uni_vertex_format.getOffset<float>(semantic_name);
 
 		const tinygltf::Accessor& vertex_attrib_accessor = m_gltf_model.accessors[semantic_accessor_idx];
@@ -975,26 +974,11 @@ std::vector<float> MeshNodeLoader::GetVertices(const tinygltf::Primitive& primit
 		size_t buffer_stride_bytes = vertex_attrib_view.byteStride ? vertex_attrib_view.byteStride : element_size * num_of_elements_in_type;
 		size_t elements_count = vertex_attrib_accessor.count;
 
-		if (semantic_name == "JOINTS_0") {
-			for (size_t current_element = 0u; current_element < elements_count; ++current_element) {
-				uint8_t bone_indices[4] = {0};
-				for (int32_t current_component_num = 0; current_component_num < num_of_elements_to_copy; ++current_component_num) {
-					const unsigned char* raw_data_ptr = begin_ptr + buffer_offset_bytes + current_element * buffer_stride_bytes + current_component_num * element_size;
-					int8_t bone_indice = *((const int8_t*)raw_data_ptr);
-					bone_indices[current_component_num] = bone_indice;
-				}
-				float vertex_attrib_element = *((float*)bone_indices);
-				result[current_element * uni_stride_el + uni_current_offset + 3u] = vertex_attrib_element;
-			}
-		}
-		else {
-			for (size_t current_element = 0u; current_element < elements_count; ++current_element) {
-				for (int32_t current_component_num = 0; current_component_num < num_of_elements_to_copy; ++current_component_num) {
-					if(current_component_num >= uni_vertex_format.GetNumComponentsInType(semantic_name)) continue;
-					const unsigned char* raw_data_ptr = begin_ptr + buffer_offset_bytes + current_element * buffer_stride_bytes + current_component_num * element_size;
-					float vertex_attrib_element = GetAttribute(raw_data_ptr, vertex_attrib_accessor.componentType);
-					result[current_element * uni_stride_el + uni_current_offset + current_component_num] = vertex_attrib_element;
-				}
+		for (size_t current_element = 0u; current_element < elements_count; ++current_element) {
+			for (int32_t current_component_num = 0; current_component_num < num_of_elements_to_copy; ++current_component_num) {
+				const unsigned char* raw_data_ptr = begin_ptr + buffer_offset_bytes + current_element * buffer_stride_bytes + current_component_num * element_size;
+				float vertex_attrib_element = GetAttribute(raw_data_ptr, vertex_attrib_accessor.componentType);
+				result[current_element * uni_stride_el + uni_current_offset + current_component_num] = vertex_attrib_element;
 			}
 		}
 	}
