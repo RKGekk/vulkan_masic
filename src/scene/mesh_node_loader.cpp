@@ -229,10 +229,9 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& g
 		model_data->SetMaterial(prop_set);
 
     	std::vector<float> vertices = GetVertices(primitive, m_pbr_shader_signature);
-		int32_t vertex_count = GetNumVertices(primitive);
 		const void* vertices_data = vertices.data();
 		std::shared_ptr<VertexBuffer> vertex_buffer = std::make_shared<VertexBuffer>();
-        vertex_buffer->init(m_device, vertices_data, vertex_count, indices_data, index_count, getIndexType(indices_component_type), model_data->GetVertextInputInfo());
+        vertex_buffer->init(m_device, vertices_data, num_vertices, indices_data, index_count, getIndexType(indices_component_type), model_data->GetVertextInputInfo());
 
 		model_data->SetVertexBuffer(vertex_buffer);
 		
