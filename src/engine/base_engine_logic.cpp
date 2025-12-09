@@ -183,6 +183,15 @@ bool BaseEngineLogic::VLoadGame(const std::string& level_resource) {
 		}
 	}
 
+	for (auto it = m_game_views.begin(); it != m_game_views.end(); ++it) {
+		std::shared_ptr<IEngineView> pView = *it;
+		if (pView->VGetType() == EngineViewType::GameView_Human) {
+			std::shared_ptr<HumanView> pHumanView = std::static_pointer_cast<HumanView, IEngineView>(pView);
+			pHumanView->LoadGame(world_node);
+			break;
+		}
+	}
+
 	m_animation_player->Initialize(world_node);
 
 	if (!VLoadGameDelegate(world_node)) { return false; }

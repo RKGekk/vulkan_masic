@@ -1,6 +1,8 @@
 #include "screen_element_scene.h"
 
-ScreenElementScene::ScreenElementScene() : Scene() {};
+ScreenElementScene::ScreenElementScene() : Scene() {
+    
+};
 
 ScreenElementScene::~ScreenElementScene() {};
 

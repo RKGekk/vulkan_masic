@@ -1,6 +1,7 @@
 #include "human_view.h"
 
 #include "../../application.h"
+#include "../../graphics/scene_config.h"
 #include "../../graphics/vulkan_renderer.h"
 #include "../../graphics/vulkan_device.h"
 #include "../../tools/memory_utility.h"
@@ -17,28 +18,36 @@ HumanView::HumanView(std::shared_ptr<ProcessManager> process_manager) {
 	m_pointer_radius = 1.0f;
 	m_view_id = 0xffffffff;
 
+	VulkanRenderer& renderer = Application::GetRenderer();
+	std::shared_ptr<VulkanDevice> device = renderer.GetDevice();
+
 	m_bShow_ui = false;
 	m_bShow_debug_ui = Application::Get().GetApplicationOptions().DebugUI;
 	if (m_bShow_debug_ui) {
 		m_test_menu_ui = std::make_shared<TestMenuUI>();
 		VPushElement(m_test_menu_ui);
+
+		m_gui = std::make_shared<ImGUIDrawable>();
+    	m_gui->init(device, renderer.getRenderTarget(), renderer.getSwapchain()->getMaxFrames());
+		renderer.addDrawable(m_gui);
 	}
 
 	RegisterAllDelegates();
 	m_base_game_state = BaseEngineState::BGS_Initializing;
+
+	m_scene = std::make_shared<ScreenElementScene>();
 	
 	m_current_tick = {};
 	m_last_draw = {};
 
-    VulkanRenderer& renderer = Application::GetRenderer();
-	std::shared_ptr<VulkanDevice> device = renderer.GetDevice();
-	m_gui = std::make_shared<ImGUIDrawable>();
-    m_gui->init(device, renderer.getRenderTarget(), renderer.getSwapchain()->getMaxFrames());
-	renderer.addDrawable(m_gui);
 }
 
 HumanView::~HumanView() {
 	RemoveAllDelegates();
+}
+
+bool HumanView::LoadGame(const pugi::xml_node& pLevelData) {
+	return VLoadGameDelegate(pLevelData);
 }
 
 bool HumanView::VOnRestore() {
@@ -221,3 +230,45 @@ void HumanView::RemoveAllDelegates() {
 	pGlobalEventManager->VRemoveListener({ connect_arg<&HumanView::MouseButtonReleaseDelegate>, this }, EvtData_Mouse_Button_Released::sk_EventType);
 	pGlobalEventManager->VRemoveListener({ connect_arg<&HumanView::MouseWheelDelegate>, this }, EvtData_Mouse_Wheel::sk_EventType);
 };
+
+bool HumanView::VLoadGameDelegate(const pugi::xml_node& pLevel_data) {
+	using namespace std::literals;
+	pugi::xml_node scene_config_node = pLevel_data.child("Scene");
+	if (scene_config_node) {
+		for (pugi::xml_node node = scene_config_node.first_child(); node; node = node.next_sibling()) {
+			std::string param_name = node.name();
+
+			if (param_name == "Camera"s) {
+				std::string camera_name = node.child("SelectName").text().as_string();
+				VSetCameraByName(camera_name);
+			}
+
+			if (param_name == "BackgroundColor"s) {
+				glm::vec3 default_color = { 1.0f, 1.0f, 1.0f };
+				glm::vec3 bg_color = colorfromattr3f(node, default_color);
+			}
+
+			if (param_name == "Fog"s) {
+
+				glm::vec3 default_fog_color = { 1.0f, 1.0f, 1.0f };
+				glm::vec3 fog_color = colorfromattr3f(node.child("FogColor"), default_fog_color);
+				float fog_range = node.child("FogRange").text().as_float();
+				float fog_start = node.child("FogStart").text().as_float();
+				SceneConfig sc_cfg = {};
+				sc_cfg.FogColor = fog_color;
+				sc_cfg.FogStart = fog_start;
+				sc_cfg.FogRange = fog_range;
+			}
+		}
+	}
+	VPushElement(m_scene);
+	//m_keyboard_handlers.clear();
+	//m_pointer_handlers.clear();
+	//m_pFreeCameraController.reset(new MovementController(m_camera, 0, 0, false, true));
+	//m_keyboard_handlers.push_back(m_pFreeCameraController);
+	//m_pointer_handlers.push_back(m_pFreeCameraController);
+
+	m_scene->VOnRestore();
+
+	return true;
+}

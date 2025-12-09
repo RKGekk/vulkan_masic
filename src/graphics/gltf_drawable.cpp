@@ -427,7 +427,7 @@ void GLTFDrawable::reset(const RenderTarget& rt) {
 
 void GLTFDrawable::destroy() {
     m_pipelines[0].pipeline.destroy();
-    m_pipelines[0].pipeline.destroy();
+    m_pipelines[1].pipeline.destroy();
     m_descriptor.destroy();
     m_vert_shader.destroy();
     m_frag_shader.destroy();

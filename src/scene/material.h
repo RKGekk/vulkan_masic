@@ -148,7 +148,7 @@ public:
 	float GetBumpIntensity() const;
 	void  SetBumpIntensity(float bump_intensity);
 
-	std::shared_ptr<VulkanTexture> GetTexture(TextureType ID) const;
+	std::shared_ptr<VulkanTexture> GetTexture(TextureType ID = TextureType::Diffuse) const;
 	TextureMap& GetTextureMap();
 	void SetTexture(TextureType type, std::shared_ptr<VulkanTexture> texture);
 	void SetInvYNormalTextureFlag(bool is_inv_y_texture);

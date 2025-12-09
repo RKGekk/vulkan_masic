@@ -22,6 +22,8 @@ public:
 	HumanView(std::shared_ptr<ProcessManager>);
 	virtual ~HumanView();
 
+	bool LoadGame(const pugi::xml_node& pLevelData);
+
 	virtual bool VOnRestore() override;
 	virtual bool VOnLostDevice() override;
 
@@ -56,6 +58,7 @@ public:
 	void DestroySceneNodeComponentDelegate(IEventDataPtr pEventData) {};
 
 protected:
+	virtual bool VLoadGameDelegate(const pugi::xml_node& pLevelData);
 	virtual void VRenderText() {};
 
 	EngineViewId m_view_id;
@@ -69,6 +72,7 @@ protected:
 
 	std::shared_ptr<ProcessManager> m_process_manager;
 	ScreenElementList m_screen_elements;
+	std::shared_ptr<ScreenElementScene> m_scene;
 	std::weak_ptr<CameraComponent> m_camera;
 
 	float m_pointer_radius;
