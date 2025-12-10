@@ -10,11 +10,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/ext.hpp>
 
+#include <functional>
 #include <memory>
 #include <stdint.h>
 #include <string>
 
 #include "../scene.h"
+#include "../ivisitor.h"
 #include "scene_node_properties.h"
 
 class SceneNode : public std::enable_shared_from_this<SceneNode> {
@@ -24,6 +26,9 @@ public:
 	SceneNode(std::shared_ptr<Scene> scene, std::string name, glm::mat4x4 to, Scene::NodeIndex parent = 0u);
 
 	virtual ~SceneNode();
+
+	virtual void Accept(IVisitor& visitor);
+	virtual void Accept(std::function<void(std::shared_ptr<SceneNode>)> fn);
 
 	virtual bool VOnRestore();
 	virtual bool VOnUpdate();

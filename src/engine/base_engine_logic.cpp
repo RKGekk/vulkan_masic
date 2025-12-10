@@ -3,6 +3,7 @@
 #include "../actors/actor_factory.h"
 #include "../actors/actor_component.h"
 #include "../actors/transform_component.h"
+#include "../actors/model_component.h"
 #include "../actors/base_scene_node_component.h"
 #include "../application.h"
 #include "../application_options.h"
@@ -12,6 +13,7 @@
 #include "../events/cicadas/evt_data_request_destroy_actor.h"
 #include "../events/cicadas/evt_data_new_actor.h"
 #include "../events/cicadas/evt_data_new_scene_component.h"
+#include "../events/cicadas/evt_data_new_model_component.h"
 #include "../events/cicadas/evt_data_move_actor.h"
 #include "../events/cicadas/evt_data_destroy_actor.h"
 #include "../events/cicadas/evt_data_request_new_actor.h"
@@ -82,11 +84,22 @@ StrongActorPtr BaseEngineLogic::VCreateActor(const pugi::xml_node& actor_data, c
 		ActorId actid = pActor->GetId();
 		m_actors.insert(std::make_pair(actid, pActor));
 		if (pActor->GetName() != "NoName") { m_actors_names.insert(std::make_pair(pActor->GetName(), pActor)); }
-		std::shared_ptr<BaseSceneNodeComponent> scene_component = pActor->GetDynamicComponent<BaseSceneNodeComponent>().lock();
-		if(scene_component) {
-			std::shared_ptr<EvtData_New_Scene_Component> pNewSceneNodeEvent = std::make_shared<EvtData_New_Scene_Component>(actid, scene_component->VGetId(), scene_component->VGetSceneNode());
-			IEventManager::Get()->VQueueEvent(pNewSceneNodeEvent);
+
+		std::vector<std::weak_ptr<BaseSceneNodeComponent>> scene_components = pActor->GetDynamicComponents<BaseSceneNodeComponent>();
+		for(std::weak_ptr<BaseSceneNodeComponent>& weak_scene_com : scene_components) {
+			std::shared_ptr<BaseSceneNodeComponent> scene_component = weak_scene_com.lock();
+			if(scene_component) {
+				std::shared_ptr<EvtData_New_Scene_Component> pNewSceneNodeEvent = std::make_shared<EvtData_New_Scene_Component>(actid, scene_component->VGetId(), scene_component->VGetSceneNode());
+				IEventManager::Get()->VQueueEvent(pNewSceneNodeEvent);
+			}
 		}
+
+		std::shared_ptr<ModelComponent> mc = pActor->GetComponent<ModelComponent>().lock();
+		if(mc) {
+			std::shared_ptr<EvtData_New_Model_Component> pNewMeshNodeEvent = std::make_shared<EvtData_New_Model_Component>(actid, mc->VGetId(), mc->VGetSceneNode());
+			IEventManager::Get()->VQueueEvent(pNewMeshNodeEvent);
+		}
+		
 		const ActorComponents& components = pActor->GetComponents();
 		for (const auto& [k, v] : components) {
 			m_components[k].insert(actid);
@@ -365,6 +378,8 @@ void BaseEngineLogic::VRegisterEvents() {
 	REGISTER_EVENT(EvtData_Move_Actor);
 	REGISTER_EVENT(EvtData_Destroy_Actor);
 	REGISTER_EVENT(EvtData_Request_New_Actor);
+	REGISTER_EVENT(EvtData_New_Scene_Component);
+	REGISTER_EVENT(EvtData_New_Model_Component);
 }
 
 void BaseEngineLogic::RemoveAllDelegates() {

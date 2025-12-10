@@ -32,6 +32,11 @@
 
 class GLTFDrawable : public IVulkanDrawable {
 public:
+    struct GraphicsPipeline {
+        VulkanPipeline pipeline;
+        VulkanPipeline::PipelineCfg pipeline_cfg;
+    };
+
     bool init(std::shared_ptr<VulkanDevice> device, const RenderTarget& rt, int max_frames, std::filesystem::path model_path);
 
     void reset(const RenderTarget& rt) override;
@@ -59,10 +64,6 @@ private:
     std::vector<std::shared_ptr<VertexBuffer>> m_vertex_buffers;
     float m_rt_aspect = 1.0f;
 
-	struct GraphicsPipeline {
-        VulkanPipeline pipeline;
-        VulkanPipeline::PipelineCfg pipeline_cfg;
-    };
     std::vector<GraphicsPipeline> m_pipelines;
     
     VulkanDescriptor m_descriptor;

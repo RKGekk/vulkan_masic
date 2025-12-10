@@ -9,6 +9,7 @@
 #include "../../actors/camera_component.h"
 #include "../../procs/process_manager.h"
 #include "../../graphics/imgui_drawable.h"
+#include "../../graphics/scene_drawable.h"
 #include "../screen_elements/iscreen_element.h"
 #include "../screen_elements/screen_element_scene.h"
 #include "../screen_elements/test_menu_ui.h"

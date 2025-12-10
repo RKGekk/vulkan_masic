@@ -105,15 +105,16 @@ public:
     }
 
     template <class ComponentType>
-    std::weak_ptr<ComponentType> GetDynamicComponent() {
+    std::vector<std::weak_ptr<ComponentType>> GetDynamicComponents() {
+        std::vector<std::weak_ptr<ComponentType>> res;
         for (const auto& [cid, pBase] : m_components) {
             std::shared_ptr<ComponentType> pSub = std::dynamic_pointer_cast<ComponentType>(pBase);
             if(pSub) {
                 std::weak_ptr<ComponentType> pWeakSub(pSub);
-                return pWeakSub;
+                res.push_back(std::move(pWeakSub));
             }
         }
-        return std::weak_ptr<ComponentType>();
+        return res;
     }
 
     template <class ComponentType>

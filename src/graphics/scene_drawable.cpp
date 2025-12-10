@@ -25,6 +25,8 @@ bool SceneDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarge
 
     m_vert_shader = std::make_shared<VulkanShader>();
     m_vert_shader->init(m_device->getDevice(), "shaders/shader.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+
+    return true;
 }
 
 void SceneDrawable::reset(const RenderTarget& rt) {

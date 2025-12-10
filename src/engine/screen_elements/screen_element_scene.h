@@ -4,6 +4,7 @@
 
 #include "iscreen_element.h"
 #include "../../scene/scene.h"
+#include "../../graphics/scene_drawable.h"
 #include "../../events/ievent_data.h"
 
 class ScreenElementScene : public IScreenElement, public Scene {
@@ -26,14 +27,18 @@ public:
 	virtual bool VAddChild(std::shared_ptr<SceneNode> kid);
 
 	void ModifiedSceneNodeComponentDelegate(IEventDataPtr pEventData);
+	void NewModelComponentDelegate(IEventDataPtr pEventData);
 
 protected:
 	void ModifiedSceneNode(std::shared_ptr<SceneNode> node);
+	void NewModelComponent(std::shared_ptr<SceneNode> node);
 
 private:
 	bool m_is_visible = true;
 	uint32_t m_width;
 	uint32_t m_height;
+
+	std::shared_ptr<SceneDrawable> m_scene_draw;
 
 private:
 	void RegisterAllDelegates();
