@@ -15,9 +15,13 @@ ScreenElementScene::ScreenElementScene() : Scene() {
     m_scene_draw = std::make_shared<SceneDrawable>();
     m_scene_draw->init(device, renderer.getRenderTarget(), renderer.getSwapchain()->getMaxFrames());
 	renderer.addDrawable(m_scene_draw);
+
+    RegisterAllDelegates();
 };
 
-ScreenElementScene::~ScreenElementScene() {};
+ScreenElementScene::~ScreenElementScene() {
+    RemoveAllDelegates();
+};
 
 bool ScreenElementScene::VOnRestore() {
     return true;
@@ -63,10 +67,12 @@ void ScreenElementScene::NewModelComponentDelegate(IEventDataPtr pEventData) {
 void ScreenElementScene::ModifiedSceneNode(std::shared_ptr<SceneNode> node) {};
 
 void ScreenElementScene::NewModelComponent(std::shared_ptr<SceneNode> root_node) {
-    root_node->Accept([drawable = m_scene_draw](std::shared_ptr<SceneNode> node){
-        std::shared_ptr<MeshNode> pMeshNode = std::dynamic_pointer_cast<MeshNode>(node);
+    std::shared_ptr<Scene> scene = root_node->GetScene();
+    root_node->Accept([scene, drawable = m_scene_draw](std::shared_ptr<SceneNode> node){
+        std::shared_ptr<SceneNode> pMeshNode = scene->getProperty(Scene::NODE_TYPE_FLAG_MESH);
         if(pMeshNode) {
-            drawable->addRendeNode(pMeshNode);
+            std::shared_ptr<MeshNode> pMesh = std::dynamic_pointer_cast<MeshNode>(pMeshNode);
+            drawable->addRendeNode(pMesh);
         }
     });
 }
