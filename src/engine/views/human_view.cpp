@@ -97,6 +97,7 @@ void HumanView::VOnUpdate(const GameTimerDelta& delta) {
 	// if (m_pFree_camera_controller) {
 	// 	m_pFree_camera_controller->OnUpdate(delta);
 	// }
+	m_scene->recalculateGlobalTransforms();
 }
 
 EngineViewType HumanView::VGetType() {

@@ -124,7 +124,7 @@ void SceneDrawable::recordCommandBuffer(CommandBatch& command_buffer, const Rend
         VkBuffer vertex_buffers[] = {m_renderables[k]->vertex_buffer->getVertexBuffer()->getBuffer()};
         VkDeviceSize offsets[] = {0};
         vkCmdBindVertexBuffers(command_buffer.getCommandBufer(), 0, 1, vertex_buffers, offsets);
-        vkCmdBindIndexBuffer(command_buffer.getCommandBufer(), m_renderables[k]->vertex_buffer->getIndexBuffer()->getBuffer(), 0u, VK_INDEX_TYPE_UINT16);
+        vkCmdBindIndexBuffer(command_buffer.getCommandBufer(), m_renderables[k]->vertex_buffer->getIndexBuffer()->getBuffer(), 0u, m_renderables[k]->vertex_buffer->getIndexType());
         
         vkCmdDrawIndexed(command_buffer.getCommandBufer(), static_cast<uint32_t>(m_renderables[k]->vertex_buffer->getIndicesCount()), 1u, 0u, 0u, 0u);
         
@@ -135,7 +135,7 @@ void SceneDrawable::recordCommandBuffer(CommandBatch& command_buffer, const Rend
 void SceneDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     size_t sz = m_render_nodes.size();
     if(!sz) return;
-    
+
     Application& app = Application::Get();
     std::shared_ptr<BaseEngineLogic> game_logic = app.GetGameLogic();
     std::shared_ptr<CameraComponent> camera_component = game_logic->GetHumanView()->VGetCamera();
@@ -160,6 +160,7 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
     
     size_t msz = mesh_list.size();
     for (size_t i = 0u; i < msz; ++i) {
+        m_render_nodes.push_back(model);
         std::shared_ptr<Renderable> renderable = std::make_shared<Renderable>();
         std::shared_ptr<ModelData> model_data = mesh_list.at(i);
         std::shared_ptr<Material> material = model_data->GetMaterial();
@@ -171,7 +172,7 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
         for(size_t j = 0u; j < m_max_frames; ++j) {
             std::shared_ptr<VulkanUniformBuffer> ubo = std::make_shared<VulkanUniformBuffer>();
             ubo->init<UniformBufferObject>(m_device, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-            renderable->uniform_buffers[i] = std::move(ubo);
+            renderable->uniform_buffers[j] = std::move(ubo);
 
             binding[j].resize(2u);
             binding[j][0u].layout_binding.binding = 0u;
