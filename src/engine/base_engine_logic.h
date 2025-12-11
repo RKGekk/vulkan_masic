@@ -49,11 +49,7 @@ public:
 	virtual const std::unordered_set<ActorId>& VGetActorsByComponent(ComponentId cid);
 	virtual bool VCheckActorsExistByComponent(ComponentId cid);
 
-	virtual const std::shared_ptr<Scene>& VGetScene() override;
-
 	virtual void VMoveActor(const ActorId id, const glm::mat4x4& mat) override;
-
-	std::shared_ptr<CameraComponent> GetActiveCamera();
 
 	std::shared_ptr<ActorAnimationPlayer> GetAnimationPlayer();
 
@@ -103,6 +99,4 @@ protected:
 	ActorNamesMap m_actors_names;
 	ActorId m_last_actor_id;
 	BaseEngineState m_state;
-	std::shared_ptr<CameraComponent> m_active_camera;
-	std::shared_ptr<Scene> m_scene;
 };

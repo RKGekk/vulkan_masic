@@ -38,7 +38,7 @@ std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem
     Application& app = Application::Get();
     VulkanRenderer& renderer = app.GetRenderer();
     m_device = renderer.GetDevice();
-    m_scene = Application::Get().GetGameLogic()->VGetScene();
+    m_scene = Application::Get().GetGameLogic()->GetHumanView()->VGetScene();
 	m_pbr_shader_signature = pbr_shader_signature;
 
     bool store_original_json_for_extras_and_extensions = true;

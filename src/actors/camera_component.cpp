@@ -20,11 +20,11 @@ bool CameraComponent::Init(const pugi::xml_node& data) {
 	std::shared_ptr<Actor> act = GetOwner();
 
 	float fov =  glm::radians(data.child("Fov").text().as_float(90.0f));
-	float near = data.child("Near").text().as_float(0.1f);
-	float far = data.child("Far").text().as_float(1.0f);
+	float near_plane = data.child("Near").text().as_float(0.1f);
+	float far_plane = data.child("Far").text().as_float(1.0f);
 	float aspect_ratio = Application::Get().GetApplicationOptions().GetAspect();
 
-	std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->VGetScene();
+	std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->GetHumanView()->VGetScene();
 
 	std::shared_ptr<TransformComponent> tc = act->GetComponent<TransformComponent>(ActorComponent::GetIdFromName("TransformComponent")).lock();
 	if (!tc) {
@@ -33,7 +33,7 @@ bool CameraComponent::Init(const pugi::xml_node& data) {
 
 	Scene::NodeIndex node_index = tc->GetSceneNodeIndex();
 
-	m_camera_node = std::make_shared<BasicCameraNode>(scene_ptr, node_index, fov, aspect_ratio, near, far);
+	m_camera_node = std::make_shared<BasicCameraNode>(scene_ptr, node_index, fov, aspect_ratio, near_plane, far_plane);
 	scene_ptr->addProperty(m_camera_node);
 
 	return true;

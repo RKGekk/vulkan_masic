@@ -31,7 +31,6 @@ BaseEngineLogic::BaseEngineLogic() {
 	m_level_manager = std::make_unique<LevelManager>();
 	m_level_manager->Initialize();
 	m_animation_player = std::make_shared<ActorAnimationPlayer>();
-	m_scene = std::make_shared<ScreenElementScene>();
 	//m_physics = std::make_unique<XPhysics>();
 	//m_physics->VInitialize();
 }
@@ -150,20 +149,12 @@ bool BaseEngineLogic::VCheckActorsExistByComponent(ComponentId cid) {
 	return m_components.count(cid);
 }
 
-const std::shared_ptr<Scene>& BaseEngineLogic::VGetScene() {
-	return m_scene;
-}
-
 void BaseEngineLogic::VMoveActor(const ActorId id, const glm::mat4x4& mat) {
 	StrongActorPtr pActor = MakeStrongPtr(VGetActor(id));
 	if (pActor) {
 		std::shared_ptr<TransformComponent> pTransformComponent = MakeStrongPtr(pActor->GetComponent<TransformComponent>(TransformComponent::g_name));
 		pTransformComponent->SetTransform(mat);
 	}
-}
-
-std::shared_ptr<CameraComponent> BaseEngineLogic::GetActiveCamera() {
-	return m_active_camera;
 }
 
 std::shared_ptr<ActorAnimationPlayer> BaseEngineLogic::GetAnimationPlayer(){

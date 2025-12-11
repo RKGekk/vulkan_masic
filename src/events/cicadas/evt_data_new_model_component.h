@@ -17,7 +17,7 @@ class EvtData_New_Model_Component : public BaseEventData {
     std::weak_ptr<SceneNode> m_pSceneNode;
 
 public:
-    static const EventTypeId sk_EventType = 0x34790278;
+    static const EventTypeId sk_EventType = 0xc188c55e;
     static const std::string sk_EventName;
 
     EvtData_New_Model_Component();

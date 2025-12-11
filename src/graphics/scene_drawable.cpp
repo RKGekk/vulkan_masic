@@ -134,9 +134,11 @@ void SceneDrawable::recordCommandBuffer(CommandBatch& command_buffer, const Rend
 
 void SceneDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     size_t sz = m_render_nodes.size();
+    if(!sz) return;
+    
     Application& app = Application::Get();
     std::shared_ptr<BaseEngineLogic> game_logic = app.GetGameLogic();
-    std::shared_ptr<CameraComponent> camera_component = game_logic->GetActiveCamera();
+    std::shared_ptr<CameraComponent> camera_component = game_logic->GetHumanView()->VGetCamera();
     std::shared_ptr<BasicCameraNode> camera_node = camera_component->VGetCameraNode();
     for(size_t i = 0u; i < sz; ++i) {
         std::shared_ptr<MeshNode> mesh_node = m_render_nodes.at(i);
