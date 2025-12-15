@@ -488,7 +488,12 @@ void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, M
 
 	std::shared_ptr<VulkanTexture> texture = std::make_shared<VulkanTexture>();
 	if (mime_is_file) {
-		std::string texture_image_file_name = "textures/"s + texture_image.uri;
+		std::string texture_image_file_name = texture_image.uri;
+		bool file_exists = std::filesystem::exists(texture_image_file_name);
+		if(!file_exists) {
+			texture_image_file_name = "textures/"s + texture_image.uri;
+			file_exists = std::filesystem::exists(texture_image_file_name);
+		}
 		texture->init(m_device, texture_image_file_name, sampler);
 		material->SetTexture(texture_type_enum, std::move(texture));
 	}

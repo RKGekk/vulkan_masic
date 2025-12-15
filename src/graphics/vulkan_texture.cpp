@@ -45,15 +45,7 @@ bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, const std::string
         throw std::runtime_error("failed to load texture image!");
     }
 
-    bool result = false;
-    if(tex_channels == 3) {
-        std::vector<uint32_t> mem(tex_width * tex_height);
-        fast_unpack(reinterpret_cast<char*>(mem.data()), reinterpret_cast<char*>(pixels), tex_width * tex_height);
-        result = init(std::move(device), reinterpret_cast<unsigned char*>(mem.data()), tex_width, tex_height, sampler, VK_FORMAT_R8G8B8A8_UNORM);
-    }
-    else {
-        result = init(std::move(device), pixels, tex_width, tex_height, sampler, VK_FORMAT_R8G8B8A8_UNORM);
-    }
+    bool result = init(std::move(device), pixels, tex_width, tex_height, sampler, VK_FORMAT_R8G8B8A8_UNORM);
 
     stbi_image_free(pixels);
 

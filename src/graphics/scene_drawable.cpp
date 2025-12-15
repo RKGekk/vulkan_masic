@@ -149,7 +149,7 @@ void SceneDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
         ubo.model = node_props.FromRoot();
         ubo.view = camera_node->GetView();
         ubo.proj = camera_node->GetProjection();
-        ubo.proj[1][1] *= -1.0f;
+        //ubo.proj[1][1] *= -1.0f;
 
         renderable->uniform_buffers.at(image_index)->update(&ubo, sizeof(SceneUniformBufferObject));
     }
@@ -256,7 +256,7 @@ VulkanPipeline::PipelineCfg SceneDrawable::createPipelineCfg(const std::vector<V
     pipeline_cfg.rasterizer_info.rasterizerDiscardEnable = VK_FALSE;
     pipeline_cfg.rasterizer_info.polygonMode = VK_POLYGON_MODE_FILL;
     pipeline_cfg.rasterizer_info.cullMode = VK_CULL_MODE_BACK_BIT;
-    //m_pipeline_cfg.rasterizer_info.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    //pipeline_cfg.rasterizer_info.frontFace = VK_FRONT_FACE_CLOCKWISE;
     pipeline_cfg.rasterizer_info.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     pipeline_cfg.rasterizer_info.depthBiasEnable = VK_FALSE;
     pipeline_cfg.rasterizer_info.depthBiasConstantFactor = 0.0f;
