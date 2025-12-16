@@ -40,6 +40,7 @@ HumanView::HumanView(std::shared_ptr<ProcessManager> process_manager) {
 	m_current_tick = {};
 	m_last_draw = {};
 
+	m_pFree_camera_controller = std::make_shared<MovementController>(nullptr);
 }
 
 HumanView::~HumanView() {
@@ -94,9 +95,6 @@ void HumanView::VOnUpdate(const GameTimerDelta& delta) {
 	for (ScreenElementList::iterator i = m_screen_elements.begin(); i != m_screen_elements.end(); ++i) {
 		(*i)->VOnUpdate(delta);
 	}
-	// if (m_pFree_camera_controller) {
-	// 	m_pFree_camera_controller->OnUpdate(delta);
-	// }
 	m_scene->recalculateGlobalTransforms();
 }
 
@@ -134,11 +132,11 @@ void HumanView::VCanDraw(bool is_can_draw) {
 void HumanView::TogglePause(bool active) {}
 
 void HumanView::VSetControlledActor(std::shared_ptr<Actor> actor) {
-	m_pTeapot = actor;
-	if (m_pTeapot.expired()) {
-		//m_keyboard_handlers.clear();
-		//m_pointer_handlers.clear();
-		//m_pFreeCameraController.reset(new MovementController(m_camera, 0, 0, false, true));
+	m_actor = actor;
+	if (m_actor.expired()) {
+		m_keyboard_handlers.clear();
+		m_pointer_handlers.clear();
+		m_pFree_camera_controller->SetObject(nullptr);
 		//m_keyboard_handlers.push_back(m_pFreeCameraController);
 		//m_pointer_handlers.push_back(m_pFreeCameraController);
 		//if (auto camera = m_camera.lock()) {
@@ -147,15 +145,14 @@ void HumanView::VSetControlledActor(std::shared_ptr<Actor> actor) {
 		return;
 	}
 	else {
-		//m_keyboard_handlers.clear();
-		//m_pointer_handlers.clear();
-		//m_pFree_camera_controller.reset();
-		//m_keyboard_handlers.push_back(m_pFree_camera_controller);
-		//m_pointer_handlers.push_back(m_pFree_camera_controller);
+		m_keyboard_handlers.clear();
+		m_pointer_handlers.clear();
+		m_pFree_camera_controller->SetObject(m_actor.lock());
+		m_keyboard_handlers.push_back(m_pFree_camera_controller);
+		m_pointer_handlers.push_back(m_pFree_camera_controller);
 
 		//m_camera->SetTarget(m_pTeapot);
 	}
-	m_actor = actor;
 }
 
 std::shared_ptr<CameraComponent> HumanView::VGetCamera() {
@@ -186,6 +183,9 @@ const std::string& HumanView::VGetName() {
 void HumanView::MouseMotionDelegate(IEventDataPtr pEventData) {
 	std::shared_ptr<EvtData_Mouse_Motion> pCastEventData = std::static_pointer_cast<EvtData_Mouse_Motion>(pEventData);
 	ImGui::GetIO().MousePos = ImVec2(pCastEventData->GetX(), pCastEventData->GetY());
+	for (auto& handler : m_pointer_handlers) {
+		handler->VOnPointerMove(pCastEventData->GetX(), pCastEventData->GetY(), 1);
+	}
 }
 
 void HumanView::MouseButtonPressDelegate(IEventDataPtr pEventData) {
@@ -199,6 +199,10 @@ void HumanView::MouseButtonPressDelegate(IEventDataPtr pEventData) {
 
 	io.KeyShift = pCastEventData->GetShift();
 	io.KeyCtrl = pCastEventData->GetControl();
+
+	for (auto& handler : m_pointer_handlers) {
+		handler->VOnPointerButtonDown(pCastEventData->GetX(), pCastEventData->GetY(), 1, pCastEventData->GetMouseButton());
+	}
 };
 
 void HumanView::MouseButtonReleaseDelegate(IEventDataPtr pEventData) {
@@ -212,6 +216,10 @@ void HumanView::MouseButtonReleaseDelegate(IEventDataPtr pEventData) {
 
 	io.KeyShift = pCastEventData->GetShift();
 	io.KeyCtrl = pCastEventData->GetControl();
+
+	for (auto& handler : m_pointer_handlers) {
+		handler->VOnPointerButtonUp(pCastEventData->GetX(), pCastEventData->GetY(), 1, pCastEventData->GetMouseButton());
+	}
 };
 
 void HumanView::MouseWheelDelegate(IEventDataPtr pEventData) {
@@ -267,11 +275,10 @@ bool HumanView::VLoadGameDelegate(const pugi::xml_node& pLevel_data) {
 		}
 	}
 	VPushElement(m_scene);
-	//m_keyboard_handlers.clear();
-	//m_pointer_handlers.clear();
-	//m_pFreeCameraController.reset(new MovementController(m_camera, 0, 0, false, true));
-	//m_keyboard_handlers.push_back(m_pFreeCameraController);
-	//m_pointer_handlers.push_back(m_pFreeCameraController);
+
+	if(std::shared_ptr<CameraComponent> cam = m_camera.lock()) {
+		VSetControlledActor(cam->GetOwner());
+	}
 
 	m_scene->VOnRestore();
 

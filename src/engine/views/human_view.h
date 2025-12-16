@@ -6,6 +6,7 @@
 
 #include "iengine_view.h"
 #include "../base_engine_state.h"
+#include "../controllers/movement_controller.h"
 #include "../../actors/camera_component.h"
 #include "../../procs/process_manager.h"
 #include "../../graphics/imgui_drawable.h"
@@ -78,8 +79,8 @@ protected:
 	std::weak_ptr<CameraComponent> m_camera;
 
 	float m_pointer_radius;
-	//std::vector<std::shared_ptr<IPointerHandler>> m_pointer_handlers;
-	//std::vector<std::shared_ptr<IKeyboardHandler>> m_keyboard_handlers;
+	std::vector<std::shared_ptr<IPointerHandler>> m_pointer_handlers;
+	std::vector<std::shared_ptr<IKeyboardHandler>> m_keyboard_handlers;
 
 	bool m_bShow_ui;
 	bool m_bShow_debug_ui;
@@ -88,8 +89,7 @@ protected:
 	//std::shared_ptr<NodeMenuUI> m_node_menu_ui;
 	//std::shared_ptr<AnimMenuUI> m_anim_menu_ui;
 
-	//std::shared_ptr<MovementController> m_pFree_camera_controller;
-	std::weak_ptr<Actor> m_pTeapot;
+	std::shared_ptr<MovementController> m_pFree_camera_controller;
 
 	//glfw::window m_window;
 	std::shared_ptr<ImGUIDrawable> m_gui;

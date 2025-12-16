@@ -37,8 +37,12 @@ public:
     glm::mat4x4 GetTransformT() const;
     glm::mat4x4 GetInvTransform() const;
     glm::mat4x4 GetInvTransformT() const;
+    void Decompose(glm::vec3& pos, glm::vec3& rot, glm::vec3& scale) const;
+    void Decompose(glm::vec3& pos, glm::quat& rot, glm::vec3& scale) const;
 
     void SetTransform(const glm::mat4x4& newTransform);
+    void SetTransform(const glm::vec3& pos, const glm::vec3& rot, glm::vec3& scale);
+    void SetTransform(const glm::vec3& pos, const glm::quat& rot, glm::vec3& scale);
 
     glm::vec3 GetTranslation3f() const;
     const glm::vec4& GetTranslation4f() const;
@@ -48,6 +52,9 @@ public:
     void SetTranslation4x4f(const glm::mat4x4& pos);
 
     glm::vec3 GetLookAt() const;
+    glm::vec3 GetLookRight() const;
+    glm::vec3 GetLookUp() const;
+
     glm::vec3 GetYawPitchRoll() const;
 
     glm::vec3 GetForward3f() const;
@@ -61,6 +68,8 @@ public:
 
     std::shared_ptr<SceneNode> GetSceneNode();
     Scene::NodeIndex GetSceneNodeIndex();
+
+
 
 private:
     bool Init(const pugi::xml_node& data);

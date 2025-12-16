@@ -71,8 +71,48 @@ glm::mat4x4 TransformComponent::GetInvTransformT() const {
     return m_scene_node->Get().FromParentT();
 }
 
+void TransformComponent::Decompose(glm::vec3& pos, glm::vec3& rot, glm::vec3& scale) const {
+    glm::mat4x4 mat = m_scene_node->Get().ToParent();
+
+    pos = mat[3];
+
+    for (int i = 0; i < 3; ++i) {
+        scale[i] = glm::length(mat[i]);
+        mat[i] /= scale[i];
+    }
+
+    rot = glm::eulerAngles(glm::toQuat(mat));
+}
+
+void TransformComponent::Decompose(glm::vec3& pos, glm::quat& rot, glm::vec3& scale) const {
+    glm::mat4x4 mat = m_scene_node->Get().ToParent();
+
+    pos = mat[3];
+
+    for (int i = 0; i < 3; ++i) {
+        scale[i] = glm::length(mat[i]);
+        mat[i] /= scale[i];
+    }
+
+    rot = glm::toQuat(mat);
+}
+
 void TransformComponent::SetTransform(const glm::mat4x4& newTransform) {
     m_scene_node->SetTransform(newTransform);
+}
+
+void TransformComponent::SetTransform(const glm::vec3& pos, const glm::vec3& ypr, glm::vec3& scale) {
+    glm::mat4x4 S = glm::scale(scale);
+	glm::mat4x4 R = glm::eulerAngleYXZ(ypr.x, ypr.y, ypr.z);
+	glm::mat4x4 T = glm::translate(pos);
+	SetTransform(S * R * T);
+}
+
+void TransformComponent::SetTransform(const glm::vec3& pos, const glm::quat& rot, glm::vec3& scale) {
+    glm::mat4x4 S(glm::scale(scale));
+	glm::mat4x4 R(rot);
+	glm::mat4x4 T(glm::translate(pos));
+	SetTransform(S * R * T);
 }
 
 glm::vec3 TransformComponent::GetTranslation3f() const {
@@ -98,6 +138,18 @@ void TransformComponent::SetTranslation4x4f(const glm::mat4x4& pos) {
 glm::vec3 TransformComponent::GetLookAt() const {
     glm::quat justRot = glm::normalize(glm::quat(m_scene_node->Get().ToParent()));
     glm::vec3 out = m_forward * justRot;
+    return out;
+}
+
+glm::vec3 TransformComponent::GetLookRight() const {
+    glm::quat justRot = glm::normalize(glm::quat(m_scene_node->Get().ToParent()));
+    glm::vec3 out = m_right * justRot;
+    return out;
+}
+
+glm::vec3 TransformComponent::GetLookUp() const {
+    glm::quat justRot = glm::normalize(glm::quat(m_scene_node->Get().ToParent()));
+    glm::vec3 out = m_up * justRot;
     return out;
 }
 
