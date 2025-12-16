@@ -21,6 +21,44 @@ void MovementController::SetObject(std::shared_ptr<Actor> new_object) {
 	m_object = new_object;
 }
 
+void MovementController::OnUpdate(const GameTimerDelta& delta) {
+	std::shared_ptr<TransformComponent> tc = gather_transform();
+	if(!tc) return;
+
+	float velocity = 1.0f;
+
+	if (m_bKey['W'] || m_bKey['S']) {
+		float velocity = 1.0f;
+
+		glm::vec3 scale;
+		glm::quat orientation;
+		glm::vec3 translation;
+		tc->Decompose(translation, orientation, scale);
+
+		//glm::vec3 forward = tc->GetLookAt();
+		glm::vec3 forward = tc->GetForward3f();
+		if(m_bKey['S']) forward *= -1.0f;
+		translation += forward * velocity * delta.fGetDeltaSeconds();
+		
+		tc->SetTransform(translation, orientation, scale);
+	}
+
+	if (m_bKey['A'] || m_bKey['D']) {
+
+		glm::vec3 scale;
+		glm::quat orientation;
+		glm::vec3 translation;
+		tc->Decompose(translation, orientation, scale);
+
+		//glm::vec3 right = tc->GetLookRight();
+		glm::vec3 right = tc->GetRight3f();
+		if(m_bKey['A']) right *= -1.0f;
+		translation += right * velocity * delta.fGetDeltaSeconds();
+		
+		tc->SetTransform(translation, orientation, scale);
+	}
+}
+
 bool MovementController::VOnPointerMove(int x, int y, const int radius) {
 	bool has_changes = m_last_mouse_pos_x != x || m_last_mouse_pos_y != y;
 	if(has_changes && m_mouse_RButton_down) if(std::shared_ptr<TransformComponent> tc = gather_transform()) {
@@ -84,23 +122,6 @@ bool MovementController::VOnPointerButtonUp(int x, int y, const int radius, Mous
 bool MovementController::VOnKeyDown(unsigned char c) {
 	m_bKey[c] = true;
 
-	if(std::shared_ptr<TransformComponent> tc = gather_transform()) {
-		float velocity = 0.1f;
-
-		// glm::vec3 scale;
-		// glm::quat orientation;
-		// glm::vec3 translation;
-		// tc->Decompose(translation, orientation, scale);
-
-		// glm::vec3 up = tc->GetLookUp();
-		// glm::quat q1 = glm::rotate(orientation, glm::radians(dx) * resistance, up);
-
-		// glm::vec3 right = tc->GetLookRight();
-		// glm::quat q2 = glm::rotate(q1, glm::radians(dy) * resistance, right);
-
-		// tc->SetTransform(translation, q2, scale);
-		//tc->SetTransform(translation, q1, scale);
-	}
 	return true;
 }
 

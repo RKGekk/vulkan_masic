@@ -104,7 +104,7 @@ bool WindowSurface::Initialize(const ApplicationOptions& cfg) {
     return true;
 }
 
-WindowKey decodeFlfwKey(int key){
+WindowKey decodeGlfwKey(int key){
     switch (key) {
         case GLFW_KEY_SPACE: return WindowKey::Space; // 32 /*  */
         case GLFW_KEY_APOSTROPHE: return WindowKey::OemQuotes; // 39 /* ' */
@@ -230,6 +230,132 @@ WindowKey decodeFlfwKey(int key){
     }
 }
 
+unsigned char decodeGlfwChar(int key){
+    switch (key) {
+        case GLFW_KEY_SPACE: return ' '; // 32 /*  */
+        case GLFW_KEY_APOSTROPHE: return '\''; // 39 /* ' */
+        case GLFW_KEY_COMMA: return ','; // 44 /* , */
+        case GLFW_KEY_MINUS: return '-'; // 45 /* - */
+        case GLFW_KEY_PERIOD: return '.'; // 46 /* . */
+        case GLFW_KEY_SLASH: return '/'; // 47 /* / */
+        case GLFW_KEY_0: return '0'; // 48
+        case GLFW_KEY_1: return '1'; // 49
+        case GLFW_KEY_2: return '2'; // 50
+        case GLFW_KEY_3: return '3'; // 51
+        case GLFW_KEY_4: return '4'; // 52
+        case GLFW_KEY_5: return '5'; // 53
+        case GLFW_KEY_6: return '6'; // 54
+        case GLFW_KEY_7: return '7'; // 55
+        case GLFW_KEY_8: return '8'; // 56
+        case GLFW_KEY_9: return '9'; // 57
+        case GLFW_KEY_SEMICOLON: return ';'; // 59 /* ; */
+        case GLFW_KEY_EQUAL: return '='; // 61 /* = */
+        case GLFW_KEY_A: return 'A'; // 65
+        case GLFW_KEY_B: return 'B'; // 66
+        case GLFW_KEY_C: return 'C'; // 67
+        case GLFW_KEY_D: return 'D'; // 68
+        case GLFW_KEY_E: return 'E'; // 69
+        case GLFW_KEY_F: return 'F'; // 70
+        case GLFW_KEY_G: return 'G'; // 71
+        case GLFW_KEY_H: return 'H'; // 72
+        case GLFW_KEY_I: return 'I'; // 73
+        case GLFW_KEY_J: return 'J'; // 74
+        case GLFW_KEY_K: return 'K'; // 75
+        case GLFW_KEY_L: return 'L'; // 76
+        case GLFW_KEY_M: return 'M'; // 77
+        case GLFW_KEY_N: return 'N'; // 78
+        case GLFW_KEY_O: return 'O'; // 79
+        case GLFW_KEY_P: return 'P'; // 80
+        case GLFW_KEY_Q: return 'Q'; // 81
+        case GLFW_KEY_R: return 'R'; // 82
+        case GLFW_KEY_S: return 'S'; // 83
+        case GLFW_KEY_T: return 'T'; // 84
+        case GLFW_KEY_U: return 'U'; // 85
+        case GLFW_KEY_V: return 'V'; // 86
+        case GLFW_KEY_W: return 'W'; // 87
+        case GLFW_KEY_X: return 'X'; // 88
+        case GLFW_KEY_Y: return 'Y'; // 89
+        case GLFW_KEY_Z: return 'Z'; // 90
+        case GLFW_KEY_LEFT_BRACKET: return '['; // 91 /* [ */
+        case GLFW_KEY_BACKSLASH: return '\\'; // 92 /* \ */
+        case GLFW_KEY_RIGHT_BRACKET: return ']'; // 93 /* ] */
+        case GLFW_KEY_GRAVE_ACCENT: return '`'; // 96 /* ` */
+        case GLFW_KEY_WORLD_1: return ' '; // 161 /* non-US #1 */
+        case GLFW_KEY_WORLD_2: return ' '; // 162 /* non-US #2 */
+        case GLFW_KEY_ESCAPE: return ' '; // 256
+        case GLFW_KEY_ENTER: return ' '; // 257
+        case GLFW_KEY_TAB: return ' '; // 258
+        case GLFW_KEY_BACKSPACE: return ' '; // 259
+        case GLFW_KEY_INSERT: return ' '; // 260
+        case GLFW_KEY_DELETE: return ' '; // 261
+        case GLFW_KEY_RIGHT: return ' '; // 262
+        case GLFW_KEY_LEFT: return ' '; // 263
+        case GLFW_KEY_DOWN: return ' '; // 264
+        case GLFW_KEY_UP: return ' '; // 265
+        case GLFW_KEY_PAGE_UP: return ' '; // 266
+        case GLFW_KEY_PAGE_DOWN: return ' '; // 267
+        case GLFW_KEY_HOME: return ' '; // 268
+        case GLFW_KEY_END: return ' '; // 269
+        case GLFW_KEY_CAPS_LOCK: return ' '; // 280
+        case GLFW_KEY_SCROLL_LOCK: return ' '; // 281
+        case GLFW_KEY_NUM_LOCK: return ' '; // 282
+        case GLFW_KEY_PRINT_SCREEN: return ' '; // 283
+        case GLFW_KEY_PAUSE: return ' '; // 284
+        case GLFW_KEY_F1: return ' '; // 290
+        case GLFW_KEY_F2: return ' '; // 291
+        case GLFW_KEY_F3: return ' '; // 292
+        case GLFW_KEY_F4: return ' '; // 293
+        case GLFW_KEY_F5: return ' '; // 294
+        case GLFW_KEY_F6: return ' '; // 295
+        case GLFW_KEY_F7: return ' '; // 296
+        case GLFW_KEY_F8: return ' '; // 297
+        case GLFW_KEY_F9: return ' '; // 298
+        case GLFW_KEY_F10: return ' '; // 299
+        case GLFW_KEY_F11: return ' '; // 300
+        case GLFW_KEY_F12: return ' '; // 301
+        case GLFW_KEY_F13: return ' '; // 302
+        case GLFW_KEY_F14: return ' '; // 303
+        case GLFW_KEY_F15: return ' '; // 304
+        case GLFW_KEY_F16: return ' '; // 305
+        case GLFW_KEY_F17: return ' '; // 306
+        case GLFW_KEY_F18: return ' '; // 307
+        case GLFW_KEY_F19: return ' '; // 308
+        case GLFW_KEY_F20: return ' '; // 309
+        case GLFW_KEY_F21: return ' '; // 310
+        case GLFW_KEY_F22: return ' '; // 311
+        case GLFW_KEY_F23: return ' '; // 312
+        case GLFW_KEY_F24: return ' '; // 313
+        case GLFW_KEY_F25: return ' '; // 314
+        case GLFW_KEY_KP_0: return '0'; // 320
+        case GLFW_KEY_KP_1: return '1'; // 321
+        case GLFW_KEY_KP_2: return '2'; // 322
+        case GLFW_KEY_KP_3: return '3'; // 323
+        case GLFW_KEY_KP_4: return '4'; // 324
+        case GLFW_KEY_KP_5: return '5'; // 325
+        case GLFW_KEY_KP_6: return '6'; // 326
+        case GLFW_KEY_KP_7: return '7'; // 327
+        case GLFW_KEY_KP_8: return '8'; // 328
+        case GLFW_KEY_KP_9: return '9'; // 329
+        case GLFW_KEY_KP_DECIMAL: return '.'; // 330
+        case GLFW_KEY_KP_DIVIDE: return '/'; // 331
+        case GLFW_KEY_KP_MULTIPLY: return '*'; // 332
+        case GLFW_KEY_KP_SUBTRACT: return '-'; // 333
+        case GLFW_KEY_KP_ADD: return '+'; // 334
+        case GLFW_KEY_KP_ENTER: return ' '; // 335
+        case GLFW_KEY_KP_EQUAL: return '='; // 336
+        case GLFW_KEY_LEFT_SHIFT: return ' '; // 340
+        case GLFW_KEY_LEFT_CONTROL: return ' '; // 341
+        case GLFW_KEY_LEFT_ALT: return ' '; // 342
+        case GLFW_KEY_LEFT_SUPER: return ' '; // 343
+        case GLFW_KEY_RIGHT_SHIFT: return ' '; // 344
+        case GLFW_KEY_RIGHT_CONTROL: return ' '; // 345
+        case GLFW_KEY_RIGHT_ALT: return ' '; // 346
+        case GLFW_KEY_RIGHT_SUPER: return ' '; // 347
+        case GLFW_KEY_MENU: return ' '; // 348
+        default: return ' ';
+    }
+}
+
 MouseButtonSide DecodeMouseButton(int button) {
     switch (button) {
         case GLFW_MOUSE_BUTTON_RIGHT: return MouseButtonSide::Right;
@@ -264,8 +390,9 @@ void WindowSurface::VRegisterEvents() {
         m_window,
         [](GLFWwindow* glfw_window, int glfw_key, int glfw_scancode, int glfw_action, int glfw_mods) {
             if (glfw_action == GLFW_REPEAT) return;
-            WindowKey key = decodeFlfwKey(glfw_key);
-            unsigned int c = static_cast<unsigned int>(glfw_scancode);
+            WindowKey key = decodeGlfwKey(glfw_key);
+            unsigned char c = decodeGlfwChar(glfw_key);
+            //unsigned int c = static_cast<unsigned int>(glfw_scancode);
             bool shift = glfw_mods & GLFW_MOD_SHIFT != 0;
             bool control = glfw_mods & GLFW_MOD_CONTROL != 0;
             bool alt = glfw_mods & GLFW_MOD_ALT != 0;

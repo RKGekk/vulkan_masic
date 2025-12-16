@@ -55,6 +55,8 @@ public:
 	void MouseMotionDelegate(IEventDataPtr pEventData);
 	void MouseButtonPressDelegate(IEventDataPtr pEventData);
 	void MouseButtonReleaseDelegate(IEventDataPtr pEventData);
+	void KeyPressDelegate(IEventDataPtr pEventData);
+	void KeyReleaseDelegate(IEventDataPtr pEventData);
 	void MouseWheelDelegate(IEventDataPtr pEventData);
 	void GameStateDelegate(IEventDataPtr pEventData) {};
 	void NewSceneNodeComponentDelegate(IEventDataPtr pEventData) {};
@@ -89,6 +91,7 @@ protected:
 	//std::shared_ptr<NodeMenuUI> m_node_menu_ui;
 	//std::shared_ptr<AnimMenuUI> m_anim_menu_ui;
 
+	std::vector<std::shared_ptr<IMovementController>> m_controllers;
 	std::shared_ptr<MovementController> m_pFree_camera_controller;
 
 	//glfw::window m_window;

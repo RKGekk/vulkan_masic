@@ -35,6 +35,8 @@ set(APP_SOURCES
     "${SRC_DIR}/engine/controllers/ipointer_handler.cpp"
     "${SRC_DIR}/engine/controllers/ikeyboard_handler.h"
     "${SRC_DIR}/engine/controllers/ikeyboard_handler.cpp"
+    "${SRC_DIR}/engine/controllers/imovement_controller.h"
+    "${SRC_DIR}/engine/controllers/imovement_controller.cpp"
     "${SRC_DIR}/engine/controllers/movement_controller.h"
     "${SRC_DIR}/engine/controllers/movement_controller.cpp"
     "${SRC_DIR}/application_options.h"

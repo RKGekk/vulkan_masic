@@ -8,6 +8,9 @@
 #include "../../events/cicadas/evt_data_mouse_motion.h"
 #include "../../events/cicadas/evt_data_mouse_button_pressed.h"
 #include "../../events/cicadas/evt_data_mouse_button_released.h"
+#include "../../events/cicadas/evt_data_key_pressed_event.h"
+#include "../../events/cicadas/evt_data_key_released_event.h"
+
 #include "../../events/cicadas/evt_data_mouse_wheel.h"
 
 const std::string HumanView::g_name = "Level"s;
@@ -41,6 +44,7 @@ HumanView::HumanView(std::shared_ptr<ProcessManager> process_manager) {
 	m_last_draw = {};
 
 	m_pFree_camera_controller = std::make_shared<MovementController>(nullptr);
+	m_controllers.push_back(m_pFree_camera_controller);
 }
 
 HumanView::~HumanView() {
@@ -92,6 +96,9 @@ void HumanView::VOnRender(const GameTimerDelta& delta) {
 
 void HumanView::VOnUpdate(const GameTimerDelta& delta) {
 	m_process_manager->UpdateProcesses(delta);
+	for(auto& ctrl : m_controllers) {
+		ctrl->OnUpdate(delta);
+	}
 	for (ScreenElementList::iterator i = m_screen_elements.begin(); i != m_screen_elements.end(); ++i) {
 		(*i)->VOnUpdate(delta);
 	}
@@ -222,6 +229,20 @@ void HumanView::MouseButtonReleaseDelegate(IEventDataPtr pEventData) {
 	}
 };
 
+void HumanView::KeyPressDelegate(IEventDataPtr pEventData) {
+	std::shared_ptr<EvtData_Key_Pressed_Event> pCastEventData = std::static_pointer_cast<EvtData_Key_Pressed_Event>(pEventData);
+	for (auto& handler : m_keyboard_handlers) {
+		handler->VOnKeyDown(pCastEventData->GetCharCode());
+	}
+}
+
+void HumanView::KeyReleaseDelegate(IEventDataPtr pEventData) {
+	std::shared_ptr<EvtData_Key_Released_Event> pCastEventData = std::static_pointer_cast<EvtData_Key_Released_Event>(pEventData);
+	for (auto& handler : m_keyboard_handlers) {
+		handler->VOnKeyUp(pCastEventData->GetCharCode());
+	}
+}
+
 void HumanView::MouseWheelDelegate(IEventDataPtr pEventData) {
 	std::shared_ptr<EvtData_Mouse_Wheel> pCastEventData = std::static_pointer_cast<EvtData_Mouse_Wheel>(pEventData);
 	ImGuiIO& io                         = ImGui::GetIO();
@@ -233,6 +254,8 @@ void HumanView::RegisterAllDelegates() {
     pGlobalEventManager->VAddListener({ connect_arg<&HumanView::MouseMotionDelegate>, this }, EvtData_Mouse_Motion::sk_EventType);
 	pGlobalEventManager->VAddListener({ connect_arg<&HumanView::MouseButtonPressDelegate>, this }, EvtData_Mouse_Button_Pressed::sk_EventType);
 	pGlobalEventManager->VAddListener({ connect_arg<&HumanView::MouseButtonReleaseDelegate>, this }, EvtData_Mouse_Button_Released::sk_EventType);
+	pGlobalEventManager->VAddListener({ connect_arg<&HumanView::KeyPressDelegate>, this }, EvtData_Key_Pressed_Event::sk_EventType);
+	pGlobalEventManager->VAddListener({ connect_arg<&HumanView::KeyReleaseDelegate>, this }, EvtData_Key_Released_Event::sk_EventType);
 	pGlobalEventManager->VAddListener({ connect_arg<&HumanView::MouseWheelDelegate>, this }, EvtData_Mouse_Wheel::sk_EventType);
 };
 
@@ -241,6 +264,8 @@ void HumanView::RemoveAllDelegates() {
 	pGlobalEventManager->VRemoveListener({ connect_arg<&HumanView::MouseMotionDelegate>, this }, EvtData_Mouse_Motion::sk_EventType);
 	pGlobalEventManager->VRemoveListener({ connect_arg<&HumanView::MouseButtonPressDelegate>, this }, EvtData_Mouse_Button_Pressed::sk_EventType);
 	pGlobalEventManager->VRemoveListener({ connect_arg<&HumanView::MouseButtonReleaseDelegate>, this }, EvtData_Mouse_Button_Released::sk_EventType);
+	pGlobalEventManager->VRemoveListener({ connect_arg<&HumanView::KeyPressDelegate>, this }, EvtData_Key_Pressed_Event::sk_EventType);
+	pGlobalEventManager->VRemoveListener({ connect_arg<&HumanView::KeyReleaseDelegate>, this }, EvtData_Key_Released_Event::sk_EventType);
 	pGlobalEventManager->VRemoveListener({ connect_arg<&HumanView::MouseWheelDelegate>, this }, EvtData_Mouse_Wheel::sk_EventType);
 };
 

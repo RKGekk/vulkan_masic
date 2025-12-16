@@ -3,16 +3,19 @@
 #include <memory>
 #include <algorithm>
 
+#include "imovement_controller.h"
 #include "ipointer_handler.h"
 #include "ikeyboard_handler.h"
 
 class Actor;
 class TransformComponent;
 
-class MovementController : public IPointerHandler, public IKeyboardHandler {
+class MovementController : public IPointerHandler, public IKeyboardHandler, public IMovementController {
 public:
 	MovementController(std::shared_ptr<Actor> object);
-	void SetObject(std::shared_ptr<Actor> new_object);
+
+	virtual void SetObject(std::shared_ptr<Actor> new_object) override;
+	virtual void OnUpdate(const GameTimerDelta& delta) override;
 
 	bool VOnPointerMove(int x, int y, const int radius) override;
 	bool VOnPointerButtonDown(int x, int y, const int radius, MouseButtonSide btn) override;
