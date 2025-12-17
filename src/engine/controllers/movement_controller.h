@@ -21,8 +21,8 @@ public:
 	bool VOnPointerButtonDown(int x, int y, const int radius, MouseButtonSide btn) override;
 	bool VOnPointerButtonUp(int x, int y, const int radius, MouseButtonSide btn) override;
 
-	bool VOnKeyDown(unsigned char c) override;
-	bool VOnKeyUp(unsigned char c) override;
+	bool VOnKeyDown(WindowKey key, unsigned char c) override;
+	bool VOnKeyUp(WindowKey key, unsigned char c) override;
 
 protected:
 
@@ -30,7 +30,8 @@ protected:
 
 	int m_last_mouse_pos_x;
 	int m_last_mouse_pos_y;
-	bool m_bKey[256];
+	bool m_key[256];
+	bool m_char[256];
 
 	bool m_mouse_LButton_down;
 	bool m_mouse_RButton_down;

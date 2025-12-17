@@ -282,12 +282,12 @@ unsigned char decodeGlfwChar(int key){
         case GLFW_KEY_GRAVE_ACCENT: return '`'; // 96 /* ` */
         case GLFW_KEY_WORLD_1: return ' '; // 161 /* non-US #1 */
         case GLFW_KEY_WORLD_2: return ' '; // 162 /* non-US #2 */
-        case GLFW_KEY_ESCAPE: return ' '; // 256
-        case GLFW_KEY_ENTER: return ' '; // 257
-        case GLFW_KEY_TAB: return ' '; // 258
-        case GLFW_KEY_BACKSPACE: return ' '; // 259
+        case GLFW_KEY_ESCAPE: return 27; // 256
+        case GLFW_KEY_ENTER: return 13; // 257
+        case GLFW_KEY_TAB: return 9; // 258
+        case GLFW_KEY_BACKSPACE: return 8; // 259
         case GLFW_KEY_INSERT: return ' '; // 260
-        case GLFW_KEY_DELETE: return ' '; // 261
+        case GLFW_KEY_DELETE: return 127; // 261
         case GLFW_KEY_RIGHT: return ' '; // 262
         case GLFW_KEY_LEFT: return ' '; // 263
         case GLFW_KEY_DOWN: return ' '; // 264

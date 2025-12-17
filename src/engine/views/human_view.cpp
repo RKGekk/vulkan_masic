@@ -232,14 +232,14 @@ void HumanView::MouseButtonReleaseDelegate(IEventDataPtr pEventData) {
 void HumanView::KeyPressDelegate(IEventDataPtr pEventData) {
 	std::shared_ptr<EvtData_Key_Pressed_Event> pCastEventData = std::static_pointer_cast<EvtData_Key_Pressed_Event>(pEventData);
 	for (auto& handler : m_keyboard_handlers) {
-		handler->VOnKeyDown(pCastEventData->GetCharCode());
+		handler->VOnKeyDown(pCastEventData->GetWindowKeyCode(), pCastEventData->GetCharCode());
 	}
 }
 
 void HumanView::KeyReleaseDelegate(IEventDataPtr pEventData) {
 	std::shared_ptr<EvtData_Key_Released_Event> pCastEventData = std::static_pointer_cast<EvtData_Key_Released_Event>(pEventData);
 	for (auto& handler : m_keyboard_handlers) {
-		handler->VOnKeyUp(pCastEventData->GetCharCode());
+		handler->VOnKeyUp(pCastEventData->GetWindowKeyCode(), pCastEventData->GetCharCode());
 	}
 }
 

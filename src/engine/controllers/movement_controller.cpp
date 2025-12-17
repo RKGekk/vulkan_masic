@@ -1,17 +1,14 @@
 #include "movement_controller.h"
 
 #include "../../actors/transform_component.h"
+#include "../../tools/memory_utility.h"
 
 MovementController::MovementController(std::shared_ptr<Actor> object) : m_object(object) {
-	std::shared_ptr<TransformComponent> tc;
-	if (object) {
-		tc = object->GetComponent<TransformComponent>().lock();
-	}
-
 	m_last_mouse_pos_x = 0;
 	m_last_mouse_pos_y = 0;
 
-	memset(m_bKey, 0x00, sizeof(m_bKey));
+	memset(m_key, 0x00, sizeof(m_key));
+	memset(m_char, 0x00, sizeof(m_char));
 
 	m_mouse_LButton_down = false;
 	m_mouse_RButton_down = false;
@@ -27,7 +24,7 @@ void MovementController::OnUpdate(const GameTimerDelta& delta) {
 
 	float velocity = 1.0f;
 
-	if (m_bKey['W'] || m_bKey['S']) {
+	if (m_key[ to_underlying(WindowKey::W)] || m_key[to_underlying(WindowKey::S)]) {
 		float velocity = 1.0f;
 
 		glm::vec3 scale;
@@ -35,25 +32,40 @@ void MovementController::OnUpdate(const GameTimerDelta& delta) {
 		glm::vec3 translation;
 		tc->Decompose(translation, orientation, scale);
 
-		//glm::vec3 forward = tc->GetLookAt();
-		glm::vec3 forward = tc->GetForward3f();
-		if(m_bKey['S']) forward *= -1.0f;
+		glm::vec3 forward = tc->GetLookAt();
+		//glm::vec3 forward = tc->GetForward3f();
+		if(m_key[to_underlying(WindowKey::S)]) forward *= -1.0f;
 		translation += forward * velocity * delta.fGetDeltaSeconds();
 		
 		tc->SetTransform(translation, orientation, scale);
 	}
 
-	if (m_bKey['A'] || m_bKey['D']) {
+	if (m_key[to_underlying(WindowKey::A)] || m_key[to_underlying(WindowKey::D)]) {
 
 		glm::vec3 scale;
 		glm::quat orientation;
 		glm::vec3 translation;
 		tc->Decompose(translation, orientation, scale);
 
-		//glm::vec3 right = tc->GetLookRight();
-		glm::vec3 right = tc->GetRight3f();
-		if(m_bKey['A']) right *= -1.0f;
+		glm::vec3 right = tc->GetLookRight();
+		//glm::vec3 right = tc->GetRight3f();
+		if(m_key[to_underlying(WindowKey::A)]) right *= -1.0f;
 		translation += right * velocity * delta.fGetDeltaSeconds();
+		
+		tc->SetTransform(translation, orientation, scale);
+	}
+
+	if (m_key[to_underlying(WindowKey::Space)] || m_key[to_underlying(WindowKey::LControlKey)]) {
+
+		glm::vec3 scale;
+		glm::quat orientation;
+		glm::vec3 translation;
+		tc->Decompose(translation, orientation, scale);
+
+		glm::vec3 up = tc->GetLookUp();
+		//glm::vec3 up = tc->GetUp3f();
+		if(m_key[to_underlying(WindowKey::LControlKey)]) up *= -1.0f;
+		translation += up * velocity * delta.fGetDeltaSeconds();
 		
 		tc->SetTransform(translation, orientation, scale);
 	}
@@ -120,14 +132,17 @@ bool MovementController::VOnPointerButtonUp(int x, int y, const int radius, Mous
 	return false;
 }
 
-bool MovementController::VOnKeyDown(unsigned char c) {
-	m_bKey[c] = true;
+bool MovementController::VOnKeyDown(WindowKey key, unsigned char c) {
+	m_key[to_underlying(key)] = true;
+	m_char[c] = true;
 
 	return true;
 }
 
-bool MovementController::VOnKeyUp(unsigned char c) {
-	m_bKey[c] = false;
+bool MovementController::VOnKeyUp(WindowKey key, unsigned char c) {
+	m_key[to_underlying(key)] = false;
+	m_char[c] = false;
+
 	return true;
 }
 

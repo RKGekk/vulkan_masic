@@ -35,7 +35,7 @@ void CameraNode::SetProjection(const glm::mat4x4& proj) {
 }
 
 glm::mat4x4 CameraNode::GetWorldViewProjection(const glm::mat4x4& world) const {
-    glm::mat4x4 view = Get().FromRoot();
+    glm::mat4x4 view = GetView();
 	glm::mat4x4 world_view = world * view;
 	return world_view * m_projection;
 }

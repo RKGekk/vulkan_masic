@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-enum class WindowKey {
+enum class WindowKey : unsigned char {
 	None = 0x00, // No key was pressed
 	LButton = 0x01, // Left mouse button
 	RButton = 0x02, // Right mouse button

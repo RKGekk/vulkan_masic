@@ -137,19 +137,23 @@ void TransformComponent::SetTranslation4x4f(const glm::mat4x4& pos) {
 }
 
 glm::vec3 TransformComponent::GetLookAt() const {
-    glm::quat justRot = glm::normalize(glm::quat(m_scene_node->Get().ToParent()));
+    //glm::quat justRot = glm::normalize(glm::quat(m_scene_node->Get().ToParent()));
+    glm::quat justRot = glm::normalize(glm::quat(m_scene_node->Get().FromParent()));
     glm::vec3 out = m_forward * justRot;
+    //glm::vec3 out = glm::rotate(m_forward,  * justRot;
     return out;
 }
 
 glm::vec3 TransformComponent::GetLookRight() const {
-    glm::quat justRot = glm::normalize(glm::quat(m_scene_node->Get().ToParent()));
+    //glm::quat justRot = glm::normalize(glm::quat(m_scene_node->Get().ToParent()));
+    glm::quat justRot = glm::normalize(glm::quat(m_scene_node->Get().FromParent()));
     glm::vec3 out = m_right * justRot;
     return out;
 }
 
 glm::vec3 TransformComponent::GetLookUp() const {
-    glm::quat justRot = glm::normalize(glm::quat(m_scene_node->Get().ToParent()));
+    //glm::quat justRot = glm::normalize(glm::quat(m_scene_node->Get().ToParent()));
+    glm::quat justRot = glm::normalize(glm::quat(m_scene_node->Get().FromParent()));
     glm::vec3 out = m_up * justRot;
     return out;
 }
