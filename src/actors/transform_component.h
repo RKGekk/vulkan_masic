@@ -8,7 +8,7 @@
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/euler_angles.hpp> 
+#include <glm/gtx/euler_angles.hpp>
 
 #include "actor_component.h"
 #include "../scene/nodes/scene_node.h"
@@ -37,11 +37,11 @@ public:
     glm::mat4x4 GetTransformT() const;
     glm::mat4x4 GetInvTransform() const;
     glm::mat4x4 GetInvTransformT() const;
-    void Decompose(glm::vec3& pos, glm::vec3& rot, glm::vec3& scale) const;
+    void Decompose(glm::vec3& pos, glm::vec3& ypr, glm::vec3& scale) const;
     void Decompose(glm::vec3& pos, glm::quat& rot, glm::vec3& scale) const;
 
     void SetTransform(const glm::mat4x4& newTransform);
-    void SetTransform(const glm::vec3& pos, const glm::vec3& rot, glm::vec3& scale);
+    void SetTransform(const glm::vec3& pos, const glm::vec3& ypr, glm::vec3& scale);
     void SetTransform(const glm::vec3& pos, const glm::quat& rot, glm::vec3& scale);
 
     glm::vec3 GetTranslation3f() const;
@@ -80,7 +80,7 @@ private:
     glm::vec4 m_up;
     glm::vec4 m_right;
 
-    const glm::vec4 DEFAULT_FORWARD_VECTOR = glm::vec4( 0.0f, 0.0f, 1.0f, 0.0f );
+    const glm::vec4 DEFAULT_FORWARD_VECTOR = glm::vec4( 0.0f, 0.0f, -1.0f, 0.0f );
     const glm::vec4 DEFAULT_UP_VECTOR = glm::vec4( 0.0f, 1.0f, 0.0f, 0.0f );
     const glm::vec4 DEFAULT_RIGHT_VECTOR = glm::vec4( 1.0f, 0.0f, 0.0f, 0.0f );
     const float EPSILON = 0.001f;

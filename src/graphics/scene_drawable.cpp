@@ -146,7 +146,7 @@ void SceneDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
         const SceneNodeProperties& node_props = mesh_node->Get();
 
         SceneUniformBufferObject ubo{};
-        ubo.model = node_props.FromRoot();
+        ubo.model = node_props.ToRoot();
         ubo.view = camera_node->GetView();
         ubo.proj = camera_node->GetProjection();
         //ubo.proj[1][1] *= -1.0f;

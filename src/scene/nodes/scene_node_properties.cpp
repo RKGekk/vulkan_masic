@@ -41,7 +41,7 @@ glm::vec3 SceneNodeProperties::ToParentDirection() const {
 	just_rot[3][2] = 0.0f;
 	just_rot[3][3] = 1.0f;
 
-	glm::vec4 forward(0.0f, 0.0f, 1.0f, 0.0f);
+	glm::vec4 forward(0.0f, 0.0f, -1.0f, 0.0f);
 
 	return glm::vec3(just_rot * forward);
 }
@@ -53,7 +53,7 @@ glm::vec3 SceneNodeProperties::ToParentUp() const {
 	just_rot[3][2] = 0.0f;
 	just_rot[3][3] = 1.0f;
 
-	glm::vec4 up(0.0f, -1.0f, 0.0f, 0.0f);
+	glm::vec4 up(0.0f, 1.0f, 0.0f, 0.0f);
     
 	return glm::vec3(just_rot * up);
 }
@@ -65,7 +65,7 @@ glm::vec3 SceneNodeProperties::ToRootDirection() const {
 	just_rot[3][2] = 0.0f;
 	just_rot[3][3] = 1.0f;
 
-	glm::vec4 forward(0.0f, 0.0f, 1.0f, 0.0f);
+	glm::vec4 forward(0.0f, 0.0f, -1.0f, 0.0f);
 
 	return glm::vec3(just_rot * forward);
 }
@@ -77,7 +77,7 @@ glm::vec3 SceneNodeProperties::ToRootUp() const {
 	just_rot[3][2] = 0.0f;
 	just_rot[3][3] = 1.0f;
 
-	glm::vec4 up(0.0f, -1.0f, 0.0f, 0.0f);
+	glm::vec4 up(0.0f, 1.0f, 0.0f, 0.0f);
     
 	return glm::vec3(just_rot * up);
 }

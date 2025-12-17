@@ -71,7 +71,7 @@ glm::mat4x4 TransformComponent::GetInvTransformT() const {
     return m_scene_node->Get().FromParentT();
 }
 
-void TransformComponent::Decompose(glm::vec3& pos, glm::vec3& rot, glm::vec3& scale) const {
+void TransformComponent::Decompose(glm::vec3& pos, glm::vec3& ypr, glm::vec3& scale) const {
     glm::mat4x4 mat = m_scene_node->Get().ToParent();
 
     pos = mat[3];
@@ -81,7 +81,8 @@ void TransformComponent::Decompose(glm::vec3& pos, glm::vec3& rot, glm::vec3& sc
         mat[i] /= scale[i];
     }
 
-    rot = glm::eulerAngles(glm::toQuat(mat));
+    glm::vec3 res = glm::eulerAngles(glm::toQuat(mat));
+    ypr = glm::vec3(res.y, res.x, res.z);
 }
 
 void TransformComponent::Decompose(glm::vec3& pos, glm::quat& rot, glm::vec3& scale) const {
@@ -105,14 +106,14 @@ void TransformComponent::SetTransform(const glm::vec3& pos, const glm::vec3& ypr
     glm::mat4x4 S = glm::scale(scale);
 	glm::mat4x4 R = glm::eulerAngleYXZ(ypr.x, ypr.y, ypr.z);
 	glm::mat4x4 T = glm::translate(pos);
-	SetTransform(S * R * T);
+    SetTransform(T * R * S);
 }
 
 void TransformComponent::SetTransform(const glm::vec3& pos, const glm::quat& rot, glm::vec3& scale) {
     glm::mat4x4 S(glm::scale(scale));
 	glm::mat4x4 R(rot);
 	glm::mat4x4 T(glm::translate(pos));
-	SetTransform(S * R * T);
+	SetTransform(T * R * S);
 }
 
 glm::vec3 TransformComponent::GetTranslation3f() const {
@@ -177,24 +178,13 @@ const glm::vec4& TransformComponent::GetRight4f() const {
     return m_right;
 }
 
-glm::mat4x4 makeRotationMatrixFromYawPitchRoll(float yaw_radians, float pitch_radians, float roll_radians) {
-    glm::mat4x4 rotationMatrix = glm::mat4x4(1.0f); // Start with an identity matrix
-
-    // Apply rotations in the desired order (e.g., Yaw -> Pitch -> Roll)
-    rotationMatrix = glm::rotate(rotationMatrix, yaw_radians, glm::vec3(0.0f, 1.0f, 0.0f));   // Rotate around Y-axis (Yaw)
-    rotationMatrix = glm::rotate(rotationMatrix, pitch_radians, glm::vec3(1.0f, 0.0f, 0.0f)); // Rotate around X-axis (Pitch)
-    rotationMatrix = glm::rotate(rotationMatrix, roll_radians, glm::vec3(0.0f, 0.0f, 1.0f));  // Rotate around Z-axis (Roll)
-
-    return rotationMatrix;
-}
-
 bool TransformComponent::Init(const pugi::xml_node& data) {
     glm::vec position = posfromattr3f(data.child("Position"));
     glm::vec yawPitchRoll = anglesfromattr3f(data.child("YawPitchRoll"));
     glm::vec scale = posfromattr3f(data.child("Scale"), {1.0f, 1.0f, 1.0f});
 
     glm::mat4x4 translation_xm = glm::translate(glm::mat4(1.0f), glm::vec3(position.x, position.y, position.z));
-    glm::mat4x4 rotation_xm = makeRotationMatrixFromYawPitchRoll(yawPitchRoll.y, yawPitchRoll.x, yawPitchRoll.z);
+    glm::mat4x4 rotation_xm = glm::eulerAngleYXZ(yawPitchRoll.x, yawPitchRoll.y, yawPitchRoll.z);
     glm::mat4x4 scale_xm = glm::scale(glm::mat4(1.0f), glm::vec3(scale.y, scale.x, scale.z));
 
     glm::mat4x4 result = (scale_xm * rotation_xm) * translation_xm;

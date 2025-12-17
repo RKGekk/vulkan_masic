@@ -71,14 +71,15 @@ bool MovementController::VOnPointerMove(int x, int y, const int radius) {
 		glm::vec3 translation;
 		tc->Decompose(translation, orientation, scale);
 
-		glm::vec3 up = tc->GetLookUp();
-		glm::quat q1 = glm::rotate(orientation, glm::radians(dx) * resistance, up);
+		glm::quat q(1.0f, 0.0f, 0.0f, 0.0f);
+		glm::quat q1 = glm::rotate(q, glm::radians(dx) * resistance, tc->GetUp3f());
+		glm::quat q2 = glm::rotate(q, glm::radians(dy) * resistance, tc->GetRight3f());
+		glm::quat q3 = orientation * q1 * q2;
 
-		glm::vec3 right = tc->GetLookRight();
-		glm::quat q2 = glm::rotate(q1, glm::radians(dy) * resistance, right);
+		glm::vec3 ypr = glm::eulerAngles(q3);
+		ypr = glm::vec3(ypr.y, ypr.x, 0.0f);
 
-		tc->SetTransform(translation, q2, scale);
-		//tc->SetTransform(translation, q1, scale);
+		tc->SetTransform(translation, ypr, scale);
 	}
 
 	m_last_mouse_pos_x = x;
