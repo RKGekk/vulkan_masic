@@ -40,9 +40,6 @@ void ActorAnimationPlayer::ActorAnimation::Interpolate(float t, glm::mat4x4& tra
 		return;
 	}
 
-	glm::quat zero(0.0f, 0.0f, 0.0f, 1.0f);
-	glm::vec4 identity(1.0f, 1.0f, 1.0f, 1.0f);
-
 	glm::vec3 S(1.0f, 1.0f, 1.0f);
 	glm::vec3 P(0.0f, 0.0f, 0.0f);
 	glm::quat Q(0.0f, 0.0f, 0.0f, 1.0f);

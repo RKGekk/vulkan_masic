@@ -51,5 +51,25 @@
       <FogColor r="0.490196" g="0.486875" b="0.466667" a="1.000000"/>;
     </Fog>
 
+    <ActorAnimations TotalTimeSec="10">
+      
+      <ActorAnimation>
+        <AnimationForActorName>arrow1</AnimationForActorName>
+        <RelativeKeyframe>
+          <TimePosSec>0.01</TimePosSec>
+          <YawPitchRoll x="0.000000" y="0.000000" z="0.000000" />
+        </RelativeKeyframe>
+      </ActorAnimation>
+
+      <ActorAnimation>
+        <AnimationForActorName>arrow1</AnimationForActorName>
+        <RelativeKeyframe>
+          <TimePosSec>10.0</TimePosSec>
+          <YawPitchRoll x="360.000000" y="0.000000" z="0.000000" />
+        </RelativeKeyframe>
+      </ActorAnimation>
+      
+    </ActorAnimations>
+
   </Scene>
 </World>
