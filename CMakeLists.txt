@@ -19,6 +19,8 @@ set(APP_SOURCES
     "${SRC_DIR}/procs/count_process.cpp"
     "${SRC_DIR}/engine/renderer_enum.h"
     "${SRC_DIR}/engine/iengine_logic.h"
+    "${SRC_DIR}/engine/actor_animation_player.h"
+    "${SRC_DIR}/engine/actor_animation_player.cpp"
     "${SRC_DIR}/engine/base_engine_logic.h"
     "${SRC_DIR}/engine/base_engine_logic.cpp"
     "${SRC_DIR}/engine/iengine_physics.h"

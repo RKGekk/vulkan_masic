@@ -15,8 +15,9 @@ bool TestMenuUI::VOnRender(const GameTimerDelta& delta) {
 	using namespace std;
 	if (!m_is_visible) return true;
 
+	ImGui::ShowDemoWindow();
 	if (ImGui::Begin("Actor Menu")) {
-		ImGui::ShowDemoWindow();
+		
 	}
 	ImGui::End();
 
