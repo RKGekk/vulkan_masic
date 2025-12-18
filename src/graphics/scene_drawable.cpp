@@ -155,6 +155,10 @@ void SceneDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     }
 }
 
+int SceneDrawable::order() {
+    return 0;
+}
+
 void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
     const MeshNode::MeshList& mesh_list = model->GetMeshes();
     

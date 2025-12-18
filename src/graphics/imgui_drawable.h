@@ -39,6 +39,8 @@ public:
     void recordCommandBuffer(CommandBatch& command_buffer, const RenderTarget& rt, uint32_t frame_index) override;
     void update(const GameTimerDelta& delta, uint32_t image_index) override;
 
+    virtual int order() override;
+
     void beginFrame(const RenderTarget& rt);
     void endFrame();
 

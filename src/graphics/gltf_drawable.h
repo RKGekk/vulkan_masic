@@ -44,6 +44,8 @@ public:
     void recordCommandBuffer(CommandBatch& command_buffer, const RenderTarget& rt, uint32_t frame_index) override;
     void update(const GameTimerDelta& delta, uint32_t image_index) override;
 
+    virtual int order() override;
+
 private:
     int32_t getNumVertices(size_t mesh_idx, size_t primitive_idx, const tinygltf::Model& gltf_model);
     bool ValidateVertexAttribute(const std::string& semantic_name);

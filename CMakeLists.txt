@@ -302,7 +302,7 @@ set(OBJECTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data/objects")
 set(FONT_DIR "${CMAKE_BINARY_DIR}/Debug/fonts")
 set(APP_SHADERS "${SHADER_DIR}/shader.frag" "${SHADER_DIR}/shader.vert" "${SHADER_DIR}/imgui.frag" "${SHADER_DIR}/imgui.vert")
 set(APP_RESOURCES "${TEXTURES_DIR}/texture.jpg" "${TEXTURES_DIR}/Sketchfab_UV_Checker.png" "${TEXTURES_DIR}/UVCheckerMap01-1024.png" "${TEXTURES_DIR}/UVCheckerMap06-1024.png" "${TEXTURES_DIR}/UVCheckerMap14-1024.png")
-set(APP_OBJECTS "${OBJECTS_DIR}/cube.gltf" "${OBJECTS_DIR}/cube.bin")
+set(APP_OBJECTS "${OBJECTS_DIR}/cube.gltf" "${OBJECTS_DIR}/cube.bin" "${OBJECTS_DIR}/arrow.gltf" "${OBJECTS_DIR}/arrow.bin")
 set(APP_FONTS "${FONT_DIR}/OpenSans-Light.ttf")
 
 set(SPV_BIN_DIR "${CMAKE_BINARY_DIR}/Debug/shaders")

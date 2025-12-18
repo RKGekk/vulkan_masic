@@ -252,3 +252,7 @@ void BasicDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
 
     m_uniform_buffers[image_index]->update(&ubo, sizeof(UniformBufferObject));
 }
+
+int BasicDrawable::order() {
+    return 0;
+}

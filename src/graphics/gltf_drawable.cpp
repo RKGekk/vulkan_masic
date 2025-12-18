@@ -500,3 +500,7 @@ void GLTFDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
 
     m_uniform_buffers[image_index]->update(&ubo, sizeof(GLTFUniformBufferObject));
 }
+
+int GLTFDrawable::order() {
+    return 0;
+}

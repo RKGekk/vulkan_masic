@@ -397,6 +397,10 @@ void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     glm::vec3 rotation_axis = glm::vec3(0.0f, 0.0f, 1.0f);
 }
 
+int ImGUIDrawable::order() {
+    return 999;
+}
+
 void ImGUIDrawable::beginFrame(const RenderTarget& rt) {
     ImGui::SetCurrentContext(m_pImgui_ctx);
     ImGuiIO& io = ImGui::GetIO();

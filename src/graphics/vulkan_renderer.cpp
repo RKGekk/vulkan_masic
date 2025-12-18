@@ -1,5 +1,7 @@
 #include "vulkan_renderer.h"
 
+#include <algorithm>
+
 bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR surface, GLFWwindow* window, std::shared_ptr<ThreadPool> thread_pool) {
     m_device = std::move(device);
     m_thread_pool = std::move(thread_pool);
@@ -121,5 +123,11 @@ void VulkanRenderer::update_frame(const GameTimerDelta& delta, uint32_t image_in
 }
 
 void VulkanRenderer::addDrawable(std::shared_ptr<IVulkanDrawable> drawable) {
-    m_drawable_list.push_back(std::move(drawable));
+    auto pos = std::lower_bound(m_drawable_list.begin(), m_drawable_list.end(), drawable->order(), [](const std::shared_ptr<IVulkanDrawable>& dr, int order) { return dr->order() < order; });
+    if(pos != m_drawable_list.end()) {
+        m_drawable_list.insert(pos, std::move(drawable));
+    }
+    else {
+        m_drawable_list.push_back(std::move(drawable));
+    }
 }
