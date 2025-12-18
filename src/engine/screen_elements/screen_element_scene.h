@@ -24,8 +24,6 @@ public:
 	virtual bool VIsVisible() const override;
 	virtual void VSetVisible(bool visible) override;
 
-	virtual bool VAddChild(std::shared_ptr<SceneNode> kid);
-
 	void ModifiedSceneNodeComponentDelegate(IEventDataPtr pEventData);
 	void NewModelComponentDelegate(IEventDataPtr pEventData);
 

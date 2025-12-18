@@ -51,10 +51,6 @@ void ScreenElementScene::VSetVisible(bool visible) {
 
 };
 
-bool ScreenElementScene::VAddChild(std::shared_ptr<SceneNode> kid) {
-    return true;
-};
-
 void ScreenElementScene::ModifiedSceneNodeComponentDelegate(IEventDataPtr pEventData) {};
 
 void ScreenElementScene::NewModelComponentDelegate(IEventDataPtr pEventData) {

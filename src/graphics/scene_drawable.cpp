@@ -129,6 +129,7 @@ void SceneDrawable::recordCommandBuffer(CommandBatch& command_buffer, const Rend
         vkCmdDrawIndexed(command_buffer.getCommandBufer(), static_cast<uint32_t>(m_renderables[k]->vertex_buffer->getIndicesCount()), 1u, 0u, 0u, 0u);
         
         vkCmdEndRenderPass(command_buffer.getCommandBufer());
+        current_pipeline = std::underlying_type<RenderTarget::AttachmentLoadOp>::type(RenderTarget::AttachmentLoadOp::LOAD);
     }
 }
 

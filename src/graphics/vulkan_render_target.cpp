@@ -141,7 +141,7 @@ VkRenderPass RenderTarget::createRenderPass(VkAttachmentLoadOp load_op) const {
     VkAttachmentDescription depth_attachment{};
     depth_attachment.format = m_depth_format;
     depth_attachment.samples = m_msaa_samples;
-    depth_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depth_attachment.loadOp = load_op;
     depth_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     depth_attachment.stencilLoadOp = load_op;
     depth_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
