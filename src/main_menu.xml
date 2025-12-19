@@ -52,12 +52,12 @@
     </Fog>
 
     <ActorAnimations TotalTimeSec="10">
-      
       <ActorAnimation>
         <AnimationForActorName>arrow1</AnimationForActorName>
         <RelativeKeyframe>
           <TimePosSec>0.01</TimePosSec>
           <YawPitchRoll x="0.000000" y="0.000000" z="0.000000" />
+          <Translation x="0.000000" y="0.000000" z="-3.000000" />
         </RelativeKeyframe>
       </ActorAnimation>
 
@@ -65,10 +65,10 @@
         <AnimationForActorName>arrow1</AnimationForActorName>
         <RelativeKeyframe>
           <TimePosSec>10.0</TimePosSec>
-          <YawPitchRoll x="360.000000" y="0.000000" z="0.000000" />
+          <YawPitchRoll x="180.000000" y="90.000000" z="0.000000" />
+          <Translation x="1.000000" y="0.000000" z="-3.000000" />
         </RelativeKeyframe>
       </ActorAnimation>
-      
     </ActorAnimations>
 
   </Scene>

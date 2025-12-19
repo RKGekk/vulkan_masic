@@ -29,6 +29,8 @@ set(APP_SOURCES
     "${SRC_DIR}/engine/screen_elements/iscreen_element.h"
     "${SRC_DIR}/engine/screen_elements/base_ui.h"
     "${SRC_DIR}/engine/screen_elements/base_ui.cpp"
+    "${SRC_DIR}/engine/screen_elements/actor_menu_ui.h"
+    "${SRC_DIR}/engine/screen_elements/actor_menu_ui.cpp"
     "${SRC_DIR}/engine/screen_elements/test_menu_ui.h"
     "${SRC_DIR}/engine/screen_elements/test_menu_ui.cpp"
     "${SRC_DIR}/engine/screen_elements/screen_element_scene.h"

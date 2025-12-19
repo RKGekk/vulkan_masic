@@ -30,6 +30,9 @@ HumanView::HumanView(std::shared_ptr<ProcessManager> process_manager) {
 		m_test_menu_ui = std::make_shared<TestMenuUI>();
 		VPushElement(m_test_menu_ui);
 
+		m_actor_menu_ui = std::make_shared<ActorMenuUI>();
+		VPushElement(m_actor_menu_ui);
+
 		m_gui = std::make_shared<ImGUIDrawable>();
     	m_gui->init(device, renderer.getRenderTarget(), renderer.getSwapchain()->getMaxFrames());
 		renderer.addDrawable(m_gui);

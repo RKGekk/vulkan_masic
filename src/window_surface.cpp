@@ -442,6 +442,8 @@ void WindowSurface::VRegisterEvents() {
         }
     );
 
+    //glfwSetInputMode(m_window, GLFW_REPEAT_KEY_PRESS, GLFW_FALSE);
+    //glfwSetInputMode(m_window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
     glfwSetMouseButtonCallback(
         m_window,
         [](GLFWwindow* window, int button, int action, int mods) {

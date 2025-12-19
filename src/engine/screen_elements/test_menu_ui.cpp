@@ -16,10 +16,6 @@ bool TestMenuUI::VOnRender(const GameTimerDelta& delta) {
 	if (!m_is_visible) return true;
 
 	ImGui::ShowDemoWindow();
-	if (ImGui::Begin("Actor Menu")) {
-		
-	}
-	ImGui::End();
 
 	return true;
 }
@@ -27,7 +23,7 @@ bool TestMenuUI::VOnRender(const GameTimerDelta& delta) {
 void TestMenuUI::VOnUpdate(const GameTimerDelta& delta) {}
 
 int TestMenuUI::VGetZOrder() const {
-	return 1;
+	return 999;
 }
 
 void TestMenuUI::VSetZOrder(int const zOrder) {}
