@@ -180,6 +180,8 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarge
     io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
     io.FontAllowUserScaling = true;
     io.FontGlobalScale = 1.0f;
+    io.KeyRepeatDelay = 1.5f;
+    io.KeyRepeatRate = 0.2f;
     ImGui::StyleColorsClassic();
 
     m_font_texture = makeFontTexture(m_device, TTF_font_file_name.c_str(), font_size_pixels);

@@ -25,23 +25,23 @@ bool ActorMenuUI::VOnRender(const GameTimerDelta& delta) {
 		if (ImGui::CollapsingHeader("Actors")) {
             ImGui::Text(m_actor_name.c_str());
 
-            //ImGui::InputInt("ActID", &m_actor_id, 0);
+            ImGui::InputInt("ActID", &m_actor_id);
             //ImGui::DragInt("Actor ID", &m_actor_id, 1, 0, 3);
-            ImGui::SliderInt("Actor ID", &m_actor_id, 0, 3);
+            //ImGui::SliderInt("Actor ID", &m_actor_id, 0, 3);
 
-            ImGui::SameLine();
-            ImGui::PushID(" - ");
-            if (ImGui::Button(" - ")) {
-                --m_actor_id;
-            }
-            ImGui::PopID();
+            // ImGui::SameLine();
+            // ImGui::PushID(" - ");
+            // if (ImGui::Button(" - ")) {
+            //     --m_actor_id;
+            // }
+            // ImGui::PopID();
 
-            ImGui::SameLine();
-            ImGui::PushID(" + ");
-            if (ImGui::Button(" + ")) {
-                ++m_actor_id;
-            }
-            ImGui::PopID();
+            // ImGui::SameLine();
+            // ImGui::PushID(" + ");
+            // if (ImGui::Button(" + ")) {
+            //     ++m_actor_id;
+            // }
+            // ImGui::PopID();
 
             Application& app = Application::Get();
             std::shared_ptr<BaseEngineLogic> game_logic = app.GetGameLogic();
