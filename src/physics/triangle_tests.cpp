@@ -1,7 +1,7 @@
 #include "triangle_tests.h"
 
 glm::vec4 PlaneTransform(const glm::vec4& Plane, const glm::quat& Rotation, const glm::vec3& Translation) noexcept {
-    glm::vec4 vNormal = glm::vec4(Plane.x, Plane.y, Plane.z, 0.0f) * Rotation;
+    glm::vec4 vNormal = Rotation * glm::vec4(Plane.x, Plane.y, Plane.z, 0.0f);
     float vD = Plane.w - glm::dot(vNormal, glm::vec4(Translation, 1.0f));
     vNormal.w = vD;
     return vNormal;

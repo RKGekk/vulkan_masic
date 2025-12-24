@@ -12,14 +12,14 @@ void BoundingBox::Transform(BoundingBox& Out, const glm::mat4x4& M) const noexce
 
     // Compute and transform the corners and find new min/max bounds.
     glm::vec4 Corner = (glm::vec4(Extents, 0.0f) * g_BoxOffset[0]) + glm::vec4(Center, 0.0f);
-    Corner = Corner * M;
+    Corner = M * Corner;
 
     glm::vec4 Min, Max;
     Min = Max = Corner;
 
     for (size_t i = 1u; i < CORNER_COUNT; ++i) {
         Corner = (glm::vec4(Extents, 0.0f) * g_BoxOffset[i]) + glm::vec4(Center, 0.0f);
-        Corner = Corner * M;
+        Corner = M * Corner;
 
         Min = glm::min(Min, Corner);
         Max = glm::max(Max, Corner);

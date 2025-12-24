@@ -11,7 +11,7 @@
 void BoundingSphere::Transform(BoundingSphere& Out, const glm::mat4x4& M) const noexcept {
 
     // Transform the center of the sphere.
-    glm::vec4 C = glm::vec4(Center, 1.0f) * M;
+    glm::vec4 C = M * glm::vec4(Center, 1.0f);
 
     float dX = glm::dot(M[0], M[0]);
     float dY = glm::dot(M[1], M[1]);
@@ -30,7 +30,7 @@ void BoundingSphere::Transform(BoundingSphere& Out, const glm::mat4x4& M) const 
 void BoundingSphere::Transform(BoundingSphere& Out, float Scale, const glm::quat& Rotation, const glm::vec3& Translation) const noexcept {
 
     // Transform the center of the sphere.
-    Out.Center = ((Center * Scale) * Rotation) + Translation;
+    Out.Center = (Rotation * (Center * Scale)) + Translation;
     // Store the center sphere.
 
     // Scale the radius of the pshere.
@@ -122,7 +122,7 @@ inline ContainmentType BoundingSphere::Contains(const BoundingOrientedBox& box) 
 
     for (size_t i = 0u; i < BoundingOrientedBox::CORNER_COUNT; ++i) {
         //XMVECTOR C = XMVectorAdd(XMVector3Rotate(XMVectorMultiply(boxExtents, g_BoxOffset[i]), boxOrientation), boxCenter);
-        glm::vec3 C = (box.Extents * glm::vec3(g_BoxOffset[i]) * box.Orientation) + box.Center;
+        glm::vec3 C = (box.Orientation * (box.Extents * glm::vec3(g_BoxOffset[i]))) + box.Center;
         glm::vec3 offset = Center - C;
         float d = glm::dot(offset, offset);
         InsideAll &= d <= RadiusSq;
@@ -162,7 +162,7 @@ ContainmentType BoundingSphere::Contains(const BoundingFrustum& fr) const noexce
 
     bool InsideAll = true;
     for (size_t i = 0u; i < BoundingFrustum::CORNER_COUNT; ++i) {
-        glm::vec3 C = (Corners[i] * fr.Orientation) + fr.Origin;
+        glm::vec3 C = (fr.Orientation * Corners[i]) + fr.Origin;
         glm::vec3 offset = Center - C;
         float d = glm::dot(offset, offset);
         InsideAll &= d <= RadiusSq;

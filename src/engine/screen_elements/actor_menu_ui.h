@@ -19,5 +19,4 @@ public:
 
 private:
     int m_actor_id;
-    std::string m_actor_name;
 };

@@ -9,9 +9,9 @@
         <Scale x="1.000000" y="1.000000" z="1.000000" />
       </TransformComponent>
       <CameraComponent>
-        <Fov>65.0</Fov>
-        <Near>0.1</Near>
-        <Far>10.0</Far>
+        <Fov>90.0</Fov>
+        <Near>1.0</Near>
+        <Far>11.0</Far>
       </CameraComponent>
     </Actor>
 

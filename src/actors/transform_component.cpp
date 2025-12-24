@@ -191,7 +191,7 @@ bool TransformComponent::Init(const pugi::xml_node& data) {
     glm::mat4x4 rotation_xm = glm::eulerAngleYXZ(yawPitchRoll.x, yawPitchRoll.y, yawPitchRoll.z);
     glm::mat4x4 scale_xm = glm::scale(glm::mat4(1.0f), glm::vec3(scale.y, scale.x, scale.z));
 
-    glm::mat4x4 result = (scale_xm * rotation_xm) * translation_xm;
+    glm::mat4x4 result = translation_xm * rotation_xm * scale_xm;
 
     m_scene_node->SetTransform(result);
 

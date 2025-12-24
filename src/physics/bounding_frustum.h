@@ -65,7 +65,7 @@ struct BoundingFrustum {
                                                Near(nearPlane),
                                                Far(farPlane) {}
 
-    BoundingFrustum(const glm::mat4x4& Projection, bool rhcoords = false) noexcept;
+    BoundingFrustum(const glm::mat4x4& Projection, bool rhcoords = true) noexcept;
 
     // Methods
     void Transform(BoundingFrustum& Out, const glm::mat4x4& M) const noexcept;

@@ -6,6 +6,7 @@
 #include "../base_engine_logic.h"
 #include "../../actors/actor.h"
 #include "../../actors/transform_component.h"
+#include "../../actors/camera_component.h"
 
 ActorMenuUI::ActorMenuUI() : m_actor_id(INVALID_ACTOR_ID) {
 }
@@ -23,47 +24,56 @@ bool ActorMenuUI::VOnRender(const GameTimerDelta& delta) {
 	if (ImGui::Begin("Actor Menu")) {
         //ImGui::PushButtonRepeat(false);
 		if (ImGui::CollapsingHeader("Actors")) {
-            ImGui::Text(m_actor_name.c_str());
-
-            ImGui::InputInt("ActID", &m_actor_id);
-            //ImGui::DragInt("Actor ID", &m_actor_id, 1, 0, 3);
-            //ImGui::SliderInt("Actor ID", &m_actor_id, 0, 3);
-
-            // ImGui::SameLine();
-            // ImGui::PushID(" - ");
-            // if (ImGui::Button(" - ")) {
-            //     --m_actor_id;
-            // }
-            // ImGui::PopID();
-
-            // ImGui::SameLine();
-            // ImGui::PushID(" + ");
-            // if (ImGui::Button(" + ")) {
-            //     ++m_actor_id;
-            // }
-            // ImGui::PopID();
+            ImGui::InputInt("Actor ID", &m_actor_id);
 
             Application& app = Application::Get();
             std::shared_ptr<BaseEngineLogic> game_logic = app.GetGameLogic();
             std::shared_ptr<Actor> act = game_logic->VGetActor(m_actor_id).lock();
 			if (act) {
-                m_actor_name = act->GetName();
+				ImGui::Text(act->GetName().c_str());
 				std::shared_ptr<TransformComponent> tc = act->GetComponent<TransformComponent>().lock();
 				if (tc) {
-					// m_transform = tc->GetTransform4x4f();
-                	// DirectX::XMMATRIX transform_xm = DirectX::XMLoadFloat4x4(&m_transform);
-					// DirectX::XMVECTOR scale_xm;
-					// DirectX::XMVECTOR rotation_xm;
-					// DirectX::XMVECTOR translation_xm;
-					// DirectX::XMMatrixDecompose(&scale_xm, &rotation_xm, &translation_xm, transform_xm);
+					ImGui::SeparatorText("TransformComponent");
+
+					if (ImGui::TreeNode("Matrix")) {
+						if (ImGui::InputFloat4("R1", ((float*)&tc->GetTransform()) + 0, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+						if (ImGui::InputFloat4("R2", ((float*)&tc->GetTransform()) + 4, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+						if (ImGui::InputFloat4("R3", ((float*)&tc->GetTransform()) + 8, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+						if (ImGui::InputFloat4("R4", ((float*)&tc->GetTransform()) + 12, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+						ImGui::TreePop();
+					}
+
+					if (ImGui::TreeNode("Decompose")) {
+						glm::vec3 scale_xm;
+						glm::quat rotation_xm;
+						glm::vec3 translation_xm;
+        				tc->Decompose(translation_xm, rotation_xm, scale_xm);
+						glm::vec3 ypr_xm = glm::eulerAngles(rotation_xm);
+						ypr_xm.x = glm::degrees(ypr_xm.x);
+						ypr_xm.y = glm::degrees(ypr_xm.y);
+						ypr_xm.z = glm::degrees(ypr_xm.z);
+
+						if (ImGui::InputFloat4("Rq", ((float*)&rotation_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+						if (ImGui::InputFloat3("Sc", ((float*)&scale_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+						if (ImGui::InputFloat3("Tr", ((float*)&translation_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+						if (ImGui::InputFloat3("Ypr", ((float*)&ypr_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+						ImGui::TreePop();
+					}
+				}
+				std::shared_ptr<CameraComponent> cc = act->GetComponent<CameraComponent>().lock();
+				if(cc) {
+					ImGui::SeparatorText("CameraComponent");
 					
-					// m_yaw_pith_roll = tc->GetYawPitchRoll3f();
-					// m_yaw_pith_roll.x = DirectX::XMConvertToDegrees(m_yaw_pith_roll.x);
-					// m_yaw_pith_roll.y = DirectX::XMConvertToDegrees(m_yaw_pith_roll.y);
-					// m_yaw_pith_roll.z = DirectX::XMConvertToDegrees(m_yaw_pith_roll.z);
-                	// DirectX::XMStoreFloat3(&m_scale, scale_xm);
-					// DirectX::XMStoreFloat4(&m_rot_quat, rotation_xm);
-					// DirectX::XMStoreFloat3(&m_translate, translation_xm);
+					float cc_near = cc->GetFar();
+					if (ImGui::InputFloat("Near", ((float*)&cc_near), 0.0f, 0.0f, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+
+					float cc_far = cc->GetFar();
+					if (ImGui::InputFloat("Far", ((float*)&cc_far), 0.0f, 0.0f, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+
+					float cc_fov = cc->GetFov();
+					cc_fov = glm::degrees(cc_fov);
+					if (ImGui::InputFloat("Fov", ((float*)&cc_fov), 0.0f, 0.0f, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+
 				}
 			}
 			

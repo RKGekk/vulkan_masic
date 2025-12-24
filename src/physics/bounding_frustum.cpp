@@ -22,7 +22,7 @@ void BoundingFrustum::Transform(BoundingFrustum& Out, const glm::mat4x4& M) cons
     glm::quat vOrientation = Orientation * Rotation;
 
     // Transform the center.
-    glm::vec4 vOrigin = glm::vec4(Origin, 1.0f) * M;
+    glm::vec4 vOrigin = M * glm::vec4(Origin, 1.0f);
 
     // Store the frustum.
     Out.Origin = vOrigin;
@@ -680,7 +680,7 @@ bool BoundingFrustum::Intersects(const BoundingFrustum& fr) const noexcept {
 
     // Transform frustum A into the space of the frustum B in order to
     // minimize the number of transforms we have to do.
-    OriginA = (OriginA - OriginB) * glm::inverse(OrientationB);
+    OriginA = glm::inverse(OrientationB) * (OriginA - OriginB);
     OrientationA = OrientationA * glm::conjugate(OrientationB);
 
     // Build the corners of frustum A (in the local space of B).
@@ -691,10 +691,10 @@ bool BoundingFrustum::Intersects(const BoundingFrustum& fr) const noexcept {
     glm::vec4 NearA = glm::vec4(fr.Near);
     glm::vec4 FarA = glm::vec4(fr.Far);
 
-    RightTopA = RightTopA * OrientationA;
-    RightBottomA = RightBottomA * OrientationA;
-    LeftTopA = LeftTopA * OrientationA;
-    LeftBottomA = LeftBottomA * OrientationA;
+    RightTopA = OrientationA * RightTopA;
+    RightBottomA = OrientationA * RightBottomA;
+    LeftTopA = OrientationA * LeftTopA;
+    LeftBottomA = OrientationA * LeftBottomA;
 
     glm::vec4 CornersA[CORNER_COUNT];
     CornersA[0] = (RightTopA * NearA) + OriginA;
@@ -872,10 +872,12 @@ bool BoundingFrustum::Intersects(const glm::vec3& V0, const glm::vec3& V1, const
     Planes[4] = glm::vec4(0.0f, 1.0f, -TopSlope, 0.0f);
     Planes[5] = glm::vec4(0.0f, -1.0f, BottomSlope, 0.0f);
 
+    glm::quat invOrientation = glm::inverse(Orientation);
+
     // Transform triangle into the local space of frustum.
-    glm::vec4 TV0 = glm::vec4(V0 - Origin, 1.0f) * glm::inverse(Orientation);
-    glm::vec4 TV1 = glm::vec4(V1 - Origin, 1.0f) * Orientation;
-    glm::vec4 TV2 = glm::vec4(V2 - Origin, 1.0f) * Orientation;
+    glm::vec4 TV0 = invOrientation * glm::vec4(V0 - Origin, 1.0f);
+    glm::vec4 TV1 = invOrientation * glm::vec4(V1 - Origin, 1.0f);
+    glm::vec4 TV2 = invOrientation * glm::vec4(V2 - Origin, 1.0f);
 
     // Test each vertex of the triangle against the frustum planes.
     bool Outside = false;
@@ -961,7 +963,7 @@ bool BoundingFrustum::Intersects(const glm::vec3& V0, const glm::vec3& V1, const
     FrustumEdgeAxis[5] = vLeftBottom - vLeftTop;
 
     for (size_t i = 0u; i < 3u; ++i) {
-        for (size_t j = 0u; j < 6u; j++) {
+        for (size_t j = 0u; j < 6u; ++j) {
             // Compute the axis we are going to test.
             glm::vec3 Axis = glm::cross(TriangleEdgeAxis[i], FrustumEdgeAxis[j]);
 
@@ -1020,10 +1022,10 @@ PlaneIntersectionType BoundingFrustum::Intersects(const glm::vec4& Plane) const 
     glm::vec4 vNear = glm::vec4(Near);
     glm::vec4 vFar = glm::vec4(Far);
 
-    RightTop = RightTop * Orientation;
-    RightBottom = RightBottom * Orientation;
-    LeftTop = LeftTop * Orientation;
-    LeftBottom = LeftBottom * Orientation;
+    RightTop = Orientation * RightTop;
+    RightBottom = Orientation * RightBottom;
+    LeftTop = Orientation * LeftTop;
+    LeftBottom = Orientation * LeftBottom;
 
     glm::vec4 Corners0 = (RightTop * vNear) + vOrigin;
     glm::vec4 Corners1 = (RightBottom * vNear) + vOrigin;
@@ -1151,10 +1153,10 @@ ContainmentType BoundingFrustum::ContainedBy(const glm::vec4& Plane0, const glm:
     glm::vec4 vNear = glm::vec4(Near);
     glm::vec4 vFar = glm::vec4(Far);
 
-    RightTop = RightTop * Orientation;
-    RightBottom = RightBottom * Orientation;
-    LeftTop = LeftTop * Orientation;
-    LeftBottom = LeftBottom * Orientation;
+    RightTop = Orientation * RightTop;
+    RightBottom = Orientation * RightBottom;
+    LeftTop = Orientation * LeftTop;
+    LeftBottom = Orientation * LeftBottom;
 
     glm::vec4 Corners0 = (RightTop * vNear) + vOrigin;
     glm::vec4 Corners1 = (RightBottom * vNear) + vOrigin;
@@ -1268,18 +1270,19 @@ void BoundingFrustum::GetPlanes(glm::vec4* NearPlane, glm::vec4* FarPlane, glm::
 // constructed frustum to be incorrect.
 //-----------------------------------------------------------------------------
 void BoundingFrustum::CreateFromMatrix(BoundingFrustum& Out, const glm::mat4x4& Projection, bool rhcoords) noexcept {
+    float forward = -1.0f;
+
     // Corners of the projection frustum in NDC space.
     static glm::vec4 NDCPoints[6] = {
-        glm::vec4( 1.0f,  0.0f, 1.0f, 1.0f ),   // right (at far plane)
-        glm::vec4(-1.0f,  0.0f, 1.0f, 1.0f ),   // left
-        glm::vec4( 0.0f,  1.0f, 1.0f, 1.0f ),   // top
-        glm::vec4( 0.0f, -1.0f, 1.0f, 1.0f ),   // bottom
+        glm::vec4( 1.0f,  0.0f, forward, 1.0f ), // right (at far plane)
+        glm::vec4(-1.0f,  0.0f, forward, 1.0f ), // left
+        glm::vec4( 0.0f,  1.0f, forward, 1.0f ), // top
+        glm::vec4( 0.0f, -1.0f, forward, 1.0f ), // bottom
 
-        glm::vec4( 0.0f,  0.0f, 0.0f, 1.0f ),    // near
-        glm::vec4( 0.0f,  0.0f, 1.0f, 1.0f )     // far
+        glm::vec4( 0.0f,  0.0f, 0.0f,    1.0f ), // near
+        glm::vec4( 0.0f,  0.0f, forward, 1.0f )  // far
     };
 
-    float Determinant = glm::determinant(Projection);
     glm::mat4x4 matInverse = glm::inverse(Projection);
 
     // Compute the frustum corners in world space.
@@ -1287,7 +1290,7 @@ void BoundingFrustum::CreateFromMatrix(BoundingFrustum& Out, const glm::mat4x4& 
 
     for (size_t i = 0u; i < 6u; ++i) {
         // Transform point.
-        Points[i] = NDCPoints[i] * matInverse;
+        Points[i] = matInverse * NDCPoints[i];
     }
 
     Out.Origin = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -1305,8 +1308,8 @@ void BoundingFrustum::CreateFromMatrix(BoundingFrustum& Out, const glm::mat4x4& 
     Out.BottomSlope = Points[3].y;
 
     // Compute near and far.
-    Points[4] = Points[4] * (1.0f /Points[4].w);
-    Points[5] = Points[5] * (1.0f /Points[5].w);
+    Points[4] = Points[4] * (1.0f / Points[4].w);
+    Points[5] = Points[5] * (1.0f / Points[5].w);
 
     if (rhcoords) {
         Out.Near = Points[5].z;

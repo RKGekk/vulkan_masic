@@ -21,10 +21,10 @@ void BoundingOrientedBox::Transform(BoundingOrientedBox& Out, const glm::mat4x4&
     nM[2] = glm::normalize(M[2]);
     nM[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     glm::quat Rotation = glm::quat(nM);
-    vOrientation = vOrientation * Rotation;
+    vOrientation = Rotation * vOrientation;
 
     // Transform the center.
-    vCenter = glm::vec4(Center, 0.0f) * M;
+    vCenter = M * glm::vec4(Center, 0.0f);
 
     // Scale the box extents.
     float dX = glm::length(M[0]);
@@ -52,7 +52,7 @@ void BoundingOrientedBox::Transform(BoundingOrientedBox& Out, float Scale, const
 
     // Transform the center.
     glm::vec3 VectorScale = glm::vec3(Scale);
-    vCenter = ((vCenter * VectorScale) * Rotation) + Translation;
+    vCenter = (Rotation * (vCenter * VectorScale)) + Translation;
 
     // Scale the box extents.
     vExtents = vExtents * VectorScale;
@@ -74,7 +74,7 @@ void BoundingOrientedBox::GetCorners(glm::vec3* Corners) const noexcept {
     glm::quat vOrientation = Orientation;
 
     for (size_t i = 0u; i < CORNER_COUNT; ++i) {
-        glm::vec3 C = ((vExtents * glm::vec3(g_BoxOffset[i])) * vOrientation) + vCenter;
+        glm::vec3 C = (vOrientation * (vExtents * glm::vec3(g_BoxOffset[i]))) + vCenter;
         Corners[i] = C;
     }
 }
@@ -89,7 +89,7 @@ ContainmentType BoundingOrientedBox::Contains(const glm::vec3& Point) const noex
     glm::quat vOrientation = Orientation;
 
     // Transform the point to be local to the box.
-    glm::vec3 TPoint = (Point - vCenter) * glm::inverse(vOrientation);
+    glm::vec3 TPoint = glm::inverse(vOrientation) * (Point - vCenter);
 
     return Vector3InBounds(TPoint, vExtents) ? CONTAINS : DISJOINT;
 }
@@ -101,11 +101,12 @@ ContainmentType BoundingOrientedBox::Contains(const glm::vec3& V0, const glm::ve
     // Load the box center & orientation.
     glm::vec3 vCenter = Center;
     glm::quat vOrientation = Orientation;
+    glm::quat invOrientation = glm::inverse(vOrientation);
 
     // Transform the triangle vertices into the space of the box.
-    glm::vec3 TV0 = (V0 - vCenter) * glm::inverse(vOrientation);
-    glm::vec3 TV1 = (V1 - vCenter) * glm::inverse(vOrientation);
-    glm::vec3 TV2 = (V2 - vCenter) * glm::inverse(vOrientation);
+    glm::vec3 TV0 = invOrientation * (V0 - vCenter);
+    glm::vec3 TV1 = invOrientation * (V1 - vCenter);
+    glm::vec3 TV2 = invOrientation * (V2 - vCenter);
 
     BoundingBox box;
     box.Center = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -129,7 +130,7 @@ ContainmentType BoundingOrientedBox::Contains(const BoundingSphere& sh) const no
     // Transform the center of the sphere to be local to the box.
     // BoxMin = -BoxExtents
     // BoxMax = +BoxExtents
-    SphereCenter = (SphereCenter - BoxCenter) * glm::inverse(BoxOrientation);
+    SphereCenter = glm::inverse(BoxOrientation) * (SphereCenter - BoxCenter);
 
     // Find the distance to the nearest point on the box.
     // for each i in (x, y, z)
@@ -170,7 +171,7 @@ ContainmentType BoundingOrientedBox::Contains(const BoundingSphere& sh) const no
 //-----------------------------------------------------------------------------
 ContainmentType BoundingOrientedBox::Contains(const BoundingBox& box) const noexcept {
     // Make the axis aligned box oriented and do an OBB vs OBB test.
-    BoundingOrientedBox obox(box.Center, box.Extents, glm::quat(0.f, 0.f, 0.f, 1.f));
+    BoundingOrientedBox obox(box.Center, box.Extents, glm::quat(0.0f, 0.0f, 0.0f, 1.0f));
     return Contains(obox);
 }
 
@@ -197,8 +198,8 @@ ContainmentType BoundingOrientedBox::Contains(const BoundingOrientedBox& box) co
         // Cb = rotate( bExtents * corneroffset[i], bOrientation ) + bcenter
         // Ca = invrotate( Cb - aCenter, aOrientation )
 
-        glm::vec3 C = ((bExtents * glm::vec3(g_BoxOffset[i])) * bOrientation) + offset;
-        C = C * glm::inverse(aOrientation);
+        glm::vec3 C = (bOrientation * (bExtents * glm::vec3(g_BoxOffset[i]))) + offset;
+        C = glm::inverse(aOrientation) * C;
 
         if (!Vector3InBounds(C, aExtents)) {
             return INTERSECTS;
@@ -225,7 +226,7 @@ ContainmentType BoundingOrientedBox::Contains(const BoundingFrustum& fr) const n
     glm::quat vOrientation = Orientation;
 
     for (size_t i = 0u; i < BoundingFrustum::CORNER_COUNT; ++i) {
-        glm::vec3 C = (Corners[i] - vCenter) * glm::inverse(vOrientation);
+        glm::vec3 C = glm::inverse(vOrientation) * (Corners[i] - vCenter);
 
         if (!Vector3InBounds(C, vExtents)) {
             return INTERSECTS;
@@ -249,7 +250,7 @@ bool BoundingOrientedBox::Intersects(const BoundingSphere& sh) const noexcept {
     // Transform the center of the sphere to be local to the box.
     // BoxMin = -BoxExtents
     // BoxMax = +BoxExtents
-    SphereCenter = (SphereCenter - BoxCenter) * glm::inverse(BoxOrientation);
+    SphereCenter = glm::inverse(BoxOrientation) * (SphereCenter - BoxCenter);
 
     // Find the distance to the nearest point on the box.
     // for each i in (x, y, z)
@@ -281,7 +282,7 @@ bool BoundingOrientedBox::Intersects(const BoundingSphere& sh) const noexcept {
 //-----------------------------------------------------------------------------
 bool BoundingOrientedBox::Intersects(const BoundingBox& box) const noexcept {
     // Make the axis aligned box oriented and do an OBB vs OBB test.
-    BoundingOrientedBox obox(box.Center, box.Extents, glm::quat(0.f, 0.f, 0.f, 1.f));
+    BoundingOrientedBox obox(box.Center, box.Extents, glm::quat(0.0f, 0.0f, 0.0f, 1.0f));
     return Intersects(obox);
 }
 
@@ -300,7 +301,7 @@ bool BoundingOrientedBox::Intersects(const BoundingOrientedBox& box) const noexc
     // Compute the translation of B relative to A.
     glm::vec3 A_cent = Center;
     glm::vec3 B_cent = box.Center;
-    glm::vec3 t = (B_cent - A_cent) * glm::inverse(A_quat);
+    glm::vec3 t = glm::inverse(A_quat) * (B_cent - A_cent);
 
     //
     // h(A) = extents of A.
@@ -485,11 +486,12 @@ bool BoundingOrientedBox::Intersects(const glm::vec3& V0, const glm::vec3& V1, c
     // Load the box center & orientation.
     glm::vec3 vCenter = Center;
     glm::quat vOrientation = Orientation;
+    glm::quat invOrientation = glm::inverse(vOrientation);
 
     // Transform the triangle vertices into the space of the box.
-    glm::vec3 TV0 = (V0 - vCenter) * glm::inverse(vOrientation);
-    glm::vec3 TV1 = (V1 - vCenter) * glm::inverse(vOrientation);
-    glm::vec3 TV2 = (V2 - vCenter) * glm::inverse(vOrientation);
+    glm::vec3 TV0 = invOrientation * (V0 - vCenter);
+    glm::vec3 TV1 = invOrientation * (V1 - vCenter);
+    glm::vec3 TV2 = invOrientation * (V2 - vCenter);
 
     BoundingBox box;
     box.Center = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -659,7 +661,7 @@ ContainmentType BoundingOrientedBox::ContainedBy(const glm::vec4& Plane0, const 
 void BoundingOrientedBox::CreateFromBoundingBox(BoundingOrientedBox& Out, const BoundingBox& box) noexcept {
     Out.Center = box.Center;
     Out.Extents = box.Extents;
-    Out.Orientation = glm::quat(0.f, 0.f, 0.f, 1.f);
+    Out.Orientation = glm::quat(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 
@@ -749,12 +751,13 @@ void BoundingOrientedBox::CreateFromPoints(BoundingOrientedBox& Out, size_t Coun
     glm::mat3x3 InverseR = glm::transpose(R);
 
     // Find the minimum OBB using the eigenvectors as the axes.
-    glm::vec3 vMin, vMax;
+    glm::vec3 vMin;
+    glm::vec3 vMax;
 
-    vMin = vMax = (*pPoints) * InverseR;
+    vMin = vMax = InverseR * (*pPoints);
 
     for (size_t i = 1u; i < Count; ++i) {
-        glm::vec3 Point = glm::vec3(*reinterpret_cast<const glm::vec3*>(reinterpret_cast<const uint8_t*>(pPoints) + i * Stride)) * InverseR;
+        glm::vec3 Point = InverseR * glm::vec3(*reinterpret_cast<const glm::vec3*>(reinterpret_cast<const uint8_t*>(pPoints) + i * Stride));
 
         vMin = glm::min(vMin, Point);
         vMax = glm::max(vMax, Point);
@@ -762,7 +765,7 @@ void BoundingOrientedBox::CreateFromPoints(BoundingOrientedBox& Out, size_t Coun
 
     // Rotate the center into world space.
     glm::vec3 vCenter = (vMin + vMax) * 0.5f;
-    vCenter = vCenter * R;
+    vCenter = R * vCenter;
 
     // Store center, extents, and orientation.
     Out.Center = vCenter;
