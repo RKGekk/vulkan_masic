@@ -83,15 +83,23 @@ bool MovementController::VOnPointerMove(int x, int y, const int radius) {
 		glm::vec3 translation;
 		tc->Decompose(translation, orientation, scale);
 
-		glm::quat q(1.0f, 0.0f, 0.0f, 0.0f);
-		glm::quat q1 = glm::rotate(q, glm::radians(dx) * resistance, tc->GetUp3f());
-		glm::quat q2 = glm::rotate(q, glm::radians(dy) * resistance, tc->GetRight3f());
-		glm::quat q3 = orientation * q1 * q2;
+		glm::quat q1 = glm::angleAxis(glm::radians(dx) * resistance, tc->GetUp3f());
+		glm::quat q2 = glm::angleAxis(glm::radians(dy) * resistance, tc->GetRight3f());
+		glm::quat q3 = glm::normalize(orientation * q1 * q2);
 
-		glm::vec3 ypr = glm::eulerAngles(q3);
-		ypr = glm::vec3(ypr.y, ypr.x, 0.0f);
+		glm::vec3 up = tc->GetUp3f();
+		glm::vec3 forward = q3 * (tc->GetForward3f() * -1.0f);
+		glm::vec3 right = glm::normalize(glm::cross(up, forward));
+		up = glm::cross(forward, right);
+		
+		glm::mat4x4 mat(
+			glm::vec4(right.x * scale.x, right.y, right.z, 0.0f),
+			glm::vec4(up.x, up.y * scale.y, up.z, 0.0f),
+			glm::vec4(forward.x, forward.y, forward.z * scale.z, 0.0f),
+			glm::vec4(translation.x, translation.y, translation.z, 1.0f)
+		);
 
-		tc->SetTransform(translation, ypr, scale);
+		tc->SetTransform(mat);
 	}
 
 	m_last_mouse_pos_x = x;

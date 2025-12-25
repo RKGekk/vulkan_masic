@@ -116,7 +116,7 @@ void BasicCameraNode::SetData(const glm::mat4x4& camera_transform, const glm::ma
 	m_frustum = BoundingFrustum(m_projection);
 	m_frustum.Origin = glm::vec3(camera_transform[3].x, camera_transform[3].y, camera_transform[3].z);
 	m_frustum.Orientation = glm::quat(camera_transform);
-	m_fovy = 2.0f * atanf(1.0f / m_projection[1].y);
+	m_fovy = 2.0f * atanf(1.0f / m_projection[1].y) * -1.0f;
 	m_aspect = m_projection[1].y / m_projection[0].x;
 }
 

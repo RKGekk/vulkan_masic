@@ -48,10 +48,12 @@ bool ActorMenuUI::VOnRender(const GameTimerDelta& delta) {
 						glm::quat rotation_xm;
 						glm::vec3 translation_xm;
         				tc->Decompose(translation_xm, rotation_xm, scale_xm);
-						glm::vec3 ypr_xm = glm::eulerAngles(rotation_xm);
-						ypr_xm.x = glm::degrees(ypr_xm.x);
-						ypr_xm.y = glm::degrees(ypr_xm.y);
-						ypr_xm.z = glm::degrees(ypr_xm.z);
+						glm::vec3 pyr_xm = glm::eulerAngles(rotation_xm);
+						glm::vec3 ypr_xm(
+							glm::degrees(pyr_xm.y),
+							glm::degrees(pyr_xm.x),
+							glm::degrees(pyr_xm.z)
+						);
 
 						if (ImGui::InputFloat4("Rq", ((float*)&rotation_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
 						if (ImGui::InputFloat3("Sc", ((float*)&scale_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
@@ -64,7 +66,7 @@ bool ActorMenuUI::VOnRender(const GameTimerDelta& delta) {
 				if(cc) {
 					ImGui::SeparatorText("CameraComponent");
 					
-					float cc_near = cc->GetFar();
+					float cc_near = cc->GetNear();
 					if (ImGui::InputFloat("Near", ((float*)&cc_near), 0.0f, 0.0f, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
 
 					float cc_far = cc->GetFar();
