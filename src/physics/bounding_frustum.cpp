@@ -4,8 +4,8 @@
 #include "bounding_box.h"
 #include "bounding_oriented_box.h"
 
-BoundingFrustum::BoundingFrustum(const glm::mat4x4& Projection, bool rhcoords) noexcept {
-    CreateFromMatrix(*this, Projection, rhcoords);
+BoundingFrustum::BoundingFrustum(const glm::mat4x4& Projection, bool rhcoords, bool forward) noexcept {
+    CreateFromMatrix(*this, Projection, rhcoords, forward);
 }
 
 
@@ -456,7 +456,7 @@ bool BoundingFrustum::Intersects(const BoundingSphere& sh) const noexcept {
 //-----------------------------------------------------------------------------
 bool BoundingFrustum::Intersects(const BoundingBox& box) const noexcept {
     // Make the axis aligned box oriented and do an OBB vs frustum test.
-    BoundingOrientedBox obox(box.Center, box.Extents, glm::quat(0.0f, 0.0f, 0.0f, 1.0f));
+    BoundingOrientedBox obox(box.Center, box.Extents, glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
     return Intersects(obox);
 }
 
@@ -1269,18 +1269,19 @@ void BoundingFrustum::GetPlanes(glm::vec4* NearPlane, glm::vec4* FarPlane, glm::
 // contain a projection; any rotation, translation or scale will cause the
 // constructed frustum to be incorrect.
 //-----------------------------------------------------------------------------
-void BoundingFrustum::CreateFromMatrix(BoundingFrustum& Out, const glm::mat4x4& Projection, bool rhcoords) noexcept {
-    float forward = -1.0f;
+void BoundingFrustum::CreateFromMatrix(BoundingFrustum& Out, const glm::mat4x4& Projection, bool rhcoords, bool zforward) noexcept {
+
+    float forward =  zforward ? 1.0f : -1.0f;
 
     // Corners of the projection frustum in NDC space.
     static glm::vec4 NDCPoints[6] = {
-        glm::vec4( 1.0f,  0.0f, forward, 1.0f ), // right (at far plane)
-        glm::vec4(-1.0f,  0.0f, forward, 1.0f ), // left
-        glm::vec4( 0.0f,  1.0f, forward, 1.0f ), // top
-        glm::vec4( 0.0f, -1.0f, forward, 1.0f ), // bottom
+        glm::vec4( 1.0f,  0.0f, 1.0f, 1.0f ), // right (at far plane)
+        glm::vec4(-1.0f,  0.0f, 1.0f, 1.0f ), // left
+        glm::vec4( 0.0f,  1.0f, 1.0f, 1.0f ), // top
+        glm::vec4( 0.0f, -1.0f, 1.0f, 1.0f ), // bottom
 
-        glm::vec4( 0.0f,  0.0f, 0.0f,    1.0f ), // near
-        glm::vec4( 0.0f,  0.0f, forward, 1.0f )  // far
+        glm::vec4( 0.0f,  0.0f, 0.0f, 1.0f ), // near
+        glm::vec4( 0.0f,  0.0f, 1.0f, 1.0f )  // far
     };
 
     glm::mat4x4 matInverse = glm::inverse(Projection);
@@ -1294,11 +1295,16 @@ void BoundingFrustum::CreateFromMatrix(BoundingFrustum& Out, const glm::mat4x4& 
     }
 
     Out.Origin = glm::vec3(0.0f, 0.0f, 0.0f);
-    Out.Orientation = glm::quat(0.0f, 0.0f, 0.0f, 1.0f);
+    if(zforward) {
+        Out.Orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+    }
+    else {
+        Out.Orientation = glm::angleAxis(glm::pi<float>(), glm::vec3(0.0f, 1.0f, 0.0f));
+    }
 
     // Compute the slopes.
-    Points[0] = Points[0] * (1.0f / Points[0].z);
-    Points[1] = Points[1] * (1.0f / Points[1].z);
+    Points[0] = Points[0] * (1.0f / Points[0].z) * forward;
+    Points[1] = Points[1] * (1.0f / Points[1].z) * forward;
     Points[2] = Points[2] * (1.0f / Points[2].z);
     Points[3] = Points[3] * (1.0f / Points[3].z);
 
@@ -1308,10 +1314,10 @@ void BoundingFrustum::CreateFromMatrix(BoundingFrustum& Out, const glm::mat4x4& 
     Out.BottomSlope = Points[3].y;
 
     // Compute near and far.
-    Points[4] = Points[4] * (1.0f / Points[4].w);
-    Points[5] = Points[5] * (1.0f / Points[5].w);
+    Points[4] = Points[4] * (1.0f / Points[4].w) * forward;
+    Points[5] = Points[5] * (1.0f / Points[5].w) * forward;
 
-    if (rhcoords) {
+    if (rhcoords && zforward) {
         Out.Near = Points[5].z;
         Out.Far = Points[4].z;
     }

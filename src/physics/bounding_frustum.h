@@ -35,7 +35,7 @@ struct BoundingFrustum {
 
     // Creators
     BoundingFrustum() noexcept : Origin(0.0f, 0.0f, 0.0f),
-                                 Orientation(0.0f, 0.0f, 0.0f, 1.0f),
+                                 Orientation(1.0f, 0.0f, 0.0f, 0.0f),
                                  RightSlope(1.0f),
                                  LeftSlope(-1.0f),
                                  TopSlope(1.0f),
@@ -65,7 +65,7 @@ struct BoundingFrustum {
                                                Near(nearPlane),
                                                Far(farPlane) {}
 
-    BoundingFrustum(const glm::mat4x4& Projection, bool rhcoords = true) noexcept;
+    BoundingFrustum(const glm::mat4x4& Projection, bool rhcoords = true, bool zforward = false) noexcept;
 
     // Methods
     void Transform(BoundingFrustum& Out, const glm::mat4x4& M) const noexcept;
@@ -103,5 +103,5 @@ struct BoundingFrustum {
     // Create 6 Planes representation of Frustum
 
     // Static methods
-    static void CreateFromMatrix(BoundingFrustum& Out, const glm::mat4x4& Projection, bool rhcoords = false) noexcept;
+    static void CreateFromMatrix(BoundingFrustum& Out, const glm::mat4x4& Projection, bool rhcoords = true, bool zforward = false) noexcept;
 };

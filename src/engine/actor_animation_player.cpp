@@ -15,7 +15,7 @@ ActorAnimationPlayer::KeyframeScale::KeyframeScale() : TimePos(0.0f), Scale(1.0f
 
 ActorAnimationPlayer::KeyframeScale::~KeyframeScale() {}
 
-ActorAnimationPlayer::KeyframeRotation::KeyframeRotation() : TimePos(0.0f), RotationQuat(0.0f, 0.0f, 0.0f, 1.0f) {}
+ActorAnimationPlayer::KeyframeRotation::KeyframeRotation() : TimePos(0.0f), RotationQuat(1.0f, 0.0f, 0.0f, 0.0f) {}
 
 ActorAnimationPlayer::KeyframeRotation::~KeyframeRotation() {}
 
@@ -42,7 +42,7 @@ void ActorAnimationPlayer::ActorAnimation::Interpolate(float t, glm::mat4x4& tra
 
 	glm::vec3 S(1.0f, 1.0f, 1.0f);
 	glm::vec3 P(0.0f, 0.0f, 0.0f);
-	glm::quat Q(0.0f, 0.0f, 0.0f, 1.0f);
+	glm::quat Q(1.0f, 0.0f, 0.0f, 0.0f);
 
 	if (TranslationKeyframes.size() == 1) {
 		P = TranslationKeyframes.front().Translation;

@@ -171,7 +171,7 @@ ContainmentType BoundingOrientedBox::Contains(const BoundingSphere& sh) const no
 //-----------------------------------------------------------------------------
 ContainmentType BoundingOrientedBox::Contains(const BoundingBox& box) const noexcept {
     // Make the axis aligned box oriented and do an OBB vs OBB test.
-    BoundingOrientedBox obox(box.Center, box.Extents, glm::quat(0.0f, 0.0f, 0.0f, 1.0f));
+    BoundingOrientedBox obox(box.Center, box.Extents, glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
     return Contains(obox);
 }
 
@@ -282,7 +282,7 @@ bool BoundingOrientedBox::Intersects(const BoundingSphere& sh) const noexcept {
 //-----------------------------------------------------------------------------
 bool BoundingOrientedBox::Intersects(const BoundingBox& box) const noexcept {
     // Make the axis aligned box oriented and do an OBB vs OBB test.
-    BoundingOrientedBox obox(box.Center, box.Extents, glm::quat(0.0f, 0.0f, 0.0f, 1.0f));
+    BoundingOrientedBox obox(box.Center, box.Extents, glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
     return Intersects(obox);
 }
 
@@ -661,7 +661,7 @@ ContainmentType BoundingOrientedBox::ContainedBy(const glm::vec4& Plane0, const 
 void BoundingOrientedBox::CreateFromBoundingBox(BoundingOrientedBox& Out, const BoundingBox& box) noexcept {
     Out.Center = box.Center;
     Out.Extents = box.Extents;
-    Out.Orientation = glm::quat(0.0f, 0.0f, 0.0f, 1.0f);
+    Out.Orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 }
 
 
