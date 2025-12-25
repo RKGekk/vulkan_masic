@@ -64,7 +64,7 @@ struct BoundingOrientedBox;
 // the positive z-axis. Here, the near and far planes are trivially specified
 // by their distances along the z-axis, the left and right planes are symmetric
 // and pass through the origin, and the top and bottom planes are also
-// symmetric and pass through the origin.
+// symmetric and pass through the origin. Six frustum planes are “inward” facing
 //-----------------------------------------------------------------------------
 struct BoundingFrustum {
     static constexpr size_t CORNER_COUNT = 8;

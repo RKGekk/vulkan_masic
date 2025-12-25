@@ -1271,8 +1271,12 @@ void BoundingFrustum::GetPlanes(glm::vec4* NearPlane, glm::vec4* FarPlane, glm::
 //-----------------------------------------------------------------------------
 void BoundingFrustum::CreateFromMatrix(BoundingFrustum& Out, const glm::mat4x4& Projection, bool rhcoords, bool zforward) noexcept {
 
-    float forward =  zforward ? 1.0f : -1.0f;
+    // library takes the following strategy.
+    // In NDC space, the view frustum has been warped
+    // into the box [−1,1] × [−1,1] × [0,1]
 
+    float forward =  zforward ? 1.0f : -1.0f;
+    
     // Corners of the projection frustum in NDC space.
     static glm::vec4 NDCPoints[6] = {
         glm::vec4( 1.0f,  0.0f, 1.0f, 1.0f ), // right (at far plane)
@@ -1284,9 +1288,12 @@ void BoundingFrustum::CreateFromMatrix(BoundingFrustum& Out, const glm::mat4x4& 
         glm::vec4( 0.0f,  0.0f, 1.0f, 1.0f )  // far
     };
 
+    // compute the inverse of the projection matrix (as well is invert the homogeneous divide),
+    // to transform the eight corners from NDC space back to view space
     glm::mat4x4 matInverse = glm::inverse(Projection);
 
-    // Compute the frustum corners in world space.
+    // Compute the frustum corners in view space.
+    // In view space, the frustum is positioned at the origin, and axis aligned
     glm::vec4 Points[6];
 
     for (size_t i = 0u; i < 6u; ++i) {
