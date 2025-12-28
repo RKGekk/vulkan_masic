@@ -51,6 +51,8 @@ public:
     void SetTranslation4f(const glm::vec4& pos);
     void SetTranslation4x4f(const glm::mat4x4& pos);
 
+    void SetRotation(const glm::quat& pos);
+
     glm::vec3 GetLookAt() const;
     glm::vec3 GetLookRight() const;
     glm::vec3 GetLookUp() const;

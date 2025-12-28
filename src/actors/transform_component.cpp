@@ -136,6 +136,10 @@ void TransformComponent::SetTranslation4x4f(const glm::mat4x4& pos) {
     m_scene_node->SetTranslation4(pos[3]);
 }
 
+void TransformComponent::SetRotation(const glm::quat& rot) {
+    m_scene_node->SetRotation(rot);
+}
+
 glm::vec3 TransformComponent::GetLookAt() const {
     //glm::quat justRot = glm::normalize(glm::quat(m_scene_node->Get().ToParent()));
     glm::quat justRot = glm::normalize(glm::quat(m_scene_node->Get().FromParent()));

@@ -18,13 +18,15 @@ public:
 
     EvtData_Key_Released_Event();
     EvtData_Key_Released_Event(KeyEventArgs e);
-    EvtData_Key_Released_Event(WindowKey key, unsigned int c, KeyState state, bool control, bool shift, bool alt);
+    EvtData_Key_Released_Event(int native_key, WindowKey key, unsigned int c, KeyState state, bool control, bool shift, bool alt);
 
     virtual EventTypeId VGetEventType() const override;
     virtual void VSerialize(std::ostream& out) const override;
     virtual void VDeserialize(std::istream& in) override;
     virtual IEventDataPtr VCopy() const override;
     virtual const std::string& GetName() const override;
+
+    int GetNativeKey() const;
 
     // The Key Code that was pressed or released.
     WindowKey GetWindowKeyCode() const;

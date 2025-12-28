@@ -48,6 +48,8 @@ public:
 	void SetTranslation3(const glm::vec3& pos);
 	void SetTranslation4(const glm::vec4& pos);
 
+	void SetRotation(const glm::quat& pos);
+
 	void SetName(std::string name);
 	void SetNodeType(uint32_t flags);
 

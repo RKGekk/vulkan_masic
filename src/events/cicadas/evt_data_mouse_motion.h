@@ -18,7 +18,7 @@ public:
 
     EvtData_Mouse_Motion();
     EvtData_Mouse_Motion(MouseMotionEventArgs e);
-    EvtData_Mouse_Motion(bool left_button, bool middle_button, bool right_button, bool control, bool shift, int x, int y, int rel_x, int rel_y);
+    EvtData_Mouse_Motion(bool left_button, bool middle_button, bool right_button, bool control, bool shift, bool alt, int x, int y, int rel_x, int rel_y);
 
     virtual EventTypeId VGetEventType() const override;
     virtual void VSerialize(std::ostream& out) const override;
@@ -40,6 +40,9 @@ public:
     
     // Is the Shift key down?
     bool GetShift() const;
+
+    // Is the Alt key down?
+    bool GetAlt() const;
     
     // The X-position of the cursor relative to the upper-left corner of the client area (in pixels).
     int GetX() const;

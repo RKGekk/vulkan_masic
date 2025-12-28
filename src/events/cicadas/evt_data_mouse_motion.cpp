@@ -10,7 +10,7 @@ EvtData_Mouse_Motion::EvtData_Mouse_Motion() {}
 
 EvtData_Mouse_Motion::EvtData_Mouse_Motion(MouseMotionEventArgs e) : m_state(e) {}
 
-EvtData_Mouse_Motion::EvtData_Mouse_Motion(bool left_button, bool middle_button, bool right_button, bool control, bool shift, int x, int y, int rel_x, int rel_y) : m_state(left_button, middle_button, right_button, control, shift, x, y, rel_x, rel_y) {}
+EvtData_Mouse_Motion::EvtData_Mouse_Motion(bool left_button, bool middle_button, bool right_button, bool control, bool shift, bool alt, int x, int y, int rel_x, int rel_y) : m_state(left_button, middle_button, right_button, control, shift, alt, x, y, rel_x, rel_y) {}
 
 void EvtData_Mouse_Motion::VSerialize(std::ostream& out) const {}
 
@@ -42,6 +42,10 @@ bool EvtData_Mouse_Motion::GetControl() const {
 
 bool EvtData_Mouse_Motion::GetShift() const {
     return m_state.Shift;
+}
+
+bool EvtData_Mouse_Motion::GetAlt() const {
+    return m_state.Alt;
 }
 
 int EvtData_Mouse_Motion::GetX() const {

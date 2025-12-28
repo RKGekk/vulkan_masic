@@ -390,6 +390,7 @@ void WindowSurface::VRegisterEvents() {
         m_window,
         [](GLFWwindow* glfw_window, int glfw_key, int glfw_scancode, int glfw_action, int glfw_mods) {
             if (glfw_action == GLFW_REPEAT) return;
+
             WindowKey key = decodeGlfwKey(glfw_key);
             unsigned char c = decodeGlfwChar(glfw_key);
             //unsigned int c = static_cast<unsigned int>(glfw_scancode);
@@ -397,11 +398,11 @@ void WindowSurface::VRegisterEvents() {
             bool control = glfw_mods & GLFW_MOD_CONTROL != 0;
             bool alt = glfw_mods & GLFW_MOD_ALT != 0;
             if (glfw_action == GLFW_PRESS) {
-                KeyEventArgs key_event_args(key, c, KeyState::Pressed, control, shift, alt);
+                KeyEventArgs key_event_args(glfw_key, key, c, KeyState::Pressed, control, shift, alt);
                 Application::GetRenderWindow()->OnKeyPressed(key_event_args);
             }
             else if (glfw_action == GLFW_RELEASE) {
-                KeyEventArgs key_event_args(key, c, KeyState::Released, control, shift, alt);
+                KeyEventArgs key_event_args(glfw_key, key, c, KeyState::Released, control, shift, alt);
                 Application::GetRenderWindow()->OnKeyReleased(key_event_args);
             }
         }
@@ -427,17 +428,20 @@ void WindowSurface::VRegisterEvents() {
             int rshift_state = glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT);
             int lcontrol_state = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL);
             int rcontrol_state = glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL);
+            int lalt_state = glfwGetKey(window, GLFW_KEY_LEFT_ALT);
+            int ralt_state = glfwGetKey(window, GLFW_KEY_RIGHT_ALT);
             
             bool lButton = lButton_state == GLFW_PRESS;
             bool rButton = rButton_state == GLFW_PRESS;
             bool mButton = mButton_state == GLFW_PRESS;
             bool shift = lshift_state == GLFW_PRESS || rshift_state == GLFW_PRESS;
             bool control = lcontrol_state == GLFW_PRESS || rcontrol_state == GLFW_PRESS;
+            bool alt = lalt_state == GLFW_PRESS || ralt_state == GLFW_PRESS;
 
             int x = ((int)xpos);
             int y = ((int)ypos);
 
-            MouseMotionEventArgs mouse_motion_event_args(lButton, mButton, rButton, control, shift, x, y, 0, 0);
+            MouseMotionEventArgs mouse_motion_event_args(lButton, mButton, rButton, control, shift, alt, x, y, 0, 0);
             Application::GetRenderWindow()->OnMouseMoved(mouse_motion_event_args);
         }
     );
@@ -454,12 +458,15 @@ void WindowSurface::VRegisterEvents() {
             int rshift_state = glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT);
             int lcontrol_state = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL);
             int rcontrol_state = glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL);
+            int lalt_state = glfwGetKey(window, GLFW_KEY_LEFT_ALT);
+            int ralt_state = glfwGetKey(window, GLFW_KEY_RIGHT_ALT);
             
             bool lButton = lButton_state == GLFW_PRESS;
             bool rButton = rButton_state == GLFW_PRESS;
             bool mButton = mButton_state == GLFW_PRESS;
             bool shift = lshift_state == GLFW_PRESS || rshift_state == GLFW_PRESS;
             bool control = lcontrol_state == GLFW_PRESS || rcontrol_state == GLFW_PRESS;
+            bool alt = lalt_state == GLFW_PRESS || ralt_state == GLFW_PRESS;
 
             double xpos;
             double ypos;
@@ -468,11 +475,11 @@ void WindowSurface::VRegisterEvents() {
             int y = ((int)ypos);
 
             if(action == GLFW_PRESS) {
-                MBEventArgs mouse_button_event_args(DecodeMouseButton(button), MKState::Pressed, lButton, mButton, rButton, control, shift, x, y);
+                MBEventArgs mouse_button_event_args(DecodeMouseButton(button), MKState::Pressed, lButton, mButton, rButton, control, shift, alt, x, y);
                 Application::GetRenderWindow()->OnMouseButtonPressed(mouse_button_event_args);
             }
             else if(action == GLFW_RELEASE) {
-                MBEventArgs mouse_button_event_args(DecodeMouseButton(button), MKState::Released, lButton, mButton, rButton, control, shift, x, y);
+                MBEventArgs mouse_button_event_args(DecodeMouseButton(button), MKState::Released, lButton, mButton, rButton, control, shift, alt, x, y);
                 Application::GetRenderWindow()->OnMouseButtonReleased(mouse_button_event_args);
             }
         }
@@ -488,12 +495,15 @@ void WindowSurface::VRegisterEvents() {
             int rshift_state = glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT);
             int lcontrol_state = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL);
             int rcontrol_state = glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL);
+            int lalt_state = glfwGetKey(window, GLFW_KEY_RIGHT_ALT);
+            int ralt_state = glfwGetKey(window, GLFW_KEY_LEFT_ALT);
             
             bool lButton = lButton_state == GLFW_PRESS;
             bool rButton = rButton_state == GLFW_PRESS;
             bool mButton = mButton_state == GLFW_PRESS;
             bool shift = lshift_state == GLFW_PRESS || rshift_state == GLFW_PRESS;
             bool control = lcontrol_state == GLFW_PRESS || rcontrol_state == GLFW_PRESS;
+            bool alt = lalt_state == GLFW_PRESS || ralt_state == GLFW_PRESS;
 
             double xpos;
             double ypos;
@@ -502,7 +512,7 @@ void WindowSurface::VRegisterEvents() {
             int y = ((int)ypos);
             int z = ((int)yoffset);
 
-            MouseWheelEventArgs mouse_wheel_event_args(z, lButton, mButton, rButton, control, shift, x, y);
+            MouseWheelEventArgs mouse_wheel_event_args(z, lButton, mButton, rButton, control, shift, alt, x, y);
             Application::GetRenderWindow()->OnMouseWheel(mouse_wheel_event_args);
         }
     );

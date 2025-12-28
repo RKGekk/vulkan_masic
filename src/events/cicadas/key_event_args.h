@@ -9,8 +9,9 @@ enum class KeyState {
 
 struct KeyEventArgs {
     KeyEventArgs();
-    KeyEventArgs(WindowKey key, unsigned int c, KeyState state, bool control, bool shift, bool alt);
+    KeyEventArgs(int native_key, WindowKey key, unsigned int c, KeyState state, bool control, bool shift, bool alt);
 
+    int NativeKey;
     WindowKey Key; // The Key Code that was pressed or released.
     unsigned int Char; // The 32-bit character code that was pressed. This value will be 0 if it is a non-printable character.
     KeyState State; // Was the key pressed or released?

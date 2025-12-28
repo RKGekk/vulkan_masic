@@ -12,7 +12,7 @@ EvtData_Key_Released_Event::EvtData_Key_Released_Event() {}
 
 EvtData_Key_Released_Event::EvtData_Key_Released_Event(KeyEventArgs e) : m_state(e) {}
 
-EvtData_Key_Released_Event::EvtData_Key_Released_Event(WindowKey key, unsigned int c, KeyState state, bool control, bool shift, bool alt) : m_state(key, c, state, control, shift, alt) {}
+EvtData_Key_Released_Event::EvtData_Key_Released_Event(int native_key, WindowKey key, unsigned int c, KeyState state, bool control, bool shift, bool alt) : m_state(native_key, key, c, state, control, shift, alt) {}
 
 void EvtData_Key_Released_Event::VSerialize(std::ostream& out) const {}
 
@@ -25,6 +25,11 @@ IEventDataPtr EvtData_Key_Released_Event::VCopy() const {
 const std::string& EvtData_Key_Released_Event::GetName() const {
     return sk_EventName;
 }
+
+int EvtData_Key_Released_Event::GetNativeKey() const {
+    return m_state.NativeKey;
+}
+
 
 WindowKey EvtData_Key_Released_Event::GetWindowKeyCode() const {
     return m_state.Key;

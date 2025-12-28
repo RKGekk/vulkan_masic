@@ -10,7 +10,7 @@ EvtData_Mouse_Button_Pressed::EvtData_Mouse_Button_Pressed() {}
 
 EvtData_Mouse_Button_Pressed::EvtData_Mouse_Button_Pressed(MBEventArgs e) : m_state(e) {}
 
-EvtData_Mouse_Button_Pressed::EvtData_Mouse_Button_Pressed(MouseButtonSide button, MKState state, bool left_button, bool middle_button, bool right_button, bool control, bool shift, int x, int y) : m_state(button, state, left_button, middle_button, right_button, control, shift, x, y) {}
+EvtData_Mouse_Button_Pressed::EvtData_Mouse_Button_Pressed(MouseButtonSide button, MKState state, bool left_button, bool middle_button, bool right_button, bool control, bool shift, bool alt, int x, int y) : m_state(button, state, left_button, middle_button, right_button, control, shift, alt, x, y) {}
 
 void EvtData_Mouse_Button_Pressed::VSerialize(std::ostream& out) const {}
 
@@ -51,6 +51,11 @@ bool EvtData_Mouse_Button_Pressed::GetControl() const {
 bool EvtData_Mouse_Button_Pressed::GetShift() const {
     return m_state.Shift;
 }
+
+bool EvtData_Mouse_Button_Pressed::GetAlt() const {
+    return m_state.Alt;
+}
+
 
 int EvtData_Mouse_Button_Pressed::GetX() const {
     return m_state.X;

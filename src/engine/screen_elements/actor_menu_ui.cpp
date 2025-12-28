@@ -7,6 +7,7 @@
 #include "../../actors/actor.h"
 #include "../../actors/transform_component.h"
 #include "../../actors/camera_component.h"
+#include "../../actors/model_component.h"
 
 ActorMenuUI::ActorMenuUI() : m_actor_id(INVALID_ACTOR_ID) {
 }
@@ -57,8 +58,13 @@ bool ActorMenuUI::VOnRender(const GameTimerDelta& delta) {
 
 						if (ImGui::InputFloat4("Rq", ((float*)&rotation_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
 						if (ImGui::InputFloat3("Sc", ((float*)&scale_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-						if (ImGui::InputFloat3("Tr", ((float*)&translation_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-						if (ImGui::InputFloat3("Ypr", ((float*)&ypr_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {
+						//if (ImGui::InputFloat3("Tr", ((float*)&translation_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+						if(ImGui::SliderFloat3("Tr", ((float*)&translation_xm), -8.0f, 8.0f)) {
+							tc->SetTranslation3f(translation_xm);
+						}
+						//if (ImGui::InputFloat3("Ypr", ((float*)&ypr_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {
+						if(ImGui::SliderFloat3("YPR", ((float*)&ypr_xm), -180.0f, 180.0f)) {
+							rotation_xm = glm::eulerAngleYXZ(glm::radians(ypr_xm.x), glm::radians(ypr_xm.y), glm::radians(ypr_xm.z));
 							tc->SetTransform(translation_xm, rotation_xm, scale_xm);
 						}
 						ImGui::TreePop();
@@ -81,6 +87,13 @@ bool ActorMenuUI::VOnRender(const GameTimerDelta& delta) {
 						cc->SetFov(glm::radians(cc_fov));
 					}
 
+				}
+				std::shared_ptr<ModelComponent> mc = act->GetComponent<ModelComponent>().lock();
+				if(mc) {
+					ImGui::SeparatorText("ModelComponent");
+
+					const std::string& resource_name = mc->GetResourceName();
+					ImGui::Text(resource_name.c_str());
 				}
 			}
 			

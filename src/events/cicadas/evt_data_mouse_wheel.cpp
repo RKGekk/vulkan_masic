@@ -10,7 +10,7 @@ EvtData_Mouse_Wheel::EvtData_Mouse_Wheel(MouseWheelEventArgs e) : m_stat(e) {}
 
 EvtData_Mouse_Wheel::EvtData_Mouse_Wheel() {}
 
-EvtData_Mouse_Wheel::EvtData_Mouse_Wheel(float wheel_delta, bool left_button, bool middle_button, bool right_button, bool control, bool shift, int x, int y) : m_stat(wheel_delta, left_button, middle_button, right_button, control, shift, x, y) {}
+EvtData_Mouse_Wheel::EvtData_Mouse_Wheel(float wheel_delta, bool left_button, bool middle_button, bool right_button, bool control, bool shift, bool alt, int x, int y) : m_stat(wheel_delta, left_button, middle_button, right_button, control, shift, alt, x, y) {}
 
 void EvtData_Mouse_Wheel::VSerialize(std::ostream& out) const {}
 
@@ -46,6 +46,10 @@ bool EvtData_Mouse_Wheel::GetControl() const {
 
 bool EvtData_Mouse_Wheel::GetShift() const {
     return m_stat.Shift;
+}
+
+bool EvtData_Mouse_Wheel::GetAlt() const {
+    return m_stat.Alt;
 }
 
 int EvtData_Mouse_Wheel::GetX() const {

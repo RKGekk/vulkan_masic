@@ -98,6 +98,18 @@ void SceneNode::SetTranslation4(const glm::vec4& pos) {
     m_props.m_scene->setNodeLocalTransform(m_props.m_node_index, local_transform);
 }
 
+void SceneNode::SetRotation(const glm::quat& rot) {
+    glm::mat4x4 local_transform = m_props.m_scene->getNodeLocalTransform(m_props.m_node_index);
+
+    glm::mat4x4 mat_rot(rot);
+
+	local_transform[0] = mat_rot[0];
+	local_transform[1] = mat_rot[1];
+	local_transform[2] = mat_rot[2];
+
+    m_props.m_scene->setNodeLocalTransform(m_props.m_node_index, local_transform);
+}
+
 void SceneNode::SetName(std::string name) {
     m_props.m_scene->setNodeName(m_props.m_node_index, name);
 }
