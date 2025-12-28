@@ -58,7 +58,9 @@ bool ActorMenuUI::VOnRender(const GameTimerDelta& delta) {
 						if (ImGui::InputFloat4("Rq", ((float*)&rotation_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
 						if (ImGui::InputFloat3("Sc", ((float*)&scale_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
 						if (ImGui::InputFloat3("Tr", ((float*)&translation_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-						if (ImGui::InputFloat3("Ypr", ((float*)&ypr_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+						if (ImGui::InputFloat3("Ypr", ((float*)&ypr_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {
+							tc->SetTransform(translation_xm, rotation_xm, scale_xm);
+						}
 						ImGui::TreePop();
 					}
 				}
@@ -74,7 +76,10 @@ bool ActorMenuUI::VOnRender(const GameTimerDelta& delta) {
 
 					float cc_fov = cc->GetFov();
 					cc_fov = glm::degrees(cc_fov);
-					if (ImGui::InputFloat("Fov", ((float*)&cc_fov), 0.0f, 0.0f, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+					//if (ImGui::InputFloat("Fov", ((float*)&cc_fov), 0.0f, 0.0f, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+					if(ImGui::SliderFloat("Fov", ((float*)&cc_fov), 30.0f, 120.0f)) {
+						cc->SetFov(glm::radians(cc_fov));
+					}
 
 				}
 			}

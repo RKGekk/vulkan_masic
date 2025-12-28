@@ -7,12 +7,12 @@ BasicCameraNode::BasicCameraNode(std::shared_ptr<Scene> scene, const std::string
 	: CameraNode(std::move(scene), std::move(name), camera_transform, parent)
 	, m_fovy(fovy)
 	, m_aspect(aspect) {
-	SetData(Get().ToRoot(), glm::perspective(fovy, aspect, near_clip, far_clip));
+	SetData(Get().ToParent(), glm::perspective(fovy, aspect, near_clip, far_clip));
 }
 
 BasicCameraNode::BasicCameraNode(std::shared_ptr<Scene> scene, const std::string& name, const glm::mat4x4& camera_transform, const glm::mat4x4& proj, Scene::NodeIndex parent)
 	: CameraNode(std::move(scene), std::move(name), camera_transform, parent) {
-	SetData(Get().ToRoot(), proj);
+	SetData(Get().ToParent(), proj);
 }
 
 BasicCameraNode::BasicCameraNode(std::shared_ptr<Scene> scene, const std::string& name, const BoundingFrustum& frustum, Scene::NodeIndex parent) 
@@ -25,12 +25,12 @@ BasicCameraNode::BasicCameraNode(std::shared_ptr<Scene> scene, Scene::NodeIndex 
 	, m_fovy(fovy)
 	, m_aspect(aspect) {
 	
-	SetData(Get().ToRoot(), glm::perspective(fovy, aspect, near_clip, far_clip));
+	SetData(Get().ToParent(), glm::perspective(fovy, aspect, near_clip, far_clip));
 }
 
 BasicCameraNode::BasicCameraNode(std::shared_ptr<Scene> scene, Scene::NodeIndex node_index, const glm::mat4x4& proj) 
 	: CameraNode(std::move(scene), node_index) {
-	SetData(Get().ToRoot(), proj);
+	SetData(Get().ToParent(), proj);
 }
 
 BasicCameraNode::BasicCameraNode(std::shared_ptr<Scene> scene, Scene::NodeIndex node_index, const BoundingFrustum& frustum)
@@ -43,7 +43,7 @@ bool BasicCameraNode::VOnRestore() {
 	if (m_aspect == new_aspect) return true;
 
 	m_aspect = new_aspect;
-	SetData(m_props.ToRoot(), glm::perspective(m_fovy, m_aspect, m_frustum.Near, m_frustum.Far));
+	SetData(m_props.ToParent(), glm::perspective(m_fovy, m_aspect, m_frustum.Near, m_frustum.Far));
 
 	return CameraNode::VOnRestore();
 }
@@ -58,14 +58,14 @@ const BoundingFrustum& BasicCameraNode::GetFrustum() const {
 }
 
 void BasicCameraNode::UpdateFrustum() {
-	SetData(Get().ToRoot(), m_projection);
+	SetData(Get().ToParent(), m_projection);
 }
 
 void BasicCameraNode::SetFovYRad(float fovy) {
 	if (m_fovy == fovy) return;
 
 	m_fovy = fovy;
-	SetData(m_props.ToRoot(), glm::perspective(m_fovy, m_aspect, m_frustum.Near, m_frustum.Far));
+	SetData(m_props.ToParent(), glm::perspective(m_fovy, m_aspect, m_frustum.Near, m_frustum.Far));
 }
 
 void BasicCameraNode::SetFovYDeg(float fovy) {
@@ -107,17 +107,14 @@ void BasicCameraNode::SetProjection(const BoundingFrustum& frustum) {
 }
 
 void BasicCameraNode::SetProjection(float fovy, float aspect, float near_clip, float far_clip) {
-	SetData(Get().ToRoot(), glm::perspective(fovy, aspect, near_clip, far_clip));
+	SetData(Get().ToParent(), glm::perspective(fovy, aspect, near_clip, far_clip));
 }
 
 void BasicCameraNode::SetData(const glm::mat4x4& camera_transform, const glm::mat4x4& proj) {
-	m_projection = proj;
-	m_projection[1].y *= -1.0f;
-	m_frustum = BoundingFrustum(m_projection);
-	m_frustum.Origin = glm::vec3(camera_transform[3].x, camera_transform[3].y, camera_transform[3].z);
-	m_frustum.Orientation = glm::quat(camera_transform);
-	m_fovy = 2.0f * atanf(1.0f / m_projection[1].y) * -1.0f;
-	m_aspect = m_projection[1].y / m_projection[0].x;
+	BoundingFrustum frustum(proj);
+	frustum.Origin = glm::vec3(camera_transform[3].x, camera_transform[3].y, camera_transform[3].z);
+	frustum.Orientation = frustum.Orientation * glm::quat(camera_transform);
+	SetData(frustum);
 }
 
 void BasicCameraNode::SetData(const BoundingFrustum& frustum) {
@@ -126,7 +123,7 @@ void BasicCameraNode::SetData(const BoundingFrustum& frustum) {
 	SetTranslation3(frustum.Origin);
 
 	m_fovy = 2.0f * atanf(frustum.TopSlope);
-	m_aspect = frustum.TopSlope / frustum.RightSlope;
+	m_aspect = frustum.RightSlope / frustum.TopSlope;
 
     m_projection = glm::perspective(m_fovy, m_aspect, frustum.Near, frustum.Far);
     m_projection[1].y *= -1.0f;

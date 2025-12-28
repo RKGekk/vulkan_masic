@@ -1302,18 +1302,19 @@ void BoundingFrustum::CreateFromMatrix(BoundingFrustum& Out, const glm::mat4x4& 
     }
 
     Out.Origin = glm::vec3(0.0f, 0.0f, 0.0f);
-    if(zforward) {
-        Out.Orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-    }
-    else {
-        Out.Orientation = glm::angleAxis(glm::pi<float>(), glm::vec3(0.0f, 1.0f, 0.0f));
-    }
+    Out.Orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+    // if(zforward) {
+    //     Out.Orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+    // }
+    // else {
+    //     Out.Orientation = glm::angleAxis(glm::pi<float>(), glm::vec3(0.0f, 1.0f, 0.0f));
+    // }
 
     // Compute the slopes.
     Points[0] = Points[0] * (1.0f / Points[0].z) * forward;
     Points[1] = Points[1] * (1.0f / Points[1].z) * forward;
-    Points[2] = Points[2] * (1.0f / Points[2].z);
-    Points[3] = Points[3] * (1.0f / Points[3].z);
+    Points[2] = Points[2] * (1.0f / Points[2].z) * forward;
+    Points[3] = Points[3] * (1.0f / Points[3].z) * forward;
 
     Out.RightSlope = Points[0].x;
     Out.LeftSlope = Points[1].x;
