@@ -106,8 +106,15 @@ const Scene::Hierarchy& Scene::getNodeHierarchy(Scene::NodeIndex node_index) con
     return m_hierarchy[node_index];
 }
 
+const std::vector<Scene::Hierarchy>& Scene::getHierarchy() const {
+    return m_hierarchy;
+}
+
 Scene::NodeTypeFlags Scene::getNodeTypeFlags(Scene::NodeIndex node_index) const {
-    return m_node_type_flags_map.at(node_index);
+    if(m_node_type_flags_map.contains(node_index)) {
+        return m_node_type_flags_map.at(node_index);
+    }
+    else return NODE_TYPE_FLAG_NONE;
 }
 
 std::shared_ptr<Scene::Properties> Scene::getProperties(Scene::NodeIndex node_index) {
@@ -124,17 +131,34 @@ std::shared_ptr<SceneNode> Scene::getProperty(NodeIndex node_index, NodeType nod
 
 void Scene::addProperty(std::shared_ptr<SceneNode> property, NodeIndex node_index) {
     if (node_index == NO_INDEX) node_index = property->VGetNodeIndex();
-    Scene::PropertyIndex property_index;
     if(!m_node_property_map.contains(node_index)) {
-        property_index = m_properties.size();
+        Scene::PropertyIndex property_index = m_properties.size();
         m_node_property_map[node_index] = property_index;
         Properties new_props;
         new_props[property->Get().GetNodeType()] = property;
         m_properties.push_back(std::make_shared<Properties>(std::move(new_props)));
+
+        m_node_type_flags_map[node_index] = property->Get().GetNodeType();
+        
         return;
     }
-    property_index = m_node_property_map[node_index];
+
+    m_node_type_flags_map[node_index] |= property->Get().GetNodeType();
+
+    Scene::PropertyIndex property_index = m_node_property_map[node_index];
     m_properties[property_index]->operator[](property->Get().GetNodeType()) = std::move(property);
+}
+
+const std::unordered_map<Scene::NodeIndex, Scene::NodeTypeFlags>& Scene::getNodeTypeFlagsMap() const {
+    return m_node_type_flags_map;
+}
+
+const std::unordered_map<Scene::NodeIndex, Scene::PropertyIndex>& Scene::getNodePropertyMap() const {
+    return m_node_property_map;
+}
+
+const std::vector<std::shared_ptr<Scene::Properties>>& Scene::getProperties() const {
+    return m_properties;
 }
 
 void Scene::setNodeName(NodeIndex node_index, std::string name) {
@@ -146,6 +170,14 @@ void Scene::setNodeName(NodeIndex node_index, std::string name) {
     const Scene::NameIndex name_index = m_node_names.size();
     m_node_names.push_back(std::move(name));
     m_node_name_map[node_index] = name_index;
+}
+
+const std::vector<std::string>& Scene::getNodeNames() const {
+    return m_node_names;
+}
+
+const std::unordered_map<Scene::NodeIndex, Scene::NameIndex>& Scene::getNodeNameMap() const {
+    return m_node_name_map;
 }
 
 int Scene::getNodeLevel(Scene::NodeIndex node_index) const {

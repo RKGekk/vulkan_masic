@@ -3,13 +3,14 @@
 #include <imgui.h>
 
 #include "../../application.h"
-#include "../base_engine_logic.h"
 #include "../../actors/actor.h"
+#include "../base_engine_logic.h"
 #include "../../actors/transform_component.h"
 #include "../../actors/camera_component.h"
 #include "../../actors/model_component.h"
 
 ActorMenuUI::ActorMenuUI() : m_actor_id(INVALID_ACTOR_ID) {
+	
 }
 
 ActorMenuUI::~ActorMenuUI() {}
@@ -27,8 +28,8 @@ bool ActorMenuUI::VOnRender(const GameTimerDelta& delta) {
 		if (ImGui::CollapsingHeader("Actors")) {
             ImGui::InputInt("Actor ID", &m_actor_id);
 
-            Application& app = Application::Get();
-            std::shared_ptr<BaseEngineLogic> game_logic = app.GetGameLogic();
+			Application& app = Application::Get();
+    		std::shared_ptr<BaseEngineLogic> game_logic = app.GetGameLogic();
             std::shared_ptr<Actor> act = game_logic->VGetActor(m_actor_id).lock();
 			if (act) {
 				ImGui::Text(act->GetName().c_str());

@@ -65,17 +65,23 @@ public:
 
     const std::string& getNodeName(NodeIndex node_index) const;
 	void setNodeName(NodeIndex node_index, std::string name);
+	const std::vector<std::string>& getNodeNames() const;
+	const std::unordered_map<NodeIndex, NameIndex>& getNodeNameMap() const;
 
 	const glm::mat4& getNodeLocalTransform(NodeIndex node_index) const;
 	void setNodeLocalTransform(NodeIndex node_index, const glm::mat4& local_transform);
 
 	const glm::mat4& getNodeGlobalTransform(NodeIndex node_index) const;
 	const Hierarchy& getNodeHierarchy(NodeIndex node_index) const;
+	const std::vector<Hierarchy>& getHierarchy() const;
 	NodeTypeFlags getNodeTypeFlags(NodeIndex node_index) const;
 
 	std::shared_ptr<Properties> getProperties(NodeIndex node_index);
 	std::shared_ptr<SceneNode> getProperty(NodeIndex node_index, NodeType node_type = NODE_TYPE_FLAG_NONE);
 	void addProperty(std::shared_ptr<SceneNode> property, NodeIndex node_index = NO_INDEX);
+	const std::unordered_map<NodeIndex, NodeTypeFlags>& getNodeTypeFlagsMap() const;
+	const std::unordered_map<NodeIndex, PropertyIndex>& getNodePropertyMap() const;
+	const std::vector<std::shared_ptr<Properties>>& getProperties() const;
 
     int getNodeLevel(NodeIndex node_index) const;
     bool recalculateGlobalTransforms();

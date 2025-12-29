@@ -5,12 +5,12 @@
 
 #include "base_ui.h"
 
-class BaseEngineLogic;
+class Scene;
 
-class ActorMenuUI : public BaseUI {
+class NodeMenuUI : public BaseUI {
 public:
-	ActorMenuUI();
-	virtual ~ActorMenuUI();
+	NodeMenuUI();
+	virtual ~NodeMenuUI();
 
 	virtual bool VOnRestore() override;
 	virtual bool VOnRender(const GameTimerDelta& delta) override;
@@ -20,5 +20,5 @@ public:
 	virtual void VSetZOrder(int const zOrder) override;
 
 private:
-    int m_actor_id;
+    
 };

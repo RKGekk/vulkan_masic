@@ -10,7 +10,6 @@
 #include "../../events/cicadas/evt_data_mouse_button_released.h"
 #include "../../events/cicadas/evt_data_key_pressed_event.h"
 #include "../../events/cicadas/evt_data_key_released_event.h"
-
 #include "../../events/cicadas/evt_data_mouse_wheel.h"
 
 const std::string HumanView::g_name = "Level"s;
@@ -26,6 +25,12 @@ HumanView::HumanView(std::shared_ptr<ProcessManager> process_manager) {
 
 	m_bShow_ui = false;
 	m_bShow_debug_ui = Application::Get().GetApplicationOptions().DebugUI;
+
+	RegisterAllDelegates();
+	m_base_game_state = BaseEngineState::BGS_Initializing;
+
+	m_scene = std::make_shared<ScreenElementScene>();
+
 	if (m_bShow_debug_ui) {
 		m_test_menu_ui = std::make_shared<TestMenuUI>();
 		VPushElement(m_test_menu_ui);
@@ -33,15 +38,13 @@ HumanView::HumanView(std::shared_ptr<ProcessManager> process_manager) {
 		m_actor_menu_ui = std::make_shared<ActorMenuUI>();
 		VPushElement(m_actor_menu_ui);
 
+		m_node_menu_ui = std::make_shared<NodeMenuUI>();
+		VPushElement(m_node_menu_ui);
+
 		m_gui = std::make_shared<ImGUIDrawable>();
     	m_gui->init(device, renderer.getRenderTarget(), renderer.getSwapchain()->getMaxFrames());
 		renderer.addDrawable(m_gui);
 	}
-
-	RegisterAllDelegates();
-	m_base_game_state = BaseEngineState::BGS_Initializing;
-
-	m_scene = std::make_shared<ScreenElementScene>();
 	
 	m_current_tick = {};
 	m_last_draw = {};
