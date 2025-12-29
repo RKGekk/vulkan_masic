@@ -180,7 +180,21 @@ bool NodeMenuUI::VOnRender(const GameTimerDelta& delta) {
 
                         ImGui::SeparatorText("Node Types");
 
+                        std::shared_ptr<SceneNode> pMeshNode = scene->getProperty(node_index, Scene::NODE_TYPE_FLAG_MESH);
+                        if(pMeshNode) {
+                            std::shared_ptr<MeshNode> pMesh = std::dynamic_pointer_cast<MeshNode>(pMeshNode);
+                            
+                        }
 
+                        std::shared_ptr<SceneNode> pCameraNode = scene->getProperty(node_index, Scene::NODE_TYPE_FLAG_CAMERA);
+                        if(pCameraNode) {
+                            std::shared_ptr<CameraNode> pCamera = std::dynamic_pointer_cast<CameraNode>(pCameraNode);
+                        }
+
+                        std::shared_ptr<SceneNode> pAABBNode = scene->getProperty(node_index, Scene::NODE_TYPE_FLAG_AABB);
+                        if(pAABBNode) {
+                            std::shared_ptr<AABBNode> pAABB = std::dynamic_pointer_cast<AABBNode>(pAABBNode);
+                        }
                         
 						ImGui::TreePop();
 					}
