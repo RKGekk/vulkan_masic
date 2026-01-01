@@ -549,6 +549,18 @@ void printMeshNodeImGUI(std::shared_ptr<MeshNode> pMesh) {
             ImGui::TreePop();
         }
 
+        if(ImGui::TreeNode("BoundingBox")) {
+            const BoundingBox& bounding_box = mode_data->GetAABB();
+            const BoundingSphere& bounding_sphere = mode_data->GetSphere();
+
+            if (ImGui::InputFloat3("BBCenter", ((float*)&bounding_box.Center), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+            if (ImGui::InputFloat3("BBExtents", ((float*)&bounding_box.Extents), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+            if (ImGui::InputFloat3("BSCenter", ((float*)&bounding_sphere.Center), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+            if (ImGui::InputFloat("BSRadius", const_cast<float*>(&bounding_sphere.Radius), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+
+            ImGui::TreePop();
+        }
+
         ImGui::PopID();
     }
 }
@@ -644,7 +656,6 @@ bool NodeMenuUI::VOnRender(const GameTimerDelta& delta) {
                         if(pMeshNode && ImGui::TreeNode("Mesh")) {
                             std::shared_ptr<MeshNode> pMesh = std::dynamic_pointer_cast<MeshNode>(pMeshNode);
                             printMeshNodeImGUI(pMesh);
-
                             ImGui::TreePop();
                         }
 
