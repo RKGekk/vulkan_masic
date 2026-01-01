@@ -362,6 +362,197 @@ std::string getMaterialTextures(uint32_t has_texture) {
     return res;
 }
 
+std::string getNodeFlagsStr(Scene::NodeTypeFlags node_type_flags) {
+    std::string node_type_flags_str = "f"s;
+    if(!node_type_flags) node_type_flags_str += "/N"s;
+    if(node_type_flags & Scene::NODE_TYPE_FLAG_MESH) node_type_flags_str += "/M"s;
+    if(node_type_flags & Scene::NODE_TYPE_FLAG_LIGHT) node_type_flags_str += "/L"s;
+    if(node_type_flags & Scene::NODE_TYPE_FLAG_CAMERA) node_type_flags_str += "/C"s;
+    if(node_type_flags & Scene::NODE_TYPE_FLAG_SHADOW_CAMERA) node_type_flags_str += "/Sh"s;
+    if(node_type_flags & Scene::NODE_TYPE_FLAG_AABB) node_type_flags_str += "/AABB"s;
+    if(node_type_flags & Scene::NODE_TYPE_FLAG_SPHERE) node_type_flags_str += "/Sp"s;
+    if(node_type_flags & Scene::NODE_TYPE_FLAG_BONE) node_type_flags_str += "/B"s;
+    return node_type_flags_str;
+}
+
+std::string getSummaryForHierarchyStr(Scene::NodeIndex node_index, Scene::Hierarchy hierarchy_node, Scene::NodeTypeFlags node_type_flags, std::string node_name) {
+    std::string node_type_flags_str = getNodeFlagsStr(node_type_flags);
+
+    std::string header = "i"s + std::to_string(node_index)
+                       + " p"s + (hierarchy_node.parent != Scene::NO_INDEX ? std::to_string(hierarchy_node.parent) : "N"s)
+                       + " c"s + (hierarchy_node.first_child != Scene::NO_INDEX ? std::to_string(hierarchy_node.first_child) : "N"s)
+                       + " s"s + (hierarchy_node.next_sibling != Scene::NO_INDEX ? std::to_string(hierarchy_node.next_sibling) : "N"s)
+                       + " l"s + std::to_string(hierarchy_node.level)
+                       + " "s + node_type_flags_str
+                       + " "s + node_name;
+
+    return header;
+}
+
+void printMatrixImGUI(const glm::mat4& matrix) {
+    if (ImGui::InputFloat4("R1", ((float*)&matrix) + 0, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+    if (ImGui::InputFloat4("R2", ((float*)&matrix) + 4, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+    if (ImGui::InputFloat4("R3", ((float*)&matrix) + 8, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+    if (ImGui::InputFloat4("R4", ((float*)&matrix) + 12, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}    
+}
+
+void printDecomposedMatrixImGUI(glm::mat4 matrix) {
+    glm::vec3 scale_xm;
+	glm::quat rotation_xm;
+	glm::vec3 translation_xm;
+
+    translation_xm = matrix[3];
+
+    for (int i = 0; i < 3; ++i) {
+        scale_xm[i] = glm::length(matrix[i]);
+        matrix[i] /= scale_xm[i];
+    }
+                        
+    rotation_xm = glm::toQuat(matrix);
+
+	glm::vec3 pyr_xm = glm::eulerAngles(rotation_xm);
+	glm::vec3 ypr_xm(
+		glm::degrees(pyr_xm.y),
+		glm::degrees(pyr_xm.x),
+		glm::degrees(pyr_xm.z)
+	);
+
+	if (ImGui::InputFloat4("Rq", ((float*)&rotation_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+	if (ImGui::InputFloat3("Sc", ((float*)&scale_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+	if (ImGui::InputFloat3("Tr", ((float*)&translation_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+	if (ImGui::InputFloat3("Ypr", ((float*)&ypr_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+}
+
+void printVulkanBufferImGUI(std::shared_ptr<VulkanBuffer> vk_buffer) {
+    int vtx_buff_sz = vk_buffer->getSize();
+    ImGui::InputInt("BufferSize", &vtx_buff_sz, 0, 0, ImGuiInputTextFlags_ReadOnly);
+
+    std::string vtx_mem_prop_str = getMemoryPropertyStr(vk_buffer->getProperties());
+    ImGui::InputText("BufferMemoryProperty", const_cast<char*>(vtx_mem_prop_str.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
+
+    std::string vtx_usage_str = getBufferUsageStr(vk_buffer->getUsage());
+    ImGui::InputText("BufferUsage", const_cast<char*>(vtx_usage_str.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
+}
+
+void printVertexBufferImGUI(std::shared_ptr<VertexBuffer> vtx, VkPrimitiveTopology topology) {
+    if(!vtx) return;
+
+    std::string topology_str = getPrimitiveTopologyStr(topology);
+    ImGui::InputText("PrimitiveTopology", const_cast<char*>(topology_str.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
+
+    int index_count = vtx->getIndicesCount();
+	ImGui::InputInt("IndexCount", &index_count, 0, 0, ImGuiInputTextFlags_ReadOnly);
+
+    int vertex_count = vtx->getVertexCount();
+	ImGui::InputInt("VertexCount", &vertex_count, 0, 0, ImGuiInputTextFlags_ReadOnly);
+
+    VkIndexType index_type = vtx->getIndexType();
+    std::string index_type_str = index_type == VK_INDEX_TYPE_UINT16 ? "UINT16"s : "UINT32"s;
+    ImGui::InputText("IndexType", const_cast<char*>(index_type_str.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
+
+    ImGui::SeparatorText("vkVertexBuffer");
+    ImGui::PushID("vkVertexBuffer");
+    printVulkanBufferImGUI(vtx->getVertexBuffer());
+    ImGui::PopID();
+
+    ImGui::SeparatorText("vkIndexBuffer");
+    ImGui::PushID("vkIndexBuffer");
+    printVulkanBufferImGUI(vtx->getIndexBuffer());
+    ImGui::PopID();
+
+    if(ImGui::TreeNode("VertexInputBindingDescription")) {
+        VkPipelineVertexInputStateCreateInfo vtx_input_desc = vtx->getVertextInputInfo();
+        size_t bind_sz = vtx_input_desc.vertexBindingDescriptionCount;
+        for(size_t b = 0u; b < bind_sz; ++b) {
+            ImGui::PushID(b);
+
+            VkVertexInputBindingDescription bind_desc = vtx_input_desc.pVertexBindingDescriptions[b];
+
+            ImGui::Text(("InputDescription"s + std::to_string(b)).c_str());
+
+            int binding = bind_desc.binding;
+            ImGui::InputInt("binding", &binding, 0, 0, ImGuiInputTextFlags_ReadOnly);
+
+            int stride = bind_desc.stride;
+            ImGui::InputInt("stride", &stride, 0, 0, ImGuiInputTextFlags_ReadOnly);
+
+            std::string input_rate_str = bind_desc.inputRate == VK_VERTEX_INPUT_RATE_VERTEX ? "per vertex"s : "per instance"s;
+            ImGui::InputText("inputRate", const_cast<char*>(input_rate_str.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
+
+            ImGui::PopID();
+        }
+
+         ImGui::SeparatorText("VertexInputAttributeDescription");
+         size_t attrib_sz = vtx_input_desc.vertexAttributeDescriptionCount;
+         for(size_t a = 0u; a < attrib_sz; ++a) {
+            ImGui::PushID(a + bind_sz);
+
+            VkVertexInputAttributeDescription attr_desc = vtx_input_desc.pVertexAttributeDescriptions[a];
+
+            ImGui::Text(("AttributeDescription"s + std::to_string(a)).c_str());
+
+            int binding = attr_desc.binding;
+            ImGui::InputInt("binding", &binding, 0, 0, ImGuiInputTextFlags_ReadOnly);
+
+            int location = attr_desc.location;
+            ImGui::InputInt("location", &location, 0, 0, ImGuiInputTextFlags_ReadOnly);
+
+            std::string format_str = getFormatStr(attr_desc.format);
+            ImGui::InputText("format", const_cast<char*>(format_str.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
+
+            int offset = attr_desc.offset;
+            ImGui::InputInt("offset", &offset, 0, 0, ImGuiInputTextFlags_ReadOnly);
+
+            ImGui::PopID();
+        }
+
+        ImGui::TreePop();
+    }
+}
+
+void printMeshNodeImGUI(std::shared_ptr<MeshNode> pMesh) {
+    if(!pMesh) return;
+
+    const MeshNode::MeshList& mesh_list = pMesh->GetMeshes();
+    for(std::shared_ptr<ModelData> mode_data : mesh_list) {
+        ImGui::PushID(mode_data->GetName().c_str());
+
+        ImGui::SeparatorText(mode_data->GetName().c_str());
+
+        std::shared_ptr<VertexBuffer> vtx = mode_data->GetVertexBuffer();
+
+        if(vtx && ImGui::TreeNode("VertexBuffer")) {
+            printVertexBufferImGUI(vtx, mode_data->GetPrimitiveTopology());
+
+            ImGui::TreePop();
+        }
+
+        std::shared_ptr<Material> material = mode_data->GetMaterial();
+        if(material && ImGui::TreeNode("Material")) {
+            const MaterialProperties& mat_prop = material->GetMaterialProperties();
+
+            if (ImGui::ColorEdit4("Diffuse", ((float*)&mat_prop.Diffuse) + 0)) {};
+            if (ImGui::ColorEdit4("Specular", ((float*)&mat_prop.Specular) + 0)) {}
+            if (ImGui::ColorEdit4("Emissive", ((float*)&mat_prop.Emissive) + 0)) {}
+            if (ImGui::ColorEdit4("Ambient", ((float*)&mat_prop.Ambient) + 0)) {}
+            if (ImGui::ColorEdit4("Reflectance", ((float*)&mat_prop.Reflectance) + 0)) {}
+            if (ImGui::InputFloat("Opacity", const_cast<float*>(&mat_prop.Opacity), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+            if (ImGui::InputFloat("SpecularPower", const_cast<float*>(&mat_prop.SpecularPower), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+            if (ImGui::InputFloat("IndexOfRefraction", const_cast<float*>(&mat_prop.IndexOfRefraction), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+            if (ImGui::InputFloat("BumpIntensity", const_cast<float*>(&mat_prop.BumpIntensity), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+            if (ImGui::InputFloat("metallicFactor", const_cast<float*>(&mat_prop.metallicFactor), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+            if (ImGui::InputFloat("roughnessFactor", const_cast<float*>(&mat_prop.roughnessFactor), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+                                    
+            std::string mat_textures_str = getMaterialTextures(mat_prop.HasTexture);
+            ImGui::InputText("HasTextures", const_cast<char*>(mat_textures_str.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
+
+            ImGui::TreePop();
+        }
+
+        ImGui::PopID();
+    }
+}
+
 bool NodeMenuUI::VOnRender(const GameTimerDelta& delta) {
     using namespace std::literals;
 
@@ -380,27 +571,12 @@ bool NodeMenuUI::VOnRender(const GameTimerDelta& delta) {
                 const Scene::Hierarchy& hierarchy_node = scene->getNodeHierarchy(node_index);
 
                 Scene::NodeTypeFlags node_type_flags = scene->getNodeTypeFlags(node_index);
-                std::string node_type_flags_str = "f"s;
-                if(!node_type_flags) node_type_flags_str += "/N"s;
-                if(node_type_flags & Scene::NODE_TYPE_FLAG_MESH) node_type_flags_str += "/M"s;
-                if(node_type_flags & Scene::NODE_TYPE_FLAG_LIGHT) node_type_flags_str += "/L"s;
-                if(node_type_flags & Scene::NODE_TYPE_FLAG_CAMERA) node_type_flags_str += "/C"s;
-                if(node_type_flags & Scene::NODE_TYPE_FLAG_SHADOW_CAMERA) node_type_flags_str += "/Sh"s;
-                if(node_type_flags & Scene::NODE_TYPE_FLAG_AABB) node_type_flags_str += "/AABB"s;
-                if(node_type_flags & Scene::NODE_TYPE_FLAG_SPHERE) node_type_flags_str += "/Sp"s;
-                if(node_type_flags & Scene::NODE_TYPE_FLAG_BONE) node_type_flags_str += "/B"s;
 
                 const std::unordered_map<Scene::NodeIndex, Scene::NameIndex>& node_name_map = scene->getNodeNameMap();
                 const std::vector<std::string>& node_names = scene->getNodeNames();
                 std::string node_name = node_name_map.contains(node_index) ? "--> n-"s + node_names.at(node_name_map.at(node_index)) : "-- > n-N"s;
 
-                std::string header = "i"s + std::to_string(node_index)
-                                   + " p"s + (hierarchy_node.parent != Scene::NO_INDEX ? std::to_string(hierarchy_node.parent) : "N"s)
-                                   + " c"s + (hierarchy_node.first_child != Scene::NO_INDEX ? std::to_string(hierarchy_node.first_child) : "N"s)
-                                   + " s"s + (hierarchy_node.next_sibling != Scene::NO_INDEX ? std::to_string(hierarchy_node.next_sibling) : "N"s)
-                                   + " l"s + std::to_string(hierarchy_node.level)
-                                   + " "s + node_type_flags_str
-                                   + " "s + node_name;
+                std::string header = getSummaryForHierarchyStr(node_index, hierarchy_node, node_type_flags, node_name);
                 if (ImGui::TreeNode(header.c_str())) {
                     if (ImGui::TreeNode("Hierarchy")) {
 						if (ImGui::BeginTable("Hierarchy Table", 3)) {
@@ -436,85 +612,29 @@ bool NodeMenuUI::VOnRender(const GameTimerDelta& delta) {
 
                         if(scene->getNodeTypeFlagsMap().contains(node_index)) {
                             std::string node_type_flags_raw = std::to_string(node_type_flags);
-                            std::string node_type_v = node_type_flags_raw + " --> " + node_type_flags_str;
+                            std::string node_type_v = node_type_flags_raw + " --> "s + getNodeFlagsStr(node_type_flags);
                             ImGui::InputText("Type Flags", const_cast<char*>(node_type_v.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
                         }
 
                         ImGui::SeparatorText("Transforms");
 
                         if (ImGui::TreeNode("Local Transform")) {
-        					if (ImGui::InputFloat4("R1", ((float*)&scene->getNodeLocalTransform(node_index)) + 0, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-        					if (ImGui::InputFloat4("R2", ((float*)&scene->getNodeLocalTransform(node_index)) + 4, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-        					if (ImGui::InputFloat4("R3", ((float*)&scene->getNodeLocalTransform(node_index)) + 8, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-        					if (ImGui::InputFloat4("R4", ((float*)&scene->getNodeLocalTransform(node_index)) + 12, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+                            printMatrixImGUI(scene->getNodeLocalTransform(node_index));
         					ImGui::TreePop();
         				}
 
                         if (ImGui::TreeNode("Global Transform")) {
-        					if (ImGui::InputFloat4("R1", ((float*)&scene->getNodeGlobalTransform(node_index)) + 0, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-        					if (ImGui::InputFloat4("R2", ((float*)&scene->getNodeGlobalTransform(node_index)) + 4, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-        					if (ImGui::InputFloat4("R3", ((float*)&scene->getNodeGlobalTransform(node_index)) + 8, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-        					if (ImGui::InputFloat4("R4", ((float*)&scene->getNodeGlobalTransform(node_index)) + 12, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+                            printMatrixImGUI(scene->getNodeGlobalTransform(node_index));
         					ImGui::TreePop();
         				}
 
                         if (ImGui::TreeNode("Decompose Local")) {
-					    	glm::vec3 scale_xm;
-					    	glm::quat rotation_xm;
-					    	glm::vec3 translation_xm;
-
-                            glm::mat4x4 mat = scene->getNodeLocalTransform(node_index);
-                            translation_xm = mat[3];
-
-                            for (int i = 0; i < 3; ++i) {
-                                scale_xm[i] = glm::length(mat[i]);
-                                mat[i] /= scale_xm[i];
-                            }
-                        
-                            rotation_xm = glm::toQuat(mat);
-
-					    	glm::vec3 pyr_xm = glm::eulerAngles(rotation_xm);
-					    	glm::vec3 ypr_xm(
-					    		glm::degrees(pyr_xm.y),
-					    		glm::degrees(pyr_xm.x),
-					    		glm::degrees(pyr_xm.z)
-					    	);
-
-					    	if (ImGui::InputFloat4("Rq", ((float*)&rotation_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-					    	if (ImGui::InputFloat3("Sc", ((float*)&scale_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-					    	if (ImGui::InputFloat3("Tr", ((float*)&translation_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-					    	if (ImGui::InputFloat3("Ypr", ((float*)&ypr_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-					    	
+                            printDecomposedMatrixImGUI(scene->getNodeLocalTransform(node_index));
 					    	ImGui::TreePop();
 					    }
 
                         if (ImGui::TreeNode("Decompose Global")) {
-					    	glm::vec3 scale_xm;
-					    	glm::quat rotation_xm;
-					    	glm::vec3 translation_xm;
-
-                            glm::mat4x4 mat = scene->getNodeGlobalTransform(node_index);
-                            translation_xm = mat[3];
-
-                            for (int i = 0; i < 3; ++i) {
-                                scale_xm[i] = glm::length(mat[i]);
-                                mat[i] /= scale_xm[i];
-                            }
-                        
-                            rotation_xm = glm::toQuat(mat);
-
-					    	glm::vec3 pyr_xm = glm::eulerAngles(rotation_xm);
-					    	glm::vec3 ypr_xm(
-					    		glm::degrees(pyr_xm.y),
-					    		glm::degrees(pyr_xm.x),
-					    		glm::degrees(pyr_xm.z)
-					    	);
-
-					    	if (ImGui::InputFloat4("Rq", ((float*)&rotation_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-					    	if (ImGui::InputFloat3("Sc", ((float*)&scale_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-					    	if (ImGui::InputFloat3("Tr", ((float*)&translation_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-					    	if (ImGui::InputFloat3("Ypr", ((float*)&ypr_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-					    	
+                            printDecomposedMatrixImGUI(scene->getNodeGlobalTransform(node_index));
 					    	ImGui::TreePop();
 					    }
 
@@ -523,125 +643,7 @@ bool NodeMenuUI::VOnRender(const GameTimerDelta& delta) {
                         std::shared_ptr<SceneNode> pMeshNode = scene->getProperty(node_index, Scene::NODE_TYPE_FLAG_MESH);
                         if(pMeshNode && ImGui::TreeNode("Mesh")) {
                             std::shared_ptr<MeshNode> pMesh = std::dynamic_pointer_cast<MeshNode>(pMeshNode);
-                            const MeshNode::MeshList& mesh_list = pMesh->GetMeshes();
-                            for(std::shared_ptr<ModelData> mode_data : mesh_list) {
-                                ImGui::PushID(mode_data->GetName().c_str());
-
-                                ImGui::SeparatorText(mode_data->GetName().c_str());
-
-                                std::shared_ptr<VertexBuffer> vtx = mode_data->GetVertexBuffer();
-
-                                if(vtx && ImGui::TreeNode("VertexBuffer")) {
-                                    std::string topology_str = getPrimitiveTopologyStr(mode_data->GetPrimitiveTopology());
-                                    ImGui::InputText("PrimitiveTopology", const_cast<char*>(topology_str.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
-
-                                    int index_count = mode_data->GetIndexCount();
-		                            ImGui::InputInt("IndexCount", &index_count, 0, 0, ImGuiInputTextFlags_ReadOnly);
-
-                                    int vertex_count = mode_data->GetVertexCount();
-		                            ImGui::InputInt("VertexCount", &vertex_count, 0, 0, ImGuiInputTextFlags_ReadOnly);
-
-                                    VkIndexType index_type = vtx->getIndexType();
-                                    std::string index_type_str = index_type == VK_INDEX_TYPE_UINT16 ? "UINT16"s : "UINT32"s;
-                                    ImGui::InputText("IndexType", const_cast<char*>(index_type_str.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
-
-                                    std::shared_ptr<VulkanBuffer> vk_vtx_buffer = vtx->getVertexBuffer();
-
-                                    int vtx_buff_sz = vk_vtx_buffer->getSize();
-                                    ImGui::InputInt("VertexBufferSize", &vtx_buff_sz, 0, 0, ImGuiInputTextFlags_ReadOnly);
-
-                                    std::string vtx_mem_prop_str = getMemoryPropertyStr(vk_vtx_buffer->getProperties());
-                                    ImGui::InputText("VertexBufferMemoryProperty", const_cast<char*>(vtx_mem_prop_str.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
-
-                                    std::string vtx_usage_str = getBufferUsageStr(vk_vtx_buffer->getUsage());
-                                    ImGui::InputText("VertexBufferUsage", const_cast<char*>(vtx_usage_str.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
-
-                                    std::shared_ptr<VulkanBuffer> vk_idx_buffer = vtx->getIndexBuffer();
-
-                                    int idx_buff_sz = vk_idx_buffer->getSize();
-                                    ImGui::InputInt("IndexBufferSize", &idx_buff_sz, 0, 0, ImGuiInputTextFlags_ReadOnly);
-
-                                    std::string idx_mem_prop_str = getMemoryPropertyStr(vk_idx_buffer->getProperties());
-                                    ImGui::InputText("IndexBufferMemoryProperty", const_cast<char*>(idx_mem_prop_str.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
-
-                                    std::string idx_usage_str = getBufferUsageStr(vk_idx_buffer->getUsage());
-                                    ImGui::InputText("IndexBufferUsage", const_cast<char*>(idx_usage_str.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
-                                
-                                    if(ImGui::TreeNode("VertexInputBindingDescription")) {
-                                        VkPipelineVertexInputStateCreateInfo vtx_input_desc = vtx->getVertextInputInfo();
-                                        size_t bind_sz = vtx_input_desc.vertexBindingDescriptionCount;
-                                        for(size_t b = 0u; b < bind_sz; ++b) {
-                                            ImGui::PushID(b);
-
-                                            VkVertexInputBindingDescription bind_desc = vtx_input_desc.pVertexBindingDescriptions[b];
-
-                                            ImGui::Text(("InputDescription"s + std::to_string(b)).c_str());
-
-                                            int binding = bind_desc.binding;
-                                            ImGui::InputInt("binding", &binding, 0, 0, ImGuiInputTextFlags_ReadOnly);
-
-                                            int stride = bind_desc.stride;
-                                            ImGui::InputInt("stride", &stride, 0, 0, ImGuiInputTextFlags_ReadOnly);
-
-                                            std::string input_rate_str = bind_desc.inputRate == VK_VERTEX_INPUT_RATE_VERTEX ? "per vertex"s : "per instance"s;
-                                            ImGui::InputText("inputRate", const_cast<char*>(input_rate_str.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
-
-                                            ImGui::PopID();
-                                        }
-
-                                        ImGui::SeparatorText("VertexInputAttributeDescription");
-                                        size_t attrib_sz = vtx_input_desc.vertexAttributeDescriptionCount;
-                                        for(size_t a = 0u; a < attrib_sz; ++a) {
-                                            ImGui::PushID(a + bind_sz);
-
-                                            VkVertexInputAttributeDescription attr_desc = vtx_input_desc.pVertexAttributeDescriptions[a];
-
-                                            ImGui::Text(("AttributeDescription"s + std::to_string(a)).c_str());
-
-                                            int binding = attr_desc.binding;
-                                            ImGui::InputInt("binding", &binding, 0, 0, ImGuiInputTextFlags_ReadOnly);
-
-                                            int location = attr_desc.location;
-                                            ImGui::InputInt("location", &location, 0, 0, ImGuiInputTextFlags_ReadOnly);
-
-                                            std::string format_str = getFormatStr(attr_desc.format);
-                                            ImGui::InputText("format", const_cast<char*>(format_str.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
-
-                                            int offset = attr_desc.offset;
-                                            ImGui::InputInt("offset", &offset, 0, 0, ImGuiInputTextFlags_ReadOnly);
-
-                                            ImGui::PopID();
-                                        }
-
-                                        ImGui::TreePop();
-                                    }
-                                    ImGui::TreePop();
-                                }
-
-                                std::shared_ptr<Material> material = mode_data->GetMaterial();
-                                if(material && ImGui::TreeNode("Material")) {
-                                    const MaterialProperties& mat_prop = material->GetMaterialProperties();
-
-                                    if (ImGui::ColorEdit4("Diffuse", ((float*)&mat_prop.Diffuse) + 0)) {};
-                                    if (ImGui::ColorEdit4("Specular", ((float*)&mat_prop.Specular) + 0)) {}
-                                    if (ImGui::ColorEdit4("Emissive", ((float*)&mat_prop.Emissive) + 0)) {}
-                                    if (ImGui::ColorEdit4("Ambient", ((float*)&mat_prop.Ambient) + 0)) {}
-                                    if (ImGui::ColorEdit4("Reflectance", ((float*)&mat_prop.Reflectance) + 0)) {}
-                                    if (ImGui::InputFloat("Opacity", const_cast<float*>(&mat_prop.Opacity), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-                                    if (ImGui::InputFloat("SpecularPower", const_cast<float*>(&mat_prop.SpecularPower), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-                                    if (ImGui::InputFloat("IndexOfRefraction", const_cast<float*>(&mat_prop.IndexOfRefraction), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-                                    if (ImGui::InputFloat("BumpIntensity", const_cast<float*>(&mat_prop.BumpIntensity), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-                                    if (ImGui::InputFloat("metallicFactor", const_cast<float*>(&mat_prop.metallicFactor), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-                                    if (ImGui::InputFloat("roughnessFactor", const_cast<float*>(&mat_prop.roughnessFactor), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-                                    
-                                    std::string mat_textures_str = getMaterialTextures(mat_prop.HasTexture);
-                                    ImGui::InputText("HasTextures", const_cast<char*>(mat_textures_str.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
-
-                                    ImGui::TreePop();
-                                }
-
-                                ImGui::PopID();
-                            }
+                            printMeshNodeImGUI(pMesh);
 
                             ImGui::TreePop();
                         }
@@ -649,6 +651,7 @@ bool NodeMenuUI::VOnRender(const GameTimerDelta& delta) {
                         std::shared_ptr<SceneNode> pCameraNode = scene->getProperty(node_index, Scene::NODE_TYPE_FLAG_CAMERA);
                         if(pCameraNode) {
                             std::shared_ptr<CameraNode> pCamera = std::dynamic_pointer_cast<CameraNode>(pCameraNode);
+
                         }
 
                         std::shared_ptr<SceneNode> pAABBNode = scene->getProperty(node_index, Scene::NODE_TYPE_FLAG_AABB);
