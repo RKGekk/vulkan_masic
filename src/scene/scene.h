@@ -23,7 +23,7 @@ constexpr const int MAX_NODE_LEVEL = 32;
 
 class SceneNode;
 
-class Scene {
+class Scene : public std::enable_shared_from_this<Scene> {
 public:
     static const uint32_t NODE_TYPE_FLAG_NONE = 0u;
     static const uint32_t NODE_TYPE_FLAG_MESH = 1u;
@@ -78,6 +78,7 @@ public:
 
 	std::shared_ptr<Properties> getProperties(NodeIndex node_index);
 	std::shared_ptr<SceneNode> getProperty(NodeIndex node_index, NodeType node_type = NODE_TYPE_FLAG_NONE);
+	std::shared_ptr<SceneNode> getRootNode();
 	void addProperty(std::shared_ptr<SceneNode> property, NodeIndex node_index = NO_INDEX);
 	const std::unordered_map<NodeIndex, NodeTypeFlags>& getNodeTypeFlagsMap() const;
 	const std::unordered_map<NodeIndex, PropertyIndex>& getNodePropertyMap() const;

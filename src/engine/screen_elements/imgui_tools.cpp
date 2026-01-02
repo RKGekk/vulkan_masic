@@ -681,5 +681,20 @@ void printCameraNodeImGUI(std::shared_ptr<CameraNode> pCamera) {
     std::shared_ptr<BasicCameraNode> pBasic_camera = std::dynamic_pointer_cast<BasicCameraNode>(pCamera);
     if(!pBasic_camera) return;
 
-    
+    printBoundingFrustumImGUI(pBasic_camera->GetFrustum());
+
+	float cam_fov = pBasic_camera->GetFovYDeg();
+	if (ImGui::InputFloat("FovY", const_cast<float*>(&cam_fov), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+
+    float cam_near = pBasic_camera->GetNear();
+    if (ImGui::InputFloat("Near", const_cast<float*>(&cam_near), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+
+    float cam_far = pBasic_camera->GetFar();
+    if (ImGui::InputFloat("Far", const_cast<float*>(&cam_far), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+}
+
+void printAABBNodeImGUI(std::shared_ptr<AABBNode> pAABB) {
+    if(!pAABB) return;
+
+    printBoundingBoxImGUI(pAABB->getAABB());
 }

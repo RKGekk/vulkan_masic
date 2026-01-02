@@ -22,6 +22,7 @@
 #include "../../scene/nodes/scene_node.h"
 #include "../../scene/nodes/mesh_node.h"
 #include "../../scene/nodes/camera_node.h"
+#include "../../scene/nodes/aabb_node.h"
 
 std::string getPrimitiveTopologyStr(VkPrimitiveTopology topology);
 std::string getFormatStr(VkFormat format);
@@ -41,3 +42,4 @@ void printVulkanBufferImGUI(std::shared_ptr<VulkanBuffer> vk_buffer);
 void printVertexBufferImGUI(std::shared_ptr<VertexBuffer> vtx, VkPrimitiveTopology topology);
 void printMeshNodeImGUI(std::shared_ptr<MeshNode> pMesh);
 void printCameraNodeImGUI(std::shared_ptr<CameraNode> pCamera);
+void printAABBNodeImGUI(std::shared_ptr<AABBNode> pAABB);

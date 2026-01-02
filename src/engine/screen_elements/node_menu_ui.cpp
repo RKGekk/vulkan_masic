@@ -120,8 +120,10 @@ bool NodeMenuUI::VOnRender(const GameTimerDelta& delta) {
                         }
 
                         std::shared_ptr<SceneNode> pAABBNode = scene->getProperty(node_index, Scene::NODE_TYPE_FLAG_AABB);
-                        if(pAABBNode) {
+                        if(pAABBNode && ImGui::TreeNode("AABB")) {
                             std::shared_ptr<AABBNode> pAABB = std::dynamic_pointer_cast<AABBNode>(pAABBNode);
+                            printAABBNodeImGUI(pAABB);
+                            ImGui::TreePop();
                         }
                         
 						ImGui::TreePop();
@@ -131,8 +133,11 @@ bool NodeMenuUI::VOnRender(const GameTimerDelta& delta) {
 				}
             }
         }
-		//DrawNodes(m_scene->GetRootCast());
-	}
+        if (ImGui::CollapsingHeader("Hierarchy Tree View")) {
+            DrawNodes(scene->getRootNode());
+        }
+    }
+    
 	ImGui::End();
 
     return true;

@@ -71,7 +71,6 @@ bool ActorMenuUI::VOnRender(const GameTimerDelta& delta) {
 
 					float cc_fov = cc->GetFov();
 					cc_fov = glm::degrees(cc_fov);
-					//if (ImGui::InputFloat("Fov", ((float*)&cc_fov), 0.0f, 0.0f, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
 					if(ImGui::SliderFloat("Fov", ((float*)&cc_fov), 30.0f, 120.0f)) {
 						cc->SetFov(glm::radians(cc_fov));
 					}
