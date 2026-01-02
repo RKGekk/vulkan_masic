@@ -71,7 +71,15 @@ public:
     std::shared_ptr<SceneNode> GetSceneNode();
     Scene::NodeIndex GetSceneNodeIndex();
 
+    static glm::vec3 GetDefaultForward3f();
+    static glm::vec3 GetDefaultUp3f();
+    static glm::vec3 GetDefaultRight3f();
 
+    const static glm::vec4 DEFAULT_FORWARD_VECTOR;
+    const static glm::vec4 DEFAULT_UP_VECTOR;
+    const static glm::vec4 DEFAULT_RIGHT_VECTOR;
+    
+    const static float EPSILON;
 
 private:
     bool Init(const pugi::xml_node& data);
@@ -81,9 +89,4 @@ private:
     glm::vec4 m_forward;
     glm::vec4 m_up;
     glm::vec4 m_right;
-
-    const glm::vec4 DEFAULT_FORWARD_VECTOR = glm::vec4( 0.0f, 0.0f, -1.0f, 0.0f );
-    const glm::vec4 DEFAULT_UP_VECTOR = glm::vec4( 0.0f, 1.0f, 0.0f, 0.0f );
-    const glm::vec4 DEFAULT_RIGHT_VECTOR = glm::vec4( 1.0f, 0.0f, 0.0f, 0.0f );
-    const float EPSILON = 0.001f;
 };

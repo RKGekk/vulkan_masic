@@ -8,6 +8,12 @@
 
 const std::string TransformComponent::g_name = "TransformComponent";
 
+const glm::vec4 TransformComponent::DEFAULT_FORWARD_VECTOR = glm::vec4( 0.0f, 0.0f, -1.0f, 0.0f );
+const glm::vec4 TransformComponent::DEFAULT_UP_VECTOR = glm::vec4( 0.0f, 1.0f, 0.0f, 0.0f );
+const glm::vec4 TransformComponent::DEFAULT_RIGHT_VECTOR = glm::vec4( 1.0f, 0.0f, 0.0f, 0.0f );
+    
+const float TransformComponent::EPSILON = 0.001f;
+
 TransformComponent::TransformComponent() {
     m_forward = DEFAULT_FORWARD_VECTOR;
     m_up = DEFAULT_UP_VECTOR;
@@ -220,4 +226,16 @@ std::shared_ptr<SceneNode> TransformComponent::GetSceneNode() {
 
 Scene::NodeIndex TransformComponent::GetSceneNodeIndex() {
     return m_scene_node->VGetNodeIndex();
+}
+
+glm::vec3 TransformComponent::GetDefaultForward3f() {
+    return glm::vec3(DEFAULT_FORWARD_VECTOR.x, DEFAULT_FORWARD_VECTOR.y, DEFAULT_FORWARD_VECTOR.z);
+}
+
+glm::vec3 TransformComponent::GetDefaultUp3f() {
+    return glm::vec3(DEFAULT_UP_VECTOR.x, DEFAULT_UP_VECTOR.y, DEFAULT_UP_VECTOR.z);
+}
+
+glm::vec3 TransformComponent::GetDefaultRight3f() {
+    return glm::vec3(DEFAULT_RIGHT_VECTOR.x, DEFAULT_RIGHT_VECTOR.y, DEFAULT_RIGHT_VECTOR.z);
 }

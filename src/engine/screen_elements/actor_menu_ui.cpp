@@ -8,6 +8,7 @@
 #include "../../actors/transform_component.h"
 #include "../../actors/camera_component.h"
 #include "../../actors/model_component.h"
+#include "imgui_tools.h"
 
 ActorMenuUI::ActorMenuUI() : m_actor_id(INVALID_ACTOR_ID) {
 	
@@ -38,36 +39,23 @@ bool ActorMenuUI::VOnRender(const GameTimerDelta& delta) {
 					ImGui::SeparatorText("TransformComponent");
 
 					if (ImGui::TreeNode("Matrix")) {
-						if (ImGui::InputFloat4("R1", ((float*)&tc->GetTransform()) + 0, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-						if (ImGui::InputFloat4("R2", ((float*)&tc->GetTransform()) + 4, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-						if (ImGui::InputFloat4("R3", ((float*)&tc->GetTransform()) + 8, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-						if (ImGui::InputFloat4("R4", ((float*)&tc->GetTransform()) + 12, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+						printMatrixImGUI(tc->GetTransform());
 						ImGui::TreePop();
 					}
 
-					if (ImGui::TreeNode("Decompose")) {
-						glm::vec3 scale_xm;
-						glm::quat rotation_xm;
-						glm::vec3 translation_xm;
-        				tc->Decompose(translation_xm, rotation_xm, scale_xm);
-						glm::vec3 pyr_xm = glm::eulerAngles(rotation_xm);
-						glm::vec3 ypr_xm(
-							glm::degrees(pyr_xm.y),
-							glm::degrees(pyr_xm.x),
-							glm::degrees(pyr_xm.z)
+					if (ImGui::TreeNode("Edit")) {
+						editMatrixImGUI(
+							tc->GetTransform(),
+							[tc](glm::bvec3 tsr, glm::vec3 tr, glm::vec3 sc, glm::quat rot){
+								if(tsr.x && !tsr.y && !tsr.z) {
+									tc->SetTranslation3f(tr);
+								}
+								else {
+									tc->SetTransform(tr, rot, sc);
+								}
+							}
 						);
 
-						if (ImGui::InputFloat4("Rq", ((float*)&rotation_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-						if (ImGui::InputFloat3("Sc", ((float*)&scale_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-						//if (ImGui::InputFloat3("Tr", ((float*)&translation_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-						if(ImGui::SliderFloat3("Tr", ((float*)&translation_xm), -8.0f, 8.0f)) {
-							tc->SetTranslation3f(translation_xm);
-						}
-						//if (ImGui::InputFloat3("Ypr", ((float*)&ypr_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {
-						if(ImGui::SliderFloat3("YPR", ((float*)&ypr_xm), -180.0f, 180.0f)) {
-							rotation_xm = glm::eulerAngleYXZ(glm::radians(ypr_xm.x), glm::radians(ypr_xm.y), glm::radians(ypr_xm.z));
-							tc->SetTransform(translation_xm, rotation_xm, scale_xm);
-						}
 						ImGui::TreePop();
 					}
 				}

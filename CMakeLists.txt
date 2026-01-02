@@ -26,6 +26,8 @@ set(APP_SOURCES
     "${SRC_DIR}/engine/iengine_physics.h"
     "${SRC_DIR}/engine/views/human_view.h"
     "${SRC_DIR}/engine/views/human_view.cpp"
+    "${SRC_DIR}/engine/screen_elements/imgui_tools.h"
+    "${SRC_DIR}/engine/screen_elements/imgui_tools.cpp"
     "${SRC_DIR}/engine/screen_elements/iscreen_element.h"
     "${SRC_DIR}/engine/screen_elements/base_ui.h"
     "${SRC_DIR}/engine/screen_elements/base_ui.cpp"
