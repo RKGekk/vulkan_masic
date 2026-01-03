@@ -48,11 +48,15 @@ bool SceneNode::VOnLostDevice() {
     return true;
 }
 
+Scene::Hierarchy SceneNode::VGetHierarchy() const {
+    return m_props.m_scene->getNodeHierarchy(m_props.m_node_index);
+}
+
 Scene::NodeIndex SceneNode::VGetChild() const {
     return m_props.m_scene->getNodeHierarchy(m_props.m_node_index).first_child;
 }
 
-Scene::NodeIndex SceneNode::VGetSibling() const {
+Scene::NodeIndex SceneNode::VGetNextSiblingIndex() const {
     return m_props.m_scene->getNodeHierarchy(m_props.m_node_index).next_sibling;
 }
 
@@ -60,16 +64,30 @@ Scene::NodeIndex SceneNode::VGetNodeIndex() const {
     return m_props.m_node_index;
 }
 
-Scene::NodeIndex SceneNode::GetParentIndex() const {
+Scene::NodeIndex SceneNode::VGetParentIndex() const {
     return m_props.m_scene->getNodeHierarchy(m_props.m_node_index).parent;
 }
 
-const std::shared_ptr<Scene>& SceneNode::GetScene() {
+std::shared_ptr<Scene> SceneNode::GetScene() {
     return m_props.m_scene;
 };
 
 std::shared_ptr<SceneNode> SceneNode::GetParent() {
-    return m_props.m_scene->getProperty(m_props.m_node_index, Scene::NODE_TYPE_FLAG_NONE);
+    const Scene::Hierarchy& hierarchy = m_props.m_scene->getNodeHierarchy(m_props.m_node_index);
+    if(hierarchy.next_sibling == Scene::NO_INDEX) return nullptr;
+    return m_props.m_scene->getProperty(hierarchy.next_sibling, Scene::NODE_TYPE_FLAG_NONE);
+}
+
+std::shared_ptr<SceneNode> SceneNode::GetChild() {
+    const Scene::Hierarchy& hierarchy = m_props.m_scene->getNodeHierarchy(m_props.m_node_index);
+    if(hierarchy.first_child == Scene::NO_INDEX) return nullptr;
+    return m_props.m_scene->getProperty(hierarchy.first_child, Scene::NODE_TYPE_FLAG_NONE);
+}
+
+std::shared_ptr<SceneNode> SceneNode::GetNextSibling() {
+    const Scene::Hierarchy& hierarchy = m_props.m_scene->getNodeHierarchy(m_props.m_node_index);
+    if(hierarchy.next_sibling == Scene::NO_INDEX) return nullptr;
+    return m_props.m_scene->getProperty(hierarchy.next_sibling, Scene::NODE_TYPE_FLAG_NONE);
 }
 
 const SceneNodeProperties& SceneNode::Get() const {

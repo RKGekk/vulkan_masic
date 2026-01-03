@@ -698,3 +698,17 @@ void printAABBNodeImGUI(std::shared_ptr<AABBNode> pAABB) {
 
     printBoundingBoxImGUI(pAABB->getAABB());
 }
+
+void printHierarchyImGui(Scene::Hierarchy hierarchy) {
+    int parent = hierarchy.parent;
+	ImGui::InputInt("Parent", &parent, 0, 0, ImGuiInputTextFlags_ReadOnly);
+
+    int first_child = hierarchy.first_child;
+    ImGui::InputInt("Child", &first_child, 0, 0, ImGuiInputTextFlags_ReadOnly);
+
+    int next_sibling = hierarchy.next_sibling;
+    ImGui::InputInt("Sibling", &next_sibling, 0, 0, ImGuiInputTextFlags_ReadOnly);
+
+    int level = hierarchy.level;
+    ImGui::InputInt("Level", &level, 0, 0, ImGuiInputTextFlags_ReadOnly);
+}

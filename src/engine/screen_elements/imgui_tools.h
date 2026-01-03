@@ -43,3 +43,4 @@ void printVertexBufferImGUI(std::shared_ptr<VertexBuffer> vtx, VkPrimitiveTopolo
 void printMeshNodeImGUI(std::shared_ptr<MeshNode> pMesh);
 void printCameraNodeImGUI(std::shared_ptr<CameraNode> pCamera);
 void printAABBNodeImGUI(std::shared_ptr<AABBNode> pAABB);
+void printHierarchyImGui(Scene::Hierarchy h);

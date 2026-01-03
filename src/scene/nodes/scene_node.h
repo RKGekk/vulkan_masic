@@ -34,13 +34,16 @@ public:
 	virtual bool VOnUpdate();
 	virtual bool VOnLostDevice();
 
+	virtual Scene::Hierarchy VGetHierarchy() const;
 	virtual Scene::NodeIndex VGetChild() const;
-    virtual Scene::NodeIndex VGetSibling() const;
+    virtual Scene::NodeIndex VGetNextSiblingIndex() const;
 	virtual Scene::NodeIndex VGetNodeIndex() const;
-	virtual Scene::NodeIndex GetParentIndex() const;
+	virtual Scene::NodeIndex VGetParentIndex() const;
 
-	const std::shared_ptr<Scene>& GetScene();
+	std::shared_ptr<Scene> GetScene();
 	std::shared_ptr<SceneNode> GetParent();
+	std::shared_ptr<SceneNode> GetChild();
+	std::shared_ptr<SceneNode> GetNextSibling();
 	const SceneNodeProperties& Get() const;
 
 	void SetTransform(const glm::mat4x4& to_parent);
