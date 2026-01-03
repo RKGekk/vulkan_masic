@@ -208,7 +208,7 @@ float ActorAnimationPlayer::GetCurrentAnimationTime() {
 	return m_time.fGetTotalSeconds();
 }
 
-const ActorAnimationPlayer::AnimMap& ActorAnimationPlayer::GetAnimMap() const {
+ActorAnimationPlayer::AnimMap& ActorAnimationPlayer::GetAnimMap() {
 	return m_actors_animation_map;
 }
 

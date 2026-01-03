@@ -81,7 +81,7 @@ public:
 
 	float GetTotalAnimationTime();
 	float GetCurrentAnimationTime();
-	const AnimMap& GetAnimMap() const;
+	AnimMap& GetAnimMap();
 	
 private:
 	void AddActorAnimation(const pugi::xml_node& pAnim_data);
