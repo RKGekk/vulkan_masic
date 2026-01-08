@@ -3,6 +3,8 @@
 #include "vulkan_queue_family.h"
 #include "vulkan_command_manager.h"
 
+#include <cstring>
+
 bool VulkanDevice::init(const VulkanInstance& instance, VkSurfaceKHR surface, std::shared_ptr<ThreadPool> thread_pool) {
     m_thread_pool = std::move(thread_pool);
     m_device_abilities = pickPhysicalDevice(instance.getInstance(), surface);
@@ -16,7 +18,7 @@ bool VulkanDevice::init(const VulkanInstance& instance, VkSurfaceKHR surface, st
 
     QueueFamilyIndices queue_family_indices;
     queue_family_indices.init(m_device_abilities.physical_device, surface);
-    m_device = createLogicalDevice(m_device_abilities.physical_device, queue_family_indices.getFamilies(), m_extensions, instance.getLayersAndExtensions());
+    m_device = createLogicalDevice(m_device_abilities, queue_family_indices.getFamilies(), m_extensions, instance.getLayersAndExtensions());
     m_command_manager.init(m_device_abilities.physical_device, m_device, surface, m_thread_pool);
 
     return all_device_ext_supported;
@@ -31,6 +33,10 @@ const VulkanDeviceExtensions& VulkanDevice::getExtensions() const {
     return m_extensions;
 }
 
+const VkPhysicalDeviceFeatures& VulkanDevice::getPhysicalDeviceFeatures() const {
+    return m_device_abilities.features;
+}
+
 VkDevice VulkanDevice::getDevice() const {
     return m_device;
 }
@@ -41,6 +47,12 @@ const DeviceAbilities& VulkanDevice::getDeviceAbilities() const {
 
 VkSampleCountFlagBits VulkanDevice::getMsaaSamples() const {
     return m_msaa_samples;
+}
+
+bool VulkanDevice::checkFeaturesSupported(const VkPhysicalDeviceFeatures& features) {
+    uint64_t device_features_flags = getFeaturesVector(m_device_abilities.features);
+    uint64_t to_check_features_flags = getFeaturesVector(features);
+    return (device_features_flags & to_check_features_flags) == to_check_features_flags;
 }
 
 const VulkanCommandManager& VulkanDevice::getCommandManager() const {
@@ -501,7 +513,7 @@ VkSampleCountFlagBits VulkanDevice::getMaxUsableSampleCount(VkPhysicalDeviceProp
     return VK_SAMPLE_COUNT_1_BIT;
 }
 
-VkDevice VulkanDevice::createLogicalDevice(VkPhysicalDevice physical_device, const std::unordered_set<uint32_t>& family_indices, const VulkanDeviceExtensions& device_extensions, const VulkanInstanceLayersAndExtensions& layers) {
+VkDevice VulkanDevice::createLogicalDevice(const DeviceAbilities& physical_device, const std::unordered_set<uint32_t>& family_indices, const VulkanDeviceExtensions& device_extensions, const VulkanInstanceLayersAndExtensions& layers) {
     std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
     float queue_priority = 1.0f;
     for(uint32_t family_index : family_indices) {
@@ -513,14 +525,23 @@ VkDevice VulkanDevice::createLogicalDevice(VkPhysicalDevice physical_device, con
         queue_create_infos.push_back(queue_create_info);
     }
 
-    VkPhysicalDeviceFeatures device_features{};
-    device_features.samplerAnisotropy = VK_TRUE;
+    VkPhysicalDeviceFeatures req_device_features{};
+    req_device_features.samplerAnisotropy = VK_TRUE;
+    //req_device_features.geometryShader = VK_TRUE;
+    //req_device_features.sampleRateShading = VK_TRUE;
+    //req_device_features.tessellationShader = VK_TRUE;
+    //req_device_features.textureCompressionBC = VK_TRUE;
+    //req_device_features.variableMultisampleRate = VK_TRUE;
+    bool all_features_supported = checkFeatures(physical_device.features, req_device_features);
+    if(!all_features_supported) {
+        throw std::runtime_error("failed to create logical device! Not all features supported!");
+    }
 
     VkDeviceCreateInfo device_create_info{};
     device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     device_create_info.pQueueCreateInfos = queue_create_infos.data();
     device_create_info.queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size());
-    device_create_info.pEnabledFeatures = &device_features;
+    device_create_info.pEnabledFeatures = &req_device_features;
 
     std::vector<const char*> device_ext = device_extensions.get_ppNames();
     device_create_info.enabledExtensionCount = static_cast<uint32_t>(device_ext.size());
@@ -535,12 +556,80 @@ VkDevice VulkanDevice::createLogicalDevice(VkPhysicalDevice physical_device, con
 #endif
 
     VkDevice device;
-    VkResult result = vkCreateDevice(physical_device, &device_create_info, nullptr, &device);
+    VkResult result = vkCreateDevice(physical_device.physical_device, &device_create_info, nullptr, &device);
     if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to create logical device!");
     }
     
     return device;
+}
+
+uint64_t VulkanDevice::getFeaturesVector(const VkPhysicalDeviceFeatures& device_features) {
+    uint64_t result = 0u;
+
+    if(device_features.robustBufferAccess) result |= 1 << 0;
+    if(device_features.fullDrawIndexUint32) result |= 1 << 1;
+    if(device_features.imageCubeArray) result |= 1 << 2;
+    if(device_features.independentBlend) result |= 1 << 3;
+    if(device_features.geometryShader) result |= 1 << 4;
+    if(device_features.tessellationShader) result |= 1 << 5;
+    if(device_features.sampleRateShading) result |= 1 << 6;
+    if(device_features.dualSrcBlend) result |= 1 << 7;
+    if(device_features.logicOp) result |= 1 << 8;
+    if(device_features.multiDrawIndirect) result |= 1 << 9;
+    if(device_features.drawIndirectFirstInstance) result |= 1 << 10;
+    if(device_features.depthClamp) result |= 1 << 11;
+    if(device_features.depthBiasClamp) result |= 1 << 12;
+    if(device_features.fillModeNonSolid) result |= 1 << 13;
+    if(device_features.depthBounds) result |= 1 << 14;
+    if(device_features.wideLines) result |= 1 << 15;
+    if(device_features.largePoints) result |= 1 << 16;
+    if(device_features.alphaToOne) result |= 1 << 17;
+    if(device_features.multiViewport) result |= 1 << 18;
+    if(device_features.samplerAnisotropy) result |= 1 << 19;
+    if(device_features.textureCompressionETC2) result |= 1 << 20;
+    if(device_features.textureCompressionASTC_LDR) result |= 1 << 21;
+    if(device_features.textureCompressionBC) result |= 1 << 22;
+    if(device_features.occlusionQueryPrecise) result |= 1 << 23;
+    if(device_features.pipelineStatisticsQuery) result |= 1 << 24;
+    if(device_features.vertexPipelineStoresAndAtomics) result |= 1 << 25;
+    if(device_features.fragmentStoresAndAtomics) result |= 1 << 26;
+    if(device_features.shaderTessellationAndGeometryPointSize) result |= 1 << 27;
+    if(device_features.shaderImageGatherExtended) result |= 1 << 28;
+    if(device_features.shaderStorageImageExtendedFormats) result |= 1 << 29;
+    if(device_features.shaderStorageImageMultisample) result |= 1 << 30;
+    if(device_features.shaderStorageImageReadWithoutFormat) result |= 1 << 31;
+    if(device_features.shaderStorageImageWriteWithoutFormat) result |= 1 << 32;
+    if(device_features.shaderUniformBufferArrayDynamicIndexing) result |= 1 << 33;
+    if(device_features.shaderSampledImageArrayDynamicIndexing) result |= 1 << 34;
+    if(device_features.shaderStorageBufferArrayDynamicIndexing) result |= 1 << 35;
+    if(device_features.shaderStorageImageArrayDynamicIndexing) result |= 1 << 36;
+    if(device_features.shaderClipDistance) result |= 1 << 37;
+    if(device_features.shaderCullDistance) result |= 1 << 38;
+    if(device_features.shaderFloat64) result |= 1 << 39;
+    if(device_features.shaderInt64) result |= 1 << 40;
+    if(device_features.shaderInt16) result |= 1 << 41;
+    if(device_features.shaderResourceResidency) result |= 1 << 42;
+    if(device_features.shaderResourceMinLod) result |= 1 << 43;
+    if(device_features.sparseBinding) result |= 1 << 44;
+    if(device_features.sparseResidencyBuffer) result |= 1 << 45;
+    if(device_features.sparseResidencyImage2D) result |= 1 << 46;
+    if(device_features.sparseResidencyImage3D) result |= 1 << 47;
+    if(device_features.sparseResidency2Samples) result |= 1 << 48;
+    if(device_features.sparseResidency4Samples) result |= 1 << 49;
+    if(device_features.sparseResidency8Samples) result |= 1 << 50;
+    if(device_features.sparseResidency16Samples) result |= 1 << 51;
+    if(device_features.sparseResidencyAliased) result |= 1 << 52;
+    if(device_features.variableMultisampleRate) result |= 1 << 53;
+    if(device_features.inheritedQueries) result |= 1 << 54;
+
+    return result;
+}
+
+bool VulkanDevice::checkFeatures(const VkPhysicalDeviceFeatures& device_features, const VkPhysicalDeviceFeatures& features_to_check) {
+    uint64_t device_features_flags = getFeaturesVector(device_features);
+    uint64_t to_check_features_flags = getFeaturesVector(features_to_check);
+    return (device_features_flags & to_check_features_flags) == to_check_features_flags;
 }
 
 bool VulkanDevice::isHostVisibleSingleHeapMemory(VkPhysicalDevice physical_device) {

@@ -2,7 +2,6 @@
 
 bool QueueFamilyIndices::init(VkPhysicalDevice physical_device, VkSurfaceKHR surface) {
     m_queue_families = getQueueFamilies(physical_device);
-    
     int i = 0;
     for (const VkQueueFamilyProperties& queue_family : m_queue_families) {
         VkBool32 present_support = false;
@@ -11,7 +10,14 @@ bool QueueFamilyIndices::init(VkPhysicalDevice physical_device, VkSurfaceKHR sur
         qf.index = i;
         qf.present_support = static_cast<bool>(present_support);
         if(queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-            m_families[PoolTypeEnum::GRAPICS] = qf;
+            if(!m_families.contains(PoolTypeEnum::GRAPICS)) {
+                m_families[PoolTypeEnum::GRAPICS] = qf;
+            }
+            else {
+                if(qf.present_support) {
+                    m_families[PoolTypeEnum::GRAPICS] = qf;
+                }
+            }
         }
         if(queue_family.queueFlags & VK_QUEUE_TRANSFER_BIT) {
             if(m_families.contains(PoolTypeEnum::TRANSFER) && !(queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) && !(queue_family.queueFlags & VK_QUEUE_COMPUTE_BIT) && !(queue_family.queueFlags & VK_QUEUE_VIDEO_DECODE_BIT_KHR) && !(queue_family.queueFlags & VK_QUEUE_VIDEO_ENCODE_BIT_KHR)) {
