@@ -77,21 +77,54 @@ uint32_t VulkanDevice::findMemoryType(uint32_t type_filter, VkMemoryPropertyFlag
     throw std::runtime_error("failed to find suitable memory type!");
 }
 
-VkFormat VulkanDevice::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const {
+VkFormat VulkanDevice::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features, VkImageUsageFlags usage, VkExtent2D extent, uint32_t mip_levels, VkSampleCountFlags sample_count, VkImageCreateFlags flags) const {
     for (VkFormat format : candidates) {
         VkFormatProperties props;
         vkGetPhysicalDeviceFormatProperties(m_device_abilities.physical_device, format, &props);
-        if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
+        if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features && checkFormatSupported(format, tiling, usage, extent, mip_levels, sample_count, flags)) {
             return format;
         }
-        else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
+        else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features && checkFormatSupported(format, tiling, usage, extent, mip_levels, sample_count, flags)) {
             return format;
         }
     }
     throw std::runtime_error("failed to find supported format!");
 }
 
-VkFormat VulkanDevice::findDepthFormat() {
+VkImageFormatProperties VulkanDevice::findFormatAbilities(VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkImageCreateFlags flags) const {
+    VkImageFormatProperties img_props;
+    VkResult result = vkGetPhysicalDeviceImageFormatProperties(m_device_abilities.physical_device, format, VK_IMAGE_TYPE_2D, tiling, usage, flags, &img_props);
+    if (result != VK_SUCCESS) {    
+        throw std::runtime_error("failed to find supported format!");
+    }
+
+    return img_props;
+}
+
+bool VulkanDevice::checkFormatSupported(VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkExtent2D extent, uint32_t mip_levels, VkSampleCountFlags sample_count, VkImageCreateFlags flags) const {
+    VkDeviceSize layer_size = extent.width * extent.height;
+    VkDeviceSize resource_size = layer_size + (mip_levels ? (VkDeviceSize)((float)layer_size * (1.0f / 3.0f)) : 0u);
+    VkImageFormatProperties img_props;
+    VkResult result = vkGetPhysicalDeviceImageFormatProperties(m_device_abilities.physical_device, format, VK_IMAGE_TYPE_2D, tiling, usage, flags, &img_props);
+    if (result != VK_SUCCESS) {    
+        return false;
+    }
+    if(extent.width > img_props.maxExtent.width || extent.height > img_props.maxExtent.height) {
+        return false;
+    }
+    if(mip_levels > img_props.maxMipLevels) {
+        return false;
+    }
+    if(sample_count > img_props.sampleCounts) {
+        return false;
+    }
+    if(resource_size > img_props.maxResourceSize) {
+        return false;
+    }
+    return true;
+}
+
+VkFormat VulkanDevice::findDepthFormat(VkImageUsageFlags usage, VkExtent2D extent, uint32_t mip_levels, VkSampleCountFlags sample_count, VkImageCreateFlags flags) const {
     return findSupportedFormat(
         {
             VK_FORMAT_D32_SFLOAT_S8_UINT,
@@ -99,7 +132,12 @@ VkFormat VulkanDevice::findDepthFormat() {
             VK_FORMAT_D32_SFLOAT,
         },
         VK_IMAGE_TILING_OPTIMAL,
-        VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+        VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        usage,
+        extent,
+        mip_levels,
+        sample_count,
+        flags
     );
 }
 
@@ -567,61 +605,61 @@ VkDevice VulkanDevice::createLogicalDevice(const DeviceAbilities& physical_devic
 uint64_t VulkanDevice::getFeaturesVector(const VkPhysicalDeviceFeatures& device_features) {
     uint64_t result = 0u;
 
-    if(device_features.robustBufferAccess) result |= 1 << 0;
-    if(device_features.fullDrawIndexUint32) result |= 1 << 1;
-    if(device_features.imageCubeArray) result |= 1 << 2;
-    if(device_features.independentBlend) result |= 1 << 3;
-    if(device_features.geometryShader) result |= 1 << 4;
-    if(device_features.tessellationShader) result |= 1 << 5;
-    if(device_features.sampleRateShading) result |= 1 << 6;
-    if(device_features.dualSrcBlend) result |= 1 << 7;
-    if(device_features.logicOp) result |= 1 << 8;
-    if(device_features.multiDrawIndirect) result |= 1 << 9;
-    if(device_features.drawIndirectFirstInstance) result |= 1 << 10;
-    if(device_features.depthClamp) result |= 1 << 11;
-    if(device_features.depthBiasClamp) result |= 1 << 12;
-    if(device_features.fillModeNonSolid) result |= 1 << 13;
-    if(device_features.depthBounds) result |= 1 << 14;
-    if(device_features.wideLines) result |= 1 << 15;
-    if(device_features.largePoints) result |= 1 << 16;
-    if(device_features.alphaToOne) result |= 1 << 17;
-    if(device_features.multiViewport) result |= 1 << 18;
-    if(device_features.samplerAnisotropy) result |= 1 << 19;
-    if(device_features.textureCompressionETC2) result |= 1 << 20;
-    if(device_features.textureCompressionASTC_LDR) result |= 1 << 21;
-    if(device_features.textureCompressionBC) result |= 1 << 22;
-    if(device_features.occlusionQueryPrecise) result |= 1 << 23;
-    if(device_features.pipelineStatisticsQuery) result |= 1 << 24;
-    if(device_features.vertexPipelineStoresAndAtomics) result |= 1 << 25;
-    if(device_features.fragmentStoresAndAtomics) result |= 1 << 26;
-    if(device_features.shaderTessellationAndGeometryPointSize) result |= 1 << 27;
-    if(device_features.shaderImageGatherExtended) result |= 1 << 28;
-    if(device_features.shaderStorageImageExtendedFormats) result |= 1 << 29;
-    if(device_features.shaderStorageImageMultisample) result |= 1 << 30;
-    if(device_features.shaderStorageImageReadWithoutFormat) result |= 1 << 31;
-    if(device_features.shaderStorageImageWriteWithoutFormat) result |= 1 << 32;
-    if(device_features.shaderUniformBufferArrayDynamicIndexing) result |= 1 << 33;
-    if(device_features.shaderSampledImageArrayDynamicIndexing) result |= 1 << 34;
-    if(device_features.shaderStorageBufferArrayDynamicIndexing) result |= 1 << 35;
-    if(device_features.shaderStorageImageArrayDynamicIndexing) result |= 1 << 36;
-    if(device_features.shaderClipDistance) result |= 1 << 37;
-    if(device_features.shaderCullDistance) result |= 1 << 38;
-    if(device_features.shaderFloat64) result |= 1 << 39;
-    if(device_features.shaderInt64) result |= 1 << 40;
-    if(device_features.shaderInt16) result |= 1 << 41;
-    if(device_features.shaderResourceResidency) result |= 1 << 42;
-    if(device_features.shaderResourceMinLod) result |= 1 << 43;
-    if(device_features.sparseBinding) result |= 1 << 44;
-    if(device_features.sparseResidencyBuffer) result |= 1 << 45;
-    if(device_features.sparseResidencyImage2D) result |= 1 << 46;
-    if(device_features.sparseResidencyImage3D) result |= 1 << 47;
-    if(device_features.sparseResidency2Samples) result |= 1 << 48;
-    if(device_features.sparseResidency4Samples) result |= 1 << 49;
-    if(device_features.sparseResidency8Samples) result |= 1 << 50;
-    if(device_features.sparseResidency16Samples) result |= 1 << 51;
-    if(device_features.sparseResidencyAliased) result |= 1 << 52;
-    if(device_features.variableMultisampleRate) result |= 1 << 53;
-    if(device_features.inheritedQueries) result |= 1 << 54;
+    if(device_features.robustBufferAccess) result |= 1ULL << 0;
+    if(device_features.fullDrawIndexUint32) result |= 1ULL << 1;
+    if(device_features.imageCubeArray) result |= 1ULL << 2;
+    if(device_features.independentBlend) result |= 1ULL << 3;
+    if(device_features.geometryShader) result |= 1ULL << 4;
+    if(device_features.tessellationShader) result |= 1ULL << 5;
+    if(device_features.sampleRateShading) result |= 1ULL << 6;
+    if(device_features.dualSrcBlend) result |= 1ULL << 7;
+    if(device_features.logicOp) result |= 1ULL << 8;
+    if(device_features.multiDrawIndirect) result |= 1ULL << 9;
+    if(device_features.drawIndirectFirstInstance) result |= 1ULL << 10;
+    if(device_features.depthClamp) result |= 1ULL << 11;
+    if(device_features.depthBiasClamp) result |= 1ULL << 12;
+    if(device_features.fillModeNonSolid) result |= 1ULL << 13;
+    if(device_features.depthBounds) result |= 1ULL << 14;
+    if(device_features.wideLines) result |= 1ULL << 15;
+    if(device_features.largePoints) result |= 1ULL << 16;
+    if(device_features.alphaToOne) result |= 1ULL << 17;
+    if(device_features.multiViewport) result |= 1ULL << 18;
+    if(device_features.samplerAnisotropy) result |= 1ULL << 19;
+    if(device_features.textureCompressionETC2) result |= 1ULL << 20;
+    if(device_features.textureCompressionASTC_LDR) result |= 1ULL << 21;
+    if(device_features.textureCompressionBC) result |= 1ULL << 22;
+    if(device_features.occlusionQueryPrecise) result |= 1ULL << 23;
+    if(device_features.pipelineStatisticsQuery) result |= 1ULL << 24;
+    if(device_features.vertexPipelineStoresAndAtomics) result |= 1ULL << 25;
+    if(device_features.fragmentStoresAndAtomics) result |= 1ULL << 26;
+    if(device_features.shaderTessellationAndGeometryPointSize) result |= 1ULL << 27;
+    if(device_features.shaderImageGatherExtended) result |= 1ULL << 28;
+    if(device_features.shaderStorageImageExtendedFormats) result |= 1ULL << 29;
+    if(device_features.shaderStorageImageMultisample) result |= 1ULL << 30;
+    if(device_features.shaderStorageImageReadWithoutFormat) result |= 1ULL << 31;
+    if(device_features.shaderStorageImageWriteWithoutFormat) result |= 1ULL << 32;
+    if(device_features.shaderUniformBufferArrayDynamicIndexing) result |= 1ULL << 33;
+    if(device_features.shaderSampledImageArrayDynamicIndexing) result |= 1ULL << 34;
+    if(device_features.shaderStorageBufferArrayDynamicIndexing) result |= 1ULL << 35;
+    if(device_features.shaderStorageImageArrayDynamicIndexing) result |= 1ULL << 36;
+    if(device_features.shaderClipDistance) result |= 1ULL << 37;
+    if(device_features.shaderCullDistance) result |= 1ULL << 38;
+    if(device_features.shaderFloat64) result |= 1ULL << 39;
+    if(device_features.shaderInt64) result |= 1ULL << 40;
+    if(device_features.shaderInt16) result |= 1ULL << 41;
+    if(device_features.shaderResourceResidency) result |= 1ULL << 42;
+    if(device_features.shaderResourceMinLod) result |= 1ULL << 43;
+    if(device_features.sparseBinding) result |= 1ULL << 44;
+    if(device_features.sparseResidencyBuffer) result |= 1ULL << 45;
+    if(device_features.sparseResidencyImage2D) result |= 1ULL << 46;
+    if(device_features.sparseResidencyImage3D) result |= 1ULL << 47;
+    if(device_features.sparseResidency2Samples) result |= 1ULL << 48;
+    if(device_features.sparseResidency4Samples) result |= 1ULL << 49;
+    if(device_features.sparseResidency8Samples) result |= 1ULL << 50;
+    if(device_features.sparseResidency16Samples) result |= 1ULL << 51;
+    if(device_features.sparseResidencyAliased) result |= 1ULL << 52;
+    if(device_features.variableMultisampleRate) result |= 1ULL << 53;
+    if(device_features.inheritedQueries) result |= 1ULL << 54;
 
     return result;
 }

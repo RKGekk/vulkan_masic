@@ -2,17 +2,26 @@
 
 bool RenderTarget::init(std::shared_ptr<VulkanDevice> device, const std::shared_ptr<VulkanSwapChain>& swapchain, int frame_index) {
     m_device = std::move(device);
+
+    VkSampleCountFlagBits samples = m_device->getMsaaSamples();
+    VkExtent2D extent = swapchain->getSwapchainParams().extent;
+    VkImageUsageFlags depth_usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    VkImageUsageFlags color_usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;;
+    
     m_color_format = swapchain->getSwapchainParams().surface_format.format;
-    m_depth_format = m_device->findDepthFormat();
-    m_viewport_extent = swapchain->getSwapchainParams().extent;
+    m_depth_format = m_device->findDepthFormat(depth_usage, extent, 1u, samples);
+    m_viewport_extent = extent;
     m_sharing_mode = swapchain->getSwapchainParams().images_sharing_mode;
-    m_msaa_samples = m_device->getMsaaSamples();
+    m_msaa_samples = samples;
     m_exec_counter = 0;
+    
+    VkImageAspectFlags depth_image_aspect = m_device->hasStencilComponent(m_depth_format) ? VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT : VK_IMAGE_ASPECT_DEPTH_BIT;
+    VkImageAspectFlags color_image_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
 
     m_out_swap_chain_image = swapchain->getSwapchainImages().at(frame_index);
     m_out_swap_chain_image.changeLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-    m_out_color_image = createColorResource();
-    m_out_depth_image = createDepthResource();
+    m_out_color_image = createResource(m_color_format, color_usage, color_image_aspect);
+    m_out_depth_image = createResource(m_depth_format, depth_usage, depth_image_aspect);
 
     m_attachments.reserve(m_msaa_samples == VK_SAMPLE_COUNT_1_BIT ? 2 : 3);
     m_attachments.push_back(m_msaa_samples == VK_SAMPLE_COUNT_1_BIT ? m_out_swap_chain_image.getImageBufferView() : m_out_color_image.getImageBufferView());
@@ -206,7 +215,8 @@ VkRenderPass RenderTarget::createRenderPass(VkAttachmentLoadOp load_op) const {
     return render_pass;
 }
 
-VulkanImageBuffer RenderTarget::createColorResource() const {
+VulkanImageBuffer RenderTarget::createResource(VkFormat format, VkImageUsageFlags usage, VkImageAspectFlags image_aspect) const {
+    uint32_t mip_levels = 1u;
     std::vector<uint32_t> families = m_device->getCommandManager().getQueueFamilyIndices().getIndices();
     VkImageCreateInfo image_info{};
     image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -216,39 +226,10 @@ VulkanImageBuffer RenderTarget::createColorResource() const {
     image_info.extent.depth = 1u;
     image_info.mipLevels = 1u;
     image_info.arrayLayers = 1u;
-    image_info.format = m_color_format;
+    image_info.format = format;
     image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
     image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    image_info.usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    image_info.sharingMode = m_sharing_mode;
-    image_info.queueFamilyIndexCount = static_cast<uint32_t>(families.size());
-    image_info.pQueueFamilyIndices = families.data();
-    image_info.samples = m_device->getMsaaSamples();
-    image_info.flags = 0u;
-
-    VulkanImageBuffer out_color_image;
-    out_color_image.init(m_device, nullptr, image_info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
-    out_color_image.changeLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-
-    return out_color_image;
-}
-
-VulkanImageBuffer RenderTarget::createDepthResource() const {
-    VkFormat depth_format = m_device->findDepthFormat();
-    VkImageAspectFlags image_aspect = m_device->hasStencilComponent(depth_format) ? VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT : VK_IMAGE_ASPECT_DEPTH_BIT;
-    std::vector<uint32_t> families = m_device->getCommandManager().getQueueFamilyIndices().getIndices();
-    VkImageCreateInfo image_info{};
-    image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-    image_info.imageType = VK_IMAGE_TYPE_2D;
-    image_info.extent.width = static_cast<uint32_t>(m_viewport_extent.width);
-    image_info.extent.height = static_cast<uint32_t>(m_viewport_extent.height);
-    image_info.extent.depth = 1u;
-    image_info.mipLevels = 1u;
-    image_info.arrayLayers = 1u;
-    image_info.format = depth_format;
-    image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
-    image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    image_info.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    image_info.usage = usage;
     image_info.sharingMode = m_sharing_mode;
     image_info.queueFamilyIndexCount = static_cast<uint32_t>(families.size());
     image_info.pQueueFamilyIndices = families.data();

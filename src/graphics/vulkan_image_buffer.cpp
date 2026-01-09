@@ -7,12 +7,18 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, VkImage image
     m_device = std::move(device);
     m_image = image;
 
+    VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
     VkFormat image_format = m_device->findSupportedFormat(
         {
             format
         },
         VK_IMAGE_TILING_OPTIMAL,
-        VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT
+        VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT,
+        usage,
+        extent,
+        mip_levels,
+        samples
     );
     
     static std::vector<uint32_t> families = m_device->getCommandManager().getQueueFamilyIndices().getIndices();
@@ -27,11 +33,11 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, VkImage image
     m_image_info.format = image_format;
     m_image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
     m_image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    m_image_info.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    m_image_info.usage = usage;
     m_image_info.sharingMode = m_device->getCommandManager().getBufferSharingMode();
     m_image_info.queueFamilyIndexCount = static_cast<uint32_t>(families.size());
     m_image_info.pQueueFamilyIndices = families.data();
-    m_image_info.samples = VK_SAMPLE_COUNT_1_BIT;
+    m_image_info.samples = samples;
     m_image_info.flags = 0u;
 
     VkMemoryRequirements mem_req{};
@@ -104,13 +110,18 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char
 
 bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, VkExtent2D extent, VkFormat format, VkMemoryPropertyFlags properties, VkImageAspectFlags aspect_flags) {
     uint32_t mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(extent.width, extent.height))));
-
+    VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
     VkFormat image_format = device->findSupportedFormat(
         {
             format
         },
         VK_IMAGE_TILING_OPTIMAL,
-        VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT
+        VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT,
+        usage,
+        extent,
+        mip_levels,
+        samples
     );
     
     static std::vector<uint32_t> families = device->getCommandManager().getQueueFamilyIndices().getIndices();
@@ -125,11 +136,11 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char
     image_info.format = image_format;
     image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
     image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    image_info.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    image_info.usage = usage;
     image_info.sharingMode = device->getCommandManager().getBufferSharingMode();
     image_info.queueFamilyIndexCount = static_cast<uint32_t>(families.size());
     image_info.pQueueFamilyIndices = families.data();
-    image_info.samples = VK_SAMPLE_COUNT_1_BIT;
+    image_info.samples = samples;
     image_info.flags = 0u;
 
     return init(device, pixels, image_info, properties, aspect_flags);

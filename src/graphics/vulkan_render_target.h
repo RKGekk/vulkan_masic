@@ -44,8 +44,7 @@ private:
     VkFramebuffer createFramebuffer(VkRenderPass render_pass) const;
     VkRenderPass createRenderPass(VkAttachmentLoadOp load_op) const;
 
-    VulkanImageBuffer createColorResource() const;
-    VulkanImageBuffer createDepthResource() const;
+    VulkanImageBuffer createResource(VkFormat format, VkImageUsageFlags usage, VkImageAspectFlags image_aspect) const;
 
     std::shared_ptr<VulkanDevice> m_device;
 
