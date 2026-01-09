@@ -98,6 +98,26 @@ VkBufferUsageFlags VulkanBuffer::getUsage() const {
     return m_usage;
 }
 
+VkBufferView VulkanBuffer::createBufferView(VkFormat format, VkDeviceSize range, VkDeviceSize offset) const {
+    VkBufferView view;
+
+    VkBufferViewCreateInfo create_info{};
+    create_info.sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO;
+    create_info.pNext = nullptr;
+    create_info.flags = 0u;
+    create_info.buffer = m_buffer;
+    create_info.format = format;
+    create_info.offset = offset;
+    create_info.range = range;
+
+    VkResult result = vkCreateBufferView(m_device->getDevice(), &create_info, nullptr, &view);
+    if (result != VK_SUCCESS) {
+        throw std::runtime_error("failed to create buffer view!");
+    }
+    
+    return view;
+}
+
 void VulkanBuffer::update(const void* src_data, VkDeviceSize buffer_size) {
     if (buffer_size > m_size) {
         destroy();

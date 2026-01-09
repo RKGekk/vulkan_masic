@@ -26,6 +26,8 @@ public:
     VkMemoryPropertyFlags getProperties() const;
     VkBufferUsageFlags getUsage() const;
 
+    VkBufferView createBufferView(VkFormat format, VkDeviceSize range, VkDeviceSize offset = 0u) const;
+
     void update(CommandBatch& command_buffer, const void* src_data, VkDeviceSize buffer_size, VkAccessFlags dstAccessMask);
     void update(CommandBatch& command_buffer, const void* src_data, VkDeviceSize buffer_size);
     void update(const void* src_data, VkDeviceSize buffer_size);
