@@ -102,7 +102,8 @@ VkImageFormatProperties VulkanDevice::findFormatAbilities(VkFormat format, VkIma
 }
 
 bool VulkanDevice::checkFormatSupported(VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkExtent2D extent, uint32_t mip_levels, VkSampleCountFlags sample_count, VkImageCreateFlags flags) const {
-    VkDeviceSize layer_size = extent.width * extent.height;
+    VkDeviceSize pixel_bytes_len = getBytesCount(format);
+    VkDeviceSize layer_size = extent.width * extent.height * pixel_bytes_len;
     VkDeviceSize resource_size = layer_size + (mip_levels ? (VkDeviceSize)((float)layer_size * (1.0f / 3.0f)) : 0u);
     VkImageFormatProperties img_props;
     VkResult result = vkGetPhysicalDeviceImageFormatProperties(m_device_abilities.physical_device, format, VK_IMAGE_TYPE_2D, tiling, usage, flags, &img_props);
