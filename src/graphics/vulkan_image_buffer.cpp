@@ -46,7 +46,8 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, VkImage image
 
     m_layout = m_image_info.initialLayout;
 
-    m_image_view = createImageView(m_image, m_image_info.format, aspect_flags, m_image_info.mipLevels);    
+    m_image_view_info = createImageViewInfo(m_image_info.format, aspect_flags, m_image_info.mipLevels);
+    m_image_view = createImageView(m_image_view_info);
 
     return true;
 }
@@ -84,7 +85,8 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char
     VkDeviceSize offset = 0u;
     vkBindImageMemory(m_device->getDevice(), m_image, m_memory, offset);
 
-    m_image_view = createImageView(m_image, m_image_info.format, aspect_flags, m_image_info.mipLevels);
+    m_image_view_info = createImageViewInfo(m_image_info.format, aspect_flags, m_image_info.mipLevels);
+    m_image_view = createImageView(m_image_view_info);
 
     if(!pixels) {
         return true;
@@ -176,6 +178,22 @@ const VkImageCreateInfo& VulkanImageBuffer::getImageInfo() const {
     return m_image_info;
 }
 
+VkSubresourceLayout VulkanImageBuffer::getSubresourceSizes(uint32_t mip_level, uint32_t array_layer) const {
+    return getSubresourceSizes(m_image_view_info.subresourceRange.aspectMask, mip_level, array_layer);
+}
+
+VkSubresourceLayout VulkanImageBuffer::getSubresourceSizes(VkImageAspectFlags aspect, uint32_t mip_level, uint32_t array_layer) const {
+    VkSubresourceLayout result{};
+    VkImageSubresource subresource{};
+    subresource.aspectMask = aspect;
+    subresource.mipLevel = mip_level;
+    subresource.arrayLayer = array_layer;
+
+    vkGetImageSubresourceLayout(m_device->getDevice(), m_image, &subresource, &result);
+
+    return result;
+}
+
 void VulkanImageBuffer::changeLayout(VkImageLayout new_layout) {
     CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
     changeLayout(command_buffer, new_layout);
@@ -189,10 +207,15 @@ void VulkanImageBuffer::changeLayout(CommandBatch& command_buffer, VkImageLayout
     m_layout = new_layout;
 }
 
-VkImageView VulkanImageBuffer::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const {
+VkImageView VulkanImageBuffer::createImageView(VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const {
+    VkImageViewCreateInfo view_info = createImageViewInfo(format, aspect_flags, mip_levels);
+    return createImageView(view_info);
+}
+
+VkImageViewCreateInfo VulkanImageBuffer::createImageViewInfo(VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const {
     VkImageViewCreateInfo view_info{};
     view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    view_info.image = image;
+    view_info.image = m_image;
     view_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
     view_info.format = format;
     view_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -204,9 +227,13 @@ VkImageView VulkanImageBuffer::createImageView(VkImage image, VkFormat format, V
     view_info.subresourceRange.levelCount = mip_levels;
     view_info.subresourceRange.baseMipLevel = 0u;
     view_info.subresourceRange.layerCount = 1u;
-    
+
+    return view_info;
+}
+
+VkImageView VulkanImageBuffer::createImageView(VkImageViewCreateInfo view_create_info) const {
     VkImageView image_view;
-    VkResult result = vkCreateImageView(m_device->getDevice(), &view_info, nullptr, &image_view);
+    VkResult result = vkCreateImageView(m_device->getDevice(), &view_create_info, nullptr, &image_view);
     if(result != VK_SUCCESS) {
         throw std::runtime_error("failed to create texture image view!");
     }

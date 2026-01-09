@@ -25,12 +25,17 @@ public:
     VkDeviceSize getSize() const;
     VkImageLayout getLayout() const;
     const VkImageCreateInfo& getImageInfo() const;
+    VkSubresourceLayout getSubresourceSizes(uint32_t mip_level, uint32_t array_layer) const;
+    VkSubresourceLayout getSubresourceSizes(VkImageAspectFlags aspect, uint32_t mip_level, uint32_t array_layer) const;
 
     void changeLayout(VkImageLayout new_layout);
     void changeLayout(CommandBatch& command_buffer, VkImageLayout new_layout);
 
+    VkImageView createImageView(VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const;
+
 protected:
-    VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const;
+    VkImageView createImageView(VkImageViewCreateInfo view_create_info) const;
+    VkImageViewCreateInfo createImageViewInfo(VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const;
 
     std::shared_ptr<VulkanDevice> m_device;
 
@@ -39,6 +44,7 @@ protected:
     VkDeviceMemory m_memory;
     
     VkImageCreateInfo m_image_info;
+    VkImageViewCreateInfo m_image_view_info;
     VkDeviceSize m_image_size;
     VkImageLayout m_layout;
     VkMemoryPropertyFlags m_properties;
