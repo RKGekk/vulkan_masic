@@ -6,9 +6,6 @@ VkSampler createFontTextureSampler(std::shared_ptr<VulkanDevice> device) {
     VkPhysicalDeviceFeatures supported_features{};
     vkGetPhysicalDeviceFeatures(device->getDeviceAbilities().physical_device, &supported_features);
 
-    VkPhysicalDeviceProperties device_props{};
-    vkGetPhysicalDeviceProperties(device->getDeviceAbilities().physical_device, &device_props);
-    
     VkSamplerCreateInfo sampler_info{};
     sampler_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     sampler_info.magFilter = VK_FILTER_LINEAR;

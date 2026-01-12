@@ -14,14 +14,19 @@ bool RenderTarget::init(std::shared_ptr<VulkanDevice> device, const std::shared_
     m_sharing_mode = swapchain->getSwapchainParams().images_sharing_mode;
     m_msaa_samples = samples;
     m_exec_counter = 0;
-    
-    VkImageAspectFlags depth_image_aspect = m_device->hasStencilComponent(m_depth_format) ? VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT : VK_IMAGE_ASPECT_DEPTH_BIT;
-    VkImageAspectFlags color_image_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
 
     m_out_swap_chain_image = swapchain->getSwapchainImages().at(frame_index);
     m_out_swap_chain_image.changeLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-    m_out_color_image = createResource(m_color_format, color_usage, color_image_aspect);
-    m_out_depth_image = createResource(m_depth_format, depth_usage, depth_image_aspect);
+    
+    bool has_stencil = m_device->hasStencilComponent(m_depth_format);
+    VkImageAspectFlags depth_image_aspect = has_stencil ? VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT : VK_IMAGE_ASPECT_DEPTH_BIT;
+    VkImageLayout depth_image_layout = has_stencil ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+    m_out_depth_image = createResource(m_depth_format, depth_usage, depth_image_aspect, depth_image_layout);
+
+    VkImageAspectFlags color_image_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+    VkImageLayout color_image_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    m_out_color_image = createResource(m_color_format, color_usage, color_image_aspect, color_image_layout);
+    
 
     m_attachments.reserve(m_msaa_samples == VK_SAMPLE_COUNT_1_BIT ? 2 : 3);
     m_attachments.push_back(m_msaa_samples == VK_SAMPLE_COUNT_1_BIT ? m_out_swap_chain_image.getImageBufferView() : m_out_color_image.getImageBufferView());
@@ -215,7 +220,7 @@ VkRenderPass RenderTarget::createRenderPass(VkAttachmentLoadOp load_op) const {
     return render_pass;
 }
 
-VulkanImageBuffer RenderTarget::createResource(VkFormat format, VkImageUsageFlags usage, VkImageAspectFlags image_aspect) const {
+VulkanImageBuffer RenderTarget::createResource(VkFormat format, VkImageUsageFlags usage, VkImageAspectFlags image_aspect, VkImageLayout initial_layout) const {
     uint32_t mip_levels = 1u;
     std::vector<uint32_t> families = m_device->getCommandManager().getQueueFamilyIndices().getIndices();
     VkImageCreateInfo image_info{};
@@ -236,9 +241,9 @@ VulkanImageBuffer RenderTarget::createResource(VkFormat format, VkImageUsageFlag
     image_info.samples = m_device->getMsaaSamples();
     image_info.flags = 0u;
 
-    VulkanImageBuffer out_depth_image;
-    out_depth_image.init(m_device, nullptr, image_info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image_aspect);
-    out_depth_image.changeLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+    VulkanImageBuffer out_image;
+    out_image.init(m_device, nullptr, image_info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image_aspect);
+    out_image.changeLayout(initial_layout);
 
-    return out_depth_image;
+    return out_image;
 }

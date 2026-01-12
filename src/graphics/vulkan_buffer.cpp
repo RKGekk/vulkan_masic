@@ -30,6 +30,7 @@ bool VulkanBuffer::init(std::shared_ptr<VulkanDevice> device, const void* data, 
     VkMemoryRequirements mem_req;
     vkGetBufferMemoryRequirements(m_device->getDevice(), m_buffer, &mem_req);
     uint32_t mem_type_idx = m_device->findMemoryType(mem_req.memoryTypeBits, properties);
+    m_size = mem_req.size;
   
     VkMemoryAllocateInfo alloc_info{};
     alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -151,6 +152,16 @@ void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, Vk
     }
     if(m_properties & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
         memcpy(m_mapped, src_data, buffer_size);
+        // VkMappedMemoryRange range{};
+        // range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+        // range.pNext = nullptr;
+        // range.memory = m_memory;
+        // range.offset = 0u;
+        // range.size = m_size;
+        // VkResult result = vkFlushMappedMemoryRanges(m_device->getDevice(), 1u, &range);
+        // if (result != VK_SUCCESS) {
+        //     throw std::runtime_error("failed to flush buffer!");
+        // }
         return;
     }
     std::shared_ptr<VulkanBuffer> staging_buffer = std::make_shared<VulkanBuffer>();
