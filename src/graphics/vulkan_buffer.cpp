@@ -26,7 +26,7 @@ bool VulkanBuffer::init(std::shared_ptr<VulkanDevice> device, const void* data, 
     if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to create buffer!");
     }
-     
+    
     VkMemoryRequirements mem_req;
     vkGetBufferMemoryRequirements(m_device->getDevice(), m_buffer, &mem_req);
     uint32_t mem_type_idx = m_device->findMemoryType(mem_req.memoryTypeBits, properties);
@@ -128,8 +128,22 @@ void VulkanBuffer::update(const void* src_data, VkDeviceSize buffer_size) {
     if(!src_data) {
         return;
     }
-    if(m_properties & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
+    if(m_properties & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) {
         memcpy(m_mapped, src_data, buffer_size);
+        return;
+    }
+    else if(m_properties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
+        memcpy(m_mapped, src_data, buffer_size);
+        VkMappedMemoryRange range{};
+        range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+        range.pNext = nullptr;
+        range.memory = m_memory;
+        range.offset = 0u;
+        range.size = VK_WHOLE_SIZE;
+        VkResult result = vkFlushMappedMemoryRanges(m_device->getDevice(), 1u, &range);
+        if (result != VK_SUCCESS) {
+            throw std::runtime_error("failed to flush buffer to device!");
+        }
         return;
     }
     else {
@@ -150,34 +164,71 @@ void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, Vk
     if(!src_data) {
         return;
     }
-    if(m_properties & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
+    if(m_properties & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) {
         memcpy(m_mapped, src_data, buffer_size);
-        // VkMappedMemoryRange range{};
-        // range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-        // range.pNext = nullptr;
-        // range.memory = m_memory;
-        // range.offset = 0u;
-        // range.size = m_size;
-        // VkResult result = vkFlushMappedMemoryRanges(m_device->getDevice(), 1u, &range);
-        // if (result != VK_SUCCESS) {
-        //     throw std::runtime_error("failed to flush buffer!");
-        // }
         return;
     }
+    if(m_properties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
+        VkMappedMemoryRange range{};
+        range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+        range.pNext = nullptr;
+        range.memory = m_memory;
+        range.offset = 0u;
+        range.size = VK_WHOLE_SIZE;
+
+        VkResult result{};
+        // send data from GPU
+        // result = vkInvalidateMappedMemoryRanges(m_device->getDevice(), 1u, &range);
+        // if (result != VK_SUCCESS) {
+        //     throw std::runtime_error("failed to invalidate buffer on device to flush data to host!");
+        // }
+
+        memcpy(m_mapped, src_data, buffer_size);
+
+        result = vkFlushMappedMemoryRanges(m_device->getDevice(), 1u, &range);
+        if (result != VK_SUCCESS) {
+            throw std::runtime_error("failed to flush buffer to device!");
+        }
+        //setGlobalMemoryUpdateBarier(command_buffer, dstAccessMask);
+        setMemoryUpdateBarier(command_buffer, dstAccessMask);
+        return;
+    }
+
     std::shared_ptr<VulkanBuffer> staging_buffer = std::make_shared<VulkanBuffer>();
     staging_buffer->init(m_device, src_data, m_size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
     command_buffer.addResource(staging_buffer);
 
     m_device->getCommandManager().copyBuffer(command_buffer.getCommandBufer(), staging_buffer->getBuffer(), m_buffer, buffer_size);
 
+    //setGlobalMemoryUpdateBarier(command_buffer, dstAccessMask);
+    setMemoryUpdateBarier(command_buffer, dstAccessMask);
+}
+
+void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, VkDeviceSize buffer_size) {
+    update(command_buffer, src_data, buffer_size, VulkanDevice::getDstAccessMask(m_usage));
+}
+
+void VulkanBuffer::setGlobalMemoryUpdateBarier(CommandBatch& command_buffer, VkAccessFlags dstAccessMask) {
     VkMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
     barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     barrier.dstAccessMask = dstAccessMask;
 
-    vkCmdPipelineBarrier(command_buffer.getCommandBufer(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0u, 1u, &barrier, 0u, nullptr, 0u, nullptr);
+    vkCmdPipelineBarrier(command_buffer.getCommandBufer(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_DEPENDENCY_BY_REGION_BIT, 1u, &barrier, 0u, nullptr, 0u, nullptr);
 }
 
-void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, VkDeviceSize buffer_size) {
-    update(command_buffer, src_data, buffer_size, VulkanDevice::getDstAccessMask(m_usage));
+void VulkanBuffer::setMemoryUpdateBarier(CommandBatch& command_buffer, VkAccessFlags dstAccessMask) {
+    VkBufferMemoryBarrier barrier{};
+    barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    barrier.dstAccessMask = dstAccessMask;
+    //barrier.srcQueueFamilyIndex = command_buffer.getFamilyIndex();
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    //barrier.dstQueueFamilyIndex = command_buffer.getFamilyIndex();
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.buffer = m_buffer;
+    barrier.offset = 0u;
+    barrier.size = VK_WHOLE_SIZE;
+
+    vkCmdPipelineBarrier(command_buffer.getCommandBufer(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_DEPENDENCY_BY_REGION_BIT, 0u, nullptr, 1u, &barrier, 0u, nullptr);
 }

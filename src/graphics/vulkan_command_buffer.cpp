@@ -2,12 +2,13 @@
 
 #include <iterator>
 
-bool CommandBatch::init(VkDevice device, std::vector<VkCommandBuffer> command_buffers, PoolTypeEnum pool_type, unsigned int id, BatchWaitInfo wait_info) {
+bool CommandBatch::init(VkDevice device, std::vector<VkCommandBuffer> command_buffers, PoolTypeEnum pool_type, uint32_t family_index, unsigned int id, BatchWaitInfo wait_info) {
     m_device = device;
     m_submit_id = id;
     m_command_buffers = command_buffers;
     m_pool_type = pool_type;
     m_wait_info = wait_info;
+    m_family_index = family_index;
 
     VkSemaphoreCreateInfo buffer_available_sema_info{};
     buffer_available_sema_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -27,23 +28,25 @@ bool CommandBatch::init(VkDevice device, std::vector<VkCommandBuffer> command_bu
     return true;
 }
 
-bool CommandBatch::init(VkDevice device, std::vector<VkCommandBuffer> command_buffers, VkSemaphore semaphore, VkFence fence, PoolTypeEnum pool_type, unsigned int submit_id, BatchWaitInfo wait_info) {
+bool CommandBatch::init(VkDevice device, std::vector<VkCommandBuffer> command_buffers, VkSemaphore semaphore, VkFence fence, PoolTypeEnum pool_type, uint32_t family_index, unsigned int submit_id, BatchWaitInfo wait_info) {
     m_device = device;
     m_submit_id = submit_id;
     m_command_buffers = command_buffers;
     m_pool_type = pool_type;
     m_buffer_in_use_semaphore = semaphore;
     m_render_fence = fence;
+    m_family_index = family_index;
 
     return true;
 }
 
-bool CommandBatch::init(VkDevice device, size_t reserve, PoolTypeEnum pool_type, unsigned int id, BatchWaitInfo wait_info) {
+bool CommandBatch::init(VkDevice device, size_t reserve, PoolTypeEnum pool_type, uint32_t family_index, unsigned int id, BatchWaitInfo wait_info) {
     m_device = device;
     m_submit_id = id;
     m_command_buffers.reserve(reserve);
     m_pool_type = pool_type;
     m_wait_info = wait_info;
+    m_family_index = family_index;
 
     VkSemaphoreCreateInfo buffer_available_sema_info{};
     buffer_available_sema_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -63,13 +66,14 @@ bool CommandBatch::init(VkDevice device, size_t reserve, PoolTypeEnum pool_type,
     return true;
 }
 
-bool CommandBatch::init(VkDevice device, size_t reserve, VkSemaphore semaphore, VkFence fence, PoolTypeEnum pool_type, unsigned int submit_id, BatchWaitInfo wait_info) {
+bool CommandBatch::init(VkDevice device, size_t reserve, VkSemaphore semaphore, VkFence fence, PoolTypeEnum pool_type, uint32_t family_index, unsigned int submit_id, BatchWaitInfo wait_info) {
     m_device = device;
     m_submit_id = submit_id;
     m_command_buffers.reserve(reserve);
     m_pool_type = pool_type;
     m_buffer_in_use_semaphore = semaphore;
     m_render_fence = fence;
+    m_family_index = family_index;
 
     return true;
 }
@@ -176,6 +180,10 @@ const CommandBatch::BatchWaitInfo& CommandBatch::getWaitInfo() const {
     return m_wait_info;
 }
 
+const uint32_t CommandBatch::getFamilyIndex() const {
+    return m_family_index;
+}
+
 void CommandBatch::setNoop() {
     m_noop = true;
 }
@@ -187,6 +195,7 @@ bool CommandBatch::Noop() {
 void CommandBatch::reset() const {
     for(VkCommandBuffer buffer : m_command_buffers) {
         vkResetCommandBuffer(buffer, 0u);
+        //vkResetCommandBuffer(buffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
     }
     vkResetFences(m_device, 1u, &m_render_fence);
 }

@@ -153,7 +153,7 @@ CommandBatch VulkanCommandManager::allocCommandBuffer(PoolTypeEnum pool_type, si
         VkFence fence = m_fences[fence_idx];
 
         CommandBatch result_buffers;
-        result_buffers.init(m_device, std::move(command_buffers), semaphore, fence, pool_type, LAST_COMMAND_BUFFER_ID++);
+        result_buffers.init(m_device, std::move(command_buffers), semaphore, fence, pool_type, m_queue_family_indices.getFamilyIdx(pool_type).value(), LAST_COMMAND_BUFFER_ID++);
         result_buffers.reset();
         VulkanCommandManager::beginCommandBuffer(result_buffers);
         m_submit_to_buf_id.AddOrUpdateMapping(result_buffers.getId(), cmd_idx);
@@ -169,7 +169,7 @@ CommandBatch VulkanCommandManager::allocCommandBuffer(PoolTypeEnum pool_type, si
             throw std::runtime_error("failed to allocate command buffers!");
         }
         CommandBatch result_buffers;
-        result_buffers.init(m_device, std::move(command_buffers), pool_type, LAST_COMMAND_BUFFER_ID++);
+        result_buffers.init(m_device, std::move(command_buffers), pool_type, m_queue_family_indices.getFamilyIdx(pool_type).value(), LAST_COMMAND_BUFFER_ID++);
         return result_buffers;
 	}
 
@@ -185,7 +185,7 @@ CommandBatch VulkanCommandManager::allocCommandBuffer(PoolTypeEnum pool_type, si
     }
 
     CommandBatch result_buffers;
-    result_buffers.init(m_device, std::move(command_buffers), pool_type, LAST_COMMAND_BUFFER_ID++);
+    result_buffers.init(m_device, std::move(command_buffers), pool_type, m_queue_family_indices.getFamilyIdx(pool_type).value(), LAST_COMMAND_BUFFER_ID++);
     return result_buffers;
 }
 

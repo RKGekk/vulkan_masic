@@ -33,6 +33,9 @@ public:
     void update(const void* src_data, VkDeviceSize buffer_size);
 
 protected:
+    void setGlobalMemoryUpdateBarier(CommandBatch& command_buffer, VkAccessFlags dstAccessMask);
+    void setMemoryUpdateBarier(CommandBatch& command_buffer, VkAccessFlags dstAccessMask);
+
     std::shared_ptr<VulkanDevice> m_device;
 
     VkBuffer m_buffer;

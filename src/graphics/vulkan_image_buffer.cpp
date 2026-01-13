@@ -40,6 +40,11 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, VkImage image
     m_image_info.samples = samples;
     m_image_info.flags = 0u;
 
+    // uint32_t requirements_count{};
+    // vkGetImageSparseMemoryRequirements(m_device->getDevice(), m_image, &requirements_count, nullptr);
+    // std::vector<VkSparseImageMemoryRequirements> pSparse_memory_requirements((size_t)requirements_count);
+    // vkGetImageSparseMemoryRequirements(m_device->getDevice(), m_image, requirements_count, pSparse_memory_requirements.data());
+
     VkMemoryRequirements mem_req{};
     vkGetImageMemoryRequirements(m_device->getDevice(), m_image, &mem_req);
     m_image_size = mem_req.size;

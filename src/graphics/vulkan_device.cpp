@@ -91,8 +91,16 @@ VkFormat VulkanDevice::findSupportedFormat(const std::vector<VkFormat>& candidat
     throw std::runtime_error("failed to find supported format!");
 }
 
+std::vector<VkSparseImageFormatProperties> VulkanDevice::findSparseFormatAbilities(VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkImageCreateFlags flags, VkSampleCountFlagBits samples) const {
+    uint32_t property_count{};
+    vkGetPhysicalDeviceSparseImageFormatProperties(m_device_abilities.physical_device, format, VK_IMAGE_TYPE_2D, samples, usage, tiling, &property_count, nullptr);
+    std::vector<VkSparseImageFormatProperties> props((size_t)property_count);
+    vkGetPhysicalDeviceSparseImageFormatProperties(m_device_abilities.physical_device, format, VK_IMAGE_TYPE_2D, samples, usage, tiling, &property_count, props.data());
+    return props;
+}
+
 VkImageFormatProperties VulkanDevice::findFormatAbilities(VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkImageCreateFlags flags) const {
-    VkImageFormatProperties img_props;
+    VkImageFormatProperties img_props{};
     VkResult result = vkGetPhysicalDeviceImageFormatProperties(m_device_abilities.physical_device, format, VK_IMAGE_TYPE_2D, tiling, usage, flags, &img_props);
     if (result != VK_SUCCESS) {    
         throw std::runtime_error("failed to find supported format!");
@@ -105,7 +113,8 @@ bool VulkanDevice::checkFormatSupported(VkFormat format, VkImageTiling tiling, V
     VkDeviceSize pixel_bytes_len = getBytesCount(format);
     VkDeviceSize layer_size = extent.width * extent.height * pixel_bytes_len;
     VkDeviceSize resource_size = layer_size + (mip_levels ? (VkDeviceSize)((float)layer_size * (1.0f / 3.0f)) : 0u);
-    VkImageFormatProperties img_props;
+    VkImageFormatProperties img_props{};
+    //VkImageFormatProperties img_props = findFormatAbilities(format, tiling, usage, flags, &img_props);
     VkResult result = vkGetPhysicalDeviceImageFormatProperties(m_device_abilities.physical_device, format, VK_IMAGE_TYPE_2D, tiling, usage, flags, &img_props);
     if (result != VK_SUCCESS) {    
         return false;

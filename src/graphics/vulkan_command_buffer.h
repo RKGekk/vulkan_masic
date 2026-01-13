@@ -18,10 +18,10 @@ public:
         std::vector<VkPipelineStageFlags> wait_for_stages;
     };
 
-    bool init(VkDevice device, std::vector<VkCommandBuffer> command_buffers, PoolTypeEnum pool_type, unsigned int submit_id, BatchWaitInfo wait_info = {});
-    bool init(VkDevice device, std::vector<VkCommandBuffer> command_buffers, VkSemaphore semaphore, VkFence fence, PoolTypeEnum pool_type, unsigned int submit_id, BatchWaitInfo wait_info = {});
-    bool init(VkDevice device, size_t reserve, PoolTypeEnum pool_type, unsigned int submit_id, BatchWaitInfo wait_info = {});
-    bool init(VkDevice device, size_t reserve, VkSemaphore semaphore, VkFence fence, PoolTypeEnum pool_type, unsigned int submit_id, BatchWaitInfo wait_info = {});
+    bool init(VkDevice device, std::vector<VkCommandBuffer> command_buffers, PoolTypeEnum pool_type, uint32_t family_index, unsigned int submit_id, BatchWaitInfo wait_info = {});
+    bool init(VkDevice device, std::vector<VkCommandBuffer> command_buffers, VkSemaphore semaphore, VkFence fence, PoolTypeEnum pool_type, uint32_t family_index, unsigned int submit_id, BatchWaitInfo wait_info = {});
+    bool init(VkDevice device, size_t reserve, PoolTypeEnum pool_type, uint32_t family_index, unsigned int submit_id, BatchWaitInfo wait_info = {});
+    bool init(VkDevice device, size_t reserve, VkSemaphore semaphore, VkFence fence, PoolTypeEnum pool_type, uint32_t family_index, unsigned int submit_id, BatchWaitInfo wait_info = {});
     void destroy();
 
     VkCommandBuffer getCommandBufer(size_t index = 0u) const;
@@ -42,6 +42,7 @@ public:
     unsigned int getId() const;
     VkSubmitInfo getSubmitInfo(BatchWaitInfo* wait_info = nullptr) const;
     const BatchWaitInfo& getWaitInfo() const;
+    const uint32_t getFamilyIndex() const;
 
     void setNoop();
     bool Noop();
@@ -59,6 +60,7 @@ private:
     VkFence m_render_fence = VK_NULL_HANDLE;
     VkSubmitInfo m_submit_info;
     BatchWaitInfo m_wait_info;
+    uint32_t m_family_index;
 
     bool m_noop = false;
 

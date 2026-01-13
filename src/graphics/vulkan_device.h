@@ -98,6 +98,7 @@ public:
 
     uint32_t findMemoryType(uint32_t type_filter, VkMemoryPropertyFlags properties) const;
     VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features, VkImageUsageFlags usage, VkExtent2D extent, uint32_t mip_levels, VkSampleCountFlags sample_count, VkImageCreateFlags flags = 0u) const;
+    std::vector<VkSparseImageFormatProperties> findSparseFormatAbilities(VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkImageCreateFlags flags, VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT) const;
     VkImageFormatProperties findFormatAbilities(VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkImageCreateFlags flags) const;
     bool checkFormatSupported(VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkExtent2D extent, uint32_t mip_levels, VkSampleCountFlags sample_count, VkImageCreateFlags flags = 0u) const;
     VkFormat findDepthFormat(VkImageUsageFlags usage, VkExtent2D extent, uint32_t mip_levels, VkSampleCountFlags sample_count, VkImageCreateFlags flags = 0u) const;
