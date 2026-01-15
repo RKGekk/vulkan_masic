@@ -8,7 +8,7 @@
 #include <GLFW/glfw3.h>
 
 #include "vulkan_instance_layers_and_extensions.h"
-#include "../tools/string_tools.h"
+#include "../../tools/string_tools.h"
 
 class VulkanInstance {
 public:

@@ -2,11 +2,8 @@
 
 #include <memory>
 
-#include <DirectXMath.h>
-#include <DirectXCollision.h>
-
 #include "scene_node.h"
-#include "../../graphics/model_data.h"
+#include "../../graphics/pod/model_data.h"
 
 class MeshNode : public SceneNode {
 public:

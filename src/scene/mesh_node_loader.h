@@ -26,8 +26,8 @@
 #include "scene.h"
 #include "nodes/scene_node.h"
 #include "nodes/mesh_node.h"
-#include "material.h"
-#include "../graphics/shader_signature.h"
+#include "../graphics/pod/material.h"
+#include "../graphics/pod/shader_signature.h"
 
 class MeshNodeLoader {
 public:

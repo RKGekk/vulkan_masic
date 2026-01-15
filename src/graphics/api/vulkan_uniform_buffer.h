@@ -3,11 +3,11 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#include "basic_uniform.h"
+#include "../pod/basic_uniform.h"
 #include "vulkan_buffer.h"
 #include "vulkan_device.h"
 #include "vulkan_command_buffer.h"
-#include "render_resource.h"
+#include "../pod/render_resource.h"
 
 #include <memory>
 #include <stdexcept>

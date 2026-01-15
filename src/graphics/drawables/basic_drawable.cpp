@@ -1,7 +1,7 @@
 #include "basic_drawable.h"
 
-#include "basic_vertex.h"
-#include "basic_uniform.h"
+#include "../pod/basic_vertex.h"
+#include "../pod/basic_uniform.h"
 
 #include <utility>
 

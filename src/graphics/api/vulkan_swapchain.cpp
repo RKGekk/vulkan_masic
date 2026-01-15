@@ -1,5 +1,5 @@
 #include "vulkan_swapchain.h"
-#include "vulkan_renderer.h"
+#include "../vulkan_renderer.h"
 
 bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR surface, GLFWwindow* window) {
     m_window = window;

@@ -1,5 +1,5 @@
 #include "vertex_format.h"
-#include "../tools/memory_utility.h"
+#include "../../tools/memory_utility.h"
 
 #include <regex>
 

@@ -1,9 +1,9 @@
 #include "human_view.h"
 
 #include "../../application.h"
-#include "../../graphics/scene_config.h"
+#include "../../graphics/pod/scene_config.h"
 #include "../../graphics/vulkan_renderer.h"
-#include "../../graphics/vulkan_device.h"
+#include "../../graphics/api/vulkan_device.h"
 #include "../../tools/memory_utility.h"
 #include "../../events/cicadas/evt_data_mouse_motion.h"
 #include "../../events/cicadas/evt_data_mouse_button_pressed.h"

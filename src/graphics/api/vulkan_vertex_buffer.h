@@ -5,7 +5,7 @@
 
 #include "vulkan_device.h"
 #include "vulkan_buffer.h"
-#include "render_resource.h"
+#include "../pod/render_resource.h"
 
 #include <memory>
 #include <stdexcept>

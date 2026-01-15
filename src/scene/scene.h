@@ -17,7 +17,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/ext.hpp>
 
-#include "material.h"
+#include "../graphics/pod/material.h"
 
 constexpr const int MAX_NODE_LEVEL = 32;
 

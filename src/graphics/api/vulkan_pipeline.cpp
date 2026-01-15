@@ -7,32 +7,36 @@
 bool VulkanPipeline::init(VkDevice device, const PipelineCfg& pipeline_cfg) {
     m_device = device;
 
-    VkPipelineCacheCreateInfo pipeline_cache_info{};
-    pipeline_cache_info.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
-    pipeline_cache_info.pNext = nullptr;
-    pipeline_cache_info.initialDataSize = 0u;
-    pipeline_cache_info.pInitialData = nullptr;
-    pipeline_cache_info.flags = 0u;
-    VkResult  result = vkCreatePipelineCache(device, &pipeline_cache_info, NULL, &m_pipeline_cache);
-    if(result != VK_SUCCESS) {
-        throw std::runtime_error("failed to create pipeline cache!");
-    }
-
+    m_pipeline_type = PipelineType::GRAPHICS;
     m_pipeline_layout = createPipelineLayout(pipeline_cfg.desc_set_layouts);
-    m_graphics_pipeline = createPipeline(pipeline_cfg);
+    m_pipeline = createPipeline(pipeline_cfg);
+    m_shaders_info = pipeline_cfg.shaders_info;
+
+    return true;
+}
+
+bool VulkanPipeline::init(VkDevice device, const PipelineCfg& pipeline_cfg, VkPipeline pipeline) {
+    m_device = device;
+
+    m_pipeline_type = PipelineType::GRAPHICS;
+    m_pipeline_layout = createPipelineLayout(pipeline_cfg.desc_set_layouts);
+    m_pipeline = pipeline;
     m_shaders_info = pipeline_cfg.shaders_info;
 
     return true;
 }
 
 void VulkanPipeline::destroy() {
-    vkDestroyPipelineCache(m_device, m_pipeline_cache, NULL);
-    vkDestroyPipeline(m_device, m_graphics_pipeline, nullptr);
+    vkDestroyPipeline(m_device, m_pipeline, nullptr);
     vkDestroyPipelineLayout(m_device, m_pipeline_layout, nullptr);
 }
 
+VulkanPipeline::PipelineType VulkanPipeline::getPipelineType() const {
+    return m_pipeline_type;
+}
+
 VkPipeline VulkanPipeline::getPipeline() const {
-    return m_graphics_pipeline;
+    return m_pipeline;
 }
 
 VkPipelineLayout VulkanPipeline::getPipelineLayout() const {

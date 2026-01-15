@@ -326,8 +326,8 @@ std::unordered_set<std::string> getNamesUnsupported(const std::unordered_set<std
 }
 
 std::vector<char> readFile(const std::string& file_name) {
-    InputFileStramGuard stream_guard(std::ifstream(file_name, std::ios::ate | std::ios::binary));
-    std::ifstream& file = stream_guard.Get(); 
+    FileStramGuard stream_guard(std::fstream(file_name, std::ios::in | std::ios::ate | std::ios::binary));
+    std::fstream& file = stream_guard.Get();
     if(!file.is_open()) {
         throw std::runtime_error("failed to open file: " + file_name + "\n");
     }
@@ -339,4 +339,15 @@ std::vector<char> readFile(const std::string& file_name) {
     file.read(buffer.data(), file_size);
 
     return buffer;
+}
+
+void writeFile(const std::string& file_name, size_t file_size, const void* data) {
+	FileStramGuard stream_guard(std::fstream(file_name, std::ios::out | std::ios::trunc | std::ios::binary));
+    std::fstream& file = stream_guard.Get();
+    if(!file.is_open()) {
+        throw std::runtime_error("failed to open file: " + file_name + "\n");
+    }
+
+    file.seekg(0u);
+    file.write((const char*)data, file_size);
 }

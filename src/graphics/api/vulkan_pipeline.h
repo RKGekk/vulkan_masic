@@ -9,7 +9,13 @@
 
 class VulkanPipeline {
 public:
+    enum class PipelineType {
+        GRAPHICS,
+        COMPUTE
+    };
+
     struct PipelineCfg {
+        std::string name;
         std::vector<VkDescriptorSetLayout> desc_set_layouts;
         VkRenderPass render_pass;
         VkExtent2D viewport_extent;
@@ -23,8 +29,10 @@ public:
     };
 
     bool init(VkDevice device, const PipelineCfg& pipeline_cfg);
+    bool init(VkDevice device, const PipelineCfg& pipeline_cfg, VkPipeline pipeline);
     void destroy();
 
+    PipelineType getPipelineType() const;
     VkPipeline getPipeline() const;
     VkPipelineLayout getPipelineLayout() const;
     const std::vector<VkPipelineShaderStageCreateInfo>& getShadersInfo() const;
@@ -35,8 +43,8 @@ private:
 
     VkDevice m_device;
 
-    VkPipelineCache m_pipeline_cache = VK_NULL_HANDLE;
+    PipelineType m_pipeline_type;
     VkPipelineLayout m_pipeline_layout = VK_NULL_HANDLE;
-    VkPipeline m_graphics_pipeline = VK_NULL_HANDLE;
+    VkPipeline m_pipeline = VK_NULL_HANDLE;
     std::vector<VkPipelineShaderStageCreateInfo> m_shaders_info;
 };

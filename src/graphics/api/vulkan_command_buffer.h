@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "vulkan_command_pool_type.h"
-#include "render_resource.h"
+#include "../pod/render_resource.h"
 
 class CommandBatch {
 public:

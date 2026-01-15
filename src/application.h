@@ -14,8 +14,8 @@
 #include "tools/thread_pool.h"
 #include "events/ievent_manager.h"
 
-#include "graphics/vulkan_instance.h"
-#include "graphics/vulkan_device.h"
+#include "graphics/api/vulkan_instance.h"
+#include "graphics/api/vulkan_device.h"
 #include "graphics/vulkan_renderer.h"
 
 class VulkanApplication;

@@ -4,7 +4,7 @@
 
 #include "iscreen_element.h"
 #include "../../scene/scene.h"
-#include "../../graphics/scene_drawable.h"
+#include "../../graphics/drawables/scene_drawable.h"
 #include "../../events/ievent_data.h"
 
 class ScreenElementScene : public IScreenElement, public Scene {

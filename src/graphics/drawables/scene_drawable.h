@@ -14,16 +14,16 @@
 
 #include "tiny_gltf.h"
 
-#include "../scene/nodes/mesh_node.h"
-#include "vulkan_device.h"
-#include "vulkan_drawable.h"
-#include "render_resource.h"
-#include "vulkan_uniform_buffer.h"
-#include "vulkan_vertex_buffer.h"
-#include "vulkan_pipeline.h"
-#include "vulkan_shader.h"
-#include "vulkan_descriptor.h"
-#include "vulkan_texture.h"
+#include "../../scene/nodes/mesh_node.h"
+#include "../api/vulkan_device.h"
+#include "../drawables/vulkan_drawable.h"
+#include "../pod/render_resource.h"
+#include "../api/vulkan_uniform_buffer.h"
+#include "../api/vulkan_vertex_buffer.h"
+#include "../api/vulkan_pipeline.h"
+#include "../api/vulkan_shader.h"
+#include "../api/vulkan_descriptor.h"
+#include "../api/vulkan_texture.h"
 
 #include <array>
 #include <cstdint>

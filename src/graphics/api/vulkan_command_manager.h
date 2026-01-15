@@ -10,9 +10,9 @@
 #include "vulkan_queue_family.h"
 #include "vulkan_command_pool_type.h"
 #include "vulkan_command_buffer.h"
-#include "../tools/thread_safe_queue.h"
-#include "../tools/thread_pool.h"
-#include "../tools/thread_safe_lookup_table.h"
+#include "../../tools/thread_safe_queue.h"
+#include "../../tools/thread_pool.h"
+#include "../../tools/thread_safe_lookup_table.h"
 
 class VulkanCommandManager {
 public:

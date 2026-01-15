@@ -14,10 +14,10 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "../physics/bounding_box.h"
-#include "../physics/bounding_sphere.h"
-#include "vulkan_vertex_buffer.h"
-#include "../scene/material.h"
+#include "../../physics/bounding_box.h"
+#include "../../physics/bounding_sphere.h"
+#include "../api/vulkan_vertex_buffer.h"
+#include "material.h"
 #include "vertex_format.h"
 
 #include <map>

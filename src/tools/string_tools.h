@@ -120,20 +120,21 @@ bool checkNamesSupported(const Container1& available_names, const Container2& re
 
 std::unordered_set<std::string> getNamesUnsupported(const std::unordered_set<std::string>& available_names, const std::unordered_set<std::string>& required_names);
 
-class InputFileStramGuard final {
+class FileStramGuard final {
 public:
-    InputFileStramGuard(std::ifstream&& stream) : m_stream(std::move(stream)) {}
-    ~InputFileStramGuard() {
+    FileStramGuard(std::fstream&& stream) : m_stream(std::move(stream)) {}
+    ~FileStramGuard() {
         m_stream.close();
     }
-    InputFileStramGuard(const InputFileStramGuard&) = delete;
-    InputFileStramGuard& operator=(const InputFileStramGuard&) = delete;
+    FileStramGuard(const FileStramGuard&) = delete;
+    FileStramGuard& operator=(const FileStramGuard&) = delete;
     
-    std::ifstream& Get() {
+    std::fstream& Get() {
         return m_stream;
     }
 private:
-    std::ifstream m_stream;
+    std::fstream m_stream;
 };
 
 std::vector<char> readFile(const std::string& file_name);
+void writeFile(const std::string& file_name, size_t file_size, const void* data);

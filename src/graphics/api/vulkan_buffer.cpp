@@ -151,6 +151,7 @@ void VulkanBuffer::update(const void* src_data, VkDeviceSize buffer_size) {
         update(command_buffer, src_data, buffer_size);
         m_device->getCommandManager().submitCommandBuffer(command_buffer);
         m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
+
         return;
     }
 }
@@ -199,6 +200,9 @@ void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, Vk
     command_buffer.addResource(staging_buffer);
 
     m_device->getCommandManager().copyBuffer(command_buffer.getCommandBufer(), staging_buffer->getBuffer(), m_buffer, buffer_size);
+
+    // alternative to vkCmdCopyBuffer from m_device->getCommandManager().copyBuffer, the data is consumed from host memory as soon as vkCmdUpdateBuffer() is called, Vulkan make a copy of the data you’ve supplied! Data is not written into the buffer until vkCmdUpdateBuffer() is executed by the device after the command buffer has been submitted! The maximum size of data that can be placed in a buffer with vkCmdUpdateBuffer() is 65,536 bytes.
+    // vkCmdUpdateBuffer(command_buffer.getCommandBufer(), m_buffer, 0u, buffer_size, src_data);
 
     //setGlobalMemoryUpdateBarier(command_buffer, dstAccessMask);
     setMemoryUpdateBarier(command_buffer, dstAccessMask);

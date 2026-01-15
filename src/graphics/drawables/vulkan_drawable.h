@@ -3,11 +3,11 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#include "../tools/game_timer.h"
-#include "render_resource.h"
-#include "vulkan_command_buffer.h"
-#include "vulkan_image_buffer.h"
-#include "vulkan_render_target.h"
+#include "../../tools/game_timer.h"
+#include "../pod/render_resource.h"
+#include "../api/vulkan_command_buffer.h"
+#include "../api/vulkan_image_buffer.h"
+#include "../api/vulkan_render_target.h"
 
 #include <cstdint>
 #include <memory>

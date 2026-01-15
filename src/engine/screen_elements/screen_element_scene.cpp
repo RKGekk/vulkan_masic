@@ -1,9 +1,9 @@
 #include "screen_element_scene.h"
 
 #include "../../application.h"
-#include "../../graphics/scene_config.h"
+#include "../../graphics/pod/scene_config.h"
 #include "../../graphics/vulkan_renderer.h"
-#include "../../graphics/vulkan_device.h"
+#include "../../graphics/api/vulkan_device.h"
 #include "../../events/cicadas/evt_data_new_model_component.h"
 #include "../../scene/nodes/scene_node.h"
 #include "../../scene/nodes/mesh_node.h"

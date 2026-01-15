@@ -14,8 +14,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/ext.hpp>
 
-#include "../graphics/vulkan_buffer.h"
-#include "../graphics/vulkan_texture.h"
+#include "../api/vulkan_buffer.h"
+#include "../api/vulkan_texture.h"
 
 struct alignas(16) MaterialProperties {
 

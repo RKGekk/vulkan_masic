@@ -1,9 +1,9 @@
 #include "scene_drawable.h"
 
-#include "../application.h"
-#include "../engine/base_engine_logic.h"
-#include "../actors/camera_component.h"
-#include "../scene/nodes/basic_camera_node.h"
+#include "../../application.h"
+#include "../../engine/base_engine_logic.h"
+#include "../../actors/camera_component.h"
+#include "../../scene/nodes/basic_camera_node.h"
 
 struct SceneUniformBufferObject {
     glm::mat4 model;

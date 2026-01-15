@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <memory>
 
-#include "render_resource.h"
+#include "../pod/render_resource.h"
 #include "vulkan_command_buffer.h"
 
 class VulkanDevice;

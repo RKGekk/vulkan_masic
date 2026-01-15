@@ -12,10 +12,10 @@
 #include "events/cicadas/evt_data_window_close.h"
 #include "events/event_manager.h"
 
-#include "graphics/basic_vertex.h"
-#include "graphics/basic_uniform.h"
-#include "graphics/basic_drawable.h"
-#include "graphics/gltf_drawable.h"
+#include "graphics/pod/basic_vertex.h"
+#include "graphics/pod/basic_uniform.h"
+#include "graphics/drawables/basic_drawable.h"
+#include "graphics/drawables/gltf_drawable.h"
 
 std::unique_ptr<Application> gs_pSingeton;
 std::once_flag gs_only_once;
