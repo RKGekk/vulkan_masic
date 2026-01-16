@@ -1,6 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<pipelines>
-    <pipeline name="basic">
-        
-    </pipeline>
-</pipelines>
+<?xml-model href="masic_schema.xsd" type="application/xml" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<Pipelines xmlns="http://www.masicengine.ru">
+    <GraphicsPipeline name="basic">
+        <DescriptorSet>
+            <LayoutBinding>
+                <Binding>0</Binding>
+                <DescriptorType>uniform_buffer</DescriptorType>
+                <DescriptorCount>1</DescriptorCount>
+                <ShaderStageFlags>
+                    <Flag>vertex_bit</Flag>
+                </ShaderStageFlags>
+                <ImmutableSamplers>
+                    <Sampler>
+                        <MagFilter>linear</MagFilter>
+                        <MinFilter>linear</MinFilter>
+                        <MipmapMode>linear</MipmapMode>
+                        <AddressModeU>repeat</AddressModeU>
+                        <AddressModeV>repeat</AddressModeV>
+                        <AddressModeW>repeat</AddressModeW>
+                    </Sampler>
+                </ImmutableSamplers>
+            </LayoutBinding>
+        </DescriptorSet>
+    </GraphicsPipeline>
+</Pipelines>

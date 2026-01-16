@@ -407,6 +407,7 @@ foreach(FONT ${APP_FONTS})
     CopyFontFile(${FONT} ${FONT_DIR})
 endforeach()
 
+CopyConfigFile("${SRC_DIR}/graphics_pipelines.xml" "${CMAKE_BINARY_DIR}/Debug")
 CopyConfigFile("${SRC_DIR}/application_options.xml" "${CMAKE_BINARY_DIR}/Debug")
 CopyConfigFile("${SRC_DIR}/main_menu.xml" "${CMAKE_BINARY_DIR}/Debug")
 

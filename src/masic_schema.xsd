@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:target="http://www.masicengine.ru"
+           targetNamespace="http://www.masicengine.ru"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+
+    <xs:simpleType name="FilterSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="nearest"></xs:enumeration>
+            <xs:enumeration value="linear"></xs:enumeration>
+            <xs:enumeration value="cubic_ext"></xs:enumeration>
+            <xs:enumeration value="cubic_img"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="SamplerAddressModeSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="repeat"></xs:enumeration>
+            <xs:enumeration value="mirrored_repeat"></xs:enumeration>
+            <xs:enumeration value="clamp_to_edge"></xs:enumeration>
+            <xs:enumeration value="clamp_to_border"></xs:enumeration>
+            <xs:enumeration value="mirror_clamp_to_edge"></xs:enumeration>
+            <xs:enumeration value="mirror_clamp_to_edge_khr"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="SamplerComplexType">
+        <xs:sequence>
+            <xs:element name="CreateFlags" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Flags">
+                            <xs:simpleType>
+                                <xs:restriction base="xs:string">
+                                    <xs:enumeration value="subsampled_bit_ext"></xs:enumeration>
+                                    <xs:enumeration value="subsampled_coarse_reconstruction_bit_ext"></xs:enumeration>
+                                    <xs:enumeration value="descriptor_buffer_capture_replay_bit_ext"></xs:enumeration>
+                                    <xs:enumeration value="non_seamless_cube_map_bit_ext"></xs:enumeration>
+                                    <xs:enumeration value="image_processing_bit_qcom"></xs:enumeration>
+                                </xs:restriction>
+                            </xs:simpleType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="MagFilter" type="target:FilterSimpleType"></xs:element>
+            <xs:element name="MinFilter" type="target:FilterSimpleType"></xs:element>
+            <xs:element name="MipmapMode">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="nearest"></xs:enumeration>
+                        <xs:enumeration value="linear"></xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="AddressModeU" type="target:SamplerAddressModeSimpleType"></xs:element>
+            <xs:element name="AddressModeV" type="target:SamplerAddressModeSimpleType"></xs:element>
+            <xs:element name="AddressModeW" type="target:SamplerAddressModeSimpleType"></xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ShaderStageFlagBitsComplexType">
+        <xs:sequence>
+            <xs:element name="Flag" minOccurs="0" maxOccurs="unbounded">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="vertex_bit"></xs:enumeration>
+                        <xs:enumeration value="tessellation_control_bit"></xs:enumeration>
+                        <xs:enumeration value="tessellation_evaluation_bit"></xs:enumeration>
+                        <xs:enumeration value="geometry_bit"></xs:enumeration>
+                        <xs:enumeration value="fragment_bit"></xs:enumeration>
+                        <xs:enumeration value="compute_bit"></xs:enumeration>
+                        <xs:enumeration value="all_graphics"></xs:enumeration>
+                        <xs:enumeration value="all"></xs:enumeration>
+                        <xs:enumeration value="raygen_bit_khr"></xs:enumeration>
+                        <xs:enumeration value="any_hit_bit_khr"></xs:enumeration>
+                        <xs:enumeration value="closest_hit_bit_khr"></xs:enumeration>
+                        <xs:enumeration value="miss_bit_khr"></xs:enumeration>
+                        <xs:enumeration value="intersection_bit_khr"></xs:enumeration>
+                        <xs:enumeration value="callable_bit_khr"></xs:enumeration>
+                        <xs:enumeration value="task_bit_ext"></xs:enumeration>
+                        <xs:enumeration value="mesh_bit_ext"></xs:enumeration>
+                        <xs:enumeration value="subpass_shading_bit_huawei"></xs:enumeration>
+                        <xs:enumeration value="cluster_culling_bit_huawei"></xs:enumeration>
+                        <xs:enumeration value="raygen_bit_nv"></xs:enumeration>
+                        <xs:enumeration value="any_hit_bit_nv"></xs:enumeration>
+                        <xs:enumeration value="closest_hit_bit_nv"></xs:enumeration>
+                        <xs:enumeration value="miss_bit_nv"></xs:enumeration>
+                        <xs:enumeration value="intersection_bit_nv"></xs:enumeration>
+                        <xs:enumeration value="callable_bit_nv"></xs:enumeration>
+                        <xs:enumeration value="task_bit_nv"></xs:enumeration>
+                        <xs:enumeration value="mesh_bit_nv"></xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="LayoutBindingComplexType">
+        <xs:all>
+            <xs:element name="Binding" type="xs:unsignedInt">
+                <xs:annotation>
+                    <xs:documentation>specified in shader - layout (set=m, binding=n)</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="DescriptorType">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="sampler"></xs:enumeration>
+                        <xs:enumeration value="combined_image_sampler"></xs:enumeration>
+                        <xs:enumeration value="sampled_image"></xs:enumeration>
+                        <xs:enumeration value="storage_image"></xs:enumeration>
+                        <xs:enumeration value="uniform_texel_buffer"></xs:enumeration>
+                        <xs:enumeration value="storage_texel_buffer"></xs:enumeration>
+                        <xs:enumeration value="uniform_buffer"></xs:enumeration>
+                        <xs:enumeration value="storage_buffer"></xs:enumeration>
+                        <xs:enumeration value="uniform_buffer_dynamic"></xs:enumeration>
+                        <xs:enumeration value="storage_buffer_dynamic"></xs:enumeration>
+                        <xs:enumeration value="input_attachment"></xs:enumeration>
+                        <xs:enumeration value="inline_uniform_block"></xs:enumeration>
+                        <xs:enumeration value="acceleration_structure_khr"></xs:enumeration>
+                        <xs:enumeration value="acceleration_structure_nv"></xs:enumeration>
+                        <xs:enumeration value="sample_weight_image_qcom"></xs:enumeration>
+                        <xs:enumeration value="block_match_image_qcom"></xs:enumeration>
+                        <xs:enumeration value="mutable_ext"></xs:enumeration>
+                        <xs:enumeration value="inline_uniform_block_ext"></xs:enumeration>
+                        <xs:enumeration value="mutable_valve"></xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="DescriptorCount" type="xs:unsignedInt"></xs:element>
+            <xs:element name="ShaderStageFlags" type="target:ShaderStageFlagBitsComplexType"></xs:element>
+            <xs:element name="ImmutableSamplers" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Sampler" type="target:SamplerComplexType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:all>
+    </xs:complexType>
+        
+    <xs:complexType name="GraphicsPipelineComplexType">
+        <xs:sequence>
+            <xs:element name="DescriptorSet" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="LayoutBinding" type="target:LayoutBindingComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="PipelinesComplexType">
+        <xs:sequence>
+          <xs:element name="GraphicsPipeline" type="target:GraphicsPipelineComplexType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+          <xs:element name="ComputePipeline" minOccurs="0" maxOccurs="unbounded"></xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:element name="Pipelines" type="target:PipelinesComplexType"></xs:element>
+    <xs:element name="World"></xs:element>
+    <xs:element name="PlayerOptions"></xs:element>
+
+</xs:schema>
