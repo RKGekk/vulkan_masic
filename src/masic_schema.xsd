@@ -25,6 +25,32 @@
         </xs:restriction>
     </xs:simpleType>
 
+    <xs:simpleType name="CompareOpSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="never"></xs:enumeration>
+            <xs:enumeration value="less"></xs:enumeration>
+            <xs:enumeration value="equal"></xs:enumeration>
+            <xs:enumeration value="less_or_equal"></xs:enumeration>
+            <xs:enumeration value="greater"></xs:enumeration>
+            <xs:enumeration value="not_equal"></xs:enumeration>
+            <xs:enumeration value="greater_or_equal"></xs:enumeration>
+            <xs:enumeration value="always"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="BorderColorSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="float_transparent_black"></xs:enumeration>
+            <xs:enumeration value="int_transparent_black"></xs:enumeration>
+            <xs:enumeration value="float_opaque_black"></xs:enumeration>
+            <xs:enumeration value="int_opaque_black"></xs:enumeration>
+            <xs:enumeration value="float_opaque_white"></xs:enumeration>
+            <xs:enumeration value="int_opaque_white"></xs:enumeration>
+            <xs:enumeration value="float_custom_ext"></xs:enumeration>
+            <xs:enumeration value="int_custom_ext"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:complexType name="SamplerComplexType">
         <xs:sequence>
             <xs:element name="CreateFlags" minOccurs="0" maxOccurs="unbounded">
@@ -57,6 +83,15 @@
             <xs:element name="AddressModeU" type="target:SamplerAddressModeSimpleType"></xs:element>
             <xs:element name="AddressModeV" type="target:SamplerAddressModeSimpleType"></xs:element>
             <xs:element name="AddressModeW" type="target:SamplerAddressModeSimpleType"></xs:element>
+            <xs:element name="MipLodBias" type="xs:float"></xs:element>
+            <xs:element name="AnisotropyEnable" type="xs:boolean"></xs:element>
+            <xs:element name="MaxAnisotropy" type="xs:float"></xs:element>
+            <xs:element name="CompareEnable" type="xs:boolean"></xs:element>
+            <xs:element name="CompareOp" type="target:CompareOpSimpleType"></xs:element>
+            <xs:element name="MinLod" type="xs:float"></xs:element>
+            <xs:element name="MaxLod" type="xs:float"></xs:element>
+            <xs:element name="BorderColor" type="target:BorderColorSimpleType"></xs:element>
+            <xs:element name="UnnormalizedCoordinates" type="xs:boolean"></xs:element>
         </xs:sequence>
     </xs:complexType>
 

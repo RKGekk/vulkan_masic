@@ -10,16 +10,14 @@
                 <ShaderStageFlags>
                     <Flag>vertex_bit</Flag>
                 </ShaderStageFlags>
-                <ImmutableSamplers>
-                    <Sampler>
-                        <MagFilter>linear</MagFilter>
-                        <MinFilter>linear</MinFilter>
-                        <MipmapMode>linear</MipmapMode>
-                        <AddressModeU>repeat</AddressModeU>
-                        <AddressModeV>repeat</AddressModeV>
-                        <AddressModeW>repeat</AddressModeW>
-                    </Sampler>
-                </ImmutableSamplers>
+            </LayoutBinding>
+            <LayoutBinding>
+                <Binding>1</Binding>
+                <DescriptorType>combined_image_sampler</DescriptorType>
+                <DescriptorCount>1</DescriptorCount>
+                <ShaderStageFlags>
+                    <Flag>fragment_bit</Flag>
+                </ShaderStageFlags>
             </LayoutBinding>
         </DescriptorSet>
     </GraphicsPipeline>
