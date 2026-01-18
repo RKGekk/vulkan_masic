@@ -313,7 +313,7 @@
         <xs:attribute name="name" type="xs:string"></xs:attribute>
     </xs:complexType>
 
-    <xs:simpleType name="InputAssemblySimpleType">
+    <xs:simpleType name="PrimitiveTopologySimpleType">
         <xs:restriction base="xs:string">
             <xs:enumeration value="point_list"></xs:enumeration>
             <xs:enumeration value="line_list"></xs:enumeration>
@@ -660,7 +660,14 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="InputAssembly" type="target:InputAssemblySimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="InputAssembly" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Topology" type="target:PrimitiveTopologySimpleType"></xs:element>
+                        <xs:element name="PrimitiveRestartEnable" type="xs:boolean"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="RasterizationState" minOccurs="1" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>

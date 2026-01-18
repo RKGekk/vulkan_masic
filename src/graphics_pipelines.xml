@@ -56,7 +56,10 @@
                 </InputAttributeDescription>
             </Shader>
         </Shaders>
-        <InputAssembly>triangle_list</InputAssembly>
+        <InputAssembly>
+            <Topology>triangle_list</Topology>
+            <PrimitiveRestartEnable>true</PrimitiveRestartEnable>
+        </InputAssembly>
         <RasterizationState>
             <DepthClampEnable>false</DepthClampEnable>
             <RasterizerDiscardEnable>false</RasterizerDiscardEnable>
@@ -94,6 +97,123 @@
                     <DstColorBlendFactor>zero</DstColorBlendFactor>
                     <ColorBlendOp>add</ColorBlendOp>
                     <SrcAlphaBlendFactor>one</SrcAlphaBlendFactor>
+                    <DstAlphaBlendFactor>zero</DstAlphaBlendFactor>
+                    <AlphaBlendOp>add</AlphaBlendOp>
+                    <ColorWriteMask>
+                        <Mask>r_bit</Mask>
+                        <Mask>g_bit</Mask>
+                        <Mask>b_bit</Mask>
+                        <Mask>a_bit</Mask>
+                    </ColorWriteMask>
+                </Attachment>
+            </Attachments>
+            <BlendConstant1>0.0</BlendConstant1>
+            <BlendConstant2>0.0</BlendConstant2>
+            <BlendConstant3>0.0</BlendConstant3>
+            <BlendConstant4>0.0</BlendConstant4>
+        </ColorBlendState>
+        <DynamicState>
+            <Dynamic>viewport</Dynamic>
+            <Dynamic>scissor</Dynamic>
+        </DynamicState>
+    </GraphicsPipeline>
+
+    <GraphicsPipeline name="imgui">
+        <DescriptorSet>
+            <Set slot="0">
+                <LayoutBinding>
+                    <Binding>0</Binding>
+                    <DescriptorType>uniform_buffer</DescriptorType>
+                    <DescriptorCount>1</DescriptorCount>
+                    <ShaderStageFlags>
+                        <Flag>vertex_bit</Flag>
+                    </ShaderStageFlags>
+                </LayoutBinding>
+                <LayoutBinding>
+                    <Binding>1</Binding>
+                    <DescriptorType>combined_image_sampler</DescriptorType>
+                    <DescriptorCount>1</DescriptorCount>
+                    <ShaderStageFlags>
+                        <Flag>fragment_bit</Flag>
+                    </ShaderStageFlags>
+                </LayoutBinding>
+            </Set>
+        </DescriptorSet>
+        <Shaders>
+            <Shader name="imgui.vert">
+                <FilePath file_name="imgui.vert"></FilePath>
+                <Stage><Flag>vertex_bit</Flag></Stage>
+                <InputAttributeDescription>
+                    <Attribute name="inPosition">
+                        <Location>0</Location>
+                        <Format>vec2</Format>
+                    </Attribute>
+                    <Attribute name="inTexCoords">
+                        <Location>1</Location>
+                        <Format>vec2</Format>
+                    </Attribute>
+                    <Attribute name="inColor">
+                        <Location>3</Location>
+                        <Format>vec3</Format>
+                    </Attribute>
+                </InputAttributeDescription>
+            </Shader>
+            <Shader name="imgui.frag">
+                <FilePath file_name="imgui.frag"></FilePath>
+                <Stage><Flag>fragment_bit</Flag></Stage>
+                <InputAttributeDescription>
+                    <Attribute name="fragColor">
+                        <Location>0</Location>
+                        <Format>vec3</Format>
+                    </Attribute>
+                    <Attribute name="fragTexCoords">
+                        <Location>1</Location>
+                        <Format>vec2</Format>
+                    </Attribute>
+                </InputAttributeDescription>
+            </Shader>
+        </Shaders>
+        <InputAssembly>
+            <Topology>triangle_list</Topology>
+            <PrimitiveRestartEnable>true</PrimitiveRestartEnable>
+        </InputAssembly>
+        <RasterizationState>
+            <DepthClampEnable>false</DepthClampEnable>
+            <RasterizerDiscardEnable>false</RasterizerDiscardEnable>
+            <PolygonMode>fill</PolygonMode>
+            <CullMode><Flags><Flag>none</Flag></Flags></CullMode>
+            <FrontFace>counter_clockwise</FrontFace>
+            <DepthBiasEnable>false</DepthBiasEnable>
+            <DepthBiasConstantFactor>0.0</DepthBiasConstantFactor>
+            <DepthBiasClamp>0.0</DepthBiasClamp>
+            <DepthBiasSlopeFactor>0.0</DepthBiasSlopeFactor>
+            <LineWidth>1.0</LineWidth>
+        </RasterizationState>
+        <MultisampleState>
+            <SampleCount>16_bit</SampleCount>
+            <SampleShadingEnable>false</SampleShadingEnable>
+            <alphaToCoverageEnable>false</alphaToCoverageEnable>
+            <alphaToOneEnable>false</alphaToOneEnable>
+        </MultisampleState>
+        <DepthStencilState>
+            <DepthTestEnable>false</DepthTestEnable>
+            <DepthWriteEnable>false</DepthWriteEnable>
+            <DepthCompareOp>less</DepthCompareOp>
+            <DepthBoundsTestEnable>false</DepthBoundsTestEnable>
+            <StencilTestEnable>false</StencilTestEnable>
+            <MinDepthBounds>0.0</MinDepthBounds>
+            <MaxDepthBounds>1.0</MaxDepthBounds>
+        </DepthStencilState>
+        <ColorBlendState>
+            <LogicOpEnable>false</LogicOpEnable>
+            <LogicOp>copy</LogicOp>
+            <Attachments>
+                <Attachment>
+                    <BlendEnable>true</BlendEnable>
+                    <SrcColorBlendFactor>src_alpha</SrcColorBlendFactor>
+                    <DstColorBlendFactor>one_minus_src_alpha</DstColorBlendFactor>
+                    <ColorBlendOp>add</ColorBlendOp>
+                    <SrcAlphaBlendFactor>src_alpha</SrcAlphaBlendFactor>
                     <DstAlphaBlendFactor>zero</DstAlphaBlendFactor>
                     <AlphaBlendOp>add</AlphaBlendOp>
                     <ColorWriteMask>
