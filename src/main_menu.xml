@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<World>
+<?xml-model href="masic_schema.xsd" type="application/xml" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<World xmlns="http://www.masicengine.ru">
   <Actors>
     
     <Actor name="camera1">

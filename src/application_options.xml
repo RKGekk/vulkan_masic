@@ -1,5 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>>
-<PlayerOptions>
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-model href="masic_schema.xsd" type="application/xml" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<PlayerOptions xmlns="http://www.masicengine.ru">
   <Graphics>
     <Renderer>Vulkan</Renderer>
     <Width>1920</Width>

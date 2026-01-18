@@ -5,6 +5,18 @@
            elementFormDefault="qualified"
            attributeFormDefault="unqualified">
 
+    <xs:complexType name="ColorAsAttrComplexType">
+        <xs:attribute name="r" type="xs:float"></xs:attribute>
+        <xs:attribute name="g" type="xs:float"></xs:attribute>
+        <xs:attribute name="b" type="xs:float"></xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="Vec3ComplexType">
+        <xs:attribute name="x" type="xs:float"></xs:attribute>
+        <xs:attribute name="y" type="xs:float"></xs:attribute>
+        <xs:attribute name="z" type="xs:float"></xs:attribute>
+    </xs:complexType>
+
     <xs:simpleType name="FilterSimpleType">
         <xs:restriction base="xs:string">
             <xs:enumeration value="nearest"></xs:enumeration>
@@ -175,13 +187,212 @@
             </xs:element>
         </xs:all>
     </xs:complexType>
+
+    <xs:simpleType name="ShaderStageSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="vertex_bit"></xs:enumeration>
+            <xs:enumeration value="tessellation_control_bit"></xs:enumeration>
+            <xs:enumeration value="tessellation_evaluation_bit"></xs:enumeration>
+            <xs:enumeration value="geometry_bit"></xs:enumeration>
+            <xs:enumeration value="fragment_bit"></xs:enumeration>
+            <xs:enumeration value="compute_bit"></xs:enumeration>
+            <xs:enumeration value="all_graphics"></xs:enumeration>
+            <xs:enumeration value="all"></xs:enumeration>
+            <xs:enumeration value="raygen_bit_khr"></xs:enumeration>
+            <xs:enumeration value="any_hit_bit_khr"></xs:enumeration>
+            <xs:enumeration value="closest_hit_bit_khr"></xs:enumeration>
+            <xs:enumeration value="miss_bit_khr"></xs:enumeration>
+            <xs:enumeration value="intersection_bit_khr"></xs:enumeration>
+            <xs:enumeration value="callable_bit_khr"></xs:enumeration>
+            <xs:enumeration value="task_bit_ext"></xs:enumeration>
+            <xs:enumeration value="mesh_bit_ext"></xs:enumeration>
+            <xs:enumeration value="subpass_shading_bit_huawei"></xs:enumeration>
+            <xs:enumeration value="cluster_culling_bit_huawei"></xs:enumeration>
+            <xs:enumeration value="raygen_bit_nv"></xs:enumeration>
+            <xs:enumeration value="any_hit_bit_nv"></xs:enumeration>
+            <xs:enumeration value="closest_hit_bit_nv"></xs:enumeration>
+            <xs:enumeration value="miss_bit_nv"></xs:enumeration>
+            <xs:enumeration value="intersection_bit_nv"></xs:enumeration>
+            <xs:enumeration value="callable_bit_nv"></xs:enumeration>
+            <xs:enumeration value="task_bit_nv"></xs:enumeration>
+            <xs:enumeration value="mesh_bit_nv"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="GLSLTypesSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="bool"></xs:enumeration>
+            <xs:enumeration value="int"></xs:enumeration>
+            <xs:enumeration value="uint"></xs:enumeration>
+            <xs:enumeration value="float"></xs:enumeration>
+            <xs:enumeration value="double"></xs:enumeration>
+            <xs:enumeration value="bvec2"></xs:enumeration>
+            <xs:enumeration value="bvec3"></xs:enumeration>
+            <xs:enumeration value="bvec4"></xs:enumeration>
+            <xs:enumeration value="ivec2"></xs:enumeration>
+            <xs:enumeration value="ivec3"></xs:enumeration>
+            <xs:enumeration value="ivec4"></xs:enumeration>
+            <xs:enumeration value="uvec2"></xs:enumeration>
+            <xs:enumeration value="uvec3"></xs:enumeration>
+            <xs:enumeration value="uvec4"></xs:enumeration>
+            <xs:enumeration value="vec2"></xs:enumeration>
+            <xs:enumeration value="vec3"></xs:enumeration>
+            <xs:enumeration value="vec4"></xs:enumeration>
+            <xs:enumeration value="dvec2"></xs:enumeration>
+            <xs:enumeration value="dvec3"></xs:enumeration>
+            <xs:enumeration value="dvec4"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="SpecializationConstantComplexType">
+        <xs:sequence>
+            <xs:element name="Constant" minOccurs="1" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="ConstantID" type="xs:unsignedInt"></xs:element>
+                        <xs:element name="Type" type="target:GLSLTypesSimpleType"></xs:element>
+                        <xs:element name="Value"></xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="name" type="xs:string"></xs:attribute>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:simpleType name="ShaderFlagSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="link_stage_bit_ext"></xs:enumeration>
+            <xs:enumeration value="allow_varying_subgroup_size"></xs:enumeration>
+            <xs:enumeration value="require_full_subgroups"></xs:enumeration>
+            <xs:enumeration value="no_task_shader_bit_ext"></xs:enumeration>
+            <xs:enumeration value="dispatch_base_bit_ext"></xs:enumeration>
+            <xs:enumeration value="fragment_shading_rate_attachment_bit_ext"></xs:enumeration>
+            <xs:enumeration value="fragment_density_map_attachment_bit_ext"></xs:enumeration>
+            <xs:enumeration value="indirect_bindable_bit_ext"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="ShaderFlagsComplexType">
+        <xs:sequence>
+            <xs:element name="Flag" type="target:ShaderFlagSimpleType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ShaderStageFlagsComplexType">
+        <xs:sequence>
+            <xs:element name="Flag" type="target:ShaderStageSimpleType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ShaderComplexType">
+        <xs:sequence>
+            <xs:element name="FilePath" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="Flags" type="target:ShaderFlagsComplexType" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="Stage" type="target:ShaderStageFlagsComplexType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="SpecializationConstants" type="target:SpecializationConstantComplexType" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="InputAttributeDescription" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Attribute" minOccurs="1" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Location" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
+                                    <xs:element name="Format" type="target:GLSLTypesSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string"></xs:attribute>
+    </xs:complexType>
+
+    <xs:simpleType name="InputAssemblySimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="point_list"></xs:enumeration>
+            <xs:enumeration value="line_list"></xs:enumeration>
+            <xs:enumeration value="line_strip"></xs:enumeration>
+            <xs:enumeration value="triangle_list"></xs:enumeration>
+            <xs:enumeration value="triangle_strip"></xs:enumeration>
+            <xs:enumeration value="triangle_fan"></xs:enumeration>
+            <xs:enumeration value="line_list_with_adjacency"></xs:enumeration>
+            <xs:enumeration value="line_strip_with_adjacency"></xs:enumeration>
+            <xs:enumeration value="triangle_list_with_adjacency"></xs:enumeration>
+            <xs:enumeration value="triangle_strip_with_adjacency"></xs:enumeration>
+            <xs:enumeration value="patch_list"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="PolygonModeSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="fill"></xs:enumeration>
+            <xs:enumeration value="line"></xs:enumeration>
+            <xs:enumeration value="point"></xs:enumeration>
+            <xs:enumeration value="fill_rectangle_nv"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="CullModeFlagSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="none"></xs:enumeration>
+            <xs:enumeration value="front_bit"></xs:enumeration>
+            <xs:enumeration value="back_bit"></xs:enumeration>
+            <xs:enumeration value="front_and_back"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="FrontFaceSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="counter_clockwise"></xs:enumeration>
+            <xs:enumeration value="clockwise"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
         
     <xs:complexType name="GraphicsPipelineComplexType">
         <xs:sequence>
             <xs:element name="DescriptorSet" minOccurs="0" maxOccurs="unbounded">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element name="LayoutBinding" type="target:LayoutBindingComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                        <xs:element name="Set" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="LayoutBinding" type="target:LayoutBindingComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                                </xs:sequence>
+                                <xs:attribute name="slot" type="xs:unsignedInt"></xs:attribute>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="Shaders" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Shader" type="target:ShaderComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="InputAssembly" type="target:InputAssemblySimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="RasterizationState" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="DepthClampEnable" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="RasterizerDiscardEnable" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="PolygonMode" type="target:PolygonModeSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="CullMode" minOccurs="1" maxOccurs="1">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Flags" minOccurs="1" maxOccurs="1">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="Flag" type="target:CullModeFlagSimpleType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="FrontFace" type="target:FrontFaceSimpleType"></xs:element>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -197,7 +408,96 @@
     </xs:complexType>
 
     <xs:element name="Pipelines" type="target:PipelinesComplexType"></xs:element>
-    <xs:element name="World"></xs:element>
+    <xs:element name="World">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Actors" minOccurs="0" maxOccurs="1">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="Actor" minOccurs="0" maxOccurs="unbounded">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="TransformComponent" minOccurs="0" maxOccurs="1">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element name="Position" type="target:Vec3ComplexType"></xs:element>
+                                                    <xs:element name="YawPitchRoll" type="target:Vec3ComplexType"></xs:element>
+                                                    <xs:element name="Scale" type="target:Vec3ComplexType"></xs:element>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="CameraComponent">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element name="Fov" type="xs:float"></xs:element>
+                                                    <xs:element name="Near" type="xs:float"></xs:element>
+                                                    <xs:element name="Far" type="xs:float"></xs:element>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="ModelComponent">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element name="FilePath" type="xs:string"></xs:element>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                    <xs:attribute name="name" type="xs:string"></xs:attribute>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="Scene">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="BackgroundColor" type="target:ColorAsAttrComplexType"></xs:element>
+                            <xs:element name="Camera">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="SelectName" type="xs:string"></xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="Fog">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="FogStart" type="xs:float"></xs:element>
+                                        <xs:element name="FogRange" type="xs:float"></xs:element>
+                                        <xs:element name="FogColor" type="target:ColorAsAttrComplexType"></xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="ActorAnimations">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="ActorAnimation" minOccurs="0" maxOccurs="unbounded">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element name="AnimationForActorName" type="xs:string"></xs:element>
+                                                    <xs:element name="RelativeKeyframe">
+                                                        <xs:complexType>
+                                                            <xs:sequence>
+                                                                <xs:element name="TimePosSec" type="xs:float"></xs:element>
+                                                                <xs:element name="YawPitchRoll" type="target:Vec3ComplexType"></xs:element>
+                                                                <xs:element name="Translation" type="target:Vec3ComplexType"></xs:element>
+                                                            </xs:sequence>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                    <xs:attribute name="TotalTimeSec" type="xs:float"></xs:attribute>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
     <xs:element name="PlayerOptions"></xs:element>
 
 </xs:schema>

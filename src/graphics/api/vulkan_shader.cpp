@@ -1,5 +1,5 @@
 #include "vulkan_shader.h"
-#include "../tools/string_tools.h"
+#include "../../tools/string_tools.h"
 
 bool VulkanShader::init(VkDevice device, const std::string& path, VkShaderStageFlagBits pipeline_stage) {
     m_device = device;

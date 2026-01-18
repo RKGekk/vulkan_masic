@@ -3,22 +3,24 @@
 <Pipelines xmlns="http://www.masicengine.ru">
     <GraphicsPipeline name="basic">
         <DescriptorSet>
-            <LayoutBinding>
-                <Binding>0</Binding>
-                <DescriptorType>uniform_buffer</DescriptorType>
-                <DescriptorCount>1</DescriptorCount>
-                <ShaderStageFlags>
-                    <Flag>vertex_bit</Flag>
-                </ShaderStageFlags>
-            </LayoutBinding>
-            <LayoutBinding>
-                <Binding>1</Binding>
-                <DescriptorType>combined_image_sampler</DescriptorType>
-                <DescriptorCount>1</DescriptorCount>
-                <ShaderStageFlags>
-                    <Flag>fragment_bit</Flag>
-                </ShaderStageFlags>
-            </LayoutBinding>
+            <Set slot="0">
+                <LayoutBinding>
+                    <Binding>0</Binding>
+                    <DescriptorType>uniform_buffer</DescriptorType>
+                    <DescriptorCount>1</DescriptorCount>
+                    <ShaderStageFlags>
+                        <Flag>vertex_bit</Flag>
+                    </ShaderStageFlags>
+                </LayoutBinding>
+                <LayoutBinding>
+                    <Binding>1</Binding>
+                    <DescriptorType>combined_image_sampler</DescriptorType>
+                    <DescriptorCount>1</DescriptorCount>
+                    <ShaderStageFlags>
+                        <Flag>fragment_bit</Flag>
+                    </ShaderStageFlags>
+                </LayoutBinding>
+            </Set>
         </DescriptorSet>
     </GraphicsPipeline>
 </Pipelines>
