@@ -99,6 +99,7 @@ VkPipeline VulkanPipeline::createPipeline(const PipelineCfg& pipeline_cfg) const
     VkPipelineMultisampleStateCreateInfo multisample_info{};
     multisample_info.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisample_info.sampleShadingEnable = VK_FALSE;
+    //multisample_info.sampleShadingEnable = VK_TRUE;
     multisample_info.rasterizationSamples = pipeline_cfg.msaa_samples;
     //multisample_info.minSampleShading = 1.0f;
     //multisample_info.pSampleMask = nullptr;

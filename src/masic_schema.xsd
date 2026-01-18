@@ -286,7 +286,11 @@
 
     <xs:complexType name="ShaderComplexType">
         <xs:sequence>
-            <xs:element name="FilePath" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="FilePath" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attribute name="file_name" type="xs:string"></xs:attribute>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="Flags" type="target:ShaderFlagsComplexType" minOccurs="0" maxOccurs="1"></xs:element>
             <xs:element name="Stage" type="target:ShaderStageFlagsComplexType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="SpecializationConstants" type="target:SpecializationConstantComplexType" minOccurs="0" maxOccurs="1"></xs:element>
@@ -299,6 +303,7 @@
                                     <xs:element name="Location" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
                                     <xs:element name="Format" type="target:GLSLTypesSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
                                 </xs:sequence>
+                                <xs:attribute name="name" type="xs:string"></xs:attribute>
                             </xs:complexType>
                         </xs:element>
                     </xs:sequence>
@@ -709,7 +714,7 @@
                         </xs:element>
                         <xs:element name="DepthTestEnable" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
                         <xs:element name="DepthWriteEnable" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
-                        <xs:element name="DepthCompareOp" type="target:CompareOpSimpleType"></xs:element>
+                        <xs:element name="DepthCompareOp" type="target:CompareOpSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
                         <xs:element name="DepthBoundsTestEnable" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
                         <xs:element name="StencilTestEnable" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
                         <xs:element name="FrontStencilOpState" type="target:StencilOpStateComplexType" minOccurs="0" maxOccurs="1"></xs:element>
@@ -730,7 +735,7 @@
                             </xs:complexType>
                         </xs:element>
                         <xs:element name="LogicOpEnable" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
-                        <xs:element name="LogicOp" type="target:LogicOpSimpleType"></xs:element>
+                        <xs:element name="LogicOp" type="target:LogicOpSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
                         <xs:element name="Attachments" minOccurs="1" maxOccurs="1">
                             <xs:complexType>
                                 <xs:sequence>
@@ -738,17 +743,17 @@
                                 </xs:sequence>
                             </xs:complexType>
                         </xs:element>
-                        <xs:element name="BlendConstant1" type="xs:unsignedInt"></xs:element>
-                        <xs:element name="BlendConstant2" type="xs:unsignedInt"></xs:element>
-                        <xs:element name="BlendConstant3" type="xs:unsignedInt"></xs:element>
-                        <xs:element name="BlendConstant4" type="xs:unsignedInt"></xs:element>
+                        <xs:element name="BlendConstant1" type="xs:float"></xs:element>
+                        <xs:element name="BlendConstant2" type="xs:float"></xs:element>
+                        <xs:element name="BlendConstant3" type="xs:float"></xs:element>
+                        <xs:element name="BlendConstant4" type="xs:float"></xs:element>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
             <xs:element name="DynamicState" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element name="Dynamic" type="target:DynamicStateSimpleType"></xs:element>
+                        <xs:element name="Dynamic" type="target:DynamicStateSimpleType" minOccurs="1" maxOccurs="unbounded"></xs:element>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
