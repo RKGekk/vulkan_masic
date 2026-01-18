@@ -866,6 +866,42 @@
             </xs:sequence>
         </xs:complexType>
     </xs:element>
-    <xs:element name="PlayerOptions"></xs:element>
+    <xs:element name="PlayerOptions">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Graphics">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="Renderer">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                        <xs:enumeration value="Vulkan"></xs:enumeration>
+                                        <xs:enumeration value="DirectX12"></xs:enumeration>
+                                        <xs:enumeration value="OpenGL4"></xs:enumeration>
+                                        <xs:enumeration value="OpenGL3"></xs:enumeration>
+                                        <xs:enumeration value="OpenGLES"></xs:enumeration>
+                                        <xs:enumeration value="DirectX11"></xs:enumeration>
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:element>
+                            <xs:element name="Width" type="xs:unsignedInt"></xs:element>
+                            <xs:element name="Height" type="xs:unsignedInt"></xs:element>
+                            <xs:element name="RunFullSpeed" type="xs:boolean"></xs:element>
+                            <xs:element name="FullScreen" type="xs:boolean"></xs:element>
+                            <xs:element name="FullScreenMax" type="xs:boolean"></xs:element>
+                            <xs:element name="ScreenTearing" type="xs:boolean"></xs:element>
+                            <xs:element name="DebugUI" type="xs:boolean"></xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="Sound">
+                    <xs:complexType>
+                        <xs:attribute name="sfxVolume" type="xs:float"></xs:attribute>
+                        <xs:attribute name="musicVolume" type="xs:float"></xs:attribute>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
 
 </xs:schema>
