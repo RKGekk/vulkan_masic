@@ -348,6 +348,289 @@
             <xs:enumeration value="clockwise"></xs:enumeration>
         </xs:restriction>
     </xs:simpleType>
+
+    <xs:simpleType name="SampleCountSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="1_bit"></xs:enumeration>
+            <xs:enumeration value="2_bit"></xs:enumeration>
+            <xs:enumeration value="4_bit"></xs:enumeration>
+            <xs:enumeration value="8_bit"></xs:enumeration>
+            <xs:enumeration value="16_bit"></xs:enumeration>
+            <xs:enumeration value="32_bit"></xs:enumeration>
+            <xs:enumeration value="64_bit"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="DepthStencilStateFlag">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="rasterization_order_attachment_depth_access_bit_ext"></xs:enumeration>
+            <xs:enumeration value="rasterization_order_attachment_stencil_access_bit_ext"></xs:enumeration>
+            <xs:enumeration value="rasterization_order_attachment_depth_access_bit_arm"></xs:enumeration>
+            <xs:enumeration value="rasterization_order_attachment_stencil_access_bit_arm"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="StencilOpSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="keep"></xs:enumeration>
+            <xs:enumeration value="zero"></xs:enumeration>
+            <xs:enumeration value="replace"></xs:enumeration>
+            <xs:enumeration value="increment_and_clamp"></xs:enumeration>
+            <xs:enumeration value="decrement_and_clamp"></xs:enumeration>
+            <xs:enumeration value="invert"></xs:enumeration>
+            <xs:enumeration value="increment_and_wrap"></xs:enumeration>
+            <xs:enumeration value="decrement_and_wrap"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="StencilOpStateComplexType">
+        <xs:sequence>
+            <xs:element name="FailOp" type="target:StencilOpSimpleType"></xs:element>
+            <xs:element name="PassOp" type="target:StencilOpSimpleType"></xs:element>
+            <xs:element name="DepthFailOp" type="target:StencilOpSimpleType"></xs:element>
+            <xs:element name="CompareOp" type="target:CompareOpSimpleType"></xs:element>
+            <xs:element name="CompareMask" type="xs:unsignedInt"></xs:element>
+            <xs:element name="WriteMask" type="xs:unsignedInt"></xs:element>
+            <xs:element name="Reference" type="xs:unsignedInt"></xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:simpleType name="ColorBlendStateFlag">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="rasterization_order_attachment_access_bit_ext"></xs:enumeration>
+            <xs:enumeration value="rasterization_order_attachment_access_bit_arm"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="BlendFactorSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="zero"></xs:enumeration>
+            <xs:enumeration value="one"></xs:enumeration>
+            <xs:enumeration value="src_color"></xs:enumeration>
+            <xs:enumeration value="one_minus_src_color"></xs:enumeration>
+            <xs:enumeration value="dst_color"></xs:enumeration>
+            <xs:enumeration value="one_minus_dst_color"></xs:enumeration>
+            <xs:enumeration value="src_alpha"></xs:enumeration>
+            <xs:enumeration value="one_minus_src_alpha"></xs:enumeration>
+            <xs:enumeration value="dst_alpha"></xs:enumeration>
+            <xs:enumeration value="one_minus_dst_alpha"></xs:enumeration>
+            <xs:enumeration value="constant_color"></xs:enumeration>
+            <xs:enumeration value="one_minus_constant_color"></xs:enumeration>
+            <xs:enumeration value="constant_alpha"></xs:enumeration>
+            <xs:enumeration value="one_minus_constant_alpha"></xs:enumeration>
+            <xs:enumeration value="src_alpha_saturate"></xs:enumeration>
+            <xs:enumeration value="src1_color"></xs:enumeration>
+            <xs:enumeration value="one_minus_src1_color"></xs:enumeration>
+            <xs:enumeration value="src1_alpha"></xs:enumeration>
+            <xs:enumeration value="one_minus_src1_alpha"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="LogicOpSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="clear"></xs:enumeration>
+            <xs:enumeration value="and"></xs:enumeration>
+            <xs:enumeration value="and_reverse"></xs:enumeration>
+            <xs:enumeration value="copy"></xs:enumeration>
+            <xs:enumeration value="and_inverted"></xs:enumeration>
+            <xs:enumeration value="no_op"></xs:enumeration>
+            <xs:enumeration value="xor"></xs:enumeration>
+            <xs:enumeration value="or"></xs:enumeration>
+            <xs:enumeration value="nor"></xs:enumeration>
+            <xs:enumeration value="equivalent"></xs:enumeration>
+            <xs:enumeration value="invert"></xs:enumeration>
+            <xs:enumeration value="or_reverse"></xs:enumeration>
+            <xs:enumeration value="copy_inverted"></xs:enumeration>
+            <xs:enumeration value="or_inverted"></xs:enumeration>
+            <xs:enumeration value="nand"></xs:enumeration>
+            <xs:enumeration value="set"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="BlendOpSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="add"></xs:enumeration>
+            <xs:enumeration value="subtract"></xs:enumeration>
+            <xs:enumeration value="reverse_subtract"></xs:enumeration>
+            <xs:enumeration value="min"></xs:enumeration>
+            <xs:enumeration value="max"></xs:enumeration>
+            <xs:enumeration value="zero_ext"></xs:enumeration>
+            <xs:enumeration value="src_ext"></xs:enumeration>
+            <xs:enumeration value="dst_ext"></xs:enumeration>
+            <xs:enumeration value="src_over_ext"></xs:enumeration>
+            <xs:enumeration value="dst_over_ext"></xs:enumeration>
+            <xs:enumeration value="src_in_ext"></xs:enumeration>
+            <xs:enumeration value="dst_in_ext"></xs:enumeration>
+            <xs:enumeration value="src_out_ext"></xs:enumeration>
+            <xs:enumeration value="dst_out_ext"></xs:enumeration>
+            <xs:enumeration value="src_atop_ext"></xs:enumeration>
+            <xs:enumeration value="dst_atop_ext"></xs:enumeration>
+            <xs:enumeration value="xor_ext"></xs:enumeration>
+            <xs:enumeration value="multiply_ext"></xs:enumeration>
+            <xs:enumeration value="screen_ext"></xs:enumeration>
+            <xs:enumeration value="overlay_ext"></xs:enumeration>
+            <xs:enumeration value="darken_ext"></xs:enumeration>
+            <xs:enumeration value="lighten_ext"></xs:enumeration>
+            <xs:enumeration value="colordodge_ext"></xs:enumeration>
+            <xs:enumeration value="colorburn_ext"></xs:enumeration>
+            <xs:enumeration value="hardlight_ext"></xs:enumeration>
+            <xs:enumeration value="softlight_ext"></xs:enumeration>
+            <xs:enumeration value="difference_ext"></xs:enumeration>
+            <xs:enumeration value="exclusion_ext"></xs:enumeration>
+            <xs:enumeration value="invert_ext"></xs:enumeration>
+            <xs:enumeration value="invert_rgb_ext"></xs:enumeration>
+            <xs:enumeration value="lineardodge_ext"></xs:enumeration>
+            <xs:enumeration value="linearburn_ext"></xs:enumeration>
+            <xs:enumeration value="vividlight_ext"></xs:enumeration>
+            <xs:enumeration value="linearlight_ext"></xs:enumeration>
+            <xs:enumeration value="pinlight_ext"></xs:enumeration>
+            <xs:enumeration value="hardmix_ext"></xs:enumeration>
+            <xs:enumeration value="hsl_hue_ext"></xs:enumeration>
+            <xs:enumeration value="hsl_saturation_ext"></xs:enumeration>
+            <xs:enumeration value="hsl_color_ext"></xs:enumeration>
+            <xs:enumeration value="hsl_luminosity_ext"></xs:enumeration>
+            <xs:enumeration value="plus_ext"></xs:enumeration>
+            <xs:enumeration value="plus_clamped_ext"></xs:enumeration>
+            <xs:enumeration value="plus_clamped_alpha_ext"></xs:enumeration>
+            <xs:enumeration value="plus_darker_ext"></xs:enumeration>
+            <xs:enumeration value="minus_ext"></xs:enumeration>
+            <xs:enumeration value="minus_clamped_ext"></xs:enumeration>
+            <xs:enumeration value="contrast_ext"></xs:enumeration>
+            <xs:enumeration value="invert_ovg_ext"></xs:enumeration>
+            <xs:enumeration value="red_ext"></xs:enumeration>
+            <xs:enumeration value="green_ext"></xs:enumeration>
+            <xs:enumeration value="blue_ext"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="ColorComponentFlagSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="r_bit"></xs:enumeration>
+            <xs:enumeration value="g_bit"></xs:enumeration>
+            <xs:enumeration value="b_bit"></xs:enumeration>
+            <xs:enumeration value="a_bit"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="ColorBlendAttachmentComplexType">
+        <xs:sequence>
+            <xs:element name="BlendEnable" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="SrcColorBlendFactor" type="target:BlendFactorSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="DstColorBlendFactor" type="target:BlendFactorSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="ColorBlendOp" type="target:BlendOpSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="SrcAlphaBlendFactor" type="target:BlendFactorSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="DstAlphaBlendFactor" type="target:BlendFactorSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="AlphaBlendOp" type="target:BlendOpSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="ColorWriteMask" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Mask" type="target:ColorComponentFlagSimpleType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:simpleType name="DynamicStateSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="viewport"></xs:enumeration>
+            <xs:enumeration value="scissor"></xs:enumeration>
+            <xs:enumeration value="line_width"></xs:enumeration>
+            <xs:enumeration value="depth_bias"></xs:enumeration>
+            <xs:enumeration value="blend_constants"></xs:enumeration>
+            <xs:enumeration value="depth_bounds"></xs:enumeration>
+            <xs:enumeration value="stencil_compare_mask"></xs:enumeration>
+            <xs:enumeration value="stencil_write_mask"></xs:enumeration>
+            <xs:enumeration value="stencil_reference"></xs:enumeration>
+            <xs:enumeration value="cull_mode"></xs:enumeration>
+            <xs:enumeration value="front_face"></xs:enumeration>
+            <xs:enumeration value="primitive_topology"></xs:enumeration>
+            <xs:enumeration value="viewport_with_count"></xs:enumeration>
+            <xs:enumeration value="scissor_with_count"></xs:enumeration>
+            <xs:enumeration value="vertex_input_binding_stride"></xs:enumeration>
+            <xs:enumeration value="depth_test_enable"></xs:enumeration>
+            <xs:enumeration value="depth_write_enable"></xs:enumeration>
+            <xs:enumeration value="depth_compare_op"></xs:enumeration>
+            <xs:enumeration value="depth_bounds_test_enable"></xs:enumeration>
+            <xs:enumeration value="stencil_test_enable"></xs:enumeration>
+            <xs:enumeration value="stencil_op"></xs:enumeration>
+            <xs:enumeration value="rasterizer_discard_enable"></xs:enumeration>
+            <xs:enumeration value="depth_bias_enable"></xs:enumeration>
+            <xs:enumeration value="primitive_restart_enable"></xs:enumeration>
+            <xs:enumeration value="viewport_w_scaling_nv"></xs:enumeration>
+            <xs:enumeration value="discard_rectangle_ext"></xs:enumeration>
+            <xs:enumeration value="discard_rectangle_enable_ext"></xs:enumeration>
+            <xs:enumeration value="discard_rectangle_mode_ext"></xs:enumeration>
+            <xs:enumeration value="sample_locations_ext"></xs:enumeration>
+            <xs:enumeration value="ray_tracing_pipeline_stack_size_khr"></xs:enumeration>
+            <xs:enumeration value="viewport_shading_rate_palette_nv"></xs:enumeration>
+            <xs:enumeration value="viewport_coarse_sample_order_nv"></xs:enumeration>
+            <xs:enumeration value="exclusive_scissor_enable_nv"></xs:enumeration>
+            <xs:enumeration value="exclusive_scissor_nv"></xs:enumeration>
+            <xs:enumeration value="fragment_shading_rate_khr"></xs:enumeration>
+            <xs:enumeration value="vertex_input_ext"></xs:enumeration>
+            <xs:enumeration value="patch_control_points_ext"></xs:enumeration>
+            <xs:enumeration value="logic_op_ext"></xs:enumeration>
+            <xs:enumeration value="color_write_enable_ext"></xs:enumeration>
+            <xs:enumeration value="depth_clamp_enable_ext"></xs:enumeration>
+            <xs:enumeration value="polygon_mode_ext"></xs:enumeration>
+            <xs:enumeration value="rasterization_samples_ext"></xs:enumeration>
+            <xs:enumeration value="sample_mask_ext"></xs:enumeration>
+            <xs:enumeration value="alpha_to_coverage_enable_ext"></xs:enumeration>
+            <xs:enumeration value="alpha_to_one_enable_ext"></xs:enumeration>
+            <xs:enumeration value="logic_op_enable_ext"></xs:enumeration>
+            <xs:enumeration value="color_blend_enable_ext"></xs:enumeration>
+            <xs:enumeration value="color_blend_equation_ext"></xs:enumeration>
+            <xs:enumeration value="color_write_mask_ext"></xs:enumeration>
+            <xs:enumeration value="tessellation_domain_origin_ext"></xs:enumeration>
+            <xs:enumeration value="rasterization_stream_ext"></xs:enumeration>
+            <xs:enumeration value="conservative_rasterization_mode_ext"></xs:enumeration>
+            <xs:enumeration value="extra_primitive_overestimation_size_ext"></xs:enumeration>
+            <xs:enumeration value="depth_clip_enable_ext"></xs:enumeration>
+            <xs:enumeration value="sample_locations_enable_ext"></xs:enumeration>
+            <xs:enumeration value="color_blend_advanced_ext"></xs:enumeration>
+            <xs:enumeration value="provoking_vertex_mode_ext"></xs:enumeration>
+            <xs:enumeration value="line_rasterization_mode_ext"></xs:enumeration>
+            <xs:enumeration value="line_stipple_enable_ext"></xs:enumeration>
+            <xs:enumeration value="depth_clip_negative_one_to_one_ext"></xs:enumeration>
+            <xs:enumeration value="viewport_w_scaling_enable_nv"></xs:enumeration>
+            <xs:enumeration value="viewport_swizzle_nv"></xs:enumeration>
+            <xs:enumeration value="coverage_to_color_enable_nv"></xs:enumeration>
+            <xs:enumeration value="coverage_to_color_location_nv"></xs:enumeration>
+            <xs:enumeration value="coverage_modulation_mode_nv"></xs:enumeration>
+            <xs:enumeration value="coverage_modulation_table_enable_nv"></xs:enumeration>
+            <xs:enumeration value="coverage_modulation_table_nv"></xs:enumeration>
+            <xs:enumeration value="shading_rate_image_enable_nv"></xs:enumeration>
+            <xs:enumeration value="representative_fragment_test_enable_nv"></xs:enumeration>
+            <xs:enumeration value="coverage_reduction_mode_nv"></xs:enumeration>
+            <xs:enumeration value="attachment_feedback_loop_enable_ext"></xs:enumeration>
+            <xs:enumeration value="line_stipple_khr"></xs:enumeration>
+            <xs:enumeration value="depth_clamp_range_ext"></xs:enumeration>
+            <xs:enumeration value="line_stipple_ext"></xs:enumeration>
+            <xs:enumeration value="cull_mode_ext"></xs:enumeration>
+            <xs:enumeration value="front_face_ext"></xs:enumeration>
+            <xs:enumeration value="primitive_topology_ext"></xs:enumeration>
+            <xs:enumeration value="viewport_with_count_ext"></xs:enumeration>
+            <xs:enumeration value="scissor_with_count_ext"></xs:enumeration>
+            <xs:enumeration value="vertex_input_binding_stride_ext"></xs:enumeration>
+            <xs:enumeration value="depth_test_enable_ext"></xs:enumeration>
+            <xs:enumeration value="depth_write_enable_ext"></xs:enumeration>
+            <xs:enumeration value="depth_compare_op_ext"></xs:enumeration>
+            <xs:enumeration value="depth_bounds_test_enable_ext"></xs:enumeration>
+            <xs:enumeration value="stencil_test_enable_ext"></xs:enumeration>
+            <xs:enumeration value="stencil_op_ext"></xs:enumeration>
+            <xs:enumeration value="rasterizer_discard_enable_ext"></xs:enumeration>
+            <xs:enumeration value="depth_bias_enable_ext"></xs:enumeration>
+            <xs:enumeration value="primitive_restart_enable_ext"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="PushConstantComplexType">
+        <xs:sequence>
+            <xs:element name="ShaderStage" type="target:ShaderStageFlagsComplexType"></xs:element>
+            <xs:element name="Format" type="target:GLSLTypesSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+        </xs:sequence>
+    </xs:complexType>
         
     <xs:complexType name="GraphicsPipelineComplexType">
         <xs:sequence>
@@ -392,7 +675,87 @@
                                 </xs:sequence>
                             </xs:complexType>
                         </xs:element>
-                        <xs:element name="FrontFace" type="target:FrontFaceSimpleType"></xs:element>
+                        <xs:element name="FrontFace" type="target:FrontFaceSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="DepthBiasEnable" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="DepthBiasConstantFactor" type="xs:float" minOccurs="0" maxOccurs="1"></xs:element>
+                        <xs:element name="DepthBiasClamp" type="xs:float" minOccurs="0" maxOccurs="1"></xs:element>
+                        <xs:element name="DepthBiasSlopeFactor" type="xs:float" minOccurs="0" maxOccurs="1"></xs:element>
+                        <xs:element name="LineWidth" type="xs:float" minOccurs="0" maxOccurs="1"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="MultisampleState" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="SampleCount" type="target:SampleCountSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="SampleShadingEnable" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="MinSampleShading" type="xs:float" minOccurs="0" maxOccurs="1"></xs:element>
+                        <xs:element name="SampleMask1" type="xs:unsignedInt" minOccurs="0" maxOccurs="1"></xs:element>
+                        <xs:element name="SampleMask2" type="xs:unsignedInt" minOccurs="0" maxOccurs="1"></xs:element>
+                        <xs:element name="alphaToCoverageEnable" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="alphaToOneEnable" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="DepthStencilState" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Flags" minOccurs="0" maxOccurs="1">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Flag" type="target:DepthStencilStateFlag" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="DepthTestEnable" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="DepthWriteEnable" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="DepthCompareOp" type="target:CompareOpSimpleType"></xs:element>
+                        <xs:element name="DepthBoundsTestEnable" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="StencilTestEnable" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="FrontStencilOpState" type="target:StencilOpStateComplexType" minOccurs="0" maxOccurs="1"></xs:element>
+                        <xs:element name="BackStencilOpState" type="target:StencilOpStateComplexType" minOccurs="0" maxOccurs="1"></xs:element>
+                        <xs:element name="MinDepthBounds" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="MaxDepthBounds" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ColorBlendState" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Flags" minOccurs="0" maxOccurs="1">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Flag" type="target:ColorBlendStateFlag" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="LogicOpEnable" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="LogicOp" type="target:LogicOpSimpleType"></xs:element>
+                        <xs:element name="Attachments" minOccurs="1" maxOccurs="1">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Attachment" type="target:ColorBlendAttachmentComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="BlendConstant1" type="xs:unsignedInt"></xs:element>
+                        <xs:element name="BlendConstant2" type="xs:unsignedInt"></xs:element>
+                        <xs:element name="BlendConstant3" type="xs:unsignedInt"></xs:element>
+                        <xs:element name="BlendConstant4" type="xs:unsignedInt"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="DynamicState" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Dynamic" type="target:DynamicStateSimpleType"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="PushConstants" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Constant" type="target:PushConstantComplexType"></xs:element>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
