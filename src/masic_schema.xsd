@@ -284,6 +284,19 @@
         </xs:sequence>
     </xs:complexType>
 
+    <xs:simpleType name="SemanticSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="POSITION"/>
+            <xs:enumeration value="NORMAL"/>
+            <xs:enumeration value="TANGENT"/>
+            <xs:enumeration value="BINORMAL"/>
+            <xs:enumeration value="TEXCOORD"/>
+            <xs:enumeration value="COLOR"/>
+            <xs:enumeration value="JOINTS"/>
+            <xs:enumeration value="WEIGHTS"/>
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:complexType name="ShaderComplexType">
         <xs:sequence>
             <xs:element name="FilePath" minOccurs="1" maxOccurs="1">
@@ -293,7 +306,6 @@
             </xs:element>
             <xs:element name="Flags" type="target:ShaderFlagsComplexType" minOccurs="0" maxOccurs="1"></xs:element>
             <xs:element name="Stage" type="target:ShaderStageFlagsComplexType" minOccurs="1" maxOccurs="1"></xs:element>
-            <xs:element name="SpecializationConstants" type="target:SpecializationConstantComplexType" minOccurs="0" maxOccurs="1"></xs:element>
             <xs:element name="InputAttributeDescription" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
@@ -302,6 +314,15 @@
                                 <xs:sequence>
                                     <xs:element name="Location" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
                                     <xs:element name="Format" type="target:GLSLTypesSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+                                    <xs:element name="Semantic" minOccurs="0" maxOccurs="1">
+                                        <xs:complexType>
+                                            <xs:simpleContent>
+                                                <xs:extension base="target:SemanticSimpleType">
+                                                    <xs:attribute name="num" type="xs:unsignedInt" use="required"></xs:attribute>
+                                                </xs:extension>
+                                            </xs:simpleContent>
+                                        </xs:complexType>
+                                    </xs:element>
                                 </xs:sequence>
                                 <xs:attribute name="name" type="xs:string"></xs:attribute>
                             </xs:complexType>
@@ -309,6 +330,28 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="DescriptorSet" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Set" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="LayoutBinding" type="target:LayoutBindingComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                                </xs:sequence>
+                                <xs:attribute name="slot" type="xs:unsignedInt"></xs:attribute>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="PushConstants" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Constant" type="target:PushConstantComplexType"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="SpecializationConstants" type="target:SpecializationConstantComplexType" minOccurs="0" maxOccurs="1"></xs:element>
         </xs:sequence>
         <xs:attribute name="name" type="xs:string"></xs:attribute>
     </xs:complexType>
@@ -639,24 +682,10 @@
         
     <xs:complexType name="GraphicsPipelineComplexType">
         <xs:sequence>
-            <xs:element name="DescriptorSet" minOccurs="0" maxOccurs="unbounded">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element name="Set" minOccurs="0" maxOccurs="unbounded">
-                            <xs:complexType>
-                                <xs:sequence>
-                                    <xs:element name="LayoutBinding" type="target:LayoutBindingComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
-                                </xs:sequence>
-                                <xs:attribute name="slot" type="xs:unsignedInt"></xs:attribute>
-                            </xs:complexType>
-                        </xs:element>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
             <xs:element name="Shaders" minOccurs="1" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element name="Shader" type="target:ShaderComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                        <xs:element name="Shader" type="xs:string" minOccurs="1" maxOccurs="unbounded"></xs:element>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -764,13 +793,6 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="PushConstants" minOccurs="0" maxOccurs="1">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element name="Constant" type="target:PushConstantComplexType"></xs:element>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
         </xs:sequence>
         <xs:attribute name="name" type="xs:string" use="required"/>
     </xs:complexType>
@@ -782,7 +804,20 @@
         </xs:sequence>
     </xs:complexType>
 
-    <xs:element name="Pipelines" type="target:PipelinesComplexType"></xs:element>
+    <xs:element name="RenderGraph">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Shaders" minOccurs="1" maxOccurs="1">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="Shader" type="target:ShaderComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="Pipelines" type="target:PipelinesComplexType" minOccurs="1" maxOccurs="1"></xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
     <xs:element name="World">
         <xs:complexType>
             <xs:sequence>
