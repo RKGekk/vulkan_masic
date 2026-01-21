@@ -68,16 +68,20 @@ void ModelData::SetName(std::string name) {
     m_name = std::move(name);
 }
 
-VkFormat getVkFormat(VertexFormat::VertexAttributeFormat attrib_format) {
+VkFormat getVkFormat(VertexAttributeFormat attrib_format) {
     switch (attrib_format) {
-        case VertexFormat::VertexAttributeFormat::FLOAT : return VK_FORMAT_R32_SFLOAT;
-        case VertexFormat::VertexAttributeFormat::FLOAT_VEC2 : return VK_FORMAT_R32G32_SFLOAT;
-        case VertexFormat::VertexAttributeFormat::FLOAT_VEC3 : return VK_FORMAT_R32G32B32_SFLOAT;
-        case VertexFormat::VertexAttributeFormat::FLOAT_VEC4 : return VK_FORMAT_R32G32B32A32_SFLOAT;
-        case VertexFormat::VertexAttributeFormat::INT : return VK_FORMAT_R32_SINT;
-        case VertexFormat::VertexAttributeFormat::INT_VEC2 : return VK_FORMAT_R32G32_SINT;
-        case VertexFormat::VertexAttributeFormat::INT_VEC3 : return VK_FORMAT_R32G32B32_SINT;
-        case VertexFormat::VertexAttributeFormat::INT_VEC4 : return VK_FORMAT_R32G32B32A32_SINT;
+        case VertexAttributeFormat::FLOAT : return VK_FORMAT_R32_SFLOAT;
+        case VertexAttributeFormat::FLOAT_VEC2 : return VK_FORMAT_R32G32_SFLOAT;
+        case VertexAttributeFormat::FLOAT_VEC3 : return VK_FORMAT_R32G32B32_SFLOAT;
+        case VertexAttributeFormat::FLOAT_VEC4 : return VK_FORMAT_R32G32B32A32_SFLOAT;
+        case VertexAttributeFormat::INT : return VK_FORMAT_R32_SINT;
+        case VertexAttributeFormat::INT_VEC2 : return VK_FORMAT_R32G32_SINT;
+        case VertexAttributeFormat::INT_VEC3 : return VK_FORMAT_R32G32B32_SINT;
+        case VertexAttributeFormat::INT_VEC4 : return VK_FORMAT_R32G32B32A32_SINT;
+        case VertexAttributeFormat::UINT : return VK_FORMAT_R32_UINT;
+        case VertexAttributeFormat::UINT_VEC2 : return VK_FORMAT_R32G32_UINT;
+        case VertexAttributeFormat::UINT_VEC3 : return VK_FORMAT_R32G32B32_UINT;
+        case VertexAttributeFormat::UINT_VEC4 : return VK_FORMAT_R32G32B32A32_UINT;
         default : return VK_FORMAT_R32_SFLOAT;
     }
 }
@@ -100,7 +104,7 @@ VkPipelineVertexInputStateCreateInfo ModelData::GetVertextInputInfo() const {
             attribute_desc[i].binding = 0u;
             attribute_desc[i].location = i;
             attribute_desc[i].format = getVkFormat(m_vertex_format.getAttribFormat(i));
-            attribute_desc[i].offset = m_vertex_format.getStride(i);
+            attribute_desc[i].offset = m_vertex_format.getOffset(i);
         }
     });
 

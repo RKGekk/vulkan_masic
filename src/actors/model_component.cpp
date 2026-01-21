@@ -55,9 +55,9 @@ bool ModelComponent::Init(const pugi::xml_node& data) {
 	m_resource_directory = p.parent_path().string();
 
     VertexFormat vertex_format;
-    vertex_format.addVertexAttribute("POSITION", VertexFormat::VertexAttributeFormat::FLOAT_VEC3);
-    vertex_format.addVertexAttribute("COLOR_0", VertexFormat::VertexAttributeFormat::FLOAT_VEC3);
-    vertex_format.addVertexAttribute("TEXCOORD_0", VertexFormat::VertexAttributeFormat::FLOAT_VEC2);
+    vertex_format.addVertexAttribute({VertexAttributeSemantic::POSITION, 0}, VertexAttributeFormat::FLOAT_VEC3);
+    vertex_format.addVertexAttribute({VertexAttributeSemantic::COLOR, 0}, VertexAttributeFormat::FLOAT_VEC3);
+    vertex_format.addVertexAttribute({VertexAttributeSemantic::TEXCOORD, 0}, VertexAttributeFormat::FLOAT_VEC2);
 
     ShaderSignature shader_signature;
     shader_signature.setVertexFormat(vertex_format);

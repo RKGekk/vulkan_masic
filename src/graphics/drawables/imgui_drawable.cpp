@@ -2,10 +2,7 @@
 
 #include <filesystem>
 
-VkSampler createFontTextureSampler(std::shared_ptr<VulkanDevice> device) {
-    VkPhysicalDeviceFeatures supported_features{};
-    vkGetPhysicalDeviceFeatures(device->getDeviceAbilities().physical_device, &supported_features);
-
+std::shared_ptr<VulkanSampler> createFontTextureSampler(std::shared_ptr<VulkanDevice> device) {
     VkSamplerCreateInfo sampler_info{};
     sampler_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     sampler_info.magFilter = VK_FILTER_LINEAR;
@@ -24,11 +21,8 @@ VkSampler createFontTextureSampler(std::shared_ptr<VulkanDevice> device) {
     sampler_info.minLod = 0.0f;
     sampler_info.maxLod = 15;
     
-    VkSampler texture_sampler;
-    VkResult result = vkCreateSampler(device->getDevice(), &sampler_info, nullptr, &texture_sampler);
-    if(result != VK_SUCCESS) {
-        throw std::runtime_error("failed to create texture sampler!");
-    }
+    std::shared_ptr<VulkanSampler> texture_sampler = std::make_shared<VulkanSampler>();
+    texture_sampler->init(std::move(device), sampler_info);
     return texture_sampler;
 }
 
@@ -59,8 +53,8 @@ std::shared_ptr<VulkanTexture> makeFontTexture(std::shared_ptr<VulkanDevice> dev
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
     std::shared_ptr<VulkanTexture> font_texture = std::make_shared<VulkanTexture>();
-    VkSampler fonts_sampler = createFontTextureSampler(device);
-    font_texture->init(device, pixels, width, height, fonts_sampler, VK_FORMAT_R8G8B8A8_UNORM);
+    std::shared_ptr<VulkanSampler> fonts_sampler = createFontTextureSampler(device);
+    font_texture->init(device, pixels, width, height, std::move(fonts_sampler), VK_FORMAT_R8G8B8A8_UNORM);
 
     io.Fonts->TexID = 0u;
     io.FontDefault = font;
@@ -210,7 +204,7 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarge
         binding[i][1u].layout_binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
         binding[i][1u].layout_binding.pImmutableSamplers = nullptr;
         binding[i][1u].image_info = std::make_shared<VkDescriptorImageInfo>(m_font_texture->getDescImageInfo());
-        binding[i][1u].sampler = m_font_texture->getSampler();
+        binding[i][1u].sampler = m_font_texture->getSampler()->getSampler();
     }
 
     m_descriptor.init(m_device->getDevice(), std::move(binding), max_frames);

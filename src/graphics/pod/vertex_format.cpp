@@ -3,157 +3,177 @@
 
 #include <regex>
 
-void VertexFormat::addVertexAttribute(const SemanticName& name, VertexAttributeFormat format) {
-    size_t pos = m_names_pos.size();
-    const auto[type, number] = getSemanticParams(name);
+bool SemanticName::init(std::string semantic_name) {
+    using namespace std::literals;
 
-    m_names_pos.push_back(name);
+    std::regex sem_reg(R"(^([A-Z]+)_(\d+)$)");
+    std::smatch matches;
+    if (!std::regex_search(semantic_name, matches, sem_reg)) return false;
+    
+    std::string name = matches[1];
+
+    if(name == "POSITION"s) {
+        semantic = VertexAttributeSemantic::POSITION;
+    }
+    else if(name == "NORMAL"s) {
+        semantic = VertexAttributeSemantic::NORMAL;
+    }
+    else if(name == "TANGENT"s) {
+        semantic = VertexAttributeSemantic::TANGENT;
+    }
+    else if(name == "BINORMAL"s) {
+        semantic = VertexAttributeSemantic::BINORMAL;
+    }
+    else if(name == "TEXCOORD"s) {
+        semantic = VertexAttributeSemantic::TEXCOORD;
+    }
+    else if(name == "COLOR"s) {
+        semantic = VertexAttributeSemantic::COLOR;
+    }
+    else if(name == "JOINTS"s) {
+        semantic = VertexAttributeSemantic::JOINTS;
+    }
+    else if(name == "WEIGHTS"s) {
+        semantic = VertexAttributeSemantic::WEIGHTS;
+    }
+    else return false;
+
+    if(matches.length() == 3) {
+        num = std::stoi(matches[2]);
+    }
+    
+    return true;
+};
+
+bool SemanticName::operator==(const SemanticName& other) const {
+    return semantic == other.semantic && num == other.num;
+}
+
+void VertexFormat::addVertexAttribute(SemanticName semantic_name, VertexAttributeFormat format) {
+    size_t pos = m_semantic_pos.size();
+
+    m_semantic_pos.push_back(semantic_name);
     m_format_pos.push_back(format);
-    m_name_pos_map[name] = pos;
-    m_semantic_name_number[name] = number;
-    m_semantic_attrib_type[name] = type;
+    m_semantic_pos_map[semantic_name] = pos;
 }
 
-bool VertexFormat::checkVertexAttribExist(const VertexFormat::SemanticName& name) const {
-    return m_name_pos_map.count(name);
+void VertexFormat::setVertexAttribute(SemanticName semantic_name, VertexAttributeFormat format, int location) {
+    if(m_semantic_pos.size() < location) {
+        m_semantic_pos.resize(location);
+        m_format_pos.resize(location);
+    }
+
+    m_semantic_pos[location] = semantic_name;
+    m_format_pos[location] = format;
+    m_semantic_pos_map[semantic_name] = location;
 }
 
-size_t VertexFormat::getVertexAttribPos(const VertexFormat::SemanticName& name) const {
-    return m_name_pos_map.at(name);
-}
-
-const VertexFormat::SemanticName& VertexFormat::getPosSemanticName(size_t pos) const {
-    return m_names_pos.at(pos);
-}
-
-VertexFormat::VertexAttributeFormat VertexFormat::getAttribFormat (size_t pos) const {
-    return m_format_pos.at(pos);
-}
-
-VertexFormat::VertexAttributeFormat VertexFormat::getAttribFormat (const VertexFormat::SemanticName& name) const {
-    if(!m_name_pos_map.count(name)) return VertexFormat::VertexAttributeFormat::FLOAT;
-    return m_format_pos.at(m_name_pos_map.at(name));
-}
-
-VertexFormat::VertexAttributeType VertexFormat::getAttribType(size_t pos) const {
-    if(pos > m_names_pos.size()) return VertexFormat::VertexAttributeType::POSITION;
-    return m_semantic_attrib_type.at(m_names_pos.at(pos));
-}
-
-VertexFormat::VertexAttributeType VertexFormat::getAttribType(const VertexFormat::SemanticName& name) const {
-    if(!m_semantic_attrib_type.count(name)) VertexFormat::VertexAttributeType::POSITION;
-    return m_semantic_attrib_type.at(name);
-}
-
-size_t VertexFormat::GetNumComponentsInType(const VertexFormat::SemanticName& name) const {
-    if(!m_name_pos_map.count(name)) 1u;
-    return GetNumComponentsInType(getAttribFormat(name));
-}
-
-size_t VertexFormat::getBytesForType(VertexFormat::VertexAttributeFormat format) {
+size_t VertexFormat::getBytesForType(VertexAttributeFormat format) {
     switch (format) {
-        case VertexFormat::VertexAttributeFormat::FLOAT : return 4;
-        case VertexFormat::VertexAttributeFormat::FLOAT_VEC2 : return 8;
-        case VertexFormat::VertexAttributeFormat::FLOAT_VEC3 : return 12;
-        case VertexFormat::VertexAttributeFormat::FLOAT_VEC4 : return 16;
-        case VertexFormat::VertexAttributeFormat::INT : return 4;
-        case VertexFormat::VertexAttributeFormat::INT_VEC2 : return 8;
-        case VertexFormat::VertexAttributeFormat::INT_VEC3 : return 12;
-        case VertexFormat::VertexAttributeFormat::INT_VEC4 : return 16;
+        case VertexAttributeFormat::FLOAT : return 4;
+        case VertexAttributeFormat::FLOAT_VEC2 : return 8;
+        case VertexAttributeFormat::FLOAT_VEC3 : return 12;
+        case VertexAttributeFormat::FLOAT_VEC4 : return 16;
+        case VertexAttributeFormat::INT : return 4;
+        case VertexAttributeFormat::INT_VEC2 : return 8;
+        case VertexAttributeFormat::INT_VEC3 : return 12;
+        case VertexAttributeFormat::INT_VEC4 : return 16;
+        case VertexAttributeFormat::UINT : return 4;
+        case VertexAttributeFormat::UINT_VEC2 : return 8;
+        case VertexAttributeFormat::UINT_VEC3 : return 12;
+        case VertexAttributeFormat::UINT_VEC4 : return 16;
+        case VertexAttributeFormat::BOOL : return 4;
+        case VertexAttributeFormat::BOOL_VEC2 : return 8;
+        case VertexAttributeFormat::BOOL_VEC3 : return 12;
+        case VertexAttributeFormat::BOOL_VEC4 : return 16;
+        case VertexAttributeFormat::DOUBLE : return 8;
+        case VertexAttributeFormat::DOUBLE_VEC2 : return 16;
+        case VertexAttributeFormat::DOUBLE_VEC3 : return 24;
+        case VertexAttributeFormat::DOUBLE_VEC4 : return 32;
         default : return 4;
     }
 }
 
-size_t VertexFormat::GetNumComponentsInType(VertexFormat::VertexAttributeFormat format) {
+size_t VertexFormat::GetNumComponentsInType(VertexAttributeFormat format) {
     switch (format) {
-        case VertexFormat::VertexAttributeFormat::FLOAT: return 1u;
-        case VertexFormat::VertexAttributeFormat::FLOAT_VEC2: return 2u;
-        case VertexFormat::VertexAttributeFormat::FLOAT_VEC3: return 3u;
-        case VertexFormat::VertexAttributeFormat::FLOAT_VEC4: return 4u;
-        case VertexFormat::VertexAttributeFormat::INT: return 1u;
-        case VertexFormat::VertexAttributeFormat::INT_VEC2: return 2u;
-        case VertexFormat::VertexAttributeFormat::INT_VEC3: return 3u;
-        case VertexFormat::VertexAttributeFormat::INT_VEC4: return 4u;
+        case VertexAttributeFormat::FLOAT: return 1u;
+        case VertexAttributeFormat::FLOAT_VEC2: return 2u;
+        case VertexAttributeFormat::FLOAT_VEC3: return 3u;
+        case VertexAttributeFormat::FLOAT_VEC4: return 4u;
+        case VertexAttributeFormat::INT: return 1u;
+        case VertexAttributeFormat::INT_VEC2: return 2u;
+        case VertexAttributeFormat::INT_VEC3: return 3u;
+        case VertexAttributeFormat::INT_VEC4: return 4u;
+        case VertexAttributeFormat::UINT: return 1u;
+        case VertexAttributeFormat::UINT_VEC2: return 2u;
+        case VertexAttributeFormat::UINT_VEC3: return 3u;
+        case VertexAttributeFormat::UINT_VEC4: return 4u;
         default: return 1u;
     }
 }
 
-size_t VertexFormat::getStride(const VertexFormat::SemanticName& name) const {
-    size_t stride = 0u;
-    if(!m_name_pos_map.count(name)) return stride;
+bool VertexFormat::checkVertexAttribExist(SemanticName semantic) const {
+    return m_semantic_pos_map.count(semantic);
+}
 
-    size_t to = m_name_pos_map.at(name);
+size_t VertexFormat::getVertexAttribPos(SemanticName semantic) const {
+    return m_semantic_pos_map.at(semantic);
+}
+
+SemanticName VertexFormat::getPosSemantic(size_t pos) const {
+    return m_semantic_pos.at(pos);
+}
+
+VertexAttributeFormat VertexFormat::getAttribFormat (size_t pos) const {
+    return m_format_pos.at(pos);
+}
+
+VertexAttributeFormat VertexFormat::getAttribFormat (SemanticName semantic) const {
+    if(!m_semantic_pos_map.count(semantic)) return VertexAttributeFormat::FLOAT;
+    return m_format_pos.at(m_semantic_pos_map.at(semantic));
+}
+
+size_t VertexFormat::GetNumComponentsInType(SemanticName semantic) const {
+    if(!m_semantic_pos_map.count(semantic)) 1u;
+    return GetNumComponentsInType(getAttribFormat(semantic));
+}
+
+size_t VertexFormat::getOffset(SemanticName semantic) const {
+    size_t offset = 0u;
+    if(!m_semantic_pos_map.count(semantic)) return offset;
+
+    size_t to = m_semantic_pos_map.at(semantic);
     for(size_t i = 0u; i < to; ++i) {
         VertexAttributeFormat curr_format = m_format_pos.at(i);
         size_t bytes_ct = getBytesForType(curr_format);
-        stride += bytes_ct;
+        offset += bytes_ct;
     }
-    return stride;
+    return offset;
 }
 
-size_t VertexFormat::getStride(size_t pos) const {
-    size_t stride = 0u;
+size_t VertexFormat::getOffset(size_t pos) const {
+    size_t offset = 0u;
 
     for(size_t i = 0u; i < pos; ++i) {
         VertexAttributeFormat curr_format = m_format_pos.at(i);
         size_t bytes_ct = getBytesForType(curr_format);
-        stride += bytes_ct;
+        offset += bytes_ct;
     }
-    return stride;
+    return offset;
 }
 
 size_t VertexFormat::getVertexAttribCount() const {
-    return m_names_pos.size();
+    return m_semantic_pos.size();
 }
 
 size_t VertexFormat::getVertexSize() const {
     size_t stride = 0u;
 
-    size_t sz = m_names_pos.size();
+    size_t sz = m_semantic_pos.size();
     for(size_t i = 0u; i < sz; ++i) {
         VertexAttributeFormat curr_format = m_format_pos.at(i);
         size_t bytes_ct = getBytesForType(curr_format);
         stride += bytes_ct;
     }
     return stride;
-}
-
-std::pair<VertexFormat::VertexAttributeType, VertexFormat::SemanticNumber> VertexFormat::getSemanticParams(const VertexFormat::SemanticName& name) {
-    SemanticNumber number {};
-    VertexAttributeType type {};
-    std::regex rx_numbers("[0-9]+");
-    std::regex_constants::match_flag_type fl = std::regex_constants::match_default;
-    std::smatch number_match;
-    bool is_num = std::regex_search(name, number_match, rx_numbers, fl);
-    if(is_num) {
-        std::string sem_num_str = number_match[0];
-        number = std::stoi(sem_num_str);
-    }
-    
-    if(name.find("POSITION") != std::string::npos) {
-        type = VertexAttributeType::POSITION;
-    }
-    else if(name.find("NORMAL") != std::string::npos) {
-        type = VertexAttributeType::NORMAL;
-    }
-    else if(name.find("TANGENT") != std::string::npos) {
-        type = VertexAttributeType::TANGENT;
-    }
-    else if(name.find("BINORMAL") != std::string::npos) {
-        type = VertexAttributeType::BINORMAL;
-    }
-    else if(name.find("TEXCOORD") != std::string::npos) {
-        type = VertexAttributeType::TEXCOORD;
-    }
-    else if(name.find("COLOR") != std::string::npos) {
-        type = VertexAttributeType::COLOR;
-    }
-    else if(name.find("JOINTS") != std::string::npos) {
-        type = VertexAttributeType::JOINTS;
-    }
-    else if(name.find("WEIGHTS") != std::string::npos) {
-        type = VertexAttributeType::WEIGHTS;
-    }
-
-    return {type, number};
 }

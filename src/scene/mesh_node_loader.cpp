@@ -136,33 +136,45 @@ int32_t MeshNodeLoader::GetNumPrimitives(const tinygltf::Primitive& primitive) c
 	}
 }
 
-VertexFormat::VertexAttributeFormat getAttribFormat(const tinygltf::Accessor& gltf_accessor) {
+VertexAttributeFormat getAttribFormat(const tinygltf::Accessor& gltf_accessor) {
 	if(gltf_accessor.type == TINYGLTF_TYPE_SCALAR && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT) {
-		return VertexFormat::VertexAttributeFormat::INT;
+		return VertexAttributeFormat::INT;
 	}
 	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC2 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT) {
-		return VertexFormat::VertexAttributeFormat::INT_VEC2;
+		return VertexAttributeFormat::INT_VEC2;
 	}
 	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC3 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT) {
-		return VertexFormat::VertexAttributeFormat::INT_VEC3;
+		return VertexAttributeFormat::INT_VEC3;
 	}
 	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC4 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT) {
-		return VertexFormat::VertexAttributeFormat::INT_VEC4;
+		return VertexAttributeFormat::INT_VEC4;
+	}
+	if(gltf_accessor.type == TINYGLTF_TYPE_SCALAR && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
+		return VertexAttributeFormat::UINT;
+	}
+	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC2 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
+		return VertexAttributeFormat::UINT_VEC2;
+	}
+	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC3 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
+		return VertexAttributeFormat::UINT_VEC3;
+	}
+	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC4 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
+		return VertexAttributeFormat::UINT_VEC4;
 	}
 	else if(gltf_accessor.type == TINYGLTF_TYPE_SCALAR && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
-		return VertexFormat::VertexAttributeFormat::FLOAT;
+		return VertexAttributeFormat::FLOAT;
 	}
 	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC2 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
-		return VertexFormat::VertexAttributeFormat::FLOAT_VEC2;
+		return VertexAttributeFormat::FLOAT_VEC2;
 	}
 	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC3 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
-		return VertexFormat::VertexAttributeFormat::FLOAT_VEC3;
+		return VertexAttributeFormat::FLOAT_VEC3;
 	}
 	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC4 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
-		return VertexFormat::VertexAttributeFormat::FLOAT_VEC4;
+		return VertexAttributeFormat::FLOAT_VEC4;
 	}
 	else {
-		return VertexFormat::VertexAttributeFormat::FLOAT;
+		return VertexAttributeFormat::FLOAT;
 	}
 }
 
@@ -170,9 +182,11 @@ VertexFormat::VertexAttributeFormat getAttribFormat(const tinygltf::Accessor& gl
 VertexFormat MeshNodeLoader::GetVertexFormat(std::map<std::string, int> attributes) {
 	VertexFormat format{};
 	std::vector<std::string> attributes_seq(attributes.size());
-	for (const auto &[semantic_name, accessor] : attributes) {
+	for (const auto &[semantic_name_str, accessor] : attributes) {
 		const tinygltf::Accessor& pos_vertex_attrib_accessor = m_gltf_model.accessors.at(accessor);
-		VertexFormat::VertexAttributeFormat attrib_format = getAttribFormat(pos_vertex_attrib_accessor);
+		VertexAttributeFormat attrib_format = getAttribFormat(pos_vertex_attrib_accessor);
+		SemanticName semantic_name;
+		semantic_name.init(semantic_name_str);
 		format.addVertexAttribute(semantic_name, attrib_format);
 	}
 	return format;
@@ -400,7 +414,7 @@ bool IsImageFileMime(const std::string& mime_type) {
 	return result;
 }
 
-VkSampler MeshNodeLoader::createTextureSampler(uint32_t mip_levels, const tinygltf::Sampler& gltf_texture_sampler) {
+std::shared_ptr<VulkanSampler> MeshNodeLoader::createTextureSampler(uint32_t mip_levels, const tinygltf::Sampler& gltf_texture_sampler) {
     VkPhysicalDeviceFeatures supported_features{};
     vkGetPhysicalDeviceFeatures(m_device->getDeviceAbilities().physical_device, &supported_features);
 
@@ -468,11 +482,9 @@ VkSampler MeshNodeLoader::createTextureSampler(uint32_t mip_levels, const tinygl
     sampler_info.minLod = 0.0f;
     sampler_info.maxLod = static_cast<float>(mip_levels);;
     
-    VkSampler texture_sampler;
-    VkResult result = vkCreateSampler(m_device->getDevice(), &sampler_info, nullptr, &texture_sampler);
-    if(result != VK_SUCCESS) {
-        throw std::runtime_error("failed to create texture sampler!");
-    }
+	std::shared_ptr<VulkanSampler> texture_sampler = std::make_shared<VulkanSampler>();
+	texture_sampler->init(m_device, sampler_info);
+    
     return texture_sampler;
 }
 
@@ -484,7 +496,7 @@ void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, M
 	int texture_sampler_idx = gltf_texture.sampler;
 	const tinygltf::Sampler& texture_sampler = m_gltf_model.samplers[texture_sampler_idx];
 	uint32_t mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(texture_image.width, texture_image.height))));
-	VkSampler sampler = createTextureSampler(mip_levels, texture_sampler);
+	std::shared_ptr<VulkanSampler> sampler = createTextureSampler(mip_levels, texture_sampler);
 
 	std::shared_ptr<VulkanTexture> texture = std::make_shared<VulkanTexture>();
 	if (mime_is_file) {
@@ -494,7 +506,7 @@ void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, M
 			texture_image_file_name = "textures/"s + texture_image.uri;
 			file_exists = std::filesystem::exists(texture_image_file_name);
 		}
-		texture->init(m_device, texture_image_file_name, sampler);
+		texture->init(m_device, texture_image_file_name, std::move(sampler));
 		material->SetTexture(texture_type_enum, std::move(texture));
 	}
 	else {
@@ -503,7 +515,7 @@ void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, M
 		size_t texture_image_buffer_idx = texture_image_view.buffer;
 		tinygltf::Buffer& texture_image_buffer = m_gltf_model.buffers[texture_image_buffer_idx];
 
-		texture->init(m_device, texture_image_buffer.data.data(), texture_image_buffer.data.size(), sampler);
+		texture->init(m_device, texture_image_buffer.data.data(), texture_image_buffer.data.size(), std::move(sampler));
 		material->SetTexture(texture_type_enum, std::move(texture));
 	}
 }
@@ -957,8 +969,10 @@ std::vector<float> MeshNodeLoader::GetVertices(const tinygltf::Primitive& primit
 	int32_t uni_stride_el = uni_vertex_format.getVertexSize() / sizeof(float);
 	size_t uni_number_of_components = uni_stride_el * num_vertices;
 	std::vector<float> result(uni_number_of_components);
-	for (const auto& [semantic_name, semantic_accessor_idx] : primitive.attributes) {
-		if(!ValidateVertexAttribute(semantic_name)) continue;
+	for (const auto& [semantic_name_str, semantic_accessor_idx] : primitive.attributes) {
+		SemanticName semantic_name;
+		semantic_name.init(semantic_name_str);
+		if(!ValidateVertexAttribute(semantic_name_str)) continue;
 		if(!uni_vertex_format.checkVertexAttribExist(semantic_name)) continue;
 		size_t uni_current_offset = uni_vertex_format.getOffset<float>(semantic_name);
 

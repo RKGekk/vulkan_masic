@@ -65,10 +65,10 @@
 
     <xs:complexType name="SamplerComplexType">
         <xs:sequence>
-            <xs:element name="CreateFlags" minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="CreateFlags" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element name="Flags">
+                        <xs:element name="Flags" minOccurs="0" maxOccurs="unbounded">
                             <xs:simpleType>
                                 <xs:restriction base="xs:string">
                                     <xs:enumeration value="subsampled_bit_ext"></xs:enumeration>
@@ -82,9 +82,9 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="MagFilter" type="target:FilterSimpleType"></xs:element>
-            <xs:element name="MinFilter" type="target:FilterSimpleType"></xs:element>
-            <xs:element name="MipmapMode">
+            <xs:element name="MagFilter" type="target:FilterSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="MinFilter" type="target:FilterSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="MipmapMode" minOccurs="1" maxOccurs="1">
                 <xs:simpleType>
                     <xs:restriction base="xs:string">
                         <xs:enumeration value="nearest"></xs:enumeration>
@@ -92,18 +92,18 @@
                     </xs:restriction>
                 </xs:simpleType>
             </xs:element>
-            <xs:element name="AddressModeU" type="target:SamplerAddressModeSimpleType"></xs:element>
-            <xs:element name="AddressModeV" type="target:SamplerAddressModeSimpleType"></xs:element>
-            <xs:element name="AddressModeW" type="target:SamplerAddressModeSimpleType"></xs:element>
-            <xs:element name="MipLodBias" type="xs:float"></xs:element>
-            <xs:element name="AnisotropyEnable" type="xs:boolean"></xs:element>
-            <xs:element name="MaxAnisotropy" type="xs:float"></xs:element>
-            <xs:element name="CompareEnable" type="xs:boolean"></xs:element>
-            <xs:element name="CompareOp" type="target:CompareOpSimpleType"></xs:element>
-            <xs:element name="MinLod" type="xs:float"></xs:element>
-            <xs:element name="MaxLod" type="xs:float"></xs:element>
-            <xs:element name="BorderColor" type="target:BorderColorSimpleType"></xs:element>
-            <xs:element name="UnnormalizedCoordinates" type="xs:boolean"></xs:element>
+            <xs:element name="AddressModeU" type="target:SamplerAddressModeSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="AddressModeV" type="target:SamplerAddressModeSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="AddressModeW" type="target:SamplerAddressModeSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="MipLodBias" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="AnisotropyEnable" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="MaxAnisotropy" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="CompareEnable" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="CompareOp" type="target:CompareOpSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="MinLod" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="MaxLod" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="BorderColor" type="target:BorderColorSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="UnnormalizedCoordinates" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
         </xs:sequence>
     </xs:complexType>
 
@@ -144,41 +144,41 @@
         </xs:sequence>
     </xs:complexType>
 
+    <xs:simpleType name="DescriptorTypeSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="sampler"></xs:enumeration>
+            <xs:enumeration value="combined_image_sampler"></xs:enumeration>
+            <xs:enumeration value="sampled_image"></xs:enumeration>
+            <xs:enumeration value="storage_image"></xs:enumeration>
+            <xs:enumeration value="uniform_texel_buffer"></xs:enumeration>
+            <xs:enumeration value="storage_texel_buffer"></xs:enumeration>
+            <xs:enumeration value="uniform_buffer"></xs:enumeration>
+            <xs:enumeration value="storage_buffer"></xs:enumeration>
+            <xs:enumeration value="uniform_buffer_dynamic"></xs:enumeration>
+            <xs:enumeration value="storage_buffer_dynamic"></xs:enumeration>
+            <xs:enumeration value="input_attachment"></xs:enumeration>
+            <xs:enumeration value="inline_uniform_block"></xs:enumeration>
+            <xs:enumeration value="acceleration_structure_khr"></xs:enumeration>
+            <xs:enumeration value="acceleration_structure_nv"></xs:enumeration>
+            <xs:enumeration value="sample_weight_image_qcom"></xs:enumeration>
+            <xs:enumeration value="block_match_image_qcom"></xs:enumeration>
+            <xs:enumeration value="mutable_ext"></xs:enumeration>
+            <xs:enumeration value="inline_uniform_block_ext"></xs:enumeration>
+            <xs:enumeration value="mutable_valve"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:complexType name="LayoutBindingComplexType">
         <xs:all>
-            <xs:element name="Binding" type="xs:unsignedInt">
+            <xs:element name="Binding" type="xs:unsignedInt" minOccurs="0" maxOccurs="1">
                 <xs:annotation>
                     <xs:documentation>specified in shader - layout (set=m, binding=n)</xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="DescriptorType">
-                <xs:simpleType>
-                    <xs:restriction base="xs:string">
-                        <xs:enumeration value="sampler"></xs:enumeration>
-                        <xs:enumeration value="combined_image_sampler"></xs:enumeration>
-                        <xs:enumeration value="sampled_image"></xs:enumeration>
-                        <xs:enumeration value="storage_image"></xs:enumeration>
-                        <xs:enumeration value="uniform_texel_buffer"></xs:enumeration>
-                        <xs:enumeration value="storage_texel_buffer"></xs:enumeration>
-                        <xs:enumeration value="uniform_buffer"></xs:enumeration>
-                        <xs:enumeration value="storage_buffer"></xs:enumeration>
-                        <xs:enumeration value="uniform_buffer_dynamic"></xs:enumeration>
-                        <xs:enumeration value="storage_buffer_dynamic"></xs:enumeration>
-                        <xs:enumeration value="input_attachment"></xs:enumeration>
-                        <xs:enumeration value="inline_uniform_block"></xs:enumeration>
-                        <xs:enumeration value="acceleration_structure_khr"></xs:enumeration>
-                        <xs:enumeration value="acceleration_structure_nv"></xs:enumeration>
-                        <xs:enumeration value="sample_weight_image_qcom"></xs:enumeration>
-                        <xs:enumeration value="block_match_image_qcom"></xs:enumeration>
-                        <xs:enumeration value="mutable_ext"></xs:enumeration>
-                        <xs:enumeration value="inline_uniform_block_ext"></xs:enumeration>
-                        <xs:enumeration value="mutable_valve"></xs:enumeration>
-                    </xs:restriction>
-                </xs:simpleType>
-            </xs:element>
-            <xs:element name="DescriptorCount" type="xs:unsignedInt"></xs:element>
-            <xs:element name="ShaderStageFlags" type="target:ShaderStageFlagBitsComplexType"></xs:element>
-            <xs:element name="ImmutableSamplers" minOccurs="0">
+            <xs:element name="DescriptorType" type="target:DescriptorTypeSimpleType" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="DescriptorCount" type="xs:unsignedInt" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="ShaderStageFlags" type="target:ShaderStageFlagBitsComplexType" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="ImmutableSamplers" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element name="Sampler" type="target:SamplerComplexType" minOccurs="0" maxOccurs="unbounded"></xs:element>
@@ -305,7 +305,7 @@
                 </xs:complexType>
             </xs:element>
             <xs:element name="Flags" type="target:ShaderFlagsComplexType" minOccurs="0" maxOccurs="1"></xs:element>
-            <xs:element name="Stage" type="target:ShaderStageFlagsComplexType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="Stage" type="target:ShaderStageSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="InputAttributeDescription" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
@@ -675,7 +675,7 @@
 
     <xs:complexType name="PushConstantComplexType">
         <xs:sequence>
-            <xs:element name="ShaderStage" type="target:ShaderStageFlagsComplexType"></xs:element>
+            <xs:element name="ShaderStage" type="target:ShaderStageFlagsComplexType" minOccurs="0" maxOccurs="1"></xs:element>
             <xs:element name="Format" type="target:GLSLTypesSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
         </xs:sequence>
     </xs:complexType>

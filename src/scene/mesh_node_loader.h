@@ -58,7 +58,7 @@ private:
     std::shared_ptr<Material> MakePropertySet(const tinygltf::Primitive& primitive);
     void MakeTextureProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material> material);
     void SetTextureProperty(const tinygltf::Texture& texture, Material::TextureType texture_type_enum, std::shared_ptr<Material> material);
-    VkSampler createTextureSampler(uint32_t mip_levels, const tinygltf::Sampler& texture_sampler);
+    std::shared_ptr<VulkanSampler> createTextureSampler(uint32_t mip_levels, const tinygltf::Sampler& texture_sampler);
     void MakeMaterialProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material> material);
     VertexFormat GetVertexFormat(std::map<std::string, int> attributes);
     std::vector<float> GetVertices(const tinygltf::Primitive& primitive, const ShaderSignature& pbr_shader_signature);

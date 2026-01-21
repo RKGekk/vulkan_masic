@@ -7,7 +7,6 @@
 
 #include "../pod/render_resource.h"
 #include "vulkan_command_buffer.h"
-#include "vulkan_device.h"
 
 class VulkanDevice;
 
