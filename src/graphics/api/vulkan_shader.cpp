@@ -45,41 +45,42 @@ bool VulkanShader::init(std::shared_ptr<VulkanDevice> device, const std::string&
 bool VulkanShader::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& shader_data) {
     m_device = device;
 
-    m_shader_signature.init(device, shader_data);
+    m_shader_signature = std::make_shared<ShaderSignature>();
+    m_shader_signature->init(device, shader_data);
 
-    std::vector<char> shader_buff = readFile(m_shader_signature.getFileName());
+    std::vector<char> shader_buff = readFile(m_shader_signature->getFileName());
     VkShaderModule shader_module = CreateShaderModule(shader_buff);
 
     m_shader_info = VkPipelineShaderStageCreateInfo{};
     m_shader_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     m_shader_info.pNext = nullptr;
-    m_shader_info.flags = m_shader_signature.getPipelineShaderStageCreateFlags();
-    m_shader_info.stage = m_shader_signature.getStage();
+    m_shader_info.flags = m_shader_signature->getPipelineShaderStageCreateFlags();
+    m_shader_info.stage = m_shader_signature->getStage();
     m_shader_info.module = shader_module;
-    m_shader_info.pName = m_shader_signature.getEntryPointName().c_str();
-    m_shader_info.pSpecializationInfo = &(m_shader_signature.getSpecializationInfo()); // fill constants
+    m_shader_info.pName = m_shader_signature->getEntryPointName().c_str();
+    m_shader_info.pSpecializationInfo = &(m_shader_signature->getSpecializationInfo()); // fill constants
 }
 
-bool VulkanShader::init(std::shared_ptr<VulkanDevice> device, const ShaderSignature& shader_signature) {
+bool VulkanShader::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<ShaderSignature> shader_signature) {
     m_device = device;
 
     m_shader_signature = shader_signature;
 
-    std::vector<char> shader_buff = readFile(m_shader_signature.getFileName());
+    std::vector<char> shader_buff = readFile(m_shader_signature->getFileName());
     VkShaderModule shader_module = CreateShaderModule(shader_buff);
 
     m_shader_info = VkPipelineShaderStageCreateInfo{};
     m_shader_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     m_shader_info.pNext = nullptr;
-    m_shader_info.flags = m_shader_signature.getPipelineShaderStageCreateFlags();
-    m_shader_info.stage = m_shader_signature.getStage();
+    m_shader_info.flags = m_shader_signature->getPipelineShaderStageCreateFlags();
+    m_shader_info.stage = m_shader_signature->getStage();
     m_shader_info.module = shader_module;
-    m_shader_info.pName = m_shader_signature.getEntryPointName().c_str();
-    m_shader_info.pSpecializationInfo = &(m_shader_signature.getSpecializationInfo()); // fill constants
+    m_shader_info.pName = m_shader_signature->getEntryPointName().c_str();
+    m_shader_info.pSpecializationInfo = &(m_shader_signature->getSpecializationInfo()); // fill constants
 }
 
 void VulkanShader::destroy() {
-    m_shader_signature.destroy();
+    m_shader_signature->destroy();
     vkDestroyShaderModule(m_device->getDevice(), m_shader_info.module, nullptr);
 }
 
@@ -87,7 +88,7 @@ const VkPipelineShaderStageCreateInfo& VulkanShader::getShaderInfo() const {
     return m_shader_info;
 }
 
-const ShaderSignature& VulkanShader::getShaderSignature() const {
+std::shared_ptr<ShaderSignature> VulkanShader::getShaderSignature() const {
     return m_shader_signature;
 }
 

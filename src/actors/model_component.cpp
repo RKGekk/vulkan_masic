@@ -54,13 +54,7 @@ bool ModelComponent::Init(const pugi::xml_node& data) {
 	std::filesystem::path p(m_resource_name);
 	m_resource_directory = p.parent_path().string();
 
-    VertexFormat vertex_format;
-    vertex_format.addVertexAttribute({VertexAttributeSemantic::POSITION, 0}, VertexAttributeFormat::FLOAT_VEC3);
-    vertex_format.addVertexAttribute({VertexAttributeSemantic::COLOR, 0}, VertexAttributeFormat::FLOAT_VEC3);
-    vertex_format.addVertexAttribute({VertexAttributeSemantic::TEXCOORD, 0}, VertexAttributeFormat::FLOAT_VEC2);
-
-    ShaderSignature shader_signature;
-    shader_signature.setVertexFormat(vertex_format);
+    std::shared_ptr<VulkanShadersManager> shader_manager = Application::Get().GetRenderer().getShadersManager();
 
     std::shared_ptr<Actor> act = GetOwner();
 
@@ -72,7 +66,7 @@ bool ModelComponent::Init(const pugi::xml_node& data) {
     std::shared_ptr<SceneNode> transform_node = tc->GetSceneNode();
 
     MeshNodeLoader node_loader;
-    m_loaded_scene_node = node_loader.ImportSceneNode(p, shader_signature, transform_node);
+    m_loaded_scene_node = node_loader.ImportSceneNode(p, shader_manager, transform_node);
 
 	return !!m_loaded_scene_node;
 }

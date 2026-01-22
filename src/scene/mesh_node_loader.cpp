@@ -34,12 +34,15 @@ std::unordered_map<MeshNodeLoader::NodeIdx, MeshNodeLoader::NodeIdx> MeshNodeLoa
     return node_parent_map;
 }
 
-std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem::path& model_path, const ShaderSignature& pbr_shader_signature, std::shared_ptr<SceneNode> root_transform) {
+std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem::path& model_path, std::shared_ptr<VulkanShaderManager> shader_manager, std::shared_ptr<SceneNode> root_transform) {
+	using namespace std::literals;
+
     Application& app = Application::Get();
     VulkanRenderer& renderer = app.GetRenderer();
     m_device = renderer.GetDevice();
     m_scene = Application::Get().GetGameLogic()->GetHumanView()->VGetScene();
-	m_pbr_shader_signature = pbr_shader_signature;
+	m_shader_manager = std::move(shader_manager);
+	m_pbr_shader_signature = m_shader_manager->getShader("basic_diffuse_vertex_shader"s)->getShaderSignature();
 
     bool store_original_json_for_extras_and_extensions = true;
     m_gltf_ctx.SetStoreOriginalJSONForExtrasAndExtensions(store_original_json_for_extras_and_extensions);
@@ -217,7 +220,7 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& g
 
 		std::shared_ptr<ModelData> model_data = std::make_shared<ModelData>();
 		model_data->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-		model_data->SetVertexFormat(m_pbr_shader_signature.getVertexFormat());
+		model_data->SetVertexFormat(m_pbr_shader_signature->getVertexFormat());
 
     	size_t num_vertices = GetNumVertices(primitive);
     	int32_t num_primitives = GetNumPrimitives(primitive);
@@ -242,7 +245,7 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& g
     	//VertexFormat vertex_format = GetVertexFormat(primitive.attributes);
 		model_data->SetMaterial(prop_set);
 
-    	std::vector<float> vertices = GetVertices(primitive, m_pbr_shader_signature);
+    	std::vector<float> vertices = GetVertices(primitive, m_pbr_shader_signature->getVertexFormat());
 		const void* vertices_data = vertices.data();
 		std::shared_ptr<VertexBuffer> vertex_buffer = std::make_shared<VertexBuffer>();
         vertex_buffer->init(m_device, vertices_data, num_vertices, indices_data, index_count, getIndexType(indices_component_type), model_data->GetVertextInputInfo());
@@ -963,8 +966,8 @@ float GetAttribute(const unsigned char* raw_data_ptr, uint32_t component_type) {
 	return result;
 }
 
-std::vector<float> MeshNodeLoader::GetVertices(const tinygltf::Primitive& primitive, const ShaderSignature& pbr_shader_signature) {
-	const VertexFormat& uni_vertex_format = pbr_shader_signature.getVertexFormat();
+std::vector<float> MeshNodeLoader::GetVertices(const tinygltf::Primitive& primitive, const VertexFormat& pbr_shader_vertex_format) {
+	const VertexFormat& uni_vertex_format = pbr_shader_vertex_format;
 	int32_t num_vertices = GetNumVertices(primitive);
 	int32_t uni_stride_el = uni_vertex_format.getVertexSize() / sizeof(float);
 	size_t uni_number_of_components = uni_stride_el * num_vertices;

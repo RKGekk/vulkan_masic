@@ -1,8 +1,9 @@
 #include "vulkan_pipelines_manager.h"
 
 #include "../../tools/string_tools.h"
+#include "vulkan_device.h"
 
-bool VulkanPipelinesManager::init(VkDevice device) {
+bool VulkanPipelinesManager::init(std::shared_ptr<VulkanDevice> device) {
     m_device = device;
 
     VkPipelineCacheCreateInfo pipeline_cache_info{};
@@ -11,7 +12,7 @@ bool VulkanPipelinesManager::init(VkDevice device) {
     pipeline_cache_info.initialDataSize = 0u;
     pipeline_cache_info.pInitialData = nullptr;
     pipeline_cache_info.flags = 0u;
-    VkResult  result = vkCreatePipelineCache(device, &pipeline_cache_info, NULL, &m_pipeline_cache);
+    VkResult  result = vkCreatePipelineCache(device->getDevice(), &pipeline_cache_info, NULL, &m_pipeline_cache);
     if(result != VK_SUCCESS) {
         throw std::runtime_error("failed to create pipeline cache!");
     }

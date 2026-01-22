@@ -16,7 +16,9 @@
 #include "api/vulkan_device.h"
 #include "api/vulkan_swapchain.h"
 #include "drawables/vulkan_drawable.h"
+#include "api/vulkan_shaders_manager.h"
 #include "api/vulkan_shader.h"
+#include "api/vulkan_pipelines_manager.h"
 #include "api/vulkan_pipeline.h"
 #include "api/vulkan_image_buffer.h"
 #include "api/vulkan_command_buffer.h"
@@ -32,7 +34,9 @@ public:
 
     const std::shared_ptr<VulkanSwapChain>& getSwapchain() const;
     const RenderTarget& getRenderTarget(uint32_t image_index = 0u) const;
-    const std::shared_ptr<VulkanDevice>& GetDevice();
+    std::shared_ptr<VulkanDevice> GetDevice();
+    std::shared_ptr<VulkanShadersManager> getShadersManager();
+    std::shared_ptr<VulkanPipelinesManager> getPipelinesManager();
 
     void recordCommandBuffer(CommandBatch& command_buffer);
     void drawFrame();
@@ -43,7 +47,8 @@ public:
 private:
 
     std::shared_ptr<VulkanDevice> m_device;
-
+    std::shared_ptr<VulkanShadersManager> m_shaders_manager;
+    std::shared_ptr<VulkanPipelinesManager> m_pipelines_manager;
     std::shared_ptr<VulkanSwapChain> m_swapchain;
     std::vector<RenderTarget> m_render_targets;
 

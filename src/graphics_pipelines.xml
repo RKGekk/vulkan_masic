@@ -4,6 +4,7 @@
     <Shaders>
         <Shader name="basic_diffuse_vertex_shader">
             <FilePath file_name="shader.vert"></FilePath>
+            <EntryPointName>main</EntryPointName>
             <Stage>vertex_bit</Stage>
             <InputAttributeDescription>
                 <Attribute name="inPosition">
@@ -35,6 +36,7 @@
         
         <Shader name="basic_diffuse_pixel_shader">
             <FilePath file_name="shader.frag"></FilePath>
+            <EntryPointName>main</EntryPointName>
             <Stage>fragment_bit</Stage>
             <InputAttributeDescription>
                 <Attribute name="fragColor">
@@ -59,6 +61,7 @@
 
         <Shader name="imgui_vertex_shader">
             <FilePath file_name="imgui.vert"></FilePath>
+            <EntryPointName>main</EntryPointName>
             <Stage>vertex_bit</Stage>
             <InputAttributeDescription>
                 <Attribute name="inPosition">
@@ -93,6 +96,7 @@
 
         <Shader name="imgui_pixel_shader">
             <FilePath file_name="imgui.frag"></FilePath>
+            <EntryPointName>main</EntryPointName>
             <Stage>fragment_bit</Stage>
             <InputAttributeDescription>
                 <Attribute name="fragColor">

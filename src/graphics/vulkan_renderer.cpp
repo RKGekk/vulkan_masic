@@ -3,6 +3,8 @@
 #include <algorithm>
 
 bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR surface, GLFWwindow* window, std::shared_ptr<ThreadPool> thread_pool) {
+    using namespace std::literals;
+
     m_device = std::move(device);
     m_thread_pool = std::move(thread_pool);
     m_swapchain = std::make_shared<VulkanSwapChain>();
@@ -17,6 +19,12 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR sur
         m_render_targets.push_back(rt);
         m_command_buffers.push_back(m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::GRAPICS));
     }
+
+    m_shaders_manager = std::make_shared<VulkanShadersManager>();
+    m_shaders_manager->init(m_device, "graphics_pipelines.xml"s);
+
+    m_pipelines_manager = std::make_shared<VulkanPipelinesManager>();
+    m_pipelines_manager->init(m_device, "graphics_pipelines.xml"s);
 
     return true;
 }

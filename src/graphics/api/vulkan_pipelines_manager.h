@@ -9,13 +9,15 @@
 #include <stdexcept>
 #include <vector>
 
+class VulkanDevice;
+
 class VulkanPipelinesManager {
 public:
-    bool init(VkDevice device);
+    bool init(std::shared_ptr<VulkanDevice> device);
     void destroy();
 private:
     void saveCacheToFile(VkPipelineCache cache, const std::string& file_name);
 
-    VkDevice m_device;
+    std::shared_ptr<VulkanDevice> m_device;
     VkPipelineCache m_pipeline_cache = VK_NULL_HANDLE;
 };

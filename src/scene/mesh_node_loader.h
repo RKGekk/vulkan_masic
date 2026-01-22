@@ -28,12 +28,13 @@
 #include "nodes/mesh_node.h"
 #include "../graphics/pod/material.h"
 #include "../graphics/pod/shader_signature.h"
+#include "../graphics/api/vulkan_shaders_manager.h"
 
 class MeshNodeLoader {
 public:
 	MeshNodeLoader() = default;
 
-	std::shared_ptr<SceneNode> ImportSceneNode(const std::filesystem::path& model_path, const ShaderSignature& pbr_shader_signature, std::shared_ptr<SceneNode> root_transform);
+	std::shared_ptr<SceneNode> ImportSceneNode(const std::filesystem::path& model_path, std::shared_ptr<VulkanShadersManager> shader_manager, std::shared_ptr<SceneNode> root_transform);
 
 private:
     using NodeIdx = int;
@@ -61,7 +62,7 @@ private:
     std::shared_ptr<VulkanSampler> createTextureSampler(uint32_t mip_levels, const tinygltf::Sampler& texture_sampler);
     void MakeMaterialProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material> material);
     VertexFormat GetVertexFormat(std::map<std::string, int> attributes);
-    std::vector<float> GetVertices(const tinygltf::Primitive& primitive, const ShaderSignature& pbr_shader_signature);
+    std::vector<float> GetVertices(const tinygltf::Primitive& primitive, const VertexFormat& pbr_shader_vertex_format);
     VkIndexType getIndexType(int accessor_component_type);
 
     tinygltf::Model m_gltf_model;
@@ -71,7 +72,8 @@ private:
     std::shared_ptr<VulkanDevice> m_device;
     std::shared_ptr<Scene> m_scene;
     std::shared_ptr<SceneNode> m_root_node;
-    ShaderSignature m_pbr_shader_signature;
+    std::shared_ptr<VulkanShadersManager> m_shader_manager;
+    std::shared_ptr<ShaderSignature> m_pbr_shader_signature;
 
     nlohmann::json m_extensions;
 };
