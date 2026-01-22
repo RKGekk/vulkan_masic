@@ -16,6 +16,18 @@ VkShaderCreateFlagBitsEXT getShaderCreateFlagBitsEXT(const std::string& flag_str
     return res;
 }
 
+VkPipelineShaderStageCreateFlagBits getPipelineShaderStageCreateFlagBits(const std::string& flag_str) {
+    using namespace std::literals;
+
+    VkPipelineShaderStageCreateFlagBits res{};
+         if(flag_str == "allow_varying_subgroup_size"s) { res = VK_PIPELINE_SHADER_STAGE_CREATE_ALLOW_VARYING_SUBGROUP_SIZE_BIT; }
+    else if(flag_str == "require_full_subgroups"s) { res = VK_PIPELINE_SHADER_STAGE_CREATE_REQUIRE_FULL_SUBGROUPS_BIT; }
+    else if(flag_str == "allow_varying_subgroup_size_ext"s) { res = VK_PIPELINE_SHADER_STAGE_CREATE_ALLOW_VARYING_SUBGROUP_SIZE_BIT_EXT; }
+    else if(flag_str == "require_full_subgroups_ext"s) { res = VK_PIPELINE_SHADER_STAGE_CREATE_REQUIRE_FULL_SUBGROUPS_BIT_EXT; }
+    
+    return res;
+}
+
 VkShaderStageFlagBits getShaderStageFlagBits(const std::string& stage_str) {
     using namespace std::literals;
     VkShaderStageFlagBits res{};
@@ -242,7 +254,8 @@ std::vector<char> getDataFromXmlValue(pugi::xml_node value_data, VertexAttribute
     return data;
 }
 
-bool ShaderSignature::add_shader(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& shader_data) {
+bool ShaderSignature::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& shader_data) {
+    using namespace std::literals;
 
     m_name = shader_data.attribute("name").as_string();
 	m_file_name = shader_data.child("FilePath").text().as_string();
@@ -255,9 +268,25 @@ bool ShaderSignature::add_shader(std::shared_ptr<VulkanDevice> device, const pug
 		}
     }
 
+    m_pipeline_shader_stage_create_flags = {};
+    pugi::xml_node pipeline_shader_stage_create_flags_node = shader_data.child("PipelineShaderStageCreateFlags");
+	if (pipeline_shader_stage_create_flags_node) {
+        for (pugi::xml_node flag_node = pipeline_shader_stage_create_flags_node.first_child(); flag_node; flag_node = flag_node.next_sibling()) {
+			m_pipeline_shader_stage_create_flags |= getPipelineShaderStageCreateFlagBits(flag_node.text().as_string());
+		}
+    }
+
     pugi::xml_node stages_node = shader_data.child("Stage");
 	if (stages_node) {
         m_stage = getShaderStageFlagBits(stages_node.text().as_string());
+    }
+
+    pugi::xml_node entry_point_name_node = shader_data.child("EntryPointName");
+	if (entry_point_name_node) {
+        m_entry_point_name = entry_point_name_node.text().as_string();
+    }
+    else {
+        m_entry_point_name = "main"s;
     }
 
     pugi::xml_node input_attributes_node = shader_data.child("InputAttributeDescription");
@@ -276,7 +305,7 @@ bool ShaderSignature::add_shader(std::shared_ptr<VulkanDevice> device, const pug
 	if (descriptor_sets_node) {
         for (pugi::xml_node set_node = descriptor_sets_node.first_child(); set_node; set_node = set_node.next_sibling()) {
             int slot = set_node.attribute("slot").as_int(0);
-
+            std::vector<VkDescriptorSetLayoutBinding> bindings;
 	        for (pugi::xml_node layout_binding_node = set_node.first_child(); layout_binding_node; layout_binding_node = layout_binding_node.next_sibling()) {
                 VkDescriptorSetLayoutBinding layout_binding{};
                 layout_binding.binding = layout_binding_node.child("Binding").text().as_int();
@@ -318,8 +347,9 @@ bool ShaderSignature::add_shader(std::shared_ptr<VulkanDevice> device, const pug
 
                 layout_binding.pImmutableSamplers = m_immutable_samplers_ptr.data();
 
-                m_bindings.push_back(layout_binding);
+                bindings.push_back(layout_binding);
             }
+            m_bindings.insert({slot, std::move(bindings)});
 		}
     }
 
@@ -339,7 +369,6 @@ bool ShaderSignature::add_shader(std::shared_ptr<VulkanDevice> device, const pug
 
     pugi::xml_node specialization_constants_node = shader_data.child("SpecializationConstants");
 	if (specialization_constants_node) {
-        VkSpecializationInfo specialization_info{};
         uint32_t offset = 0u;
         for (pugi::xml_node constant_node = specialization_constants_node.first_child(); constant_node; constant_node = constant_node.next_sibling()) {
             VkSpecializationMapEntry map_entry{};
@@ -358,18 +387,14 @@ bool ShaderSignature::add_shader(std::shared_ptr<VulkanDevice> device, const pug
             std::vector<char> data = getDataFromXmlValue(constant_node.child("Value"), const_format);
             m_specialization_constants_data.insert(m_specialization_constants_data.end(), data.begin(), data.end());
 		}
+        m_specialization_info = VkSpecializationInfo{};
+        m_specialization_info.mapEntryCount = m_specialization_constants.size();
+        m_specialization_info.pMapEntries = m_specialization_constants.data();
+        m_specialization_info.dataSize = m_specialization_constants_data.size();
+        m_specialization_info.pData = m_specialization_constants_data.data();
     }
-    
 
     return true;
-}
-
-bool ShaderSignature::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& shaders_data) {
-    if (shaders_data) {
-		for (pugi::xml_node shader_node = shaders_data.first_child(); shaders_data; shader_node = shader_node.next_sibling()) {
-			return add_shader(device, shader_node);
-		}
-	}
 }
 
 bool ShaderSignature::init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_path) {
@@ -384,7 +409,9 @@ bool ShaderSignature::init(std::shared_ptr<VulkanDevice> device, const std::stri
 
     pugi::xml_node shaders_node = root_node.child("Shaders");
 	if (shaders_node) {
-		return init(device, shaders_node);
+		for (pugi::xml_node shader_node = shaders_node.first_child(); shader_node; shader_node = shader_node.next_sibling()) {
+			return init(device, shader_node);
+		}
 	}
 
     return true;
@@ -392,6 +419,62 @@ bool ShaderSignature::init(std::shared_ptr<VulkanDevice> device, const std::stri
 
 const VertexFormat& ShaderSignature::getVertexFormat() const {
     return m_vertex_format;
+}
+
+const std::string& ShaderSignature::getName() const {
+    return m_name;
+}
+
+const std::string& ShaderSignature::getFileName() const {
+    return m_file_name;
+}
+
+const std::string& ShaderSignature::getEntryPointName() const {
+    return m_entry_point_name;
+}
+
+VkFlags ShaderSignature::getShaderCreateFlags() const {
+    return m_create_flags;
+}
+
+VkFlags ShaderSignature::getPipelineShaderStageCreateFlags() const {
+    return m_pipeline_shader_stage_create_flags;
+}
+
+VkShaderStageFlagBits ShaderSignature::getStage() const {
+    return m_stage;
+}
+
+const VertexFormat& ShaderSignature::getInputAttributes() const {
+    return m_input_attributes;
+}
+
+const ShaderSignature::DescSetBindings& ShaderSignature::getBindings() const {
+    return m_bindings;
+}
+
+const std::vector<std::shared_ptr<VulkanSampler>>& ShaderSignature::getImmutableSamplers() const {
+    return m_immutable_samplers;
+}
+
+const std::vector<VkSampler>& ShaderSignature::getImmutableSamplersPtr() const {
+    return m_immutable_samplers_ptr;
+}
+
+const std::vector<VkPushConstantRange>& ShaderSignature::getPushConstantsRanges() const {
+    return m_push_constants;
+}
+
+const std::vector<VkSpecializationMapEntry>& ShaderSignature::getSpecializationConstantsMap() const {
+    return m_specialization_constants;
+}
+
+const std::vector<char>& ShaderSignature::getSpecializationConstantsData() const {
+    return m_specialization_constants_data;
+}
+
+const VkSpecializationInfo& ShaderSignature::getSpecializationInfo() const {
+    return m_specialization_info;
 }
 
 void ShaderSignature::destroy() {

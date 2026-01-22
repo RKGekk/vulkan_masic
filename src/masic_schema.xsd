@@ -297,6 +297,21 @@
         </xs:restriction>
     </xs:simpleType>
 
+    <xs:simpleType name="PipelineShaderStageCreateFlagBitsSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="allow_varying_subgroup_size"></xs:enumeration>
+            <xs:enumeration value="require_full_subgroups"></xs:enumeration>
+            <xs:enumeration value="allow_varying_subgroup_size_ext"></xs:enumeration>
+            <xs:enumeration value="require_full_subgroups_ext"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="PipelineShaderStageCreateFlagsComplexType">
+        <xs:sequence>
+            <xs:element name="Flag" type="target:PipelineShaderStageCreateFlagBitsSimpleType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
     <xs:complexType name="ShaderComplexType">
         <xs:sequence>
             <xs:element name="FilePath" minOccurs="1" maxOccurs="1">
@@ -304,7 +319,9 @@
                     <xs:attribute name="file_name" type="xs:string"></xs:attribute>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="EntryPointName" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="Flags" type="target:ShaderFlagsComplexType" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="PipelineShaderStageCreateFlags" type="target:PipelineShaderStageCreateFlagsComplexType" minOccurs="0" maxOccurs="1"></xs:element>
             <xs:element name="Stage" type="target:ShaderStageSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="InputAttributeDescription" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
