@@ -288,6 +288,8 @@ set(APP_SOURCES
     "${SRC_DIR}/graphics/api/vulkan_pipelines_manager.cpp"
     "${SRC_DIR}/graphics/pod/basic_vertex.h"
     "${SRC_DIR}/graphics/pod/basic_uniform.h"
+    "${SRC_DIR}/graphics/pod/pipeline_config.h"
+    "${SRC_DIR}/graphics/pod/pipeline_config.cpp"
     "${SRC_DIR}/graphics/drawables/basic_drawable.h"
     "${SRC_DIR}/graphics/drawables/basic_drawable.cpp"
     "${SRC_DIR}/graphics/drawables/gltf_drawable.h"

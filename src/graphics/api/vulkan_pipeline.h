@@ -7,6 +7,10 @@
 #include <stdexcept>
 #include <vector>
 
+#include "vulkan_shaders_manager.h"
+
+class VulkanDevice;
+
 class VulkanPipeline {
 public:
     enum class PipelineType {
@@ -14,22 +18,10 @@ public:
         COMPUTE
     };
 
-    struct PipelineCfg {
-        std::string name;
-        std::vector<VkDescriptorSetLayout> desc_set_layouts;
-        VkRenderPass render_pass;
-        VkExtent2D viewport_extent;
-        std::vector<VkPipelineShaderStageCreateInfo> shaders_info;
-        VkPipelineVertexInputStateCreateInfo vertex_input_info;
-        VkSampleCountFlagBits msaa_samples;
-        std::vector<VkDynamicState> dynamic_states;
-        VkPipelineDepthStencilStateCreateInfo depth_stencil_info;
-        VkPipelineRasterizationStateCreateInfo rasterizer_info;
-        VkPipelineColorBlendAttachmentState color_blend_state;
-    };
-
-    bool init(VkDevice device, const PipelineCfg& pipeline_cfg);
-    bool init(VkDevice device, const PipelineCfg& pipeline_cfg, VkPipeline pipeline);
+    bool init(std::shared_ptr<VulkanDevice> device, const PipelineCfg& pipeline_cfg);
+    bool init(std::shared_ptr<VulkanDevice> device, const PipelineCfg& pipeline_cfg, VkPipeline pipeline);
+    bool init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_path, std::shared_ptr<VulkanShadersManager> shader_manager);
+    bool init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& pipelines_data, std::shared_ptr<VulkanShadersManager> shader_manager);
     void destroy();
 
     PipelineType getPipelineType() const;
@@ -41,7 +33,7 @@ private:
     VkPipelineLayout createPipelineLayout(const std::vector<VkDescriptorSetLayout>& desc_set_layouts) const;
     VkPipeline createPipeline(const PipelineCfg& pipeline_cfg) const;
 
-    VkDevice m_device;
+    std::shared_ptr<VulkanDevice> m_device;
 
     PipelineType m_pipeline_type;
     VkPipelineLayout m_pipeline_layout = VK_NULL_HANDLE;

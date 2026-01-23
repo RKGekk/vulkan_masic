@@ -1,10 +1,11 @@
 #include "vulkan_pipeline.h"
 
+#include "vulkan_device.h"
+
 #include <array>
 #include <stdexcept>
 
-//bool VulkanPipeline::init(VkDevice device, const std::vector<VkDescriptorSetLayout>& desc_set_layouts, VkRenderPass render_pass, VkExtent2D viewport_extent, std::vector<VkPipelineShaderStageCreateInfo> shaders_info, const VkPipelineVertexInputStateCreateInfo& vertex_input_info, VkSampleCountFlagBits msaa_samples) {
-bool VulkanPipeline::init(VkDevice device, const PipelineCfg& pipeline_cfg) {
+bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const PipelineCfg& pipeline_cfg) {
     m_device = device;
 
     m_pipeline_type = PipelineType::GRAPHICS;
@@ -15,7 +16,7 @@ bool VulkanPipeline::init(VkDevice device, const PipelineCfg& pipeline_cfg) {
     return true;
 }
 
-bool VulkanPipeline::init(VkDevice device, const PipelineCfg& pipeline_cfg, VkPipeline pipeline) {
+bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const PipelineCfg& pipeline_cfg, VkPipeline pipeline) {
     m_device = device;
 
     m_pipeline_type = PipelineType::GRAPHICS;
@@ -27,8 +28,8 @@ bool VulkanPipeline::init(VkDevice device, const PipelineCfg& pipeline_cfg, VkPi
 }
 
 void VulkanPipeline::destroy() {
-    vkDestroyPipeline(m_device, m_pipeline, nullptr);
-    vkDestroyPipelineLayout(m_device, m_pipeline_layout, nullptr);
+    vkDestroyPipeline(m_device->getDevice(), m_pipeline, nullptr);
+    vkDestroyPipelineLayout(m_device->getDevice(), m_pipeline_layout, nullptr);
 }
 
 VulkanPipeline::PipelineType VulkanPipeline::getPipelineType() const {
@@ -57,7 +58,7 @@ VkPipelineLayout VulkanPipeline::createPipelineLayout(const std::vector<VkDescri
     pipeline_layout_info.pushConstantRangeCount = 0u;
     pipeline_layout_info.pPushConstantRanges = nullptr;
     
-    VkResult result = vkCreatePipelineLayout(m_device, &pipeline_layout_info, nullptr, &pipeline_layout);
+    VkResult result = vkCreatePipelineLayout(m_device->getDevice(), &pipeline_layout_info, nullptr, &pipeline_layout);
     if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to create pipeline layout!");
     }
@@ -136,7 +137,7 @@ VkPipeline VulkanPipeline::createPipeline(const PipelineCfg& pipeline_cfg) const
     pipeline_info.basePipelineIndex = -1;
     
     VkPipeline graphics_pipeline;
-    VkResult result = vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &graphics_pipeline);
+    VkResult result = vkCreateGraphicsPipelines(m_device->getDevice(), VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &graphics_pipeline);
     if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to create graphics pipeline!");
     }

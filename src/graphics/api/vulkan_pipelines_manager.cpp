@@ -21,13 +21,13 @@ bool VulkanPipelinesManager::init(std::shared_ptr<VulkanDevice> device) {
 }
 
 void VulkanPipelinesManager::destroy() {
-    vkDestroyPipelineCache(m_device, m_pipeline_cache, NULL);
+    vkDestroyPipelineCache(m_device->getDevice(), m_pipeline_cache, NULL);
 }
 
 void VulkanPipelinesManager::saveCacheToFile(VkPipelineCache cache, const std::string& file_name) {
     size_t cache_data_size;
     // Determine the size of the cache data.
-    VkResult result = vkGetPipelineCacheData(m_device, cache, &cache_data_size, nullptr);
+    VkResult result = vkGetPipelineCacheData(m_device->getDevice(), cache, &cache_data_size, nullptr);
     if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to read pipeline cache size!");
     }
@@ -38,7 +38,7 @@ void VulkanPipelinesManager::saveCacheToFile(VkPipelineCache cache, const std::s
     std::vector<char> data(cache_data_size);
 
     // Retrieve the actual data from the cache.
-    result = vkGetPipelineCacheData(m_device, cache, &cache_data_size, data.data());
+    result = vkGetPipelineCacheData(m_device->getDevice(), cache, &cache_data_size, data.data());
     if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to write pipeline cache to file!");
     }

@@ -13,6 +13,9 @@
 #include <unordered_set>
 #include <vector>
 
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
 #include <pugixml.hpp>
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -138,3 +141,23 @@ private:
 
 std::vector<char> readFile(const std::string& file_name);
 void writeFile(const std::string& file_name, size_t file_size, const void* data);
+
+VkShaderCreateFlagBitsEXT getShaderCreateFlagBitsEXT(const std::string& flag_str);
+VkPipelineShaderStageCreateFlagBits getPipelineShaderStageCreateFlagBits(const std::string& flag_str);
+VkShaderStageFlagBits getShaderStageFlagBits(const std::string& stage_str);
+VertexAttributeFormat getInputAttributeFormat(const std::string& format_str);
+VertexAttributeSemantic getVertexAttributeSemantic(const std::string& semantic_str);
+VkDescriptorType getDescriptorType(const std::string& desc_str);
+VkSamplerCreateFlagBits getSamplerCreateFlagBit(const std::string& flag_str);
+VkFilter getSamplerFilter(const std::string& filter_str);
+VkSamplerMipmapMode getSamplerMipmapMode(const std::string& mode_str);
+VkSamplerAddressMode getSamplerAddressMode(const std::string& address_str);
+VkCompareOp getCompareOp(const std::string& op_str);
+VkBorderColor getSamplerBorderColor(const std::string& color_str);
+VkPrimitiveTopology getPrimitiveTopology(const std::string& topology_str);
+VkPolygonMode getPolygonMode(const std::string& mode_str);
+VkCullModeFlagBits getCullModeFlagBit(const std::string& mode_str);
+VkFrontFace getFrontFace(const std::string& face_str);
+VkSampleCountFlagBits getSampleCountFlagBit(const std::string& samples_str);
+VkPipelineDepthStencilStateCreateFlagBits getPipelineDepthStencilStateCreateFlagBit(const std::string& flag_str);
+VkStencilOp getStencilOp(const std::string& flag_str);

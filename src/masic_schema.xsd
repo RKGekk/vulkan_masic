@@ -401,8 +401,8 @@
     <xs:simpleType name="CullModeFlagSimpleType">
         <xs:restriction base="xs:string">
             <xs:enumeration value="none"></xs:enumeration>
-            <xs:enumeration value="front_bit"></xs:enumeration>
-            <xs:enumeration value="back_bit"></xs:enumeration>
+            <xs:enumeration value="front"></xs:enumeration>
+            <xs:enumeration value="back"></xs:enumeration>
             <xs:enumeration value="front_and_back"></xs:enumeration>
         </xs:restriction>
     </xs:simpleType>
@@ -711,6 +711,13 @@
                     <xs:sequence>
                         <xs:element name="Topology" type="target:PrimitiveTopologySimpleType"></xs:element>
                         <xs:element name="PrimitiveRestartEnable" type="xs:boolean"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="TessellationState" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="PatchControlPoints" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>

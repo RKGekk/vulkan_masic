@@ -137,8 +137,7 @@
                 <DepthClampEnable>false</DepthClampEnable>
                 <RasterizerDiscardEnable>false</RasterizerDiscardEnable>
                 <PolygonMode>fill</PolygonMode>
-                <CullMode><Flags><Flag>back_bit</Flag></Flags>
-                </CullMode>
+                <CullMode><Flags><Flag>back</Flag></Flags></CullMode>
                 <FrontFace>counter_clockwise</FrontFace>
                 <DepthBiasEnable>false</DepthBiasEnable>
                 <DepthBiasConstantFactor>0.0</DepthBiasConstantFactor>
