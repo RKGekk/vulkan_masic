@@ -803,10 +803,10 @@
                                 </xs:sequence>
                             </xs:complexType>
                         </xs:element>
-                        <xs:element name="BlendConstant1" type="xs:float"></xs:element>
-                        <xs:element name="BlendConstant2" type="xs:float"></xs:element>
-                        <xs:element name="BlendConstant3" type="xs:float"></xs:element>
-                        <xs:element name="BlendConstant4" type="xs:float"></xs:element>
+                        <xs:element name="BlendConstant1" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="BlendConstant2" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="BlendConstant3" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="BlendConstant4" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>

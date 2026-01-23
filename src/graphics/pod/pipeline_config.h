@@ -23,6 +23,8 @@ private:
     VkPipelineRasterizationStateCreateInfo m_rasterizer_info;
     VkPipelineMultisampleStateCreateInfo m_multisample_info;
     VkPipelineDepthStencilStateCreateInfo m_depth_stencil_info;
+    VkPipelineColorBlendStateCreateInfo m_color_blend_info;
+    std::vector<VkPipelineColorBlendAttachmentState> m_color_blend_attachments;
 
     std::vector<VkDescriptorSetLayout> desc_set_layouts;
     VkRenderPass render_pass;
@@ -30,5 +32,5 @@ private:
     std::vector<VkPipelineShaderStageCreateInfo> shaders_info;
     VkPipelineVertexInputStateCreateInfo vertex_input_info;
     std::vector<VkDynamicState> dynamic_states;
-    VkPipelineColorBlendAttachmentState color_blend_state;
+    
 };

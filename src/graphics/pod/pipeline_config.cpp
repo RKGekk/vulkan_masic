@@ -105,6 +105,52 @@ bool PipelineConfig::init(const pugi::xml_node& pipeline_data) {
         m_depth_stencil_info.minDepthBounds = rasterization_state_node.child("MinDepthBounds").text().as_float();
         m_depth_stencil_info.maxDepthBounds = rasterization_state_node.child("MaxDepthBounds").text().as_float();
     }
+
+    m_color_blend_info = VkPipelineColorBlendStateCreateInfo{};
+    m_color_blend_info.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    pugi::xml_node color_blend_state_node = pipeline_data.child("ColorBlendState");
+    if(color_blend_state_node) {
+
+        pugi::xml_node color_blend_flags_node = color_blend_state_node.child("Flags");
+        if(color_blend_flags_node) {
+            for (pugi::xml_node flag_node = color_blend_flags_node.first_child(); flag_node; flag_node = flag_node.next_sibling()) {
+			    m_color_blend_info.flags |= getPipelineColorBlendStateCreateFlagBit(flag_node.text().as_string());
+		    }
+        }
+
+        m_color_blend_info.logicOpEnable = color_blend_state_node.child("LogicOpEnable").text().as_bool();
+        m_color_blend_info.logicOp = getLogicOp(color_blend_state_node.child("LogicOpEnable").text().as_string());
+
+        pugi::xml_node attachments_node = color_blend_state_node.child("Attachments");
+        if(attachments_node) {
+            for (pugi::xml_node attachment_node = attachments_node.first_child(); attachment_node; attachment_node = attachment_node.next_sibling()) {
+			    VkPipelineColorBlendAttachmentState attachment{};
+
+                attachment.blendEnable = attachments_node.child("BlendEnable").text().as_bool();
+                attachment.srcColorBlendFactor = getBlendFactor(attachments_node.child("SrcColorBlendFactor").text().as_string());
+                attachment.dstColorBlendFactor = getBlendFactor(attachments_node.child("DstColorBlendFactor").text().as_string());
+                attachment.colorBlendOp = getBlendOp(attachments_node.child("ColorBlendOp").text().as_string());
+                attachment.srcAlphaBlendFactor = getBlendFactor(attachments_node.child("SrcAlphaBlendFactor").text().as_string());
+                attachment.dstAlphaBlendFactor = getBlendFactor(attachments_node.child("DstAlphaBlendFactor").text().as_string());
+                attachment.alphaBlendOp = getBlendOp(attachments_node.child("AlphaBlendOp").text().as_string());
+
+                pugi::xml_node color_write_masks_node = color_blend_state_node.child("ColorWriteMask");
+                if(color_write_masks_node) {
+                    for (pugi::xml_node mask_node = color_write_masks_node.first_child(); mask_node; mask_node = mask_node.next_sibling()) {
+		        	    attachment.colorWriteMask |= getColorComponentFlagBit(mask_node.text().as_string());
+		            }
+                }
+
+                m_color_blend_attachments.push_back(attachment);
+		    }
+        }
+
+        m_color_blend_info.blendConstants[0] = color_blend_state_node.child("BlendConstant1").text().as_float();
+        m_color_blend_info.blendConstants[1] = color_blend_state_node.child("BlendConstant2").text().as_float();
+        m_color_blend_info.blendConstants[2] = color_blend_state_node.child("BlendConstant3").text().as_float();
+        m_color_blend_info.blendConstants[3] = color_blend_state_node.child("BlendConstant4").text().as_float();
+    }
+
 }
 
 bool PipelineConfig::init(const std::string& rg_file_path) {

@@ -161,3 +161,8 @@ VkFrontFace getFrontFace(const std::string& face_str);
 VkSampleCountFlagBits getSampleCountFlagBit(const std::string& samples_str);
 VkPipelineDepthStencilStateCreateFlagBits getPipelineDepthStencilStateCreateFlagBit(const std::string& flag_str);
 VkStencilOp getStencilOp(const std::string& flag_str);
+VkPipelineColorBlendStateCreateFlagBits getPipelineColorBlendStateCreateFlagBit(const std::string& flag_str);
+VkLogicOp getLogicOp(const std::string& op_str);
+VkBlendFactor getBlendFactor(const std::string& fac_str);
+VkBlendOp getBlendOp(const std::string& op_str);
+VkColorComponentFlagBits getColorComponentFlagBit(const std::string& mask_str);

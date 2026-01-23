@@ -657,3 +657,135 @@ VkStencilOp getStencilOp(const std::string& op_str) {
     
     return res;
 }
+
+VkPipelineColorBlendStateCreateFlagBits getPipelineColorBlendStateCreateFlagBit(const std::string& flag_str) {
+	using namespace std::literals;
+    VkPipelineColorBlendStateCreateFlagBits res{};
+
+         if(flag_str == "rasterization_order_attachment_access_bit_ext"s) {res = VK_PIPELINE_COLOR_BLEND_STATE_CREATE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_BIT_EXT;}
+    else if(flag_str == "rasterization_order_attachment_access_bit_arm"s) {res = VK_PIPELINE_COLOR_BLEND_STATE_CREATE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_BIT_ARM;}
+    
+    return res;
+}
+
+VkLogicOp getLogicOp(const std::string& op_str) {
+	using namespace std::literals;
+    VkLogicOp res{};
+
+         if(op_str == "clear"s) {res = VK_LOGIC_OP_CLEAR;}
+	else if(op_str == "and"s) {res = VK_LOGIC_OP_AND;}
+	else if(op_str == "and_reverse"s) {res = VK_LOGIC_OP_AND_REVERSE;}
+	else if(op_str == "copy"s) {res = VK_LOGIC_OP_COPY;}
+	else if(op_str == "and_inverted"s) {res = VK_LOGIC_OP_AND_INVERTED;}
+	else if(op_str == "no_op"s) {res = VK_LOGIC_OP_NO_OP;}
+	else if(op_str == "xor"s) {res = VK_LOGIC_OP_XOR;}
+	else if(op_str == "or"s) {res = VK_LOGIC_OP_OR;}
+	else if(op_str == "nor"s) {res = VK_LOGIC_OP_NOR;}
+	else if(op_str == "equivalent"s) {res = VK_LOGIC_OP_EQUIVALENT;}
+	else if(op_str == "invert"s) {res = VK_LOGIC_OP_INVERT;}
+	else if(op_str == "or_reverse"s) {res = VK_LOGIC_OP_OR_REVERSE;}
+	else if(op_str == "copy_inverted"s) {res = VK_LOGIC_OP_COPY_INVERTED;}
+	else if(op_str == "or_inverted"s) {res = VK_LOGIC_OP_OR_INVERTED;}
+	else if(op_str == "nand"s) {res = VK_LOGIC_OP_NAND;}
+	else if(op_str == "set"s) {res = VK_LOGIC_OP_SET;}
+    
+    return res;
+}
+
+VkBlendFactor getBlendFactor(const std::string& fac_str) {
+	using namespace std::literals;
+    VkBlendFactor res{};
+
+         if(fac_str == "zero"s) {res = VK_BLEND_FACTOR_ZERO;}
+	else if(fac_str == "one"s) {res = VK_BLEND_FACTOR_ONE;}
+	else if(fac_str == "src_color"s) {res = VK_BLEND_FACTOR_SRC_COLOR;}
+	else if(fac_str == "one_minus_src_color"s) {res = VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;}
+	else if(fac_str == "dst_color"s) {res = VK_BLEND_FACTOR_DST_COLOR;}
+	else if(fac_str == "one_minus_dst_color"s) {res = VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR;}
+	else if(fac_str == "src_alpha"s) {res = VK_BLEND_FACTOR_SRC_ALPHA;}
+	else if(fac_str == "one_minus_src_alpha"s) {res = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;}
+	else if(fac_str == "dst_alpha"s) {res = VK_BLEND_FACTOR_DST_ALPHA;}
+	else if(fac_str == "one_minus_dst_alpha"s) {res = VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;}
+	else if(fac_str == "constant_color"s) {res = VK_BLEND_FACTOR_CONSTANT_COLOR;}
+	else if(fac_str == "one_minus_constant_color"s) {res = VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR;}
+	else if(fac_str == "constant_alpha"s) {res = VK_BLEND_FACTOR_CONSTANT_ALPHA;}
+	else if(fac_str == "one_minus_constant_alpha"s) {res = VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA;}
+	else if(fac_str == "src_alpha_saturate"s) {res = VK_BLEND_FACTOR_SRC_ALPHA_SATURATE;}
+	else if(fac_str == "src1_color"s) {res = VK_BLEND_FACTOR_SRC1_COLOR;}
+	else if(fac_str == "one_minus_src1_color"s) {res = VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR;}
+	else if(fac_str == "src1_alpha"s) {res = VK_BLEND_FACTOR_SRC1_ALPHA;}
+	else if(fac_str == "one_minus_src1_alpha"s) {res = VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA;}
+    
+    return res;
+}
+
+VkBlendOp getBlendOp(const std::string& op_str) {
+	using namespace std::literals;
+    VkBlendOp res{};
+
+         if(op_str == "add"s) {res = VK_BLEND_OP_ADD;}
+	else if(op_str == "subtract"s) {res = VK_BLEND_OP_SUBTRACT;}
+	else if(op_str == "reverse_subtract"s) {res = VK_BLEND_OP_REVERSE_SUBTRACT;}
+	else if(op_str == "min"s) {res = VK_BLEND_OP_MIN;}
+	else if(op_str == "max"s) {res = VK_BLEND_OP_MAX;}
+	else if(op_str == "zero_ext"s) {res = VK_BLEND_OP_ZERO_EXT;}
+	else if(op_str == "src_ext"s) {res = VK_BLEND_OP_SRC_EXT;}
+	else if(op_str == "dst_ext"s) {res = VK_BLEND_OP_DST_EXT;}
+	else if(op_str == "src_over_ext"s) {res = VK_BLEND_OP_SRC_OVER_EXT;}
+	else if(op_str == "dst_over_ext"s) {res = VK_BLEND_OP_DST_OVER_EXT;}
+	else if(op_str == "src_in_ext"s) {res = VK_BLEND_OP_SRC_IN_EXT;}
+	else if(op_str == "dst_in_ext"s) {res = VK_BLEND_OP_DST_IN_EXT;}
+	else if(op_str == "src_out_ext"s) {res = VK_BLEND_OP_SRC_OUT_EXT;}
+	else if(op_str == "dst_out_ext"s) {res = VK_BLEND_OP_DST_OUT_EXT;}
+	else if(op_str == "src_atop_ext"s) {res = VK_BLEND_OP_SRC_ATOP_EXT;}
+	else if(op_str == "dst_atop_ext"s) {res = VK_BLEND_OP_DST_ATOP_EXT;}
+	else if(op_str == "xor_ext"s) {res = VK_BLEND_OP_XOR_EXT;}
+	else if(op_str == "multiply_ext"s) {res = VK_BLEND_OP_MULTIPLY_EXT;}
+	else if(op_str == "screen_ext"s) {res = VK_BLEND_OP_SCREEN_EXT;}
+	else if(op_str == "overlay_ext"s) {res = VK_BLEND_OP_OVERLAY_EXT;}
+	else if(op_str == "darken_ext"s) {res = VK_BLEND_OP_DARKEN_EXT;}
+	else if(op_str == "lighten_ext"s) {res = VK_BLEND_OP_LIGHTEN_EXT;}
+	else if(op_str == "colordodge_ext"s) {res = VK_BLEND_OP_COLORDODGE_EXT;}
+	else if(op_str == "colorburn_ext"s) {res = VK_BLEND_OP_COLORBURN_EXT;}
+	else if(op_str == "hardlight_ext"s) {res = VK_BLEND_OP_HARDLIGHT_EXT;}
+	else if(op_str == "softlight_ext"s) {res = VK_BLEND_OP_SOFTLIGHT_EXT;}
+	else if(op_str == "difference_ext"s) {res = VK_BLEND_OP_DIFFERENCE_EXT;}
+	else if(op_str == "exclusion_ext"s) {res = VK_BLEND_OP_EXCLUSION_EXT;}
+	else if(op_str == "invert_ext"s) {res = VK_BLEND_OP_INVERT_EXT;}
+	else if(op_str == "invert_rgb_ext"s) {res = VK_BLEND_OP_INVERT_RGB_EXT;}
+	else if(op_str == "lineardodge_ext"s) {res = VK_BLEND_OP_LINEARDODGE_EXT;}
+	else if(op_str == "linearburn_ext"s) {res = VK_BLEND_OP_LINEARBURN_EXT;}
+	else if(op_str == "vividlight_ext"s) {res = VK_BLEND_OP_VIVIDLIGHT_EXT;}
+	else if(op_str == "linearlight_ext"s) {res = VK_BLEND_OP_LINEARLIGHT_EXT;}
+	else if(op_str == "pinlight_ext"s) {res = VK_BLEND_OP_PINLIGHT_EXT;}
+	else if(op_str == "hardmix_ext"s) {res = VK_BLEND_OP_HARDMIX_EXT;}
+	else if(op_str == "hsl_hue_ext"s) {res = VK_BLEND_OP_HSL_HUE_EXT;}
+	else if(op_str == "hsl_saturation_ext"s) {res = VK_BLEND_OP_HSL_SATURATION_EXT;}
+	else if(op_str == "hsl_color_ext"s) {res = VK_BLEND_OP_HSL_COLOR_EXT;}
+	else if(op_str == "hsl_luminosity_ext"s) {res = VK_BLEND_OP_HSL_LUMINOSITY_EXT;}
+	else if(op_str == "plus_ext"s) {res = VK_BLEND_OP_PLUS_EXT;}
+	else if(op_str == "plus_clamped_ext"s) {res = VK_BLEND_OP_PLUS_CLAMPED_EXT;}
+	else if(op_str == "plus_clamped_alpha_ext"s) {res = VK_BLEND_OP_PLUS_CLAMPED_ALPHA_EXT;}
+	else if(op_str == "plus_darker_ext"s) {res = VK_BLEND_OP_PLUS_DARKER_EXT;}
+	else if(op_str == "minus_ext"s) {res = VK_BLEND_OP_MINUS_EXT;}
+	else if(op_str == "minus_clamped_ext"s) {res = VK_BLEND_OP_MINUS_CLAMPED_EXT;}
+	else if(op_str == "contrast_ext"s) {res = VK_BLEND_OP_CONTRAST_EXT;}
+	else if(op_str == "invert_ovg_ext"s) {res = VK_BLEND_OP_INVERT_OVG_EXT;}
+	else if(op_str == "red_ext"s) {res = VK_BLEND_OP_RED_EXT;}
+	else if(op_str == "green_ext"s) {res = VK_BLEND_OP_GREEN_EXT;}
+	else if(op_str == "blue_ext"s) {res = VK_BLEND_OP_BLUE_EXT;}
+    
+    return res;
+}
+
+VkColorComponentFlagBits getColorComponentFlagBit(const std::string& mask_str) {
+	using namespace std::literals;
+    VkColorComponentFlagBits res{};
+
+         if(mask_str == "r_bit"s) {res = VK_COLOR_COMPONENT_R_BIT;}
+	else if(mask_str == "g_bit"s) {res = VK_COLOR_COMPONENT_G_BIT;}
+	else if(mask_str == "b_bit"s) {res = VK_COLOR_COMPONENT_B_BIT;}
+	else if(mask_str == "a_bit"s) {res = VK_COLOR_COMPONENT_A_BIT;}
+    
+    return res;
+}
