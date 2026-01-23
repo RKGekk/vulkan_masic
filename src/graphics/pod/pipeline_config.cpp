@@ -19,12 +19,12 @@ bool PipelineConfig::init(const pugi::xml_node& pipeline_data) {
         m_primitive_restart_enable = input_assembly_node.child("PrimitiveRestartEnable").text().as_bool();
     }
 
-    m_tessellation_state_Info = VkPipelineTessellationStateCreateInfo{};
-    m_tessellation_state_Info.sType =  VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
+    m_tessellation_info = VkPipelineTessellationStateCreateInfo{};
+    m_tessellation_info.sType =  VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
     pugi::xml_node tessellation_state_node = pipeline_data.child("RasterizationState");
 	if (tessellation_state_node) {
-        m_tessellation_state_Info.flags = 0u;
-        m_tessellation_state_Info.patchControlPoints = tessellation_state_node.child("PatchControlPoints").text().as_int();
+        m_tessellation_info.flags = 0u;
+        m_tessellation_info.patchControlPoints = tessellation_state_node.child("PatchControlPoints").text().as_int();
     }
 
     m_rasterizer_info = VkPipelineRasterizationStateCreateInfo{};
@@ -144,6 +144,8 @@ bool PipelineConfig::init(const pugi::xml_node& pipeline_data) {
                 m_color_blend_attachments.push_back(attachment);
 		    }
         }
+        m_color_blend_info.attachmentCount = m_color_blend_attachments.size();
+        m_color_blend_info.pAttachments = m_color_blend_attachments.data();
 
         m_color_blend_info.blendConstants[0] = color_blend_state_node.child("BlendConstant1").text().as_float();
         m_color_blend_info.blendConstants[1] = color_blend_state_node.child("BlendConstant2").text().as_float();
@@ -151,6 +153,16 @@ bool PipelineConfig::init(const pugi::xml_node& pipeline_data) {
         m_color_blend_info.blendConstants[3] = color_blend_state_node.child("BlendConstant4").text().as_float();
     }
 
+    m_dynamic_info = VkPipelineDynamicStateCreateInfo{};
+    pugi::xml_node dynamic_state_node = pipeline_data.child("DynamicState");
+    if(dynamic_state_node) {
+        for (pugi::xml_node dynamic_node = dynamic_state_node.first_child(); dynamic_node; dynamic_node = dynamic_node.next_sibling()) {
+            VkDynamicState dynamic_state = getDynamicState(dynamic_node.text().as_string());
+            m_dynamic_states.push_back(dynamic_state);
+        }
+        m_dynamic_info.dynamicStateCount = m_dynamic_states.size();
+        m_dynamic_info.pDynamicStates = m_dynamic_states.data();
+    }
 }
 
 bool PipelineConfig::init(const std::string& rg_file_path) {

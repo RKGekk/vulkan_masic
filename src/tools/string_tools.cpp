@@ -789,3 +789,100 @@ VkColorComponentFlagBits getColorComponentFlagBit(const std::string& mask_str) {
     
     return res;
 }
+
+VkDynamicState getDynamicState(const std::string& dynamic_str) {
+	using namespace std::literals;
+    VkDynamicState res{};
+
+         if(dynamic_str == "viewport"s) {res = VK_DYNAMIC_STATE_VIEWPORT;}
+	else if(dynamic_str == "scissor"s) {res = VK_DYNAMIC_STATE_SCISSOR;}
+	else if(dynamic_str == "line_width"s) {res = VK_DYNAMIC_STATE_LINE_WIDTH;}
+	else if(dynamic_str == "depth_bias"s) {res = VK_DYNAMIC_STATE_DEPTH_BIAS;}
+	else if(dynamic_str == "blend_constants"s) {res = VK_DYNAMIC_STATE_BLEND_CONSTANTS;}
+	else if(dynamic_str == "depth_bounds"s) {res = VK_DYNAMIC_STATE_DEPTH_BOUNDS;}
+	else if(dynamic_str == "stencil_compare_mask"s) {res = VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK;}
+	else if(dynamic_str == "stencil_write_mask"s) {res = VK_DYNAMIC_STATE_STENCIL_WRITE_MASK;}
+	else if(dynamic_str == "stencil_reference"s) {res = VK_DYNAMIC_STATE_STENCIL_REFERENCE;}
+	else if(dynamic_str == "cull_mode"s) {res = VK_DYNAMIC_STATE_CULL_MODE;}
+	else if(dynamic_str == "front_face"s) {res = VK_DYNAMIC_STATE_FRONT_FACE;}
+	else if(dynamic_str == "primitive_topology"s) {res = VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY;}
+	else if(dynamic_str == "viewport_with_count"s) {res = VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT;}
+	else if(dynamic_str == "scissor_with_count"s) {res = VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT;}
+	else if(dynamic_str == "vertex_input_binding_stride"s) {res = VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE;}
+	else if(dynamic_str == "depth_test_enable"s) {res = VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE;}
+	else if(dynamic_str == "depth_write_enable"s) {res = VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE;}
+	else if(dynamic_str == "depth_compare_op"s) {res = VK_DYNAMIC_STATE_DEPTH_COMPARE_OP;}
+	else if(dynamic_str == "depth_bounds_test_enable"s) {res = VK_DYNAMIC_STATE_DEPTH_BOUNDS_TEST_ENABLE;}
+	else if(dynamic_str == "stencil_test_enable"s) {res = VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE;}
+	else if(dynamic_str == "stencil_op"s) {res = VK_DYNAMIC_STATE_STENCIL_OP;}
+	else if(dynamic_str == "rasterizer_discard_enable"s) {res = VK_DYNAMIC_STATE_RASTERIZER_DISCARD_ENABLE;}
+	else if(dynamic_str == "depth_bias_enable"s) {res = VK_DYNAMIC_STATE_DEPTH_BIAS_ENABLE;}
+	else if(dynamic_str == "primitive_restart_enable"s) {res = VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE;}
+	else if(dynamic_str == "viewport_w_scaling_nv"s) {res = VK_DYNAMIC_STATE_VIEWPORT_W_SCALING_NV;}
+	else if(dynamic_str == "discard_rectangle_ext"s) {res = VK_DYNAMIC_STATE_DISCARD_RECTANGLE_EXT;}
+	else if(dynamic_str == "discard_rectangle_enable_ext"s) {res = VK_DYNAMIC_STATE_DISCARD_RECTANGLE_ENABLE_EXT;}
+	else if(dynamic_str == "discard_rectangle_mode_ext"s) {res = VK_DYNAMIC_STATE_DISCARD_RECTANGLE_MODE_EXT;}
+	else if(dynamic_str == "sample_locations_ext"s) {res = VK_DYNAMIC_STATE_SAMPLE_LOCATIONS_EXT;}
+	else if(dynamic_str == "ray_tracing_pipeline_stack_size_khr"s) {res = VK_DYNAMIC_STATE_RAY_TRACING_PIPELINE_STACK_SIZE_KHR;}
+	else if(dynamic_str == "viewport_shading_rate_palette_nv"s) {res = VK_DYNAMIC_STATE_VIEWPORT_SHADING_RATE_PALETTE_NV;}
+	else if(dynamic_str == "viewport_coarse_sample_order_nv"s) {res = VK_DYNAMIC_STATE_VIEWPORT_COARSE_SAMPLE_ORDER_NV;}
+	else if(dynamic_str == "exclusive_scissor_enable_nv"s) {res = VK_DYNAMIC_STATE_EXCLUSIVE_SCISSOR_ENABLE_NV;}
+	else if(dynamic_str == "exclusive_scissor_nv"s) {res = VK_DYNAMIC_STATE_EXCLUSIVE_SCISSOR_NV;}
+	else if(dynamic_str == "fragment_shading_rate_khr"s) {res = VK_DYNAMIC_STATE_FRAGMENT_SHADING_RATE_KHR;}
+	else if(dynamic_str == "vertex_input_ext"s) {res = VK_DYNAMIC_STATE_VERTEX_INPUT_EXT;}
+	else if(dynamic_str == "patch_control_points_ext"s) {res = VK_DYNAMIC_STATE_PATCH_CONTROL_POINTS_EXT;}
+	else if(dynamic_str == "logic_op_ext"s) {res = VK_DYNAMIC_STATE_LOGIC_OP_EXT;}
+	else if(dynamic_str == "color_write_enable_ext"s) {res = VK_DYNAMIC_STATE_COLOR_WRITE_ENABLE_EXT;}
+	else if(dynamic_str == "depth_clamp_enable_ext"s) {res = VK_DYNAMIC_STATE_DEPTH_CLAMP_ENABLE_EXT;}
+	else if(dynamic_str == "polygon_mode_ext"s) {res = VK_DYNAMIC_STATE_POLYGON_MODE_EXT;}
+	else if(dynamic_str == "rasterization_samples_ext"s) {res = VK_DYNAMIC_STATE_RASTERIZATION_SAMPLES_EXT;}
+	else if(dynamic_str == "sample_mask_ext"s) {res = VK_DYNAMIC_STATE_SAMPLE_MASK_EXT;}
+	else if(dynamic_str == "alpha_to_coverage_enable_ext"s) {res = VK_DYNAMIC_STATE_ALPHA_TO_COVERAGE_ENABLE_EXT;}
+	else if(dynamic_str == "alpha_to_one_enable_ext"s) {res = VK_DYNAMIC_STATE_ALPHA_TO_ONE_ENABLE_EXT;}
+	else if(dynamic_str == "logic_op_enable_ext"s) {res = VK_DYNAMIC_STATE_LOGIC_OP_ENABLE_EXT;}
+	else if(dynamic_str == "color_blend_enable_ext"s) {res = VK_DYNAMIC_STATE_COLOR_BLEND_ENABLE_EXT;}
+	else if(dynamic_str == "color_blend_equation_ext"s) {res = VK_DYNAMIC_STATE_COLOR_BLEND_EQUATION_EXT;}
+	else if(dynamic_str == "color_write_mask_ext"s) {res = VK_DYNAMIC_STATE_COLOR_WRITE_MASK_EXT;}
+	else if(dynamic_str == "tessellation_domain_origin_ext"s) {res = VK_DYNAMIC_STATE_TESSELLATION_DOMAIN_ORIGIN_EXT;}
+	else if(dynamic_str == "rasterization_stream_ext"s) {res = VK_DYNAMIC_STATE_RASTERIZATION_STREAM_EXT;}
+	else if(dynamic_str == "conservative_rasterization_mode_ext"s) {res = VK_DYNAMIC_STATE_CONSERVATIVE_RASTERIZATION_MODE_EXT;}
+	else if(dynamic_str == "extra_primitive_overestimation_size_ext"s) {res = VK_DYNAMIC_STATE_EXTRA_PRIMITIVE_OVERESTIMATION_SIZE_EXT;}
+	else if(dynamic_str == "depth_clip_enable_ext"s) {res = VK_DYNAMIC_STATE_DEPTH_CLIP_ENABLE_EXT;}
+	else if(dynamic_str == "sample_locations_enable_ext"s) {res = VK_DYNAMIC_STATE_SAMPLE_LOCATIONS_ENABLE_EXT;}
+	else if(dynamic_str == "color_blend_advanced_ext"s) {res = VK_DYNAMIC_STATE_COLOR_BLEND_ADVANCED_EXT;}
+	else if(dynamic_str == "provoking_vertex_mode_ext"s) {res = VK_DYNAMIC_STATE_PROVOKING_VERTEX_MODE_EXT;}
+	else if(dynamic_str == "line_rasterization_mode_ext"s) {res = VK_DYNAMIC_STATE_LINE_RASTERIZATION_MODE_EXT;}
+	else if(dynamic_str == "line_stipple_enable_ext"s) {res = VK_DYNAMIC_STATE_LINE_STIPPLE_ENABLE_EXT;}
+	else if(dynamic_str == "depth_clip_negative_one_to_one_ext"s) {res = VK_DYNAMIC_STATE_DEPTH_CLIP_NEGATIVE_ONE_TO_ONE_EXT;}
+	else if(dynamic_str == "viewport_w_scaling_enable_nv"s) {res = VK_DYNAMIC_STATE_VIEWPORT_W_SCALING_ENABLE_NV;}
+	else if(dynamic_str == "viewport_swizzle_nv"s) {res = VK_DYNAMIC_STATE_VIEWPORT_SWIZZLE_NV;}
+	else if(dynamic_str == "coverage_to_color_enable_nv"s) {res = VK_DYNAMIC_STATE_COVERAGE_TO_COLOR_ENABLE_NV;}
+	else if(dynamic_str == "coverage_to_color_location_nv"s) {res = VK_DYNAMIC_STATE_COVERAGE_TO_COLOR_LOCATION_NV;}
+	else if(dynamic_str == "coverage_modulation_mode_nv"s) {res = VK_DYNAMIC_STATE_COVERAGE_MODULATION_MODE_NV;}
+	else if(dynamic_str == "coverage_modulation_table_enable_nv"s) {res = VK_DYNAMIC_STATE_COVERAGE_MODULATION_TABLE_ENABLE_NV;}
+	else if(dynamic_str == "coverage_modulation_table_nv"s) {res = VK_DYNAMIC_STATE_COVERAGE_MODULATION_TABLE_NV;}
+	else if(dynamic_str == "shading_rate_image_enable_nv"s) {res = VK_DYNAMIC_STATE_SHADING_RATE_IMAGE_ENABLE_NV;}
+	else if(dynamic_str == "representative_fragment_test_enable_nv"s) {res = VK_DYNAMIC_STATE_REPRESENTATIVE_FRAGMENT_TEST_ENABLE_NV;}
+	else if(dynamic_str == "coverage_reduction_mode_nv"s) {res = VK_DYNAMIC_STATE_COVERAGE_REDUCTION_MODE_NV;}
+	else if(dynamic_str == "attachment_feedback_loop_enable_ext"s) {res = VK_DYNAMIC_STATE_ATTACHMENT_FEEDBACK_LOOP_ENABLE_EXT;}
+	else if(dynamic_str == "line_stipple_khr"s) {res = VK_DYNAMIC_STATE_LINE_STIPPLE_KHR;}
+	else if(dynamic_str == "depth_clamp_range_ext"s) {res = VK_DYNAMIC_STATE_DEPTH_CLAMP_RANGE_EXT;}
+	else if(dynamic_str == "line_stipple_ext"s) {res = VK_DYNAMIC_STATE_LINE_STIPPLE_EXT;}
+	else if(dynamic_str == "cull_mode_ext"s) {res = VK_DYNAMIC_STATE_CULL_MODE_EXT;}
+	else if(dynamic_str == "front_face_ext"s) {res = VK_DYNAMIC_STATE_FRONT_FACE_EXT;}
+	else if(dynamic_str == "primitive_topology_ext"s) {res = VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY_EXT;}
+	else if(dynamic_str == "viewport_with_count_ext"s) {res = VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT_EXT;}
+	else if(dynamic_str == "scissor_with_count_ext"s) {res = VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT_EXT;}
+	else if(dynamic_str == "vertex_input_binding_stride_ext"s) {res = VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT;}
+	else if(dynamic_str == "depth_test_enable_ext"s) {res = VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE_EXT;}
+	else if(dynamic_str == "depth_write_enable_ext"s) {res = VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE_EXT;}
+	else if(dynamic_str == "depth_compare_op_ext"s) {res = VK_DYNAMIC_STATE_DEPTH_COMPARE_OP_EXT;}
+	else if(dynamic_str == "depth_bounds_test_enable_ext"s) {res = VK_DYNAMIC_STATE_DEPTH_BOUNDS_TEST_ENABLE_EXT;}
+	else if(dynamic_str == "stencil_test_enable_ext"s) {res = VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE_EXT;}
+	else if(dynamic_str == "stencil_op_ext"s) {res = VK_DYNAMIC_STATE_STENCIL_OP_EXT;}
+	else if(dynamic_str == "rasterizer_discard_enable_ext"s) {res = VK_DYNAMIC_STATE_RASTERIZER_DISCARD_ENABLE_EXT;}
+	else if(dynamic_str == "depth_bias_enable_ext"s) {res = VK_DYNAMIC_STATE_DEPTH_BIAS_ENABLE_EXT;}
+	else if(dynamic_str == "primitive_restart_enable_ext"s) {res = VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE_EXT;}
+    
+    return res;
+}

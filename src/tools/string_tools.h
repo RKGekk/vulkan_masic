@@ -166,3 +166,4 @@ VkLogicOp getLogicOp(const std::string& op_str);
 VkBlendFactor getBlendFactor(const std::string& fac_str);
 VkBlendOp getBlendOp(const std::string& op_str);
 VkColorComponentFlagBits getColorComponentFlagBit(const std::string& mask_str);
+VkDynamicState getDynamicState(const std::string& dynamic_str);

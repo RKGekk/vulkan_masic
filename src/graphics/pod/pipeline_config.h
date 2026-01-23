@@ -18,19 +18,21 @@ private:
     std::string m_name;
     std::vector<std::string> m_shaders;
     VkPrimitiveTopology m_topology;
-    VkPipelineTessellationStateCreateInfo m_tessellation_state_Info;
+    VkPipelineTessellationStateCreateInfo m_tessellation_info;
     bool m_primitive_restart_enable;
     VkPipelineRasterizationStateCreateInfo m_rasterizer_info;
     VkPipelineMultisampleStateCreateInfo m_multisample_info;
     VkPipelineDepthStencilStateCreateInfo m_depth_stencil_info;
     VkPipelineColorBlendStateCreateInfo m_color_blend_info;
     std::vector<VkPipelineColorBlendAttachmentState> m_color_blend_attachments;
+    VkPipelineDynamicStateCreateInfo m_dynamic_info;
+    std::vector<VkDynamicState> m_dynamic_states;
 
     std::vector<VkDescriptorSetLayout> desc_set_layouts;
     VkRenderPass render_pass;
     VkExtent2D viewport_extent;
     std::vector<VkPipelineShaderStageCreateInfo> shaders_info;
     VkPipelineVertexInputStateCreateInfo vertex_input_info;
-    std::vector<VkDynamicState> dynamic_states;
+    
     
 };
