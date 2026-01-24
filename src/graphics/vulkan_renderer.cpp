@@ -20,6 +20,9 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR sur
         m_command_buffers.push_back(m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::GRAPICS));
     }
 
+    m_descriptors_manager = std::make_shared<VulkanDescriptorsManager>();
+    m_descriptors_manager->init(m_device, "graphics_pipelines.xml"s);
+
     m_shaders_manager = std::make_shared<VulkanShadersManager>();
     m_shaders_manager->init(m_device, "graphics_pipelines.xml"s);
 

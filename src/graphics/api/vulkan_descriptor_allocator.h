@@ -11,23 +11,22 @@
 
 class DescriptorAllocatorPage;
 class DescriptorAllocation;
-class Device;
+class VulkanDevice;
 
 class DescriptorAllocator {
 public:
+    bool init(std::shared_ptr<VulkanDevice> device, VkDescriptorType type, uint32_t num_descriptors_per_heap = 256u);
+    void destroy();
+
 	DescriptorAllocation Allocate(uint32_t num_descriptors = 1u);
-
 	void ReleaseStaleDescriptors();
-
-	DescriptorAllocator(Device& device, VkDescriptorType type, uint32_t num_descriptors_per_heap = 256u);
-	virtual ~DescriptorAllocator();
 
 private:
 	using DescriptorHeapPool = std::vector<std::shared_ptr<DescriptorAllocatorPage>>;
 
 	std::shared_ptr<DescriptorAllocatorPage> CreateAllocatorPage();
 
-	Device& m_device;
+	std::shared_ptr<VulkanDevice> m_device;
 	VkDescriptorType m_heap_type;
 	uint32_t m_num_descriptors_per_heap;
 

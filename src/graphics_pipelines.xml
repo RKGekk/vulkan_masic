@@ -43,6 +43,7 @@
             </Set>
         </DescriptorSet>
     </Descriptors>
+
     <Shaders>
         <Shader name="basic_diffuse_vertex_shader">
             <FilePath file_name="shader.vert"></FilePath>
@@ -65,7 +66,9 @@
                     <Semantic num="0">TEXCOORD</Semantic>
                 </Attribute>
             </InputAttributeDescription>
-            <DescriptorSet>basic_diffuse_descriptor_set</DescriptorSet>
+            <DescriptorSet>
+                <Set>basic_diffuse_descriptor_set</Set>
+            </DescriptorSet>
         </Shader>
         
         <Shader name="basic_diffuse_pixel_shader">
@@ -82,7 +85,9 @@
                     <Format>vec2</Format>
                 </Attribute>
             </InputAttributeDescription>
-            <DescriptorSet>basic_diffuse_descriptor_set</DescriptorSet>
+            <DescriptorSet>
+                <Set>basic_diffuse_descriptor_set</Set>
+            </DescriptorSet>
         </Shader>
 
         <Shader name="imgui_vertex_shader">
@@ -106,7 +111,9 @@
                     <Semantic num="0">COLOR</Semantic>
                 </Attribute>
             </InputAttributeDescription>
-            <DescriptorSet>imgui_descriptor_set</DescriptorSet>
+            <DescriptorSet>
+                <Set>imgui_descriptor_set</Set>
+            </DescriptorSet>
         </Shader>
 
         <Shader name="imgui_pixel_shader">
@@ -123,7 +130,9 @@
                     <Format>vec2</Format>
                 </Attribute>
             </InputAttributeDescription>
-            <DescriptorSet>imgui_descriptor_set</DescriptorSet>
+            <DescriptorSet>
+                <Set>imgui_descriptor_set</Set>
+            </DescriptorSet>
         </Shader>
     </Shaders>
 

@@ -5,6 +5,7 @@
 
 bool DescSetLayout::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& descriptor_sets_node) {
     using namespace std::literals;
+    m_device = device;
 
     m_name = descriptor_sets_node.attribute("name").as_string();
     
@@ -57,6 +58,22 @@ bool DescSetLayout::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_n
             
             bindings.push_back(layout_binding);
         }
+        m_desc_layout_info = VkDescriptorSetLayoutCreateInfo{};
+        m_desc_layout_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+
+        pugi::xml_node stage_flags_node = descriptor_sets_node.child("LayoutCreateFlags");
+        for (pugi::xml_node create_flag = stage_flags_node.first_child(); create_flag; create_flag = create_flag.next_sibling()) {
+	        m_desc_layout_info.flags |= getDescriptorSetLayoutCreateFlagBit(create_flag.text().as_string());
+	    }
+
+        m_desc_layout_info.bindingCount = static_cast<uint32_t>(bindings.size());
+        m_desc_layout_info.pBindings = bindings.data();
+        
+        VkResult result = vkCreateDescriptorSetLayout(m_device->getDevice(), &m_desc_layout_info, nullptr, &m_desc_layout);
+        if(result != VK_SUCCESS) {
+            throw std::runtime_error("failed to create descriptor set layout!");
+        }
+
         m_bindings.insert({slot, std::move(bindings)});
     }
     
@@ -104,4 +121,12 @@ const std::vector<std::shared_ptr<VulkanSampler>>& DescSetLayout::getImmutableSa
 
 const std::vector<VkSampler>& DescSetLayout::getImmutableSamplersPtr() const {
     return m_immutable_samplers_ptr;
+}
+
+VkDescriptorSetLayoutCreateInfo DescSetLayout::getDescriptorSetLayoutInfo() const {
+    return m_desc_layout_info;
+}
+
+VkDescriptorSetLayout DescSetLayout::getDescriptorSetLayout() const {
+    return m_desc_layout;
 }

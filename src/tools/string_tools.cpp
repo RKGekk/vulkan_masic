@@ -886,3 +886,20 @@ VkDynamicState getDynamicState(const std::string& dynamic_str) {
     
     return res;
 }
+
+VkDescriptorSetLayoutCreateFlagBits getDescriptorSetLayoutCreateFlagBit(const std::string& flag_str) {
+	using namespace std::literals;
+    VkDescriptorSetLayoutCreateFlagBits res{};
+
+         if(flag_str == "update_after_bind_pool"s) {res = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT;}
+	else if(flag_str == "push_descriptor_khr"s) {res = VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR;}
+	else if(flag_str == "descriptor_buffer_ext"s) {res = VK_DESCRIPTOR_SET_LAYOUT_CREATE_DESCRIPTOR_BUFFER_BIT_EXT;}
+	else if(flag_str == "embedded_immutable_samplers_ext"s) {res = VK_DESCRIPTOR_SET_LAYOUT_CREATE_EMBEDDED_IMMUTABLE_SAMPLERS_BIT_EXT;}
+	else if(flag_str == "indirect_bindable_nv"s) {res = VK_DESCRIPTOR_SET_LAYOUT_CREATE_INDIRECT_BINDABLE_BIT_NV;}
+	else if(flag_str == "host_only_pool_ext"s) {res = VK_DESCRIPTOR_SET_LAYOUT_CREATE_HOST_ONLY_POOL_BIT_EXT;}
+	else if(flag_str == "per_stage_nv"s) {res = VK_DESCRIPTOR_SET_LAYOUT_CREATE_PER_STAGE_BIT_NV;}
+	else if(flag_str == "update_after_bind_pool_ext"s) {res = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT;}
+	else if(flag_str == "host_only_pool_valve"s) {res = VK_DESCRIPTOR_SET_LAYOUT_CREATE_HOST_ONLY_POOL_BIT_VALVE;}
+    
+    return res;
+}

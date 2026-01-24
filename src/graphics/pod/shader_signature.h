@@ -26,7 +26,7 @@ public:
     VkFlags getPipelineShaderStageCreateFlags() const;
     VkShaderStageFlagBits getStage() const;
     const VertexFormat& getInputAttributes() const;
-    const std::string& getDescSetName() const;
+    const std::vector<std::string>& getDescSetNames() const;
     
     const std::vector<VkPushConstantRange>& getPushConstantsRanges() const;
     const std::vector<VkSpecializationMapEntry>& getSpecializationConstantsMap() const;
@@ -42,7 +42,7 @@ private:
     VkFlags m_pipeline_shader_stage_create_flags; // VkPipelineShaderStageCreateFlags
     VkShaderStageFlagBits m_stage;
     VertexFormat m_input_attributes;
-    std::string m_desc_set_name;
+    std::vector<std::string> m_desc_set_names;
     std::vector<VkPushConstantRange> m_push_constants;
     std::vector<VkSpecializationMapEntry> m_specialization_constants;
     std::vector<char> m_specialization_constants_data;

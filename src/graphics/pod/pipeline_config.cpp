@@ -184,3 +184,55 @@ bool PipelineConfig::init(const std::string& rg_file_path) {
 
     return true;
 }
+
+void PipelineConfig::destroy() {
+    
+}
+
+const std::string& PipelineConfig::getName() const {
+    return m_name;
+}
+
+const std::vector<std::string>& PipelineConfig::getShaderNames() const {
+    return m_shaders;
+}
+
+VkPrimitiveTopology PipelineConfig::getTopology() const {
+    return m_topology;
+}
+
+const VkPipelineTessellationStateCreateInfo& PipelineConfig::getTessellationInfo() const {
+    return m_tessellation_info;
+}
+
+bool PipelineConfig::getPrimitiveRestartEnable() const {
+    return m_primitive_restart_enable;
+}
+
+const VkPipelineRasterizationStateCreateInfo& PipelineConfig::getRasterizerInfo() const {
+    return m_rasterizer_info;
+}
+
+const VkPipelineMultisampleStateCreateInfo& PipelineConfig::getMultisampleInfo() const {
+    return m_multisample_info;
+}
+
+const VkPipelineDepthStencilStateCreateInfo& PipelineConfig::getDepthStencilInfo() const {
+    return m_depth_stencil_info;
+}
+
+const VkPipelineColorBlendStateCreateInfo& PipelineConfig::getColorBlendInfo() const {
+    return m_color_blend_info;
+}
+
+const std::vector<VkPipelineColorBlendAttachmentState>& PipelineConfig::getColorBlendAttachments() const {
+    return m_color_blend_attachments;
+}
+
+const VkPipelineDynamicStateCreateInfo& PipelineConfig::getDynamicInfo() const {
+    return m_dynamic_info;
+}
+
+const std::vector<VkDynamicState>& PipelineConfig::getDynamicStates() const {
+    return m_dynamic_states;
+}

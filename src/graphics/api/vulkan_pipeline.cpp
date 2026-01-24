@@ -1,15 +1,35 @@
 #include "vulkan_pipeline.h"
 
 #include "vulkan_device.h"
+#include "../pod/pipeline_config.h"
+#include "vulkan_shaders_manager.h"
+#include "vulkan_pipelines_manager.h"
+#include "vulkan_descriptors_manager.h"
 
 #include <array>
+#include <unordered_set>
 #include <stdexcept>
 
 bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const PipelineCfg& pipeline_cfg) {
     m_device = device;
 
     m_pipeline_type = PipelineType::GRAPHICS;
-    m_pipeline_layout = createPipelineLayout(pipeline_cfg.desc_set_layouts);
+    
+    m_pipeline_layout_info = VkPipelineLayoutCreateInfo{};
+    m_pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+
+    pipeline_layout_info.setLayoutCount = static_cast<uint32_t>(desc_set_layouts.size());
+    pipeline_layout_info.pSetLayouts = desc_set_layouts.data();
+    pipeline_layout_info.pushConstantRangeCount = 0u;
+    pipeline_layout_info.pPushConstantRanges = nullptr;
+    
+    VkResult result = vkCreatePipelineLayout(m_device->getDevice(), &pipeline_layout_info, nullptr, &pipeline_layout);
+    if (result != VK_SUCCESS) {
+        throw std::runtime_error("failed to create pipeline layout!");
+    }
+
+
+
     m_pipeline = createPipeline(pipeline_cfg);
     m_shaders_info = pipeline_cfg.shaders_info;
 
@@ -25,6 +45,44 @@ bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const PipelineCf
     m_shaders_info = pipeline_cfg.shaders_info;
 
     return true;
+}
+
+bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& pipeline_data, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager) {
+    m_device = device;
+
+    m_pipeline_config = std::make_shared<PipelineConfig>();
+    m_pipeline_config->init(pipeline_data);
+
+    m_pipeline_type = PipelineType::GRAPHICS;
+    
+    m_pipeline_layout_info = VkPipelineLayoutCreateInfo{};
+    m_pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+
+    m_desc_set_layouts = getVkDescriptorSetLayouts(m_pipeline_config->getShaderNames(), desc_manager, shader_manager);
+    
+    m_pipeline_layout_info.setLayoutCount = static_cast<uint32_t>(m_desc_set_layouts.size());
+    m_pipeline_layout_info.pSetLayouts = m_desc_set_layouts.data();
+    
+    pipeline_layout_info.pushConstantRangeCount = 0u;
+    pipeline_layout_info.pPushConstantRanges = nullptr;
+
+    //std::vector<VkPipelineShaderStageCreateInfo> shaders_info;
+    //VkPipelineVertexInputStateCreateInfo vertex_input_info;
+
+    m_pipeline = pipeline;
+    m_shaders_info = pipeline_cfg.shaders_info;
+}
+
+
+std::vector<VkDescriptorSetLayout> VulkanPipeline::getVkDescriptorSetLayouts(const std::vector<std::string>& shader_names, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager) const {
+    std::unordered_set<VkDescriptorSetLayout> temp;
+    for(const std::string& shader_name : shader_names) {
+        for(const std::string& desc_name : shader_manager->getShader(shader_name)->getShaderSignature()->getDescSetNames()) {
+            temp.insert(desc_manager->getDescSetLayout(desc_name)->getDescriptorSetLayout());
+        }
+    }
+
+    return {temp.begin(), temp.end()};
 }
 
 void VulkanPipeline::destroy() {

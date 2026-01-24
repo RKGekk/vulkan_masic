@@ -24,3 +24,16 @@ bool VulkanDescriptorsManager::init(std::shared_ptr<VulkanDevice> device, const 
 
     return true;
 }
+
+void VulkanDescriptorsManager::destroy() {
+
+}
+
+std::shared_ptr<DescSetLayout> VulkanDescriptorsManager::getDescSetLayout(const std::string& name) const {
+	if(!m_name_layout_map.contains(name)) return nullptr;
+	return m_name_layout_map.at(name);
+}
+
+const std::unordered_map<std::string, std::shared_ptr<DescSetLayout>>& VulkanDescriptorsManager::getNameLayoutMap() const {
+	return m_name_layout_map;
+}

@@ -12,11 +12,15 @@
 #include "../pod/descriptor_set_layout.h"
 
 class VulkanDevice;
+class DescriptorAllocator;
 
 class VulkanDescriptorsManager {
 public:
     bool init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_name);
     void destroy();
+
+    std::shared_ptr<DescSetLayout> getDescSetLayout(const std::string& name) const;
+    const std::unordered_map<std::string, std::shared_ptr<DescSetLayout>>& getNameLayoutMap() const;
 
 private:
     std::unordered_map<std::string, std::shared_ptr<DescSetLayout>> m_name_layout_map;

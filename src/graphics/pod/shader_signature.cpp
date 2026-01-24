@@ -92,7 +92,12 @@ bool ShaderSignature::init(const pugi::xml_node& shader_data) {
 		}
     }
 
-    m_desc_set_name = shader_data.child("DescriptorSet").text().as_string();
+    pugi::xml_node descriptor_set_node = shader_data.child("DescriptorSet");
+	if (descriptor_set_node) {
+        for (pugi::xml_node set_node = descriptor_set_node.first_child(); set_node; set_node = set_node.next_sibling()) {
+            m_desc_set_names.push_back(set_node.text().as_string());
+        }
+    }
 
     pugi::xml_node push_constants_node = shader_data.child("PushConstants");
 	if (push_constants_node) {
@@ -190,8 +195,8 @@ const VertexFormat& ShaderSignature::getInputAttributes() const {
     return m_input_attributes;
 }
 
-const std::string& ShaderSignature::getDescSetName() const {
-    return m_desc_set_name;
+const std::vector<std::string>& ShaderSignature::getDescSetNames() const {
+    return m_desc_set_names;
 }
 
 const std::vector<VkPushConstantRange>& ShaderSignature::getPushConstantsRanges() const {

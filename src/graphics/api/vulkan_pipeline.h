@@ -7,9 +7,10 @@
 #include <stdexcept>
 #include <vector>
 
-#include "vulkan_shaders_manager.h"
-
 class VulkanDevice;
+class VulkanDescriptorsManager;
+class VulkanShadersManager;
+class PipelineConfig;
 
 class VulkanPipeline {
 public:
@@ -18,10 +19,7 @@ public:
         COMPUTE
     };
 
-    bool init(std::shared_ptr<VulkanDevice> device, const PipelineCfg& pipeline_cfg);
-    bool init(std::shared_ptr<VulkanDevice> device, const PipelineCfg& pipeline_cfg, VkPipeline pipeline);
-    bool init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_path, std::shared_ptr<VulkanShadersManager> shader_manager);
-    bool init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& pipelines_data, std::shared_ptr<VulkanShadersManager> shader_manager);
+    bool init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& pipeline_data, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager);
     void destroy();
 
     PipelineType getPipelineType() const;
@@ -30,13 +28,17 @@ public:
     const std::vector<VkPipelineShaderStageCreateInfo>& getShadersInfo() const;
 
 private:
+    std::vector<VkDescriptorSetLayout> getVkDescriptorSetLayouts(const std::vector<std::string>& shader_names, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager) const;
+
     VkPipelineLayout createPipelineLayout(const std::vector<VkDescriptorSetLayout>& desc_set_layouts) const;
     VkPipeline createPipeline(const PipelineCfg& pipeline_cfg) const;
 
     std::shared_ptr<VulkanDevice> m_device;
 
     PipelineType m_pipeline_type;
+    std::vector<VkDescriptorSetLayout> m_desc_set_layouts;
     VkPipelineLayout m_pipeline_layout = VK_NULL_HANDLE;
+    VkPipelineLayoutCreateInfo m_pipeline_layout_info;
     VkPipeline m_pipeline = VK_NULL_HANDLE;
-    std::vector<VkPipelineShaderStageCreateInfo> m_shaders_info;
+    std::shared_ptr<PipelineConfig> m_pipeline_config;
 };

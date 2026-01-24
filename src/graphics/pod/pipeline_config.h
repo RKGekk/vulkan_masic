@@ -14,6 +14,19 @@ public:
     bool init(const pugi::xml_node& pipeline_data);
     void destroy();
 
+    const std::string& getName() const;
+    const std::vector<std::string>& getShaderNames() const;
+    VkPrimitiveTopology getTopology() const;
+    const VkPipelineTessellationStateCreateInfo& getTessellationInfo() const;
+    bool getPrimitiveRestartEnable() const;
+    const VkPipelineRasterizationStateCreateInfo& getRasterizerInfo() const;
+    const VkPipelineMultisampleStateCreateInfo& getMultisampleInfo() const;
+    const VkPipelineDepthStencilStateCreateInfo& getDepthStencilInfo() const;
+    const VkPipelineColorBlendStateCreateInfo& getColorBlendInfo() const;
+    const std::vector<VkPipelineColorBlendAttachmentState>& getColorBlendAttachments() const;
+    const VkPipelineDynamicStateCreateInfo& getDynamicInfo() const;
+    const std::vector<VkDynamicState>& getDynamicStates() const;
+
 private:
     std::string m_name;
     std::vector<std::string> m_shaders;
@@ -27,12 +40,4 @@ private:
     std::vector<VkPipelineColorBlendAttachmentState> m_color_blend_attachments;
     VkPipelineDynamicStateCreateInfo m_dynamic_info;
     std::vector<VkDynamicState> m_dynamic_states;
-
-    std::vector<VkDescriptorSetLayout> desc_set_layouts;
-    VkRenderPass render_pass;
-    VkExtent2D viewport_extent;
-    std::vector<VkPipelineShaderStageCreateInfo> shaders_info;
-    VkPipelineVertexInputStateCreateInfo vertex_input_info;
-    
-    
 };

@@ -168,6 +168,20 @@
         </xs:restriction>
     </xs:simpleType>
 
+    <xs:simpleType name="DescriptorSetLayoutCreateFlagSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="update_after_bind_pool"></xs:enumeration>
+            <xs:enumeration value="push_descriptor_khr"></xs:enumeration>
+            <xs:enumeration value="descriptor_buffer_ext"></xs:enumeration>
+            <xs:enumeration value="embedded_immutable_samplers_ext"></xs:enumeration>
+            <xs:enumeration value="indirect_bindable_nv"></xs:enumeration>
+            <xs:enumeration value="host_only_pool_ext"></xs:enumeration>
+            <xs:enumeration value="per_stage_nv"></xs:enumeration>
+            <xs:enumeration value="update_after_bind_pool_ext"></xs:enumeration>
+            <xs:enumeration value="host_only_pool_valve"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:complexType name="LayoutBindingComplexType">
         <xs:all>
             <xs:element name="Binding" type="xs:unsignedInt" minOccurs="0" maxOccurs="1">
@@ -347,7 +361,13 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="DescriptorSet" type="xs:string" minOccurs="0" maxOccurs="unbounded"></xs:element>
+            <xs:element name="DescriptorSet" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Set" type="xs:string" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="PushConstants" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
@@ -824,6 +844,13 @@
                             <xs:element name="DescriptorSet" minOccurs="0" maxOccurs="unbounded">
                                 <xs:complexType>
                                     <xs:sequence>
+                                        <xs:element name="LayoutCreateFlags" minOccurs="0" maxOccurs="1">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element name="Flag" type="target:DescriptorSetLayoutCreateFlagSimpleType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
                                         <xs:element name="Set" minOccurs="0" maxOccurs="unbounded">
                                             <xs:complexType>
                                                 <xs:sequence>
