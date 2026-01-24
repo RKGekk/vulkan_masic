@@ -59,12 +59,12 @@ bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_
     m_pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 
     m_desc_set_layouts = getVkDescriptorSetLayouts(m_pipeline_config->getShaderNames(), desc_manager, shader_manager);
-    
     m_pipeline_layout_info.setLayoutCount = static_cast<uint32_t>(m_desc_set_layouts.size());
     m_pipeline_layout_info.pSetLayouts = m_desc_set_layouts.data();
-    
-    pipeline_layout_info.pushConstantRangeCount = 0u;
-    pipeline_layout_info.pPushConstantRanges = nullptr;
+
+    m_push_constants = getPushConstantRanges(m_pipeline_config->getShaderNames(), shader_manager);
+    m_pipeline_layout_info.pushConstantRangeCount = static_cast<uint32_t>(m_push_constants.size());
+    m_pipeline_layout_info.pPushConstantRanges = m_push_constants.data();
 
     //std::vector<VkPipelineShaderStageCreateInfo> shaders_info;
     //VkPipelineVertexInputStateCreateInfo vertex_input_info;
@@ -83,6 +83,21 @@ std::vector<VkDescriptorSetLayout> VulkanPipeline::getVkDescriptorSetLayouts(con
     }
 
     return {temp.begin(), temp.end()};
+}
+
+std::vector<VkPushConstantRange> getPushConstantRanges(const std::vector<std::string>& shader_names, std::shared_ptr<VulkanShadersManager> shader_manager) {
+    std::vector<VkPushConstantRange> push_constants;
+    uint32_t offset = 0u;
+    for(const std::string& shader_name : shader_names) {
+        for(VkPushConstantRange constant : shader_manager->getShader(shader_name)->getShaderSignature()->getPushConstantsRanges()) {
+            VkPushConstantRange push_constant = constant;
+            push_constant.offset = offset;
+
+            push_constants.push_back(push_constant);
+            offset += constant.size;
+        }
+    }
+    return push_constants;
 }
 
 void VulkanPipeline::destroy() {

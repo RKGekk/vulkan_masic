@@ -29,6 +29,7 @@ public:
 
 private:
     std::vector<VkDescriptorSetLayout> getVkDescriptorSetLayouts(const std::vector<std::string>& shader_names, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager) const;
+    std::vector<VkPushConstantRange> getPushConstantRanges(const std::vector<std::string>& shader_names, std::shared_ptr<VulkanShadersManager> shader_manager);
 
     VkPipelineLayout createPipelineLayout(const std::vector<VkDescriptorSetLayout>& desc_set_layouts) const;
     VkPipeline createPipeline(const PipelineCfg& pipeline_cfg) const;
@@ -37,6 +38,7 @@ private:
 
     PipelineType m_pipeline_type;
     std::vector<VkDescriptorSetLayout> m_desc_set_layouts;
+    std::vector<VkPushConstantRange> m_push_constants;
     VkPipelineLayout m_pipeline_layout = VK_NULL_HANDLE;
     VkPipelineLayoutCreateInfo m_pipeline_layout_info;
     VkPipeline m_pipeline = VK_NULL_HANDLE;
