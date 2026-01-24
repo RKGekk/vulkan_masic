@@ -347,20 +347,7 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="DescriptorSet" minOccurs="0" maxOccurs="unbounded">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element name="Set" minOccurs="0" maxOccurs="unbounded">
-                            <xs:complexType>
-                                <xs:sequence>
-                                    <xs:element name="LayoutBinding" type="target:LayoutBindingComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
-                                </xs:sequence>
-                                <xs:attribute name="slot" type="xs:unsignedInt"></xs:attribute>
-                            </xs:complexType>
-                        </xs:element>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
+            <xs:element name="DescriptorSet" type="xs:string" minOccurs="0" maxOccurs="unbounded"></xs:element>
             <xs:element name="PushConstants" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
@@ -831,6 +818,27 @@
     <xs:element name="RenderGraph">
         <xs:complexType>
             <xs:sequence>
+                <xs:element name="Descriptors">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="DescriptorSet" minOccurs="0" maxOccurs="unbounded">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="Set" minOccurs="0" maxOccurs="unbounded">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element name="LayoutBinding" type="target:LayoutBindingComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                                                </xs:sequence>
+                                                <xs:attribute name="slot" type="xs:unsignedInt"></xs:attribute>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                    <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
                 <xs:element name="Shaders" minOccurs="1" maxOccurs="1">
                     <xs:complexType>
                         <xs:sequence>

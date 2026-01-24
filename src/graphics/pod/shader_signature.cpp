@@ -45,7 +45,7 @@ std::vector<char> getDataFromXmlValue(pugi::xml_node value_data, VertexAttribute
     return data;
 }
 
-bool ShaderSignature::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& shader_data) {
+bool ShaderSignature::init(const pugi::xml_node& shader_data) {
     using namespace std::literals;
 
     m_name = shader_data.attribute("name").as_string();
@@ -92,57 +92,7 @@ bool ShaderSignature::init(std::shared_ptr<VulkanDevice> device, const pugi::xml
 		}
     }
 
-    pugi::xml_node descriptor_sets_node = shader_data.child("DescriptorSet");
-	if (descriptor_sets_node) {
-        for (pugi::xml_node set_node = descriptor_sets_node.first_child(); set_node; set_node = set_node.next_sibling()) {
-            int slot = set_node.attribute("slot").as_int(0);
-            std::vector<VkDescriptorSetLayoutBinding> bindings;
-	        for (pugi::xml_node layout_binding_node = set_node.first_child(); layout_binding_node; layout_binding_node = layout_binding_node.next_sibling()) {
-                VkDescriptorSetLayoutBinding layout_binding{};
-                layout_binding.binding = layout_binding_node.child("Binding").text().as_int();
-                layout_binding.descriptorType = getDescriptorType(layout_binding_node.child("DescriptorType").text().as_string());
-                layout_binding.descriptorCount = layout_binding_node.child("DescriptorCount").text().as_int();
-                layout_binding.stageFlags = m_stage;
-
-                std::vector<VkSamplerCreateInfo> sampler_info_array;
-                pugi::xml_node immutable_samplers_node = layout_binding_node.child("ImmutableSamplers");
-                for (pugi::xml_node sampler_node = immutable_samplers_node.first_child(); sampler_node; sampler_node = sampler_node.next_sibling()) {
-                    VkSamplerCreateInfo sampler_info{};
-
-                    pugi::xml_node create_flags_node = sampler_node.child("CreateFlags");
-	                if (!create_flags_node) continue;
-                    for (pugi::xml_node create_flag = create_flags_node.first_child(); create_flag; create_flag = create_flag.next_sibling()) {
-	             	    sampler_info.flags |= getSamplerCreateFlagBit(create_flag.text().as_string());
-	                }
-                    sampler_info.magFilter = getSamplerFilter(sampler_node.child("MagFilter").text().as_string());
-                    sampler_info.minFilter = getSamplerFilter(sampler_node.child("MinFilter").text().as_string());
-                    sampler_info.mipmapMode = getSamplerMipmapMode(sampler_node.child("MipmapMode").text().as_string());
-                    sampler_info.addressModeU = getSamplerAddressMode(sampler_node.child("AddressModeU").text().as_string());
-                    sampler_info.addressModeV = getSamplerAddressMode(sampler_node.child("AddressModeV").text().as_string());
-                    sampler_info.addressModeW = getSamplerAddressMode(sampler_node.child("AddressModeW").text().as_string());
-                    sampler_info.mipLodBias = sampler_node.child("MipLodBias").text().as_float(0.0f);
-                    sampler_info.anisotropyEnable = sampler_node.child("AnisotropyEnable").text().as_bool();
-                    sampler_info.maxAnisotropy = sampler_node.child("MaxAnisotropy").text().as_float(0.0f);
-                    sampler_info.compareEnable = sampler_node.child("CompareEnable").text().as_bool();
-                    sampler_info.compareOp = getCompareOp(sampler_node.child("CompareOp").text().as_string());
-                    sampler_info.minLod = sampler_node.child("MinLod").text().as_float(0.0f);
-                    sampler_info.maxLod = sampler_node.child("MaxLod").text().as_float(0.0f);
-                    sampler_info.borderColor = getSamplerBorderColor(sampler_node.child("BorderColor").text().as_string());
-                    sampler_info.unnormalizedCoordinates = sampler_node.child("UnnormalizedCoordinates").text().as_bool();
-
-                    std::shared_ptr<VulkanSampler> sampler = std::make_shared<VulkanSampler>();
-                    sampler->init(device, sampler_info);
-                    m_immutable_samplers_ptr.push_back(sampler->getSampler());
-                    m_immutable_samplers.push_back(std::move(sampler));
-                }
-
-                layout_binding.pImmutableSamplers = m_immutable_samplers_ptr.data();
-
-                bindings.push_back(layout_binding);
-            }
-            m_bindings.insert({slot, std::move(bindings)});
-		}
-    }
+    m_desc_set_name = shader_data.child("DescriptorSet").text().as_string();
 
     pugi::xml_node push_constants_node = shader_data.child("PushConstants");
 	if (push_constants_node) {
@@ -188,7 +138,7 @@ bool ShaderSignature::init(std::shared_ptr<VulkanDevice> device, const pugi::xml
     return true;
 }
 
-bool ShaderSignature::init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_path) {
+bool ShaderSignature::init(const std::string& rg_file_path) {
 
     pugi::xml_document xml_doc;
 	pugi::xml_parse_result parse_res = xml_doc.load_file(rg_file_path.c_str());
@@ -201,7 +151,7 @@ bool ShaderSignature::init(std::shared_ptr<VulkanDevice> device, const std::stri
     pugi::xml_node shaders_node = root_node.child("Shaders");
 	if (shaders_node) {
 		for (pugi::xml_node shader_node = shaders_node.first_child(); shader_node; shader_node = shader_node.next_sibling()) {
-			return init(device, shader_node);
+			return init(shader_node);
 		}
 	}
 
@@ -240,16 +190,8 @@ const VertexFormat& ShaderSignature::getInputAttributes() const {
     return m_input_attributes;
 }
 
-const ShaderSignature::DescSetBindings& ShaderSignature::getBindings() const {
-    return m_bindings;
-}
-
-const std::vector<std::shared_ptr<VulkanSampler>>& ShaderSignature::getImmutableSamplers() const {
-    return m_immutable_samplers;
-}
-
-const std::vector<VkSampler>& ShaderSignature::getImmutableSamplersPtr() const {
-    return m_immutable_samplers_ptr;
+const std::string& ShaderSignature::getDescSetName() const {
+    return m_desc_set_name;
 }
 
 const std::vector<VkPushConstantRange>& ShaderSignature::getPushConstantsRanges() const {
@@ -266,10 +208,4 @@ const std::vector<char>& ShaderSignature::getSpecializationConstantsData() const
 
 const VkSpecializationInfo& ShaderSignature::getSpecializationInfo() const {
     return m_specialization_info;
-}
-
-void ShaderSignature::destroy() {
-    for(std::shared_ptr<VulkanSampler>& sampler_ptr : m_immutable_samplers) {
-        sampler_ptr->destroy();
-    }
 }

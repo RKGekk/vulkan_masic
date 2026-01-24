@@ -1,6 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <?xml-model href="masic_schema.xsd" type="application/xml" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <RenderGraph xmlns="http://www.masicengine.ru">
+    <Descriptors>
+        <DescriptorSet name="basic_diffuse_descriptor_set">
+            <Set slot="0">
+                <LayoutBinding>
+                    <Binding>0</Binding>
+                    <DescriptorType>uniform_buffer</DescriptorType>
+                    <DescriptorCount>1</DescriptorCount>
+                    <ShaderStageFlags>
+                        <Flag>vertex_bit</Flag>
+                    </ShaderStageFlags>
+                </LayoutBinding>
+                <LayoutBinding>
+                    <Binding>1</Binding>
+                    <DescriptorType>combined_image_sampler</DescriptorType>
+                    <DescriptorCount>1</DescriptorCount>
+                    <ShaderStageFlags>
+                        <Flag>fragment_bit</Flag>
+                    </ShaderStageFlags>
+                </LayoutBinding>
+            </Set>
+        </DescriptorSet>
+        <DescriptorSet name="imgui_descriptor_set">
+            <Set slot="0">
+                <LayoutBinding>
+                    <Binding>0</Binding>
+                    <DescriptorType>uniform_buffer</DescriptorType>
+                    <DescriptorCount>1</DescriptorCount>
+                    <ShaderStageFlags>
+                        <Flag>vertex_bit</Flag>
+                    </ShaderStageFlags>
+                </LayoutBinding>
+                <LayoutBinding>
+                    <Binding>1</Binding>
+                    <DescriptorType>combined_image_sampler</DescriptorType>
+                    <DescriptorCount>1</DescriptorCount>
+                    <ShaderStageFlags>
+                        <Flag>fragment_bit</Flag>
+                    </ShaderStageFlags>
+                </LayoutBinding>
+            </Set>
+        </DescriptorSet>
+    </Descriptors>
     <Shaders>
         <Shader name="basic_diffuse_vertex_shader">
             <FilePath file_name="shader.vert"></FilePath>
@@ -23,15 +65,7 @@
                     <Semantic num="0">TEXCOORD</Semantic>
                 </Attribute>
             </InputAttributeDescription>
-            <DescriptorSet>
-                <Set slot="0">
-                    <LayoutBinding>
-                        <Binding>0</Binding>
-                        <DescriptorType>uniform_buffer</DescriptorType>
-                        <DescriptorCount>1</DescriptorCount>
-                    </LayoutBinding>
-                </Set>
-            </DescriptorSet>
+            <DescriptorSet>basic_diffuse_descriptor_set</DescriptorSet>
         </Shader>
         
         <Shader name="basic_diffuse_pixel_shader">
@@ -48,15 +82,7 @@
                     <Format>vec2</Format>
                 </Attribute>
             </InputAttributeDescription>
-            <DescriptorSet>
-                <Set slot="0">
-                    <LayoutBinding>
-                        <Binding>1</Binding>
-                        <DescriptorType>combined_image_sampler</DescriptorType>
-                        <DescriptorCount>1</DescriptorCount>
-                    </LayoutBinding>
-                </Set>
-            </DescriptorSet>
+            <DescriptorSet>basic_diffuse_descriptor_set</DescriptorSet>
         </Shader>
 
         <Shader name="imgui_vertex_shader">
@@ -80,18 +106,7 @@
                     <Semantic num="0">COLOR</Semantic>
                 </Attribute>
             </InputAttributeDescription>
-            <DescriptorSet>
-                <Set slot="0">
-                    <LayoutBinding>
-                        <Binding>0</Binding>
-                        <DescriptorType>uniform_buffer</DescriptorType>
-                        <DescriptorCount>1</DescriptorCount>
-                        <ShaderStageFlags>
-                            <Flag>vertex_bit</Flag>
-                        </ShaderStageFlags>
-                    </LayoutBinding>
-                </Set>
-            </DescriptorSet>
+            <DescriptorSet>imgui_descriptor_set</DescriptorSet>
         </Shader>
 
         <Shader name="imgui_pixel_shader">
@@ -108,18 +123,7 @@
                     <Format>vec2</Format>
                 </Attribute>
             </InputAttributeDescription>
-            <DescriptorSet>
-                <Set slot="0">
-                    <LayoutBinding>
-                        <Binding>1</Binding>
-                        <DescriptorType>combined_image_sampler</DescriptorType>
-                        <DescriptorCount>1</DescriptorCount>
-                        <ShaderStageFlags>
-                            <Flag>fragment_bit</Flag>
-                        </ShaderStageFlags>
-                    </LayoutBinding>
-                </Set>
-            </DescriptorSet>
+            <DescriptorSet>imgui_descriptor_set</DescriptorSet>
         </Shader>
     </Shaders>
 
