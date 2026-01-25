@@ -19,7 +19,7 @@ public:
         COMPUTE
     };
 
-    bool init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& pipeline_data, VkExtent2D viewport_extent, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager);
+    bool init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& pipeline_data, VkExtent2D viewport_extent, VkRenderPass render_pass, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager);
     void destroy();
 
     PipelineType getPipelineType() const;
@@ -38,6 +38,8 @@ private:
     PipelineType m_pipeline_type;
     std::vector<VkPipelineShaderStageCreateInfo> m_shaders_infos;
     VkPipelineVertexInputStateCreateInfo m_input_info;
+    VkPipelineInputAssemblyStateCreateInfo m_assembly_info;
+    VkPipelineTessellationStateCreateInfo m_tessellation_info;
     std::vector<VkVertexInputBindingDescription> m_input_binding_descs;
     std::vector<VkVertexInputAttributeDescription> m_input_attribute_descs;
     std::vector<VkDescriptorSetLayout> m_desc_set_layouts;

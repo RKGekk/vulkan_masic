@@ -11,7 +11,7 @@
 #include <unordered_set>
 #include <stdexcept>
 
-bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& pipeline_data, VkExtent2D viewport_extent, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager) {
+bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& pipeline_data, VkExtent2D viewport_extent, VkRenderPass render_pass, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager) {
     m_device = device;
 
     VkPipelineCacheCreateInfo pipeline_cache_info{};
@@ -56,36 +56,46 @@ bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_
     m_viewport.minDepth = 0.0f;
     m_viewport.maxDepth = 1.0f;
     
+    m_viewport_state_info = VkPipelineViewportStateCreateInfo{};
     m_viewport_state_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     m_viewport_state_info.viewportCount = 1u;
     m_viewport_state_info.pViewports = &m_viewport;
     m_viewport_state_info.scissorCount = 1u;
     m_viewport_state_info.pScissors = &m_scissor;
+
+    m_assembly_info = VkPipelineInputAssemblyStateCreateInfo{};
+    m_assembly_info.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    m_assembly_info.topology = m_pipeline_config->getTopology();
+    m_assembly_info.primitiveRestartEnable = m_pipeline_config->getPrimitiveRestartEnable();
+
+    m_tessellation_info = m_pipeline_config->getTessellationInfo();
     
     m_pipeline_info = VkGraphicsPipelineCreateInfo{};
     m_pipeline_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     m_pipeline_info.flags = m_pipeline_config->getPipelineCreateFlags();
-    m_pipeline_info.stageCount = static_cast<uint32_t>(pipeline_cfg.shaders_info.size());
-    m_pipeline_info.pStages = pipeline_cfg.shaders_info.data();
-    m_pipeline_info.pVertexInputState = &pipeline_cfg.vertex_input_info;
-    m_pipeline_info.pInputAssemblyState = &input_assembly_info;
-    m_pipeline_info.pViewportState = &viewport_state_info;
-    m_pipeline_info.pRasterizationState = &pipeline_cfg.rasterizer_info;
-    m_pipeline_info.pMultisampleState = &multisample_info;
-    m_pipeline_info.pDepthStencilState = &pipeline_cfg.depth_stencil_info;
-    m_pipeline_info.pColorBlendState = &color_blend_info;
-    m_pipeline_info.pDynamicState = &dynamic_state_info;
+    m_pipeline_info.stageCount = static_cast<uint32_t>(m_shaders_infos.size());
+    m_pipeline_info.pStages = m_shaders_infos.data();
+    m_pipeline_info.pVertexInputState = &m_input_info;
+    m_pipeline_info.pInputAssemblyState = &m_assembly_info;
+    m_pipeline_info.pTessellationState = &m_tessellation_info;
+    m_pipeline_info.pViewportState = &m_viewport_state_info;
+    m_pipeline_info.pRasterizationState = &m_pipeline_config->getRasterizerInfo();
+    m_pipeline_info.pMultisampleState = &m_pipeline_config->getMultisampleInfo();
+    m_pipeline_info.pDepthStencilState = &m_pipeline_config->getDepthStencilInfo();
+    m_pipeline_info.pColorBlendState = &m_pipeline_config->getColorBlendInfo();
+    m_pipeline_info.pDynamicState = &m_pipeline_config->getDynamicInfo();
     m_pipeline_info.layout = m_pipeline_layout;
-    m_pipeline_info.renderPass = pipeline_cfg.render_pass;
+    m_pipeline_info.renderPass = render_pass;
     m_pipeline_info.subpass = 0u;
     m_pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
     m_pipeline_info.basePipelineIndex = -1;
     
-    VkPipeline graphics_pipeline;
-    VkResult result = vkCreateGraphicsPipelines(m_device->getDevice(), VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &graphics_pipeline);
+    VkResult result = vkCreateGraphicsPipelines(m_device->getDevice(), VK_NULL_HANDLE, 1, &m_pipeline_info, nullptr, &m_pipeline);
     if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to create graphics pipeline!");
     }
+
+    return true;
 }
 
 
