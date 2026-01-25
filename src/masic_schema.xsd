@@ -326,6 +326,44 @@
         </xs:sequence>
     </xs:complexType>
 
+    <xs:complexType name="InputAttributeComplexType">
+        <xs:sequence>
+            <xs:element name="Location" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="Format" type="target:GLSLTypesSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="Semantic" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="target:SemanticSimpleType">
+                            <xs:attribute name="num" type="xs:unsignedInt" use="required"></xs:attribute>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string"></xs:attribute>
+    </xs:complexType>
+
+    <xs:simpleType name="VertexInputRateSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="vertex"></xs:enumeration>
+            <xs:enumeration value="instance"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="InputAttributeDescriptionComplexType">
+        <xs:sequence>
+            <xs:element name="Binding">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Attribute" type="target:InputAttributeComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="num" type="xs:unsignedInt" use="required"></xs:attribute>
+                    <xs:attribute name="input_rate" type="target:VertexInputRateSimpleType" use="required"></xs:attribute>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
     <xs:complexType name="ShaderComplexType">
         <xs:sequence>
             <xs:element name="FilePath" minOccurs="1" maxOccurs="1">
@@ -337,30 +375,7 @@
             <xs:element name="Flags" type="target:ShaderFlagsComplexType" minOccurs="0" maxOccurs="1"></xs:element>
             <xs:element name="PipelineShaderStageCreateFlags" type="target:PipelineShaderStageCreateFlagsComplexType" minOccurs="0" maxOccurs="1"></xs:element>
             <xs:element name="Stage" type="target:ShaderStageSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
-            <xs:element name="InputAttributeDescription" minOccurs="0" maxOccurs="1">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element name="Attribute" minOccurs="1" maxOccurs="unbounded">
-                            <xs:complexType>
-                                <xs:sequence>
-                                    <xs:element name="Location" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
-                                    <xs:element name="Format" type="target:GLSLTypesSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
-                                    <xs:element name="Semantic" minOccurs="0" maxOccurs="1">
-                                        <xs:complexType>
-                                            <xs:simpleContent>
-                                                <xs:extension base="target:SemanticSimpleType">
-                                                    <xs:attribute name="num" type="xs:unsignedInt" use="required"></xs:attribute>
-                                                </xs:extension>
-                                            </xs:simpleContent>
-                                        </xs:complexType>
-                                    </xs:element>
-                                </xs:sequence>
-                                <xs:attribute name="name" type="xs:string"></xs:attribute>
-                            </xs:complexType>
-                        </xs:element>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
+            <xs:element name="InputAttributeDescription" type="target:InputAttributeDescriptionComplexType" minOccurs="0" maxOccurs="1"></xs:element>
             <xs:element name="DescriptorSet" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
@@ -703,9 +718,61 @@
             <xs:element name="Format" type="target:GLSLTypesSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
         </xs:sequence>
     </xs:complexType>
+
+    <xs:simpleType name="PipelineCreateFlagBitSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="disable_optimization"></xs:enumeration>
+            <xs:enumeration value="allow_derivatives"></xs:enumeration>
+            <xs:enumeration value="derivative"></xs:enumeration>
+            <xs:enumeration value="view_index_from_device_index"></xs:enumeration>
+            <xs:enumeration value="dispatch_base"></xs:enumeration>
+            <xs:enumeration value="fail_on_pipeline_compile_required"></xs:enumeration>
+            <xs:enumeration value="early_return_on_failure"></xs:enumeration>
+            <xs:enumeration value="rendering_fragment_shading_rate_attachment_khr"></xs:enumeration>
+            <xs:enumeration value="rendering_fragment_density_map_attachment_ext"></xs:enumeration>
+            <xs:enumeration value="ray_tracing_no_null_any_hit_shaders_khr"></xs:enumeration>
+            <xs:enumeration value="ray_tracing_no_null_closest_hit_shaders_khr"></xs:enumeration>
+            <xs:enumeration value="ray_tracing_no_null_miss_shaders_khr"></xs:enumeration>
+            <xs:enumeration value="ray_tracing_no_null_intersection_shaders_khr"></xs:enumeration>
+            <xs:enumeration value="ray_tracing_skip_triangles_khr"></xs:enumeration>
+            <xs:enumeration value="ray_tracing_skip_aabbs_khr"></xs:enumeration>
+            <xs:enumeration value="ray_tracing_shader_group_handle_capture_replay_khr"></xs:enumeration>
+            <xs:enumeration value="defer_compile_nv"></xs:enumeration>
+            <xs:enumeration value="capture_statistics_khr"></xs:enumeration>
+            <xs:enumeration value="capture_internal_representations_khr"></xs:enumeration>
+            <xs:enumeration value="indirect_bindable_nv"></xs:enumeration>
+            <xs:enumeration value="library_khr"></xs:enumeration>
+            <xs:enumeration value="descriptor_buffer_ext"></xs:enumeration>
+            <xs:enumeration value="retain_link_time_optimization_info_ext"></xs:enumeration>
+            <xs:enumeration value="link_time_optimization_ext"></xs:enumeration>
+            <xs:enumeration value="ray_tracing_allow_motion_nv"></xs:enumeration>
+            <xs:enumeration value="color_attachment_feedback_loop_ext"></xs:enumeration>
+            <xs:enumeration value="depth_stencil_attachment_feedback_loop_ext"></xs:enumeration>
+            <xs:enumeration value="ray_tracing_opacity_micromap_ext"></xs:enumeration>
+            <xs:enumeration value="ray_tracing_displacement_micromap_nv"></xs:enumeration>
+            <xs:enumeration value="no_protected_access_ext"></xs:enumeration>
+            <xs:enumeration value="protected_access_only_ext"></xs:enumeration>
+            <xs:enumeration value="dispatch_base"></xs:enumeration>
+            <xs:enumeration value="vk_pipeline_rasterization_state_create_fragment_shading_rate_attachment_khrisadeprecatedalias"></xs:enumeration>
+            <xs:enumeration value="vk_pipeline_rasterization_state_create_fragment_shading_rate_attachment_khr"></xs:enumeration>
+            <xs:enumeration value="vk_pipeline_rasterization_state_create_fragment_density_map_attachment_extisadeprecatedalias"></xs:enumeration>
+            <xs:enumeration value="vk_pipeline_rasterization_state_create_fragment_density_map_attachment_ext"></xs:enumeration>
+            <xs:enumeration value="view_index_from_device_index_khr"></xs:enumeration>
+            <xs:enumeration value="dispatch_base_khr"></xs:enumeration>
+            <xs:enumeration value="fail_on_pipeline_compile_required_ext"></xs:enumeration>
+            <xs:enumeration value="early_return_on_failure_ext"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
         
     <xs:complexType name="GraphicsPipelineComplexType">
         <xs:sequence>
+            <xs:element name="Falgs" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Flag" type="target:PipelineCreateFlagBitSimpleType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="Shaders" minOccurs="1" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>

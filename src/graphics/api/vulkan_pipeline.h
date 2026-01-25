@@ -19,7 +19,7 @@ public:
         COMPUTE
     };
 
-    bool init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& pipeline_data, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager);
+    bool init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& pipeline_data, VkExtent2D viewport_extent, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager);
     void destroy();
 
     PipelineType getPipelineType() const;
@@ -30,17 +30,25 @@ public:
 private:
     std::vector<VkDescriptorSetLayout> getVkDescriptorSetLayouts(const std::vector<std::string>& shader_names, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager) const;
     std::vector<VkPushConstantRange> getPushConstantRanges(const std::vector<std::string>& shader_names, std::shared_ptr<VulkanShadersManager> shader_manager);
-
-    VkPipelineLayout createPipelineLayout(const std::vector<VkDescriptorSetLayout>& desc_set_layouts) const;
-    VkPipeline createPipeline(const PipelineCfg& pipeline_cfg) const;
-
+    std::vector<VkPipelineShaderStageCreateInfo> getPipelineShaderCreateInfo(const std::vector<std::string>& shader_names, std::shared_ptr<VulkanShadersManager> shader_manager);
+    VkPipelineVertexInputStateCreateInfo getVertexInputInfo(const std::vector<std::string>& shader_names, std::shared_ptr<VulkanShadersManager> shader_manager);
+    void saveCacheToFile(VkPipelineCache cache, const std::string& file_name);
+    
     std::shared_ptr<VulkanDevice> m_device;
-
     PipelineType m_pipeline_type;
+    std::vector<VkPipelineShaderStageCreateInfo> m_shaders_infos;
+    VkPipelineVertexInputStateCreateInfo m_input_info;
+    std::vector<VkVertexInputBindingDescription> m_input_binding_descs;
+    std::vector<VkVertexInputAttributeDescription> m_input_attribute_descs;
     std::vector<VkDescriptorSetLayout> m_desc_set_layouts;
     std::vector<VkPushConstantRange> m_push_constants;
     VkPipelineLayout m_pipeline_layout = VK_NULL_HANDLE;
     VkPipelineLayoutCreateInfo m_pipeline_layout_info;
+    VkRect2D m_scissor;
+    VkViewport m_viewport;
+    VkPipelineViewportStateCreateInfo m_viewport_state_info;
+    VkGraphicsPipelineCreateInfo m_pipeline_info;
     VkPipeline m_pipeline = VK_NULL_HANDLE;
     std::shared_ptr<PipelineConfig> m_pipeline_config;
+    VkPipelineCache m_pipeline_cache = VK_NULL_HANDLE;
 };

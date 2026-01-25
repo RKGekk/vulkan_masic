@@ -20,10 +20,8 @@ public:
     bool init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_path, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shaders_manager);
     void destroy();
 private:
-    void saveCacheToFile(VkPipelineCache cache, const std::string& file_name);
 
     std::shared_ptr<VulkanDevice> m_device;
-    VkPipelineCache m_pipeline_cache = VK_NULL_HANDLE;
 
     std::vector<std::string, VulkanPipeline> m_pipeline_name_map;
 };

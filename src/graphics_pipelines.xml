@@ -50,21 +50,23 @@
             <EntryPointName>main</EntryPointName>
             <Stage>vertex_bit</Stage>
             <InputAttributeDescription>
-                <Attribute name="inPosition">
-                    <Location>0</Location>
-                    <Format>vec3</Format>
-                    <Semantic num="0">POSITION</Semantic>
-                </Attribute>
-                <Attribute name="inColor">
-                    <Location>1</Location>
-                    <Format>vec3</Format>
-                    <Semantic num="0">COLOR</Semantic>
-                </Attribute>
-                <Attribute name="inTexCoords">
-                    <Location>2</Location>
-                    <Format>vec2</Format>
-                    <Semantic num="0">TEXCOORD</Semantic>
-                </Attribute>
+                <Binding num="0" input_rate="vertex">
+                    <Attribute name="inPosition">
+                        <Location>0</Location>
+                        <Format>vec3</Format>
+                        <Semantic num="0">POSITION</Semantic>
+                    </Attribute>
+                    <Attribute name="inColor">
+                        <Location>1</Location>
+                        <Format>vec3</Format>
+                        <Semantic num="0">COLOR</Semantic>
+                    </Attribute>
+                    <Attribute name="inTexCoords">
+                        <Location>2</Location>
+                        <Format>vec2</Format>
+                        <Semantic num="0">TEXCOORD</Semantic>
+                    </Attribute>
+                </Binding>
             </InputAttributeDescription>
             <DescriptorSet>
                 <Set>basic_diffuse_descriptor_set</Set>
@@ -75,16 +77,6 @@
             <FilePath file_name="shader.frag"></FilePath>
             <EntryPointName>main</EntryPointName>
             <Stage>fragment_bit</Stage>
-            <InputAttributeDescription>
-                <Attribute name="fragColor">
-                    <Location>0</Location>
-                    <Format>vec3</Format>
-                </Attribute>
-                <Attribute name="fragTexCoords">
-                    <Location>1</Location>
-                    <Format>vec2</Format>
-                </Attribute>
-            </InputAttributeDescription>
             <DescriptorSet>
                 <Set>basic_diffuse_descriptor_set</Set>
             </DescriptorSet>
@@ -95,21 +87,23 @@
             <EntryPointName>main</EntryPointName>
             <Stage>vertex_bit</Stage>
             <InputAttributeDescription>
-                <Attribute name="inPosition">
-                    <Location>0</Location>
-                    <Format>vec2</Format>
-                    <Semantic num="0">POSITION</Semantic>
-                </Attribute>
-                <Attribute name="inTexCoords">
-                    <Location>1</Location>
-                    <Format>vec2</Format>
-                    <Semantic num="0">TEXCOORD</Semantic>
-                </Attribute>
-                <Attribute name="inColor">
-                    <Location>3</Location>
-                    <Format>vec3</Format>
-                    <Semantic num="0">COLOR</Semantic>
-                </Attribute>
+                <Binding num="0" input_rate="vertex">
+                    <Attribute name="inPosition">
+                        <Location>0</Location>
+                        <Format>vec2</Format>
+                        <Semantic num="0">POSITION</Semantic>
+                    </Attribute>
+                    <Attribute name="inTexCoords">
+                        <Location>1</Location>
+                        <Format>vec2</Format>
+                        <Semantic num="0">TEXCOORD</Semantic>
+                    </Attribute>
+                    <Attribute name="inColor">
+                        <Location>3</Location>
+                        <Format>vec3</Format>
+                        <Semantic num="0">COLOR</Semantic>
+                    </Attribute>
+                </Binding>
             </InputAttributeDescription>
             <DescriptorSet>
                 <Set>imgui_descriptor_set</Set>
@@ -120,16 +114,6 @@
             <FilePath file_name="imgui.frag"></FilePath>
             <EntryPointName>main</EntryPointName>
             <Stage>fragment_bit</Stage>
-            <InputAttributeDescription>
-                <Attribute name="fragColor">
-                    <Location>0</Location>
-                    <Format>vec3</Format>
-                </Attribute>
-                <Attribute name="fragTexCoords">
-                    <Location>1</Location>
-                    <Format>vec2</Format>
-                </Attribute>
-            </InputAttributeDescription>
             <DescriptorSet>
                 <Set>imgui_descriptor_set</Set>
             </DescriptorSet>

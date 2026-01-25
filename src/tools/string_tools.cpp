@@ -903,3 +903,79 @@ VkDescriptorSetLayoutCreateFlagBits getDescriptorSetLayoutCreateFlagBit(const st
     
     return res;
 }
+
+VkPipelineCreateFlagBits getPipelineCreateFlagBit(const std::string& flag_str) {
+	using namespace std::literals;
+    VkPipelineCreateFlagBits res{};
+
+         if(flag_str == "disable_optimization"s) {res = VK_PIPELINE_CREATE_DISABLE_OPTIMIZATION_BIT;}
+	else if(flag_str == "allow_derivatives"s) {res = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;}
+	else if(flag_str == "derivative"s) {res = VK_PIPELINE_CREATE_DERIVATIVE_BIT;}
+	else if(flag_str == "view_index_from_device_index"s) {res = VK_PIPELINE_CREATE_VIEW_INDEX_FROM_DEVICE_INDEX_BIT;}
+	else if(flag_str == "dispatch_base"s) {res = VK_PIPELINE_CREATE_DISPATCH_BASE_BIT;}
+	else if(flag_str == "fail_on_pipeline_compile_required"s) {res = VK_PIPELINE_CREATE_FAIL_ON_PIPELINE_COMPILE_REQUIRED_BIT;}
+	else if(flag_str == "early_return_on_failure"s) {res = VK_PIPELINE_CREATE_EARLY_RETURN_ON_FAILURE_BIT;}
+	else if(flag_str == "rendering_fragment_shading_rate_attachment_khr"s) {res = VK_PIPELINE_CREATE_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;}
+	else if(flag_str == "rendering_fragment_density_map_attachment_ext"s) {res = VK_PIPELINE_CREATE_RENDERING_FRAGMENT_DENSITY_MAP_ATTACHMENT_BIT_EXT;}
+	else if(flag_str == "ray_tracing_no_null_any_hit_shaders_khr"s) {res = VK_PIPELINE_CREATE_RAY_TRACING_NO_NULL_ANY_HIT_SHADERS_BIT_KHR;}
+	else if(flag_str == "ray_tracing_no_null_closest_hit_shaders_khr"s) {res = VK_PIPELINE_CREATE_RAY_TRACING_NO_NULL_CLOSEST_HIT_SHADERS_BIT_KHR;}
+	else if(flag_str == "ray_tracing_no_null_miss_shaders_khr"s) {res = VK_PIPELINE_CREATE_RAY_TRACING_NO_NULL_MISS_SHADERS_BIT_KHR;}
+	else if(flag_str == "ray_tracing_no_null_intersection_shaders_khr"s) {res = VK_PIPELINE_CREATE_RAY_TRACING_NO_NULL_INTERSECTION_SHADERS_BIT_KHR;}
+	else if(flag_str == "ray_tracing_skip_triangles_khr"s) {res = VK_PIPELINE_CREATE_RAY_TRACING_SKIP_TRIANGLES_BIT_KHR;}
+	else if(flag_str == "ray_tracing_skip_aabbs_khr"s) {res = VK_PIPELINE_CREATE_RAY_TRACING_SKIP_AABBS_BIT_KHR;}
+	else if(flag_str == "ray_tracing_shader_group_handle_capture_replay_khr"s) {res = VK_PIPELINE_CREATE_RAY_TRACING_SHADER_GROUP_HANDLE_CAPTURE_REPLAY_BIT_KHR;}
+	else if(flag_str == "defer_compile_nv"s) {res = VK_PIPELINE_CREATE_DEFER_COMPILE_BIT_NV;}
+	else if(flag_str == "capture_statistics_khr"s) {res = VK_PIPELINE_CREATE_CAPTURE_STATISTICS_BIT_KHR;}
+	else if(flag_str == "capture_internal_representations_khr"s) {res = VK_PIPELINE_CREATE_CAPTURE_INTERNAL_REPRESENTATIONS_BIT_KHR;}
+	else if(flag_str == "indirect_bindable_nv"s) {res = VK_PIPELINE_CREATE_INDIRECT_BINDABLE_BIT_NV;}
+	else if(flag_str == "library_khr"s) {res = VK_PIPELINE_CREATE_LIBRARY_BIT_KHR;}
+	else if(flag_str == "descriptor_buffer_ext"s) {res = VK_PIPELINE_CREATE_DESCRIPTOR_BUFFER_BIT_EXT;}
+	else if(flag_str == "retain_link_time_optimization_info_ext"s) {res = VK_PIPELINE_CREATE_RETAIN_LINK_TIME_OPTIMIZATION_INFO_BIT_EXT;}
+	else if(flag_str == "link_time_optimization_ext"s) {res = VK_PIPELINE_CREATE_LINK_TIME_OPTIMIZATION_BIT_EXT;}
+	else if(flag_str == "ray_tracing_allow_motion_nv"s) {res = VK_PIPELINE_CREATE_RAY_TRACING_ALLOW_MOTION_BIT_NV;}
+	else if(flag_str == "color_attachment_feedback_loop_ext"s) {res = VK_PIPELINE_CREATE_COLOR_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT;}
+	else if(flag_str == "depth_stencil_attachment_feedback_loop_ext"s) {res = VK_PIPELINE_CREATE_DEPTH_STENCIL_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT;}
+	else if(flag_str == "ray_tracing_opacity_micromap_ext"s) {res = VK_PIPELINE_CREATE_RAY_TRACING_OPACITY_MICROMAP_BIT_EXT;}
+	//else if(flag_str == "ray_tracing_displacement_micromap_nv"s) {res = VK_PIPELINE_CREATE_RAY_TRACING_DISPLACEMENT_MICROMAP_BIT_NV;}
+	else if(flag_str == "no_protected_access_ext"s) {res = VK_PIPELINE_CREATE_NO_PROTECTED_ACCESS_BIT_EXT;}
+	else if(flag_str == "protected_access_only_ext"s) {res = VK_PIPELINE_CREATE_PROTECTED_ACCESS_ONLY_BIT_EXT;}
+	else if(flag_str == "dispatch_base"s) {res = VK_PIPELINE_CREATE_DISPATCH_BASE;}
+	//else if(flag_str == "vk_pipeline_rasterization_state_create_fragment_shading_rate_attachment_khrisadeprecatedalias"s) {res = VK_PIPELINE_RASTERIZATION_STATE_CREATE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHRisadeprecatedalias;}
+	else if(flag_str == "vk_pipeline_rasterization_state_create_fragment_shading_rate_attachment_khr"s) {res = VK_PIPELINE_RASTERIZATION_STATE_CREATE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;}
+	//else if(flag_str == "vk_pipeline_rasterization_state_create_fragment_density_map_attachment_extisadeprecatedalias"s) {res = VK_PIPELINE_RASTERIZATION_STATE_CREATE_FRAGMENT_DENSITY_MAP_ATTACHMENT_BIT_EXTisadeprecatedalias;}
+	else if(flag_str == "vk_pipeline_rasterization_state_create_fragment_density_map_attachment_ext"s) {res = VK_PIPELINE_RASTERIZATION_STATE_CREATE_FRAGMENT_DENSITY_MAP_ATTACHMENT_BIT_EXT;}
+	else if(flag_str == "view_index_from_device_index_khr"s) {res = VK_PIPELINE_CREATE_VIEW_INDEX_FROM_DEVICE_INDEX_BIT_KHR;}
+	else if(flag_str == "dispatch_base_khr"s) {res = VK_PIPELINE_CREATE_DISPATCH_BASE_KHR;}
+	else if(flag_str == "fail_on_pipeline_compile_required_ext"s) {res = VK_PIPELINE_CREATE_FAIL_ON_PIPELINE_COMPILE_REQUIRED_BIT_EXT;}
+	else if(flag_str == "early_return_on_failure_ext"s) {res = VK_PIPELINE_CREATE_EARLY_RETURN_ON_FAILURE_BIT_EXT;}
+    
+    return res;
+}
+
+VkVertexInputRate getVertexInputRate(const std::string& rate_str) {
+	using namespace std::literals;
+    VkVertexInputRate res{};
+
+         if(rate_str == "vertex"s) {res = VK_VERTEX_INPUT_RATE_VERTEX;}
+	else if(rate_str == "instance"s) {res = VK_VERTEX_INPUT_RATE_INSTANCE;}
+    
+    return res;
+}
+
+VkFormat getVkFormat(VertexAttributeFormat attrib_format) {
+    switch (attrib_format) {
+        case VertexAttributeFormat::FLOAT : return VK_FORMAT_R32_SFLOAT;
+        case VertexAttributeFormat::FLOAT_VEC2 : return VK_FORMAT_R32G32_SFLOAT;
+        case VertexAttributeFormat::FLOAT_VEC3 : return VK_FORMAT_R32G32B32_SFLOAT;
+        case VertexAttributeFormat::FLOAT_VEC4 : return VK_FORMAT_R32G32B32A32_SFLOAT;
+        case VertexAttributeFormat::INT : return VK_FORMAT_R32_SINT;
+        case VertexAttributeFormat::INT_VEC2 : return VK_FORMAT_R32G32_SINT;
+        case VertexAttributeFormat::INT_VEC3 : return VK_FORMAT_R32G32B32_SINT;
+        case VertexAttributeFormat::INT_VEC4 : return VK_FORMAT_R32G32B32A32_SINT;
+        case VertexAttributeFormat::UINT : return VK_FORMAT_R32_UINT;
+        case VertexAttributeFormat::UINT_VEC2 : return VK_FORMAT_R32G32_UINT;
+        case VertexAttributeFormat::UINT_VEC3 : return VK_FORMAT_R32G32B32_UINT;
+        case VertexAttributeFormat::UINT_VEC4 : return VK_FORMAT_R32G32B32A32_UINT;
+        default : return VK_FORMAT_R32_SFLOAT;
+    }
+}

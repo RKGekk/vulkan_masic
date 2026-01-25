@@ -6,6 +6,13 @@ bool PipelineConfig::init(const pugi::xml_node& pipeline_data) {
 
     m_name = pipeline_data.attribute("name").as_string();
 
+    pugi::xml_node pipeline_create_flags_node = pipeline_data.child("Falgs");
+    if(pipeline_create_flags_node) {
+        for (pugi::xml_node flag_node = pipeline_create_flags_node.first_child(); flag_node; flag_node = flag_node.next_sibling()) {
+		    m_rasterizer_info.cullMode |= getPipelineCreateFlagBit(flag_node.text().as_string());
+		}
+    }
+
     pugi::xml_node shaders_node = pipeline_data.child("Shaders");
 	if (shaders_node) {
         for (pugi::xml_node shader_node = shaders_node.first_child(); shader_node; shader_node = shader_node.next_sibling()) {
@@ -191,6 +198,10 @@ void PipelineConfig::destroy() {
 
 const std::string& PipelineConfig::getName() const {
     return m_name;
+}
+
+VkFlags PipelineConfig::getPipelineCreateFlags() const {
+    return m_pipeline_create_flags;
 }
 
 const std::vector<std::string>& PipelineConfig::getShaderNames() const {

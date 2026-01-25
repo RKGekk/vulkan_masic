@@ -20,6 +20,10 @@ bool VulkanPipelinesManager::init(std::shared_ptr<VulkanDevice> device) {
     return true;
 }
 
+bool VulkanPipelinesManager::init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_path, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shaders_manager) {
+
+}
+
 void VulkanPipelinesManager::destroy() {
     vkDestroyPipelineCache(m_device->getDevice(), m_pipeline_cache, NULL);
 }

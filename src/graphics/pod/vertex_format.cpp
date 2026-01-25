@@ -177,3 +177,11 @@ size_t VertexFormat::getVertexSize() const {
     }
     return stride;
 }
+
+VkVertexInputRate VertexFormat::getInputRate() const {
+    return m_input_rate;
+}
+
+void VertexFormat::setInputRate(VkVertexInputRate rate) {
+    m_input_rate = rate;
+}

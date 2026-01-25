@@ -1,5 +1,8 @@
 #pragma once
 
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -95,7 +98,11 @@ public:
     size_t getVertexAttribCount() const;
     size_t getVertexSize() const;
 
+    VkVertexInputRate getInputRate() const;
+    void setInputRate(VkVertexInputRate rate);
+
 private:
+    VkVertexInputRate m_input_rate = VK_VERTEX_INPUT_RATE_VERTEX;
     std::vector<SemanticName> m_semantic_pos;
     std::vector<VertexAttributeFormat> m_format_pos;
     std::unordered_map<SemanticName, size_t> m_semantic_pos_map;

@@ -15,6 +15,7 @@ public:
     void destroy();
 
     const std::string& getName() const;
+    VkFlags getPipelineCreateFlags() const;
     const std::vector<std::string>& getShaderNames() const;
     VkPrimitiveTopology getTopology() const;
     const VkPipelineTessellationStateCreateInfo& getTessellationInfo() const;
@@ -29,6 +30,7 @@ public:
 
 private:
     std::string m_name;
+    VkFlags m_pipeline_create_flags; // VkPipelineCreateFlagBits
     std::vector<std::string> m_shaders;
     VkPrimitiveTopology m_topology;
     VkPipelineTessellationStateCreateInfo m_tessellation_info;

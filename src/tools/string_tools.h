@@ -27,6 +27,8 @@
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 
+#include "../graphics/pod/vertex_format.h"
+
 #define STR1(x) #x
 #define STR(x) STR1(x)
 #define WSTR1(x) L##x
@@ -168,3 +170,6 @@ VkBlendOp getBlendOp(const std::string& op_str);
 VkColorComponentFlagBits getColorComponentFlagBit(const std::string& mask_str);
 VkDynamicState getDynamicState(const std::string& dynamic_str);
 VkDescriptorSetLayoutCreateFlagBits getDescriptorSetLayoutCreateFlagBit(const std::string& flag_str);
+VkPipelineCreateFlagBits getPipelineCreateFlagBit(const std::string& flag_str);
+VkVertexInputRate getVertexInputRate(const std::string& rate_str);
+VkFormat getVkFormat(VertexAttributeFormat attrib_format);

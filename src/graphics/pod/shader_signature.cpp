@@ -80,15 +80,22 @@ bool ShaderSignature::init(const pugi::xml_node& shader_data) {
         m_entry_point_name = "main"s;
     }
 
-    pugi::xml_node input_attributes_node = shader_data.child("InputAttributeDescription");
-	if (input_attributes_node) {
-        for (pugi::xml_node attribute_node = input_attributes_node.first_child(); attribute_node; attribute_node = attribute_node.next_sibling()) {
-            int location = attribute_node.child("Location").text().as_int(0);
-            VertexAttributeFormat attr_format = getInputAttributeFormat(attribute_node.child("Format").text().as_string());
-            int num = attribute_node.child("Semantic").attribute("num").as_int(0);
-            VertexAttributeSemantic semantic = getVertexAttributeSemantic(attribute_node.child("Semantic").text().as_string());
-            std::string name = attribute_node.attribute("name").as_string();
-            m_input_attributes.setVertexAttribute({semantic, num}, attr_format, location);
+    pugi::xml_node input_attributes_desc_node = shader_data.child("InputAttributeDescription");
+	if (input_attributes_desc_node) {
+        for (pugi::xml_node binding_node = input_attributes_desc_node.first_child(); binding_node; binding_node = binding_node.next_sibling()) {
+            size_t binding_num = binding_node.attribute("num").as_int();
+            VertexFormat vf;
+            vf.setInputRate(getVertexInputRate(binding_node.attribute("input_rate").as_string()));
+
+            for (pugi::xml_node attribute_node = binding_node.first_child(); attribute_node; attribute_node = attribute_node.next_sibling()) {
+                int location = attribute_node.child("Location").text().as_int(0);
+                VertexAttributeFormat attr_format = getInputAttributeFormat(attribute_node.child("Format").text().as_string());
+                int num = attribute_node.child("Semantic").attribute("num").as_int(0);
+                VertexAttributeSemantic semantic = getVertexAttributeSemantic(attribute_node.child("Semantic").text().as_string());
+                std::string name = attribute_node.attribute("name").as_string();
+                vf.setVertexAttribute({semantic, num}, attr_format, location);
+            }
+            m_input_attributes.push_back(std::move(vf));
 		}
     }
 
@@ -163,8 +170,8 @@ bool ShaderSignature::init(const std::string& rg_file_path) {
     return true;
 }
 
-const VertexFormat& ShaderSignature::getVertexFormat() const {
-    return m_vertex_format;
+const VertexFormat& ShaderSignature::getVertexFormat(size_t binding) const {
+    return m_input_attributes.at(binding);
 }
 
 const std::string& ShaderSignature::getName() const {
@@ -191,8 +198,12 @@ VkShaderStageFlagBits ShaderSignature::getStage() const {
     return m_stage;
 }
 
-const VertexFormat& ShaderSignature::getInputAttributes() const {
-    return m_input_attributes;
+const VertexFormat& ShaderSignature::getInputAttributes(size_t binding) const {
+    return m_input_attributes.at(binding);
+}
+
+size_t ShaderSignature::getNumInputAttributeBindings() const {
+    return m_input_attributes.size();
 }
 
 const std::vector<std::string>& ShaderSignature::getDescSetNames() const {

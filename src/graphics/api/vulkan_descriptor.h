@@ -38,7 +38,7 @@ private:
 
     uint32_t m_frame_count;
     std::vector<Binding> m_bingings_for_sets;
-	VkDescriptorSetLayout m_desc_layout;
+	
 	VkDescriptorPool m_descriptor_pool;
 	std::vector<VkDescriptorSet> m_descriptor_sets;
 };
