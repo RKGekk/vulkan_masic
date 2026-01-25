@@ -8,27 +8,36 @@
 #include "../../tools/string_tools.h"
 
 #include <array>
-#include <unordered_set>
+#include <filesystem>
 #include <stdexcept>
+#include <unordered_set>
 
 bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& pipeline_data, VkExtent2D viewport_extent, VkRenderPass render_pass, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager) {
     m_device = device;
-
-    VkPipelineCacheCreateInfo pipeline_cache_info{};
-    pipeline_cache_info.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
-    pipeline_cache_info.pNext = nullptr;
-    pipeline_cache_info.initialDataSize = 0u;
-    pipeline_cache_info.pInitialData = nullptr;
-    pipeline_cache_info.flags = 0u;
-    VkResult  result = vkCreatePipelineCache(device->getDevice(), &pipeline_cache_info, NULL, &m_pipeline_cache);
-    if(result != VK_SUCCESS) {
-        throw std::runtime_error("failed to create pipeline cache!");
-    }
 
     m_pipeline_config = std::make_shared<PipelineConfig>();
     m_pipeline_config->init(pipeline_data);
 
     m_pipeline_type = PipelineType::GRAPHICS;
+    m_name = m_pipeline_config->getName();
+
+    std::filesystem::path pipeline_cache_file_path(m_name);
+    std::vector<char> pipeline_cache_data;
+    bool pipeline_cache_exists = std::filesystem::exists(pipeline_cache_file_path);
+	if(pipeline_cache_exists) {
+        pipeline_cache_data = readFile(pipeline_cache_file_path.string());
+    }
+
+    VkPipelineCacheCreateInfo pipeline_cache_info{};
+    pipeline_cache_info.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+    pipeline_cache_info.pNext = nullptr;
+    pipeline_cache_info.initialDataSize = pipeline_cache_data.size();
+    pipeline_cache_info.pInitialData = pipeline_cache_data.data();
+    pipeline_cache_info.flags = 0u;
+    VkResult  result = vkCreatePipelineCache(device->getDevice(), &pipeline_cache_info, NULL, &m_pipeline_cache);
+    if(result != VK_SUCCESS) {
+        throw std::runtime_error("failed to create pipeline cache!");
+    }
     
     m_pipeline_layout_info = VkPipelineLayoutCreateInfo{};
     m_pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -173,6 +182,9 @@ VkPipelineVertexInputStateCreateInfo VulkanPipeline::getVertexInputInfo(const st
 }
 
 void VulkanPipeline::destroy() {
+    //saveCacheToFile(m_pipeline_cache, m_name);
+
+    vkDestroyPipelineCache(m_device->getDevice(), m_pipeline_cache, nullptr);
     vkDestroyPipeline(m_device->getDevice(), m_pipeline, nullptr);
     vkDestroyPipelineLayout(m_device->getDevice(), m_pipeline_layout, nullptr);
 }

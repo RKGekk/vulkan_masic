@@ -35,6 +35,7 @@ private:
     void saveCacheToFile(VkPipelineCache cache, const std::string& file_name);
     
     std::shared_ptr<VulkanDevice> m_device;
+    std::string m_name;
     PipelineType m_pipeline_type;
     std::vector<VkPipelineShaderStageCreateInfo> m_shaders_infos;
     VkPipelineVertexInputStateCreateInfo m_input_info;
