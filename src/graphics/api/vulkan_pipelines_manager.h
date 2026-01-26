@@ -22,6 +22,5 @@ public:
 private:
 
     std::shared_ptr<VulkanDevice> m_device;
-
-    std::vector<std::string, VulkanPipeline> m_pipeline_name_map;
+    std::unordered_map<std::string, std::shared_ptr<VulkanPipeline>> m_pipeline_name_map;
 };

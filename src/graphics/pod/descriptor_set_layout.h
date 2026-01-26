@@ -15,8 +15,7 @@ class VulkanSampler;
 
 class DescSetLayout {
 public:
-    using DescSetSlot = uint32_t;
-    using DescSetBindings = std::map<DescSetSlot, std::vector<VkDescriptorSetLayoutBinding>>;
+    using DescSetBindings = std::vector<VkDescriptorSetLayoutBinding>;
 
     bool init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_path);
     bool init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& descriptor_sets_node);

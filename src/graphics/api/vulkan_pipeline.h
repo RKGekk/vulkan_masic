@@ -39,8 +39,6 @@ private:
     PipelineType m_pipeline_type;
     std::vector<VkPipelineShaderStageCreateInfo> m_shaders_infos;
     VkPipelineVertexInputStateCreateInfo m_input_info;
-    VkPipelineInputAssemblyStateCreateInfo m_assembly_info;
-    VkPipelineTessellationStateCreateInfo m_tessellation_info;
     std::vector<VkVertexInputBindingDescription> m_input_binding_descs;
     std::vector<VkVertexInputAttributeDescription> m_input_attribute_descs;
     std::vector<VkDescriptorSetLayout> m_desc_set_layouts;

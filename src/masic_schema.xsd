@@ -379,7 +379,15 @@
             <xs:element name="DescriptorSet" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element name="Set" type="xs:string" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                        <xs:element name="Set" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                        <xs:attribute name="slot" type="xs:unsignedInt" use="required"></xs:attribute>
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -918,14 +926,7 @@
                                                 </xs:sequence>
                                             </xs:complexType>
                                         </xs:element>
-                                        <xs:element name="Set" minOccurs="0" maxOccurs="unbounded">
-                                            <xs:complexType>
-                                                <xs:sequence>
-                                                    <xs:element name="LayoutBinding" type="target:LayoutBindingComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
-                                                </xs:sequence>
-                                                <xs:attribute name="slot" type="xs:unsignedInt"></xs:attribute>
-                                            </xs:complexType>
-                                        </xs:element>
+                                        <xs:element name="LayoutBinding" type="target:LayoutBindingComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
                                     </xs:sequence>
                                     <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
                                 </xs:complexType>

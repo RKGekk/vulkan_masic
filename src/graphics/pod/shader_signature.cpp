@@ -102,6 +102,7 @@ bool ShaderSignature::init(const pugi::xml_node& shader_data) {
     pugi::xml_node descriptor_set_node = shader_data.child("DescriptorSet");
 	if (descriptor_set_node) {
         for (pugi::xml_node set_node = descriptor_set_node.first_child(); set_node; set_node = set_node.next_sibling()) {
+            uint32_t slot = set_node.attribute("slot").as_uint();
             m_desc_set_names.push_back(set_node.text().as_string());
         }
     }

@@ -20,10 +20,12 @@ bool PipelineConfig::init(const pugi::xml_node& pipeline_data) {
 		}
     }
 
+    m_assembly_info = VkPipelineInputAssemblyStateCreateInfo{};
+    m_assembly_info.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     pugi::xml_node input_assembly_node = pipeline_data.child("InputAssembly");
 	if (input_assembly_node) {
-        m_topology = getPrimitiveTopology(input_assembly_node.child("Topology").text().as_string());
-        m_primitive_restart_enable = input_assembly_node.child("PrimitiveRestartEnable").text().as_bool();
+        m_assembly_info.topology = getPrimitiveTopology(input_assembly_node.child("Topology").text().as_string());
+        m_assembly_info.primitiveRestartEnable = input_assembly_node.child("PrimitiveRestartEnable").text().as_bool();
     }
 
     m_tessellation_info = VkPipelineTessellationStateCreateInfo{};
@@ -208,16 +210,12 @@ const std::vector<std::string>& PipelineConfig::getShaderNames() const {
     return m_shaders;
 }
 
-VkPrimitiveTopology PipelineConfig::getTopology() const {
-    return m_topology;
+const VkPipelineInputAssemblyStateCreateInfo& PipelineConfig::getAssemblyInfo() const {
+    return m_assembly_info;
 }
 
 const VkPipelineTessellationStateCreateInfo& PipelineConfig::getTessellationInfo() const {
     return m_tessellation_info;
-}
-
-bool PipelineConfig::getPrimitiveRestartEnable() const {
-    return m_primitive_restart_enable;
 }
 
 const VkPipelineRasterizationStateCreateInfo& PipelineConfig::getRasterizerInfo() const {

@@ -3,44 +3,40 @@
 <RenderGraph xmlns="http://www.masicengine.ru">
     <Descriptors>
         <DescriptorSet name="basic_diffuse_descriptor_set">
-            <Set slot="0">
-                <LayoutBinding>
-                    <Binding>0</Binding>
-                    <DescriptorType>uniform_buffer</DescriptorType>
-                    <DescriptorCount>1</DescriptorCount>
-                    <ShaderStageFlags>
-                        <Flag>vertex_bit</Flag>
-                    </ShaderStageFlags>
-                </LayoutBinding>
-                <LayoutBinding>
-                    <Binding>1</Binding>
-                    <DescriptorType>combined_image_sampler</DescriptorType>
-                    <DescriptorCount>1</DescriptorCount>
-                    <ShaderStageFlags>
-                        <Flag>fragment_bit</Flag>
-                    </ShaderStageFlags>
-                </LayoutBinding>
-            </Set>
+            <LayoutBinding>
+                <Binding>0</Binding>
+                <DescriptorType>uniform_buffer</DescriptorType>
+                <DescriptorCount>1</DescriptorCount>
+                <ShaderStageFlags>
+                    <Flag>vertex_bit</Flag>
+                </ShaderStageFlags>
+            </LayoutBinding>
+            <LayoutBinding>
+                <Binding>1</Binding>
+                <DescriptorType>combined_image_sampler</DescriptorType>
+                <DescriptorCount>1</DescriptorCount>
+                <ShaderStageFlags>
+                    <Flag>fragment_bit</Flag>
+                </ShaderStageFlags>
+            </LayoutBinding>
         </DescriptorSet>
         <DescriptorSet name="imgui_descriptor_set">
-            <Set slot="0">
-                <LayoutBinding>
-                    <Binding>0</Binding>
-                    <DescriptorType>uniform_buffer</DescriptorType>
-                    <DescriptorCount>1</DescriptorCount>
-                    <ShaderStageFlags>
-                        <Flag>vertex_bit</Flag>
-                    </ShaderStageFlags>
-                </LayoutBinding>
-                <LayoutBinding>
-                    <Binding>1</Binding>
-                    <DescriptorType>combined_image_sampler</DescriptorType>
-                    <DescriptorCount>1</DescriptorCount>
-                    <ShaderStageFlags>
-                        <Flag>fragment_bit</Flag>
-                    </ShaderStageFlags>
-                </LayoutBinding>
-            </Set>
+            <LayoutBinding>
+                <Binding>0</Binding>
+                <DescriptorType>uniform_buffer</DescriptorType>
+                <DescriptorCount>1</DescriptorCount>
+                <ShaderStageFlags>
+                    <Flag>vertex_bit</Flag>
+                </ShaderStageFlags>
+            </LayoutBinding>
+            <LayoutBinding>
+                <Binding>1</Binding>
+                <DescriptorType>combined_image_sampler</DescriptorType>
+                <DescriptorCount>1</DescriptorCount>
+                <ShaderStageFlags>
+                    <Flag>fragment_bit</Flag>
+                </ShaderStageFlags>
+            </LayoutBinding>
         </DescriptorSet>
     </Descriptors>
 
@@ -69,7 +65,7 @@
                 </Binding>
             </InputAttributeDescription>
             <DescriptorSet>
-                <Set>basic_diffuse_descriptor_set</Set>
+                <Set slot="0">basic_diffuse_descriptor_set</Set>
             </DescriptorSet>
         </Shader>
         
@@ -78,7 +74,7 @@
             <EntryPointName>main</EntryPointName>
             <Stage>fragment_bit</Stage>
             <DescriptorSet>
-                <Set>basic_diffuse_descriptor_set</Set>
+                <Set slot="0">basic_diffuse_descriptor_set</Set>
             </DescriptorSet>
         </Shader>
 
@@ -106,7 +102,7 @@
                 </Binding>
             </InputAttributeDescription>
             <DescriptorSet>
-                <Set>imgui_descriptor_set</Set>
+                <Set slot="0">imgui_descriptor_set</Set>
             </DescriptorSet>
         </Shader>
 
@@ -115,7 +111,7 @@
             <EntryPointName>main</EntryPointName>
             <Stage>fragment_bit</Stage>
             <DescriptorSet>
-                <Set>imgui_descriptor_set</Set>
+                <Set slot="0">imgui_descriptor_set</Set>
             </DescriptorSet>
         </Shader>
     </Shaders>

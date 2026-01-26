@@ -17,9 +17,8 @@ public:
     const std::string& getName() const;
     VkFlags getPipelineCreateFlags() const;
     const std::vector<std::string>& getShaderNames() const;
-    VkPrimitiveTopology getTopology() const;
+    const VkPipelineInputAssemblyStateCreateInfo& getAssemblyInfo() const;
     const VkPipelineTessellationStateCreateInfo& getTessellationInfo() const;
-    bool getPrimitiveRestartEnable() const;
     const VkPipelineRasterizationStateCreateInfo& getRasterizerInfo() const;
     const VkPipelineMultisampleStateCreateInfo& getMultisampleInfo() const;
     const VkPipelineDepthStencilStateCreateInfo& getDepthStencilInfo() const;
@@ -32,9 +31,8 @@ private:
     std::string m_name;
     VkFlags m_pipeline_create_flags; // VkPipelineCreateFlagBits
     std::vector<std::string> m_shaders;
-    VkPrimitiveTopology m_topology;
+    VkPipelineInputAssemblyStateCreateInfo m_assembly_info;
     VkPipelineTessellationStateCreateInfo m_tessellation_info;
-    bool m_primitive_restart_enable;
     VkPipelineRasterizationStateCreateInfo m_rasterizer_info;
     VkPipelineMultisampleStateCreateInfo m_multisample_info;
     VkPipelineDepthStencilStateCreateInfo m_depth_stencil_info;
