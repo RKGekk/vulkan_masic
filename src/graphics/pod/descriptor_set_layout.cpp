@@ -9,7 +9,8 @@ bool DescSetLayout::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_n
 
     m_name = descriptor_sets_node.attribute("name").as_string();
     
-	for (pugi::xml_node layout_binding_node = descriptor_sets_node.first_child(); layout_binding_node; layout_binding_node = layout_binding_node.next_sibling()) {
+    pugi::xml_node layout_node = descriptor_sets_node.child("Layout");
+	for (pugi::xml_node layout_binding_node = layout_node.first_child(); layout_binding_node; layout_binding_node = layout_binding_node.next_sibling()) {
         VkDescriptorSetLayoutBinding layout_binding{};
         layout_binding.binding = layout_binding_node.child("Binding").text().as_int();
         layout_binding.descriptorType = getDescriptorType(layout_binding_node.child("DescriptorType").text().as_string());

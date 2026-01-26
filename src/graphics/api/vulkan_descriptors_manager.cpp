@@ -22,6 +22,27 @@ bool VulkanDescriptorsManager::init(std::shared_ptr<VulkanDevice> device, const 
 		}
 	}
 
+	std::unordered_map<VkDescriptorType, size_t> types_map = getTypesCount();
+    std::vector<VkDescriptorPoolSize> pool_sizes;
+    for (const auto&[desc_type, ct] : types_map) {
+        VkDescriptorPoolSize pool_size{};
+        pool_size.type = desc_type;
+        pool_size.descriptorCount = ct;
+        pool_sizes.push_back(pool_size);
+    }
+    
+    m_pool_info = VkDescriptorPoolCreateInfo{};
+    m_pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    m_pool_info.poolSizeCount = static_cast<uint32_t>(pool_sizes.size());
+    m_pool_info.pPoolSizes = pool_sizes.data();
+    m_pool_info.maxSets = static_cast<uint32_t>(m_name_layout_map.size());
+    m_pool_info.flags = 0u; // VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT
+ 
+    VkResult result = vkCreateDescriptorPool(m_device->getDevice(), &m_pool_info, nullptr, &m_descriptor_pool);
+    if(result != VK_SUCCESS) {
+        throw std::runtime_error("failed to create descriptor pool!");
+    }
+
     return true;
 }
 
@@ -36,4 +57,16 @@ std::shared_ptr<DescSetLayout> VulkanDescriptorsManager::getDescSetLayout(const 
 
 const std::unordered_map<std::string, std::shared_ptr<DescSetLayout>>& VulkanDescriptorsManager::getNameLayoutMap() const {
 	return m_name_layout_map;
+}
+
+std::unordered_map<VkDescriptorType, size_t> VulkanDescriptorsManager::getTypesCount() {
+    std::unordered_map<VkDescriptorType, size_t> result;
+    
+    for(const auto&[desc_name, desc_layout] : m_name_layout_map) {
+        for (VkDescriptorSetLayoutBinding desc_binding : desc_layout->getBindings()) {
+            ++result[desc_binding.descriptorType];
+        }
+    }
+
+    return result;
 }

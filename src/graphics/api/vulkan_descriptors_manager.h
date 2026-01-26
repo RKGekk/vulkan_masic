@@ -12,7 +12,6 @@
 #include "../pod/descriptor_set_layout.h"
 
 class VulkanDevice;
-class DescriptorAllocator;
 
 class VulkanDescriptorsManager {
 public:
@@ -23,7 +22,12 @@ public:
     const std::unordered_map<std::string, std::shared_ptr<DescSetLayout>>& getNameLayoutMap() const;
 
 private:
-    std::unordered_map<std::string, std::shared_ptr<DescSetLayout>> m_name_layout_map;
+    std::unordered_map<VkDescriptorType, size_t> getTypesCount();
+
     std::shared_ptr<VulkanDevice> m_device;
-    std::unique_ptr<DescriptorAllocator> m_descriptor_allocators[VK_DESCRIPTOR_TYPE_MAX_ENUM];
+
+    VkDescriptorPoolCreateInfo m_pool_info;
+	VkDescriptorPool m_descriptor_pool;
+
+    std::unordered_map<std::string, std::shared_ptr<DescSetLayout>> m_name_layout_map;
 };

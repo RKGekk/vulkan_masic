@@ -926,7 +926,13 @@
                                                 </xs:sequence>
                                             </xs:complexType>
                                         </xs:element>
-                                        <xs:element name="LayoutBinding" type="target:LayoutBindingComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                                        <xs:element name="Layout" minOccurs="1" maxOccurs="unbounded">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element name="LayoutBinding" type="target:LayoutBindingComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
                                     </xs:sequence>
                                     <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
                                 </xs:complexType>
