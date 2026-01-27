@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <?xml-model href="masic_schema.xsd" type="application/xml" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <RenderGraph xmlns="http://www.masicengine.ru">
+    <DescriptorAllocators>
+        <DescriptorAllocator name="basic_alloc">
+            <PageSize>256</PageSize>
+        </DescriptorAllocator>
+    </DescriptorAllocators>
     <Descriptors>
-        <DescriptorSet name="basic_diffuse_descriptor_set">
+        <DescriptorSet name="basic_diffuse_descriptor_set" allocator="basic_alloc">
             <Layout>
                 <LayoutBinding>
                     <Binding>0</Binding>
@@ -23,7 +28,7 @@
             </Layout>
         </DescriptorSet>
         
-        <DescriptorSet name="imgui_descriptor_set">
+        <DescriptorSet name="imgui_descriptor_set" allocator="basic_alloc">
             <Layout>
                 <LayoutBinding>
                     <Binding>0</Binding>

@@ -173,3 +173,4 @@ VkDescriptorSetLayoutCreateFlagBits getDescriptorSetLayoutCreateFlagBit(const st
 VkPipelineCreateFlagBits getPipelineCreateFlagBit(const std::string& flag_str);
 VkVertexInputRate getVertexInputRate(const std::string& rate_str);
 VkFormat getVkFormat(VertexAttributeFormat attrib_format);
+VkDescriptorPoolCreateFlagBits getDescriptorPoolCreateFlagBit(const std::string& flag_str);

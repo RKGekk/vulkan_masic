@@ -26,13 +26,11 @@ public:
     VkDescriptorSet getDescriptorSet(const std::string& desc_set_name) const;
 
 private:
-    std::unordered_map<VkDescriptorType, size_t> getTypesCount();
-    std::vector<VkDescriptorSetLayout> getVkDescriptorSetLayouts() const;
-
     std::shared_ptr<VulkanDevice> m_device;
 
     VkDescriptorPoolCreateInfo m_pool_info;
 	VkDescriptorPool m_descriptor_pool;
+    uint32_t m_num_desc_sets_each_layout;
 
     DescSetNameToLayoutMap m_name_layout_map;
     std::vector<VkDescriptorSet> m_desc_sets;

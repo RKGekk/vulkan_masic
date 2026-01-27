@@ -4,6 +4,7 @@
 
 bool VulkanDescriptorsManager::init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_name) {
     m_device = device;
+	m_num_desc_sets_each_layout = 256u;
 
     pugi::xml_document xml_doc;
 	pugi::xml_parse_result parse_res = xml_doc.load_file(rg_file_name.c_str());
@@ -27,7 +28,7 @@ bool VulkanDescriptorsManager::init(std::shared_ptr<VulkanDevice> device, const 
     for (const auto&[desc_type, ct] : types_map) {
         VkDescriptorPoolSize pool_size{};
         pool_size.type = desc_type;
-        pool_size.descriptorCount = ct;
+        pool_size.descriptorCount = ct * m_num_desc_sets_each_layout;
         pool_sizes.push_back(pool_size);
     }
     
@@ -35,7 +36,7 @@ bool VulkanDescriptorsManager::init(std::shared_ptr<VulkanDevice> device, const 
     m_pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     m_pool_info.poolSizeCount = static_cast<uint32_t>(pool_sizes.size());
     m_pool_info.pPoolSizes = pool_sizes.data();
-    m_pool_info.maxSets = static_cast<uint32_t>(m_name_layout_map.size());
+    m_pool_info.maxSets = static_cast<uint32_t>(m_name_layout_map.size() * m_num_desc_sets_each_layout);
     m_pool_info.flags = 0u; // VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT
  
     VkResult result = vkCreateDescriptorPool(m_device->getDevice(), &m_pool_info, nullptr, &m_descriptor_pool);
@@ -80,27 +81,4 @@ const std::unordered_map<std::string, std::shared_ptr<DescSetLayout>>& VulkanDes
 
 VkDescriptorSet VulkanDescriptorsManager::getDescriptorSet(const std::string& desc_set_name) const {
 	return m_desc_sets.at(m_name_desc_idx_map.at(desc_set_name));
-}
-
-std::unordered_map<VkDescriptorType, size_t> VulkanDescriptorsManager::getTypesCount() {
-    std::unordered_map<VkDescriptorType, size_t> result;
-    
-    for(const auto&[desc_name, desc_layout] : m_name_layout_map) {
-        for (VkDescriptorSetLayoutBinding desc_binding : desc_layout->getBindings()) {
-            ++result[desc_binding.descriptorType];
-        }
-    }
-
-    return result;
-}
-
-std::vector<VkDescriptorSetLayout> VulkanDescriptorsManager::getVkDescriptorSetLayouts() const {
-	std::vector<VkDescriptorSetLayout> res;
-	res.reserve(m_name_layout_map.size());
-    
-    for(const auto& [desc_name, desc_layout] : m_name_layout_map) {
-    	res.push_back(desc_layout->getDescriptorSetLayout());
-    }
-
-    return res;
 }

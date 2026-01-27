@@ -910,9 +910,42 @@
         </xs:sequence>
     </xs:complexType>
 
+    <xs:simpleType name="DescriptorPoolCreateFlagBitSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="free_descriptor_set"></xs:enumeration>
+            <xs:enumeration value="update_after_bind"></xs:enumeration>
+            <xs:enumeration value="host_only_ext"></xs:enumeration>
+            <xs:enumeration value="allow_overallocation_sets_nv"></xs:enumeration>
+            <xs:enumeration value="allow_overallocation_pools_nv"></xs:enumeration>
+            <xs:enumeration value="update_after_bind_ext"></xs:enumeration>
+            <xs:enumeration value="host_only_valve"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:element name="RenderGraph">
         <xs:complexType>
             <xs:sequence>
+                <xs:element name="DescriptorAllocators">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="DescriptorAllocator">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="Flags" minOccurs="0" maxOccurs="1">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element name="Flag" type="target:DescriptorPoolCreateFlagBitSimpleType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="PageSize" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
+                                    </xs:sequence>
+                                    <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
                 <xs:element name="Descriptors">
                     <xs:complexType>
                         <xs:sequence>
@@ -935,6 +968,7 @@
                                         </xs:element>
                                     </xs:sequence>
                                     <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+                                    <xs:attribute name="allocator" type="xs:string" use="required"></xs:attribute>
                                 </xs:complexType>
                             </xs:element>
                         </xs:sequence>

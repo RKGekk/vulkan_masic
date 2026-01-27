@@ -979,3 +979,18 @@ VkFormat getVkFormat(VertexAttributeFormat attrib_format) {
         default : return VK_FORMAT_R32_SFLOAT;
     }
 }
+
+VkDescriptorPoolCreateFlagBits getDescriptorPoolCreateFlagBit(const std::string& flag_str) {
+	using namespace std::literals;
+    VkDescriptorPoolCreateFlagBits res{};
+
+         if(flag_str == "free_descriptor_set"s) {res = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;}
+	else if(flag_str == "update_after_bind"s) {res = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT;}
+	else if(flag_str == "host_only_ext"s) {res = VK_DESCRIPTOR_POOL_CREATE_HOST_ONLY_BIT_EXT;}
+	else if(flag_str == "allow_overallocation_sets_nv"s) {res = VK_DESCRIPTOR_POOL_CREATE_ALLOW_OVERALLOCATION_SETS_BIT_NV;}
+	else if(flag_str == "allow_overallocation_pools_nv"s) {res = VK_DESCRIPTOR_POOL_CREATE_ALLOW_OVERALLOCATION_POOLS_BIT_NV;}
+	else if(flag_str == "update_after_bind_ext"s) {res = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT_EXT;}
+	else if(flag_str == "host_only_valve"s) {res = VK_DESCRIPTOR_POOL_CREATE_HOST_ONLY_BIT_VALVE;}
+    
+    return res;
+}
