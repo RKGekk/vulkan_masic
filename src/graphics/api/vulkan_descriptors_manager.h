@@ -24,10 +24,10 @@ public:
     void destroy();
 
     std::shared_ptr<DescSetLayout> getDescSetLayout(const std::string& desc_set_name) const;
-    VkDescriptorSet allocateDescriptorSet(const std::string& desc_set_name) const;
+    VkDescriptorSet allocateDescriptorSet(const std::string& desc_set_name);
 
 private:
     std::shared_ptr<VulkanDevice> m_device;
-
+    std::unordered_map<DescriptorSetName, std::shared_ptr<DescSetLayout>> m_name_layout_map;
     std::unordered_map<DescriptorSetName, std::shared_ptr<DescriptorAllocator>> m_desc_alloc_map;
 };

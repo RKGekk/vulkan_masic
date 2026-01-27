@@ -5,7 +5,6 @@
 
 bool VulkanDescriptorsManager::init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_name) {
     m_device = device;
-	m_num_desc_sets_each_layout = 256u;
 
     pugi::xml_document xml_doc;
 	pugi::xml_parse_result parse_res = xml_doc.load_file(rg_file_name.c_str());
@@ -21,6 +20,7 @@ bool VulkanDescriptorsManager::init(std::shared_ptr<VulkanDevice> device, const 
 		for (pugi::xml_node descriptor_node = dscriptors_node.first_child(); descriptor_node; descriptor_node = descriptor_node.next_sibling()) {
             std::shared_ptr<DescSetLayout> layout;
 			layout->init(m_device, descriptor_node);
+            m_name_layout_map.insert({layout->getName(), layout});
             if(!alloc_desc_layout_map.contains(layout->getAllocatorName())) {
                 alloc_desc_layout_map.insert({layout->getAllocatorName(), {std::move(layout)}});
             }
@@ -65,12 +65,17 @@ void VulkanDescriptorsManager::destroy() {
         allocator_ptr->destroy();
     }
     m_desc_alloc_map.clear();
+
+    for(auto&[desc_name, layout] : m_name_layout_map) {
+        layout->destroy();
+    }
+    m_name_layout_map.clear();
 }
 
 std::shared_ptr<DescSetLayout> VulkanDescriptorsManager::getDescSetLayout(const std::string& desc_set_name) const {
-    
+    return m_name_layout_map.at(desc_set_name);
 }
 
-VkDescriptorSet VulkanDescriptorsManager::allocateDescriptorSet(const std::string& desc_set_name) const {
-
+VkDescriptorSet VulkanDescriptorsManager::allocateDescriptorSet(const std::string& desc_set_name) {
+    return m_desc_alloc_map[desc_set_name]->Allocate(desc_set_name);
 }
