@@ -2,9 +2,10 @@
 
 #include "vulkan_descriptor_allocator_page.h"
 
-bool DescriptorAllocator::init(std::shared_ptr<VulkanDevice> device, std::vector<std::shared_ptr<DescSetLayout>> layouts, VkDescriptorPoolCreateFlags flags, uint32_t num_descriptors_per_heap) {
+bool DescriptorAllocator::init(std::shared_ptr<VulkanDevice> device, std::string name, std::vector<std::shared_ptr<DescSetLayout>> layouts, VkDescriptorPoolCreateFlags flags, uint32_t num_descriptors_per_heap) {
     m_device = device;
     m_num_descriptors_per_heap = num_descriptors_per_heap;
+    m_name = name;
 
     for(std::shared_ptr<DescSetLayout>& layout : layouts) {
         std::shared_ptr<DescriptorAllocatorPage> new_page = std::make_shared<DescriptorAllocatorPage>();
@@ -58,4 +59,8 @@ void DescriptorAllocator::ReleaseStaleDescriptors() {
             page->ReleaseStaleDescriptors();
         }
     }
+}
+
+const std::string& DescriptorAllocator::getName() const {
+    return m_name;
 }

@@ -1,6 +1,7 @@
 #include "vulkan_descriptors_manager.h"
 
 #include "vulkan_device.h"
+#include "vulkan_descriptor_allocator.h"
 
 bool VulkanDescriptorsManager::init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_name) {
     m_device = device;
@@ -14,71 +15,62 @@ bool VulkanDescriptorsManager::init(std::shared_ptr<VulkanDevice> device, const 
 	if (!root_node) { return false; }
 	root_node = root_node.child("RenderGraph");
 
+    std::unordered_map<DescriptorAllocatorName, std::vector<std::shared_ptr<DescSetLayout>>> alloc_desc_layout_map;
     pugi::xml_node dscriptors_node = root_node.child("Descriptors");
 	if (dscriptors_node) {
-		for (pugi::xml_node dscriptor_node = dscriptors_node.first_child(); dscriptor_node; dscriptor_node = dscriptor_node.next_sibling()) {
+		for (pugi::xml_node descriptor_node = dscriptors_node.first_child(); descriptor_node; descriptor_node = descriptor_node.next_sibling()) {
             std::shared_ptr<DescSetLayout> layout;
-			layout->init(m_device, dscriptor_node);
-			m_name_layout_map.insert({layout->getName(), layout});
+			layout->init(m_device, descriptor_node);
+            if(!alloc_desc_layout_map.contains(layout->getAllocatorName())) {
+                alloc_desc_layout_map.insert({layout->getAllocatorName(), {std::move(layout)}});
+            }
+            else {
+                alloc_desc_layout_map[layout->getAllocatorName()].push_back(std::move(layout));
+            }
 		}
 	}
 
-	std::unordered_map<VkDescriptorType, size_t> types_map = getTypesCount();
-    std::vector<VkDescriptorPoolSize> pool_sizes;
-    for (const auto&[desc_type, ct] : types_map) {
-        VkDescriptorPoolSize pool_size{};
-        pool_size.type = desc_type;
-        pool_size.descriptorCount = ct * m_num_desc_sets_each_layout;
-        pool_sizes.push_back(pool_size);
-    }
-    
-    m_pool_info = VkDescriptorPoolCreateInfo{};
-    m_pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    m_pool_info.poolSizeCount = static_cast<uint32_t>(pool_sizes.size());
-    m_pool_info.pPoolSizes = pool_sizes.data();
-    m_pool_info.maxSets = static_cast<uint32_t>(m_name_layout_map.size() * m_num_desc_sets_each_layout);
-    m_pool_info.flags = 0u; // VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT
- 
-    VkResult result = vkCreateDescriptorPool(m_device->getDevice(), &m_pool_info, nullptr, &m_descriptor_pool);
-    if(result != VK_SUCCESS) {
-        throw std::runtime_error("failed to create descriptor pool!");
-    }
+    std::unordered_map<DescriptorAllocatorName, VkDescriptorPoolCreateFlags> flags;
+    std::unordered_map<DescriptorAllocatorName, size_t> sizes;
+    pugi::xml_node descriptor_allocators_node = root_node.child("DescriptorAllocators");
+	if (descriptor_allocators_node) {
+		for (pugi::xml_node alloc_node = descriptor_allocators_node.first_child(); alloc_node; alloc_node = alloc_node.next_sibling()) {
+            VkDescriptorPoolCreateFlags f;
+            pugi::xml_node alloc_flags_node = alloc_node.child("Flags");
+            for (pugi::xml_node create_flag = alloc_flags_node.first_child(); create_flag; create_flag = create_flag.next_sibling()) {
+	            f |= getDescriptorPoolCreateFlagBit(create_flag.text().as_string());
+	        }
+            flags.insert({alloc_node.attribute("name").as_string(), f});
+            sizes.insert({alloc_node.attribute("name").as_string(), alloc_node.child("PageSize").text().as_uint()});
+        }
+    }    
 
-	m_desc_sets.resize(m_name_layout_map.size());
-
-    std::vector<VkDescriptorSetLayout> layouts = getVkDescriptorSetLayouts();
-    VkDescriptorSetAllocateInfo alloc_info{};
-    alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    alloc_info.descriptorPool = m_descriptor_pool;
-    alloc_info.descriptorSetCount = static_cast<uint32_t>(m_name_layout_map.size());
-    alloc_info.pSetLayouts = layouts.data();
-    
-    VkResult result = vkAllocateDescriptorSets(m_device->getDevice(), &alloc_info, m_desc_sets.data());
-    if(result != VK_SUCCESS) {
-        throw std::runtime_error("failed to allocate descriptor sets!");
-    }
-
-	size_t ct = 0u;
-	for(const auto& [desc_name, desc_layout] : m_name_layout_map) {
-		m_name_desc_idx_map.insert({desc_name, ct++});
+    for(auto&[alloc_name, desc_layouts] : alloc_desc_layout_map) {
+        std::shared_ptr<DescriptorAllocator> allocator = std::make_shared<DescriptorAllocator>();
+        allocator->init(m_device, alloc_name, desc_layouts, flags[alloc_name], sizes[alloc_name]);
+        for(auto& layout : desc_layouts) {
+            m_desc_alloc_map.insert({layout->getName(), allocator});
+        }
     }
 
     return true;
 }
 
 void VulkanDescriptorsManager::destroy() {
-
+    std::unordered_set<std::shared_ptr<DescriptorAllocator>> all_allocators;
+    for (auto&[desc_name, allocator_ptr] : m_desc_alloc_map) {
+        all_allocators.insert(allocator_ptr);
+    }
+    for (auto& allocator_ptr : all_allocators) {
+        allocator_ptr->destroy();
+    }
+    m_desc_alloc_map.clear();
 }
 
-std::shared_ptr<DescSetLayout> VulkanDescriptorsManager::getDescSetLayout(const std::string& name) const {
-	if(!m_name_layout_map.contains(name)) return nullptr;
-	return m_name_layout_map.at(name);
+std::shared_ptr<DescSetLayout> VulkanDescriptorsManager::getDescSetLayout(const std::string& desc_set_name) const {
+    
 }
 
-const std::unordered_map<std::string, std::shared_ptr<DescSetLayout>>& VulkanDescriptorsManager::getNameLayoutMap() const {
-	return m_name_layout_map;
-}
+VkDescriptorSet VulkanDescriptorsManager::allocateDescriptorSet(const std::string& desc_set_name) const {
 
-VkDescriptorSet VulkanDescriptorsManager::getDescriptorSet(const std::string& desc_set_name) const {
-	return m_desc_sets.at(m_name_desc_idx_map.at(desc_set_name));
 }

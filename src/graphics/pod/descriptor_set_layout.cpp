@@ -102,8 +102,12 @@ void DescSetLayout::destroy() {
     }
 }
 
-const std::string DescSetLayout::getName() const {
+const std::string& DescSetLayout::getName() const {
     return m_name;
+}
+
+const std::string& DescSetLayout::getAllocatorName() const {
+    return m_allocator_name;
 }
 
 const DescSetLayout::DescSetBindings& DescSetLayout::getBindings() const {
