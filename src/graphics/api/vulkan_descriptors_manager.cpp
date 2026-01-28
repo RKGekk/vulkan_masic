@@ -2,6 +2,7 @@
 
 #include "vulkan_device.h"
 #include "vulkan_descriptor_allocator.h"
+#include "vulkan_descriptor.h"
 
 bool VulkanDescriptorsManager::init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_name) {
     m_device = device;
@@ -76,6 +77,11 @@ std::shared_ptr<DescSetLayout> VulkanDescriptorsManager::getDescSetLayout(const 
     return m_name_layout_map.at(desc_set_name);
 }
 
-VkDescriptorSet VulkanDescriptorsManager::allocateDescriptorSet(const std::string& desc_set_name) {
-    return m_desc_alloc_map[desc_set_name]->Allocate(desc_set_name);
+std::shared_ptr<VulkanDescriptor> VulkanDescriptorsManager::allocateDescriptorSet(const std::string& desc_set_name) {
+    std::shared_ptr<VulkanDescriptor> desc;
+
+    VkDescriptorSet vkdesc_set = m_desc_alloc_map[desc_set_name]->Allocate(desc_set_name);
+    desc->init(m_device->getDevice(), m_name_layout_map.at(desc_set_name), vkdesc_set);
+
+    return desc;
 }

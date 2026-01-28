@@ -5,6 +5,9 @@
         <DescriptorAllocator name="basic_alloc">
             <PageSize>256</PageSize>
         </DescriptorAllocator>
+        <DescriptorAllocator name="imgui_alloc">
+            <PageSize>8</PageSize>
+        </DescriptorAllocator>
     </DescriptorAllocators>
     <Descriptors>
         <DescriptorSet name="basic_diffuse_descriptor_set" allocator="basic_alloc">
@@ -28,7 +31,7 @@
             </Layout>
         </DescriptorSet>
         
-        <DescriptorSet name="imgui_descriptor_set" allocator="basic_alloc">
+        <DescriptorSet name="imgui_descriptor_set" allocator="imgui_alloc">
             <Layout>
                 <LayoutBinding>
                     <Binding>0</Binding>

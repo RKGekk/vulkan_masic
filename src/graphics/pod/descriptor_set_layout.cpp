@@ -114,6 +114,34 @@ const DescSetLayout::DescSetBindings& DescSetLayout::getBindings() const {
     return m_bindings;
 }
 
+VkDescriptorSetLayoutBinding DescSetLayout::getBinding(VkDescriptorType desc_type) const {
+    for(const VkDescriptorSetLayoutBinding& binding : m_bindings) {
+        if(binding.descriptorType == desc_type) return binding;
+    }
+    return {};
+}
+
+VkDescriptorSetLayoutBinding DescSetLayout::getBinding(uint32_t binding_num) const {
+    for(const VkDescriptorSetLayoutBinding& binding : m_bindings) {
+        if(binding.binding == binding_num) return binding;
+    }
+    return {};
+}
+
+bool DescSetLayout::haveBindingType(VkDescriptorType desc_type) const {
+    for(const VkDescriptorSetLayoutBinding& binding : m_bindings) {
+        if(binding.descriptorType == desc_type) return true;
+    }
+    return false;
+}
+
+bool DescSetLayout::haveBindingNum(uint32_t binding_num) const {
+    for(const VkDescriptorSetLayoutBinding& binding : m_bindings) {
+        if(binding.binding == binding_num) return true;
+    }
+    return false;
+}
+
 const std::vector<std::shared_ptr<VulkanSampler>>& DescSetLayout::getImmutableSamplers() const {
     return m_immutable_samplers;
 }

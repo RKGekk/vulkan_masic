@@ -24,6 +24,10 @@ public:
     const std::string& getName() const;
     const std::string& getAllocatorName() const;
     const DescSetBindings& getBindings() const;
+    VkDescriptorSetLayoutBinding getBinding(VkDescriptorType desc_type) const;
+    VkDescriptorSetLayoutBinding getBinding(uint32_t binding_num) const;
+    bool haveBindingType(VkDescriptorType desc_type) const;
+    bool haveBindingNum(uint32_t binding_num) const;
     const std::vector<std::shared_ptr<VulkanSampler>>& getImmutableSamplers() const;
     const std::vector<VkSampler>& getImmutableSamplersPtr() const;
     VkDescriptorSetLayoutCreateInfo getDescriptorSetLayoutInfo() const;

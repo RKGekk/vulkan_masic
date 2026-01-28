@@ -14,6 +14,7 @@
 
 class VulkanDevice;
 class DescriptorAllocator;
+class VulkanDescriptor;
 
 class VulkanDescriptorsManager {
 public:
@@ -24,7 +25,7 @@ public:
     void destroy();
 
     std::shared_ptr<DescSetLayout> getDescSetLayout(const std::string& desc_set_name) const;
-    VkDescriptorSet allocateDescriptorSet(const std::string& desc_set_name);
+    std::shared_ptr<VulkanDescriptor> allocateDescriptorSet(const std::string& desc_set_name);
 
 private:
     std::shared_ptr<VulkanDevice> m_device;
