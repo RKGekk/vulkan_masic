@@ -17,6 +17,319 @@
         <xs:attribute name="z" type="xs:float"></xs:attribute>
     </xs:complexType>
 
+    <xs:simpleType name="ColorFormatSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="as_swapchain"></xs:enumeration>
+            <xs:enumeration value="find_suitable_color"></xs:enumeration>
+            <xs:enumeration value="find_suitable_depth"></xs:enumeration>
+            <xs:enumeration value="undefined"></xs:enumeration>
+            <xs:enumeration value="r4g4_unorm_pack8"></xs:enumeration>
+            <xs:enumeration value="r4g4b4a4_unorm_pack16"></xs:enumeration>
+            <xs:enumeration value="b4g4r4a4_unorm_pack16"></xs:enumeration>
+            <xs:enumeration value="r5g6b5_unorm_pack16"></xs:enumeration>
+            <xs:enumeration value="b5g6r5_unorm_pack16"></xs:enumeration>
+            <xs:enumeration value="r5g5b5a1_unorm_pack16"></xs:enumeration>
+            <xs:enumeration value="b5g5r5a1_unorm_pack16"></xs:enumeration>
+            <xs:enumeration value="a1r5g5b5_unorm_pack16"></xs:enumeration>
+            <xs:enumeration value="r8_unorm"></xs:enumeration>
+            <xs:enumeration value="r8_snorm"></xs:enumeration>
+            <xs:enumeration value="r8_uscaled"></xs:enumeration>
+            <xs:enumeration value="r8_sscaled"></xs:enumeration>
+            <xs:enumeration value="r8_uint"></xs:enumeration>
+            <xs:enumeration value="r8_sint"></xs:enumeration>
+            <xs:enumeration value="r8_srgb"></xs:enumeration>
+            <xs:enumeration value="r8g8_unorm"></xs:enumeration>
+            <xs:enumeration value="r8g8_snorm"></xs:enumeration>
+            <xs:enumeration value="r8g8_uscaled"></xs:enumeration>
+            <xs:enumeration value="r8g8_sscaled"></xs:enumeration>
+            <xs:enumeration value="r8g8_uint"></xs:enumeration>
+            <xs:enumeration value="r8g8_sint"></xs:enumeration>
+            <xs:enumeration value="r8g8_srgb"></xs:enumeration>
+            <xs:enumeration value="r8g8b8_unorm"></xs:enumeration>
+            <xs:enumeration value="r8g8b8_snorm"></xs:enumeration>
+            <xs:enumeration value="r8g8b8_uscaled"></xs:enumeration>
+            <xs:enumeration value="r8g8b8_sscaled"></xs:enumeration>
+            <xs:enumeration value="r8g8b8_uint"></xs:enumeration>
+            <xs:enumeration value="r8g8b8_sint"></xs:enumeration>
+            <xs:enumeration value="r8g8b8_srgb"></xs:enumeration>
+            <xs:enumeration value="b8g8r8_unorm"></xs:enumeration>
+            <xs:enumeration value="b8g8r8_snorm"></xs:enumeration>
+            <xs:enumeration value="b8g8r8_uscaled"></xs:enumeration>
+            <xs:enumeration value="b8g8r8_sscaled"></xs:enumeration>
+            <xs:enumeration value="b8g8r8_uint"></xs:enumeration>
+            <xs:enumeration value="b8g8r8_sint"></xs:enumeration>
+            <xs:enumeration value="b8g8r8_srgb"></xs:enumeration>
+            <xs:enumeration value="r8g8b8a8_unorm"></xs:enumeration>
+            <xs:enumeration value="r8g8b8a8_snorm"></xs:enumeration>
+            <xs:enumeration value="r8g8b8a8_uscaled"></xs:enumeration>
+            <xs:enumeration value="r8g8b8a8_sscaled"></xs:enumeration>
+            <xs:enumeration value="r8g8b8a8_uint"></xs:enumeration>
+            <xs:enumeration value="r8g8b8a8_sint"></xs:enumeration>
+            <xs:enumeration value="r8g8b8a8_srgb"></xs:enumeration>
+            <xs:enumeration value="b8g8r8a8_unorm"></xs:enumeration>
+            <xs:enumeration value="b8g8r8a8_snorm"></xs:enumeration>
+            <xs:enumeration value="b8g8r8a8_uscaled"></xs:enumeration>
+            <xs:enumeration value="b8g8r8a8_sscaled"></xs:enumeration>
+            <xs:enumeration value="b8g8r8a8_uint"></xs:enumeration>
+            <xs:enumeration value="b8g8r8a8_sint"></xs:enumeration>
+            <xs:enumeration value="b8g8r8a8_srgb"></xs:enumeration>
+            <xs:enumeration value="a8b8g8r8_unorm_pack32"></xs:enumeration>
+            <xs:enumeration value="a8b8g8r8_snorm_pack32"></xs:enumeration>
+            <xs:enumeration value="a8b8g8r8_uscaled_pack32"></xs:enumeration>
+            <xs:enumeration value="a8b8g8r8_sscaled_pack32"></xs:enumeration>
+            <xs:enumeration value="a8b8g8r8_uint_pack32"></xs:enumeration>
+            <xs:enumeration value="a8b8g8r8_sint_pack32"></xs:enumeration>
+            <xs:enumeration value="a8b8g8r8_srgb_pack32"></xs:enumeration>
+            <xs:enumeration value="a2r10g10b10_unorm_pack32"></xs:enumeration>
+            <xs:enumeration value="a2r10g10b10_snorm_pack32"></xs:enumeration>
+            <xs:enumeration value="a2r10g10b10_uscaled_pack32"></xs:enumeration>
+            <xs:enumeration value="a2r10g10b10_sscaled_pack32"></xs:enumeration>
+            <xs:enumeration value="a2r10g10b10_uint_pack32"></xs:enumeration>
+            <xs:enumeration value="a2r10g10b10_sint_pack32"></xs:enumeration>
+            <xs:enumeration value="a2b10g10r10_unorm_pack32"></xs:enumeration>
+            <xs:enumeration value="a2b10g10r10_snorm_pack32"></xs:enumeration>
+            <xs:enumeration value="a2b10g10r10_uscaled_pack32"></xs:enumeration>
+            <xs:enumeration value="a2b10g10r10_sscaled_pack32"></xs:enumeration>
+            <xs:enumeration value="a2b10g10r10_uint_pack32"></xs:enumeration>
+            <xs:enumeration value="a2b10g10r10_sint_pack32"></xs:enumeration>
+            <xs:enumeration value="r16_unorm"></xs:enumeration>
+            <xs:enumeration value="r16_snorm"></xs:enumeration>
+            <xs:enumeration value="r16_uscaled"></xs:enumeration>
+            <xs:enumeration value="r16_sscaled"></xs:enumeration>
+            <xs:enumeration value="r16_uint"></xs:enumeration>
+            <xs:enumeration value="r16_sint"></xs:enumeration>
+            <xs:enumeration value="r16_sfloat"></xs:enumeration>
+            <xs:enumeration value="r16g16_unorm"></xs:enumeration>
+            <xs:enumeration value="r16g16_snorm"></xs:enumeration>
+            <xs:enumeration value="r16g16_uscaled"></xs:enumeration>
+            <xs:enumeration value="r16g16_sscaled"></xs:enumeration>
+            <xs:enumeration value="r16g16_uint"></xs:enumeration>
+            <xs:enumeration value="r16g16_sint"></xs:enumeration>
+            <xs:enumeration value="r16g16_sfloat"></xs:enumeration>
+            <xs:enumeration value="r16g16b16_unorm"></xs:enumeration>
+            <xs:enumeration value="r16g16b16_snorm"></xs:enumeration>
+            <xs:enumeration value="r16g16b16_uscaled"></xs:enumeration>
+            <xs:enumeration value="r16g16b16_sscaled"></xs:enumeration>
+            <xs:enumeration value="r16g16b16_uint"></xs:enumeration>
+            <xs:enumeration value="r16g16b16_sint"></xs:enumeration>
+            <xs:enumeration value="r16g16b16_sfloat"></xs:enumeration>
+            <xs:enumeration value="r16g16b16a16_unorm"></xs:enumeration>
+            <xs:enumeration value="r16g16b16a16_snorm"></xs:enumeration>
+            <xs:enumeration value="r16g16b16a16_uscaled"></xs:enumeration>
+            <xs:enumeration value="r16g16b16a16_sscaled"></xs:enumeration>
+            <xs:enumeration value="r16g16b16a16_uint"></xs:enumeration>
+            <xs:enumeration value="r16g16b16a16_sint"></xs:enumeration>
+            <xs:enumeration value="r16g16b16a16_sfloat"></xs:enumeration>
+            <xs:enumeration value="r32_uint"></xs:enumeration>
+            <xs:enumeration value="r32_sint"></xs:enumeration>
+            <xs:enumeration value="r32_sfloat"></xs:enumeration>
+            <xs:enumeration value="r32g32_uint"></xs:enumeration>
+            <xs:enumeration value="r32g32_sint"></xs:enumeration>
+            <xs:enumeration value="r32g32_sfloat"></xs:enumeration>
+            <xs:enumeration value="r32g32b32_uint"></xs:enumeration>
+            <xs:enumeration value="r32g32b32_sint"></xs:enumeration>
+            <xs:enumeration value="r32g32b32_sfloat"></xs:enumeration>
+            <xs:enumeration value="r32g32b32a32_uint"></xs:enumeration>
+            <xs:enumeration value="r32g32b32a32_sint"></xs:enumeration>
+            <xs:enumeration value="r32g32b32a32_sfloat"></xs:enumeration>
+            <xs:enumeration value="r64_uint"></xs:enumeration>
+            <xs:enumeration value="r64_sint"></xs:enumeration>
+            <xs:enumeration value="r64_sfloat"></xs:enumeration>
+            <xs:enumeration value="r64g64_uint"></xs:enumeration>
+            <xs:enumeration value="r64g64_sint"></xs:enumeration>
+            <xs:enumeration value="r64g64_sfloat"></xs:enumeration>
+            <xs:enumeration value="r64g64b64_uint"></xs:enumeration>
+            <xs:enumeration value="r64g64b64_sint"></xs:enumeration>
+            <xs:enumeration value="r64g64b64_sfloat"></xs:enumeration>
+            <xs:enumeration value="r64g64b64a64_uint"></xs:enumeration>
+            <xs:enumeration value="r64g64b64a64_sint"></xs:enumeration>
+            <xs:enumeration value="r64g64b64a64_sfloat"></xs:enumeration>
+            <xs:enumeration value="b10g11r11_ufloat_pack32"></xs:enumeration>
+            <xs:enumeration value="e5b9g9r9_ufloat_pack32"></xs:enumeration>
+            <xs:enumeration value="d16_unorm"></xs:enumeration>
+            <xs:enumeration value="x8_d24_unorm_pack32"></xs:enumeration>
+            <xs:enumeration value="d32_sfloat"></xs:enumeration>
+            <xs:enumeration value="s8_uint"></xs:enumeration>
+            <xs:enumeration value="d16_unorm_s8_uint"></xs:enumeration>
+            <xs:enumeration value="d24_unorm_s8_uint"></xs:enumeration>
+            <xs:enumeration value="d32_sfloat_s8_uint"></xs:enumeration>
+            <xs:enumeration value="bc1_rgb_unorm_block"></xs:enumeration>
+            <xs:enumeration value="bc1_rgb_srgb_block"></xs:enumeration>
+            <xs:enumeration value="bc1_rgba_unorm_block"></xs:enumeration>
+            <xs:enumeration value="bc1_rgba_srgb_block"></xs:enumeration>
+            <xs:enumeration value="bc2_unorm_block"></xs:enumeration>
+            <xs:enumeration value="bc2_srgb_block"></xs:enumeration>
+            <xs:enumeration value="bc3_unorm_block"></xs:enumeration>
+            <xs:enumeration value="bc3_srgb_block"></xs:enumeration>
+            <xs:enumeration value="bc4_unorm_block"></xs:enumeration>
+            <xs:enumeration value="bc4_snorm_block"></xs:enumeration>
+            <xs:enumeration value="bc5_unorm_block"></xs:enumeration>
+            <xs:enumeration value="bc5_snorm_block"></xs:enumeration>
+            <xs:enumeration value="bc6h_ufloat_block"></xs:enumeration>
+            <xs:enumeration value="bc6h_sfloat_block"></xs:enumeration>
+            <xs:enumeration value="bc7_unorm_block"></xs:enumeration>
+            <xs:enumeration value="bc7_srgb_block"></xs:enumeration>
+            <xs:enumeration value="etc2_r8g8b8_unorm_block"></xs:enumeration>
+            <xs:enumeration value="etc2_r8g8b8_srgb_block"></xs:enumeration>
+            <xs:enumeration value="etc2_r8g8b8a1_unorm_block"></xs:enumeration>
+            <xs:enumeration value="etc2_r8g8b8a1_srgb_block"></xs:enumeration>
+            <xs:enumeration value="etc2_r8g8b8a8_unorm_block"></xs:enumeration>
+            <xs:enumeration value="etc2_r8g8b8a8_srgb_block"></xs:enumeration>
+            <xs:enumeration value="eac_r11_unorm_block"></xs:enumeration>
+            <xs:enumeration value="eac_r11_snorm_block"></xs:enumeration>
+            <xs:enumeration value="eac_r11g11_unorm_block"></xs:enumeration>
+            <xs:enumeration value="eac_r11g11_snorm_block"></xs:enumeration>
+            <xs:enumeration value="astc_4x4_unorm_block"></xs:enumeration>
+            <xs:enumeration value="astc_4x4_srgb_block"></xs:enumeration>
+            <xs:enumeration value="astc_5x4_unorm_block"></xs:enumeration>
+            <xs:enumeration value="astc_5x4_srgb_block"></xs:enumeration>
+            <xs:enumeration value="astc_5x5_unorm_block"></xs:enumeration>
+            <xs:enumeration value="astc_5x5_srgb_block"></xs:enumeration>
+            <xs:enumeration value="astc_6x5_unorm_block"></xs:enumeration>
+            <xs:enumeration value="astc_6x5_srgb_block"></xs:enumeration>
+            <xs:enumeration value="astc_6x6_unorm_block"></xs:enumeration>
+            <xs:enumeration value="astc_6x6_srgb_block"></xs:enumeration>
+            <xs:enumeration value="astc_8x5_unorm_block"></xs:enumeration>
+            <xs:enumeration value="astc_8x5_srgb_block"></xs:enumeration>
+            <xs:enumeration value="astc_8x6_unorm_block"></xs:enumeration>
+            <xs:enumeration value="astc_8x6_srgb_block"></xs:enumeration>
+            <xs:enumeration value="astc_8x8_unorm_block"></xs:enumeration>
+            <xs:enumeration value="astc_8x8_srgb_block"></xs:enumeration>
+            <xs:enumeration value="astc_10x5_unorm_block"></xs:enumeration>
+            <xs:enumeration value="astc_10x5_srgb_block"></xs:enumeration>
+            <xs:enumeration value="astc_10x6_unorm_block"></xs:enumeration>
+            <xs:enumeration value="astc_10x6_srgb_block"></xs:enumeration>
+            <xs:enumeration value="astc_10x8_unorm_block"></xs:enumeration>
+            <xs:enumeration value="astc_10x8_srgb_block"></xs:enumeration>
+            <xs:enumeration value="astc_10x10_unorm_block"></xs:enumeration>
+            <xs:enumeration value="astc_10x10_srgb_block"></xs:enumeration>
+            <xs:enumeration value="astc_12x10_unorm_block"></xs:enumeration>
+            <xs:enumeration value="astc_12x10_srgb_block"></xs:enumeration>
+            <xs:enumeration value="astc_12x12_unorm_block"></xs:enumeration>
+            <xs:enumeration value="astc_12x12_srgb_block"></xs:enumeration>
+            <xs:enumeration value="g8b8g8r8_422_unorm"></xs:enumeration>
+            <xs:enumeration value="b8g8r8g8_422_unorm"></xs:enumeration>
+            <xs:enumeration value="g8_b8_r8_3plane_420_unorm"></xs:enumeration>
+            <xs:enumeration value="g8_b8r8_2plane_420_unorm"></xs:enumeration>
+            <xs:enumeration value="g8_b8_r8_3plane_422_unorm"></xs:enumeration>
+            <xs:enumeration value="g8_b8r8_2plane_422_unorm"></xs:enumeration>
+            <xs:enumeration value="g8_b8_r8_3plane_444_unorm"></xs:enumeration>
+            <xs:enumeration value="r10x6_unorm_pack16"></xs:enumeration>
+            <xs:enumeration value="r10x6g10x6_unorm_2pack16"></xs:enumeration>
+            <xs:enumeration value="r10x6g10x6b10x6a10x6_unorm_4pack16"></xs:enumeration>
+            <xs:enumeration value="g10x6b10x6g10x6r10x6_422_unorm_4pack16"></xs:enumeration>
+            <xs:enumeration value="b10x6g10x6r10x6g10x6_422_unorm_4pack16"></xs:enumeration>
+            <xs:enumeration value="g10x6_b10x6_r10x6_3plane_420_unorm_3pack16"></xs:enumeration>
+            <xs:enumeration value="g10x6_b10x6r10x6_2plane_420_unorm_3pack16"></xs:enumeration>
+            <xs:enumeration value="g10x6_b10x6_r10x6_3plane_422_unorm_3pack16"></xs:enumeration>
+            <xs:enumeration value="g10x6_b10x6r10x6_2plane_422_unorm_3pack16"></xs:enumeration>
+            <xs:enumeration value="g10x6_b10x6_r10x6_3plane_444_unorm_3pack16"></xs:enumeration>
+            <xs:enumeration value="r12x4_unorm_pack16"></xs:enumeration>
+            <xs:enumeration value="r12x4g12x4_unorm_2pack16"></xs:enumeration>
+            <xs:enumeration value="r12x4g12x4b12x4a12x4_unorm_4pack16"></xs:enumeration>
+            <xs:enumeration value="g12x4b12x4g12x4r12x4_422_unorm_4pack16"></xs:enumeration>
+            <xs:enumeration value="b12x4g12x4r12x4g12x4_422_unorm_4pack16"></xs:enumeration>
+            <xs:enumeration value="g12x4_b12x4_r12x4_3plane_420_unorm_3pack16"></xs:enumeration>
+            <xs:enumeration value="g12x4_b12x4r12x4_2plane_420_unorm_3pack16"></xs:enumeration>
+            <xs:enumeration value="g12x4_b12x4_r12x4_3plane_422_unorm_3pack16"></xs:enumeration>
+            <xs:enumeration value="g12x4_b12x4r12x4_2plane_422_unorm_3pack16"></xs:enumeration>
+            <xs:enumeration value="g12x4_b12x4_r12x4_3plane_444_unorm_3pack16"></xs:enumeration>
+            <xs:enumeration value="g16b16g16r16_422_unorm"></xs:enumeration>
+            <xs:enumeration value="b16g16r16g16_422_unorm"></xs:enumeration>
+            <xs:enumeration value="g16_b16_r16_3plane_420_unorm"></xs:enumeration>
+            <xs:enumeration value="g16_b16r16_2plane_420_unorm"></xs:enumeration>
+            <xs:enumeration value="g16_b16_r16_3plane_422_unorm"></xs:enumeration>
+            <xs:enumeration value="g16_b16r16_2plane_422_unorm"></xs:enumeration>
+            <xs:enumeration value="g16_b16_r16_3plane_444_unorm"></xs:enumeration>
+            <xs:enumeration value="g8_b8r8_2plane_444_unorm"></xs:enumeration>
+            <xs:enumeration value="g10x6_b10x6r10x6_2plane_444_unorm_3pack16"></xs:enumeration>
+            <xs:enumeration value="g12x4_b12x4r12x4_2plane_444_unorm_3pack16"></xs:enumeration>
+            <xs:enumeration value="g16_b16r16_2plane_444_unorm"></xs:enumeration>
+            <xs:enumeration value="a4r4g4b4_unorm_pack16"></xs:enumeration>
+            <xs:enumeration value="a4b4g4r4_unorm_pack16"></xs:enumeration>
+            <xs:enumeration value="astc_4x4_sfloat_block"></xs:enumeration>
+            <xs:enumeration value="astc_5x4_sfloat_block"></xs:enumeration>
+            <xs:enumeration value="astc_5x5_sfloat_block"></xs:enumeration>
+            <xs:enumeration value="astc_6x5_sfloat_block"></xs:enumeration>
+            <xs:enumeration value="astc_6x6_sfloat_block"></xs:enumeration>
+            <xs:enumeration value="astc_8x5_sfloat_block"></xs:enumeration>
+            <xs:enumeration value="astc_8x6_sfloat_block"></xs:enumeration>
+            <xs:enumeration value="astc_8x8_sfloat_block"></xs:enumeration>
+            <xs:enumeration value="astc_10x5_sfloat_block"></xs:enumeration>
+            <xs:enumeration value="astc_10x6_sfloat_block"></xs:enumeration>
+            <xs:enumeration value="astc_10x8_sfloat_block"></xs:enumeration>
+            <xs:enumeration value="astc_10x10_sfloat_block"></xs:enumeration>
+            <xs:enumeration value="astc_12x10_sfloat_block"></xs:enumeration>
+            <xs:enumeration value="astc_12x12_sfloat_block"></xs:enumeration>
+            <xs:enumeration value="pvrtc1_2bpp_unorm_block_img"></xs:enumeration>
+            <xs:enumeration value="pvrtc1_4bpp_unorm_block_img"></xs:enumeration>
+            <xs:enumeration value="pvrtc2_2bpp_unorm_block_img"></xs:enumeration>
+            <xs:enumeration value="pvrtc2_4bpp_unorm_block_img"></xs:enumeration>
+            <xs:enumeration value="pvrtc1_2bpp_srgb_block_img"></xs:enumeration>
+            <xs:enumeration value="pvrtc1_4bpp_srgb_block_img"></xs:enumeration>
+            <xs:enumeration value="pvrtc2_2bpp_srgb_block_img"></xs:enumeration>
+            <xs:enumeration value="pvrtc2_4bpp_srgb_block_img"></xs:enumeration>
+            <xs:enumeration value="r16g16_sfixed5_nv"></xs:enumeration>
+            <xs:enumeration value="a1b5g5r5_unorm_pack16_khr"></xs:enumeration>
+            <xs:enumeration value="a8_unorm_khr"></xs:enumeration>
+            <xs:enumeration value="astc_4x4_sfloat_block_ext"></xs:enumeration>
+            <xs:enumeration value="astc_5x4_sfloat_block_ext"></xs:enumeration>
+            <xs:enumeration value="astc_5x5_sfloat_block_ext"></xs:enumeration>
+            <xs:enumeration value="astc_6x5_sfloat_block_ext"></xs:enumeration>
+            <xs:enumeration value="astc_6x6_sfloat_block_ext"></xs:enumeration>
+            <xs:enumeration value="astc_8x5_sfloat_block_ext"></xs:enumeration>
+            <xs:enumeration value="astc_8x6_sfloat_block_ext"></xs:enumeration>
+            <xs:enumeration value="astc_8x8_sfloat_block_ext"></xs:enumeration>
+            <xs:enumeration value="astc_10x5_sfloat_block_ext"></xs:enumeration>
+            <xs:enumeration value="astc_10x6_sfloat_block_ext"></xs:enumeration>
+            <xs:enumeration value="astc_10x8_sfloat_block_ext"></xs:enumeration>
+            <xs:enumeration value="astc_10x10_sfloat_block_ext"></xs:enumeration>
+            <xs:enumeration value="astc_12x10_sfloat_block_ext"></xs:enumeration>
+            <xs:enumeration value="astc_12x12_sfloat_block_ext"></xs:enumeration>
+            <xs:enumeration value="g8b8g8r8_422_unorm_khr"></xs:enumeration>
+            <xs:enumeration value="b8g8r8g8_422_unorm_khr"></xs:enumeration>
+            <xs:enumeration value="g8_b8_r8_3plane_420_unorm_khr"></xs:enumeration>
+            <xs:enumeration value="g8_b8r8_2plane_420_unorm_khr"></xs:enumeration>
+            <xs:enumeration value="g8_b8_r8_3plane_422_unorm_khr"></xs:enumeration>
+            <xs:enumeration value="g8_b8r8_2plane_422_unorm_khr"></xs:enumeration>
+            <xs:enumeration value="g8_b8_r8_3plane_444_unorm_khr"></xs:enumeration>
+            <xs:enumeration value="r10x6_unorm_pack16_khr"></xs:enumeration>
+            <xs:enumeration value="r10x6g10x6_unorm_2pack16_khr"></xs:enumeration>
+            <xs:enumeration value="r10x6g10x6b10x6a10x6_unorm_4pack16_khr"></xs:enumeration>
+            <xs:enumeration value="g10x6b10x6g10x6r10x6_422_unorm_4pack16_khr"></xs:enumeration>
+            <xs:enumeration value="b10x6g10x6r10x6g10x6_422_unorm_4pack16_khr"></xs:enumeration>
+            <xs:enumeration value="g10x6_b10x6_r10x6_3plane_420_unorm_3pack16_khr"></xs:enumeration>
+            <xs:enumeration value="g10x6_b10x6r10x6_2plane_420_unorm_3pack16_khr"></xs:enumeration>
+            <xs:enumeration value="g10x6_b10x6_r10x6_3plane_422_unorm_3pack16_khr"></xs:enumeration>
+            <xs:enumeration value="g10x6_b10x6r10x6_2plane_422_unorm_3pack16_khr"></xs:enumeration>
+            <xs:enumeration value="g10x6_b10x6_r10x6_3plane_444_unorm_3pack16_khr"></xs:enumeration>
+            <xs:enumeration value="r12x4_unorm_pack16_khr"></xs:enumeration>
+            <xs:enumeration value="r12x4g12x4_unorm_2pack16_khr"></xs:enumeration>
+            <xs:enumeration value="r12x4g12x4b12x4a12x4_unorm_4pack16_khr"></xs:enumeration>
+            <xs:enumeration value="g12x4b12x4g12x4r12x4_422_unorm_4pack16_khr"></xs:enumeration>
+            <xs:enumeration value="b12x4g12x4r12x4g12x4_422_unorm_4pack16_khr"></xs:enumeration>
+            <xs:enumeration value="g12x4_b12x4_r12x4_3plane_420_unorm_3pack16_khr"></xs:enumeration>
+            <xs:enumeration value="g12x4_b12x4r12x4_2plane_420_unorm_3pack16_khr"></xs:enumeration>
+            <xs:enumeration value="g12x4_b12x4_r12x4_3plane_422_unorm_3pack16_khr"></xs:enumeration>
+            <xs:enumeration value="g12x4_b12x4r12x4_2plane_422_unorm_3pack16_khr"></xs:enumeration>
+            <xs:enumeration value="g12x4_b12x4_r12x4_3plane_444_unorm_3pack16_khr"></xs:enumeration>
+            <xs:enumeration value="g16b16g16r16_422_unorm_khr"></xs:enumeration>
+            <xs:enumeration value="b16g16r16g16_422_unorm_khr"></xs:enumeration>
+            <xs:enumeration value="g16_b16_r16_3plane_420_unorm_khr"></xs:enumeration>
+            <xs:enumeration value="g16_b16r16_2plane_420_unorm_khr"></xs:enumeration>
+            <xs:enumeration value="g16_b16_r16_3plane_422_unorm_khr"></xs:enumeration>
+            <xs:enumeration value="g16_b16r16_2plane_422_unorm_khr"></xs:enumeration>
+            <xs:enumeration value="g16_b16_r16_3plane_444_unorm_khr"></xs:enumeration>
+            <xs:enumeration value="g8_b8r8_2plane_444_unorm_ext"></xs:enumeration>
+            <xs:enumeration value="g10x6_b10x6r10x6_2plane_444_unorm_3pack16_ext"></xs:enumeration>
+            <xs:enumeration value="g12x4_b12x4r12x4_2plane_444_unorm_3pack16_ext"></xs:enumeration>
+            <xs:enumeration value="g16_b16r16_2plane_444_unorm_ext"></xs:enumeration>
+            <xs:enumeration value="a4r4g4b4_unorm_pack16_ext"></xs:enumeration>
+            <xs:enumeration value="a4b4g4r4_unorm_pack16_ext"></xs:enumeration>
+            <xs:enumeration value="r16g16_s10_5_nv"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:simpleType name="FilterSimpleType">
         <xs:restriction base="xs:string">
             <xs:enumeration value="nearest"></xs:enumeration>
@@ -446,6 +759,8 @@
 
     <xs:simpleType name="SampleCountSimpleType">
         <xs:restriction base="xs:string">
+            <xs:enumeration value="as_user"></xs:enumeration>
+            <xs:enumeration value="as_device"></xs:enumeration>
             <xs:enumeration value="1_bit"></xs:enumeration>
             <xs:enumeration value="2_bit"></xs:enumeration>
             <xs:enumeration value="4_bit"></xs:enumeration>
@@ -899,6 +1214,14 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="RenderPass">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="RenderPassName" type="xs:string"></xs:element>
+                        <xs:element name="Subpass" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
         </xs:sequence>
         <xs:attribute name="name" type="xs:string" use="required"/>
     </xs:complexType>
@@ -921,6 +1244,211 @@
             <xs:enumeration value="host_only_valve"></xs:enumeration>
         </xs:restriction>
     </xs:simpleType>
+
+    <xs:simpleType name="PipelineBindPointSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="graphics"></xs:enumeration>
+            <xs:enumeration value="compute"></xs:enumeration>
+            <xs:enumeration value="ray_tracing_khr"></xs:enumeration>
+            <xs:enumeration value="subpass_shading_huawei"></xs:enumeration>
+            <xs:enumeration value="ray_tracing_nv"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="SubpassDescriptionFlagSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="per_view_attributes_nvx"></xs:enumeration>
+            <xs:enumeration value="per_view_position_x_only_nvx"></xs:enumeration>
+            <xs:enumeration value="fragment_region_qcom"></xs:enumeration>
+            <xs:enumeration value="shader_resolve_qcom"></xs:enumeration>
+            <xs:enumeration value="rasterization_order_attachment_color_access_ext"></xs:enumeration>
+            <xs:enumeration value="rasterization_order_attachment_depth_access_ext"></xs:enumeration>
+            <xs:enumeration value="rasterization_order_attachment_stencil_access_ext"></xs:enumeration>
+            <xs:enumeration value="enable_legacy_dithering_ext"></xs:enumeration>
+            <xs:enumeration value="rasterization_order_attachment_color_access_arm"></xs:enumeration>
+            <xs:enumeration value="rasterization_order_attachment_depth_access_arm"></xs:enumeration>
+            <xs:enumeration value="rasterization_order_attachment_stencil_access_arm"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="RenderPassCreateFlagsSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="transform_qcom"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="AttachmentDescriptionFlagSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="may_alias"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="AttachmentLoadOpSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="load"></xs:enumeration>
+            <xs:enumeration value="clear"></xs:enumeration>
+            <xs:enumeration value="dont_care"></xs:enumeration>
+            <xs:enumeration value="none_khr"></xs:enumeration>
+            <xs:enumeration value="none_ext"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="AttachmentStoreOpSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="store"></xs:enumeration>
+            <xs:enumeration value="dont_care"></xs:enumeration>
+            <xs:enumeration value="none"></xs:enumeration>
+            <xs:enumeration value="none_khr"></xs:enumeration>
+            <xs:enumeration value="none_qcom"></xs:enumeration>
+            <xs:enumeration value="none_ext"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="ImageLayoutSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="auto_depth_stencil_attachment_optimal"></xs:enumeration>
+            <xs:enumeration value="undefined"></xs:enumeration>
+            <xs:enumeration value="general"></xs:enumeration>
+            <xs:enumeration value="color_attachment_optimal"></xs:enumeration>
+            <xs:enumeration value="depth_stencil_attachment_optimal"></xs:enumeration>
+            <xs:enumeration value="depth_stencil_read_only_optimal"></xs:enumeration>
+            <xs:enumeration value="shader_read_only_optimal"></xs:enumeration>
+            <xs:enumeration value="transfer_src_optimal"></xs:enumeration>
+            <xs:enumeration value="transfer_dst_optimal"></xs:enumeration>
+            <xs:enumeration value="preinitialized"></xs:enumeration>
+            <xs:enumeration value="depth_read_only_stencil_attachment_optimal"></xs:enumeration>
+            <xs:enumeration value="depth_attachment_stencil_read_only_optimal"></xs:enumeration>
+            <xs:enumeration value="depth_attachment_optimal"></xs:enumeration>
+            <xs:enumeration value="depth_read_only_optimal"></xs:enumeration>
+            <xs:enumeration value="stencil_attachment_optimal"></xs:enumeration>
+            <xs:enumeration value="stencil_read_only_optimal"></xs:enumeration>
+            <xs:enumeration value="read_only_optimal"></xs:enumeration>
+            <xs:enumeration value="attachment_optimal"></xs:enumeration>
+            <xs:enumeration value="present_src_khr"></xs:enumeration>
+            <xs:enumeration value="video_decode_dst_khr"></xs:enumeration>
+            <xs:enumeration value="video_decode_src_khr"></xs:enumeration>
+            <xs:enumeration value="video_decode_dpb_khr"></xs:enumeration>
+            <xs:enumeration value="shared_present_khr"></xs:enumeration>
+            <xs:enumeration value="fragment_density_map_optimal_ext"></xs:enumeration>
+            <xs:enumeration value="fragment_shading_rate_attachment_optimal_khr"></xs:enumeration>
+            <xs:enumeration value="rendering_local_read_khr"></xs:enumeration>
+            <xs:enumeration value="video_encode_dst_khr"></xs:enumeration>
+            <xs:enumeration value="video_encode_src_khr"></xs:enumeration>
+            <xs:enumeration value="video_encode_dpb_khr"></xs:enumeration>
+            <xs:enumeration value="attachment_feedback_loop_optimal_ext"></xs:enumeration>
+            <xs:enumeration value="depth_read_only_stencil_attachment_optimal_khr"></xs:enumeration>
+            <xs:enumeration value="depth_attachment_stencil_read_only_optimal_khr"></xs:enumeration>
+            <xs:enumeration value="shading_rate_optimal_nv"></xs:enumeration>
+            <xs:enumeration value="depth_attachment_optimal_khr"></xs:enumeration>
+            <xs:enumeration value="depth_read_only_optimal_khr"></xs:enumeration>
+            <xs:enumeration value="stencil_attachment_optimal_khr"></xs:enumeration>
+            <xs:enumeration value="stencil_read_only_optimal_khr"></xs:enumeration>
+            <xs:enumeration value="read_only_optimal_khr"></xs:enumeration>
+            <xs:enumeration value="attachment_optimal_khr"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="AttachmentDescriptionComplexType">
+        <xs:sequence>
+            <xs:element name="AttachmentDescFlags" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Flag" type="target:AttachmentDescriptionFlagSimpleType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="Format" type="target:ColorFormatSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="Samples" type="target:SampleCountSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="LoadOp" type="target:AttachmentLoadOpSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="StoreOp" type="target:AttachmentStoreOpSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="StencilLoadOp" type="target:AttachmentLoadOpSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="StencilStoreOp" type="target:AttachmentStoreOpSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="InitialLayout" type="target:ImageLayoutSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="FinalLayout" type="target:ImageLayoutSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="AttachmentReferenceComplexType">
+        <xs:sequence>
+            <xs:element name="AttachmentName" type="xs:string"></xs:element>
+            <xs:element name="Layout" type="target:ImageLayoutSimpleType"></xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="InputAttachmentReferencesComplexType">
+        <xs:sequence>
+            <xs:element name="AttachmentReference" type="target:AttachmentReferenceComplexType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="OutputAttachmentReferencesComplexType">
+        <xs:sequence>
+            <xs:element name="ColorAttachment" type="target:AttachmentReferenceComplexType" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="ResolveAttachment" type="target:AttachmentReferenceComplexType" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="DepthStencilAttachmen" type="target:AttachmentReferenceComplexType" minOccurs="0" maxOccurs="1"></xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="SubpassDescriptionComplexType">
+        <xs:sequence>
+            <xs:element name="DescFlags" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Flag" type="target:SubpassDescriptionFlagSimpleType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="PipelineBindPoint" type="target:PipelineBindPointSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="InputAttachments" type="target:InputAttachmentReferencesComplexType" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="OutputAttachments" type="target:OutputAttachmentReferencesComplexType" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="PreserveAttachments" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="AttachmentReference" type="target:AttachmentReferenceComplexType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+    </xs:complexType>
+            
+
+    <xs:complexType name="RenderPassComplexType">
+        <xs:sequence>
+            <xs:element name="Flags" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Flag" type="target:RenderPassCreateFlagsSimpleType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="AttachmentDescriptions" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="AttachmentDescription" type="target:AttachmentDescriptionComplexType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="SubpassDescriptions" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Subpass" type="target:SubpassDescriptionComplexType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="SubpassDependencys" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Dependency">
+                            
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+    </xs:complexType>
 
     <xs:element name="RenderGraph">
         <xs:complexType>
@@ -946,6 +1474,7 @@
                         </xs:sequence>
                     </xs:complexType>
                 </xs:element>
+
                 <xs:element name="Descriptors">
                     <xs:complexType>
                         <xs:sequence>
@@ -974,6 +1503,7 @@
                         </xs:sequence>
                     </xs:complexType>
                 </xs:element>
+
                 <xs:element name="Shaders" minOccurs="1" maxOccurs="1">
                     <xs:complexType>
                         <xs:sequence>
@@ -981,10 +1511,20 @@
                         </xs:sequence>
                     </xs:complexType>
                 </xs:element>
+
+                <xs:element name="RenderPases">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="RenderPass" type="target:RenderPassComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+
                 <xs:element name="Pipelines" type="target:PipelinesComplexType" minOccurs="1" maxOccurs="1"></xs:element>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
+
     <xs:element name="World">
         <xs:complexType>
             <xs:sequence>

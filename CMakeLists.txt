@@ -2,8 +2,10 @@ cmake_minimum_required(VERSION 3.25)
 
 project(vktutorial LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_BUILD_PARALLEL_LEVEL 18)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(SRC_DIR "src")
 set(APP_SOURCES
@@ -225,6 +227,8 @@ set(APP_SOURCES
     "${SRC_DIR}/tools/thread_pool.cpp"
     "${SRC_DIR}/tools/thread_safe_lookup_table.h"
     "${SRC_DIR}/tools/thread_safe_lookup_table.cpp"
+    "${SRC_DIR}/tools/arena_allocator.h"
+    "${SRC_DIR}/tools/arena_allocator.cpp"
     "${SRC_DIR}/scene/mesh_node_loader.h"
     "${SRC_DIR}/scene/mesh_node_loader.cpp"
     "${SRC_DIR}/scene/scene.h"
@@ -272,6 +276,8 @@ set(APP_SOURCES
     "${SRC_DIR}/graphics/api/vulkan_command_pool_type.cpp"
     "${SRC_DIR}/graphics/api/vulkan_command_buffer.h"
     "${SRC_DIR}/graphics/api/vulkan_command_buffer.cpp"
+    "${SRC_DIR}/graphics/api/vulkan_device_memory_allocation.h"
+    "${SRC_DIR}/graphics/api/vulkan_device_memory_allocation.cpp"
     "${SRC_DIR}/graphics/api/vulkan_command_manager.h"
     "${SRC_DIR}/graphics/api/vulkan_command_manager.cpp"
     "${SRC_DIR}/graphics/drawables/vulkan_drawable.h"
@@ -290,6 +296,10 @@ set(APP_SOURCES
     "${SRC_DIR}/graphics/pod/basic_uniform.h"
     "${SRC_DIR}/graphics/pod/descriptor_set_layout.h"
     "${SRC_DIR}/graphics/pod/descriptor_set_layout.cpp"
+    "${SRC_DIR}/graphics/api/vulkan_semaphore.h"
+    "${SRC_DIR}/graphics/api/vulkan_semaphore.cpp"
+    "${SRC_DIR}/graphics/api/vulkan_semaphores_manager.h"
+    "${SRC_DIR}/graphics/api/vulkan_semaphores_manager.cpp"
     "${SRC_DIR}/graphics/api/vulkan_descriptor_allocator.h"
     "${SRC_DIR}/graphics/api/vulkan_descriptor_allocator.cpp"
     "${SRC_DIR}/graphics/api/vulkan_descriptor_allocator_page.h"
@@ -317,6 +327,10 @@ set(APP_SOURCES
     "${SRC_DIR}/graphics/api/vulkan_descriptor.cpp"
     "${SRC_DIR}/graphics/api/vulkan_uniform_buffer.h"
     "${SRC_DIR}/graphics/api/vulkan_uniform_buffer.cpp"
+    "${SRC_DIR}/graphics/api/vulkan_fence_manager.h"
+    "${SRC_DIR}/graphics/api/vulkan_fence_manager.cpp"
+    "${SRC_DIR}/graphics/api/vulkan_fence.h"
+    "${SRC_DIR}/graphics/api/vulkan_fence.cpp"
     "${SRC_DIR}/graphics/vulkan_renderer.h"
     "${SRC_DIR}/graphics/vulkan_renderer.cpp"
     "${SRC_DIR}/graphics/drawables/imgui_drawable.h"

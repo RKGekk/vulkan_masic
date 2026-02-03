@@ -1,0 +1,24 @@
+#pragma once
+
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
+#include <pugixml.hpp>
+
+#include <memory>
+#include <vector>
+
+class VulkanDevice;
+
+class VulkanFenceManager {
+public:
+    bool init(std::shared_ptr<VulkanDevice> device);
+    void destroy();
+
+    VkFence getFence();
+    void returnFence(VkFence fen);
+
+private:
+    std::shared_ptr<VulkanDevice> m_device;
+    std::vector<VkFence> m_fences;
+};

@@ -962,7 +962,7 @@ VkVertexInputRate getVertexInputRate(const std::string& rate_str) {
     return res;
 }
 
-VkFormat getVkFormat(VertexAttributeFormat attrib_format) {
+VkFormat getAttributeFormat(VertexAttributeFormat attrib_format) {
     switch (attrib_format) {
         case VertexAttributeFormat::FLOAT : return VK_FORMAT_R32_SFLOAT;
         case VertexAttributeFormat::FLOAT_VEC2 : return VK_FORMAT_R32G32_SFLOAT;
@@ -991,6 +991,442 @@ VkDescriptorPoolCreateFlagBits getDescriptorPoolCreateFlagBit(const std::string&
 	else if(flag_str == "allow_overallocation_pools_nv"s) {res = VK_DESCRIPTOR_POOL_CREATE_ALLOW_OVERALLOCATION_POOLS_BIT_NV;}
 	else if(flag_str == "update_after_bind_ext"s) {res = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT_EXT;}
 	else if(flag_str == "host_only_valve"s) {res = VK_DESCRIPTOR_POOL_CREATE_HOST_ONLY_BIT_VALVE;}
+    
+    return res;
+}
+
+VkPipelineBindPoint getPipelineBindPoint(const std::string& bp_str) {
+	using namespace std::literals;
+    VkPipelineBindPoint res{};
+
+         if(bp_str == "graphics"s) {res = VK_PIPELINE_BIND_POINT_GRAPHICS;}
+	else if(bp_str == "compute"s) {res = VK_PIPELINE_BIND_POINT_COMPUTE;}
+	else if(bp_str == "ray_tracing_khr"s) {res = VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR;}
+	else if(bp_str == "shading_huawei"s) {res = VK_PIPELINE_BIND_POINT_SUBPASS_SHADING_HUAWEI;}
+	else if(bp_str == "ray_tracing_nv"s) {res = VK_PIPELINE_BIND_POINT_RAY_TRACING_NV;}
+    
+    return res;
+}
+
+VkSubpassDescriptionFlagBits getSubpassDescriptionFlag(const std::string& flag_str) {
+	using namespace std::literals;
+    VkSubpassDescriptionFlagBits res{};
+
+         if(flag_str == "per_view_attributes_nvx"s) {res = VK_SUBPASS_DESCRIPTION_PER_VIEW_ATTRIBUTES_BIT_NVX;}
+	else if(flag_str == "per_view_position_x_only_nvx"s) {res = VK_SUBPASS_DESCRIPTION_PER_VIEW_POSITION_X_ONLY_BIT_NVX;}
+	else if(flag_str == "fragment_region_qcom"s) {res = VK_SUBPASS_DESCRIPTION_FRAGMENT_REGION_BIT_QCOM;}
+	else if(flag_str == "shader_resolve_qcom"s) {res = VK_SUBPASS_DESCRIPTION_SHADER_RESOLVE_BIT_QCOM;}
+	else if(flag_str == "rasterization_order_attachment_color_access_ext"s) {res = VK_SUBPASS_DESCRIPTION_RASTERIZATION_ORDER_ATTACHMENT_COLOR_ACCESS_BIT_EXT;}
+	else if(flag_str == "rasterization_order_attachment_depth_access_ext"s) {res = VK_SUBPASS_DESCRIPTION_RASTERIZATION_ORDER_ATTACHMENT_DEPTH_ACCESS_BIT_EXT;}
+	else if(flag_str == "rasterization_order_attachment_stencil_access_ext"s) {res = VK_SUBPASS_DESCRIPTION_RASTERIZATION_ORDER_ATTACHMENT_STENCIL_ACCESS_BIT_EXT;}
+	else if(flag_str == "enable_legacy_dithering_ext"s) {res = VK_SUBPASS_DESCRIPTION_ENABLE_LEGACY_DITHERING_BIT_EXT;}
+	else if(flag_str == "rasterization_order_attachment_color_access_arm"s) {res = VK_SUBPASS_DESCRIPTION_RASTERIZATION_ORDER_ATTACHMENT_COLOR_ACCESS_BIT_ARM;}
+	else if(flag_str == "rasterization_order_attachment_depth_access_arm"s) {res = VK_SUBPASS_DESCRIPTION_RASTERIZATION_ORDER_ATTACHMENT_DEPTH_ACCESS_BIT_ARM;}
+	else if(flag_str == "rasterization_order_attachment_stencil_access_arm"s) {res = VK_SUBPASS_DESCRIPTION_RASTERIZATION_ORDER_ATTACHMENT_STENCIL_ACCESS_BIT_ARM;}
+    
+    return res;
+}
+
+VkRenderPassCreateFlagBits getRenderPassCreateFlag(const std::string& flag_str) {
+	using namespace std::literals;
+    VkRenderPassCreateFlagBits res{};
+
+    if(flag_str == "transform_bit_qcom"s) {res = VK_RENDER_PASS_CREATE_TRANSFORM_BIT_QCOM;}
+    
+    return res;
+}
+
+VkAttachmentDescriptionFlagBits getAttachmentDescriptionFlag(const std::string& flag_str) {
+	using namespace std::literals;
+    VkAttachmentDescriptionFlagBits res{};
+
+    if(flag_str == "may_alias"s) {res = VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT;}
+    
+    return res;
+}
+
+VkFormat getFormat(const std::string& format_str) {
+	using namespace std::literals;
+    VkFormat res{};
+
+         if(format_str == "UNDEFINED"s) {res = VK_FORMAT_UNDEFINED;}
+	else if(format_str == "R4G4_UNORM_PACK8"s) {res = VK_FORMAT_R4G4_UNORM_PACK8;}
+	else if(format_str == "R4G4B4A4_UNORM_PACK16"s) {res = VK_FORMAT_R4G4B4A4_UNORM_PACK16;}
+	else if(format_str == "B4G4R4A4_UNORM_PACK16"s) {res = VK_FORMAT_B4G4R4A4_UNORM_PACK16;}
+	else if(format_str == "R5G6B5_UNORM_PACK16"s) {res = VK_FORMAT_R5G6B5_UNORM_PACK16;}
+	else if(format_str == "B5G6R5_UNORM_PACK16"s) {res = VK_FORMAT_B5G6R5_UNORM_PACK16;}
+	else if(format_str == "R5G5B5A1_UNORM_PACK16"s) {res = VK_FORMAT_R5G5B5A1_UNORM_PACK16;}
+	else if(format_str == "B5G5R5A1_UNORM_PACK16"s) {res = VK_FORMAT_B5G5R5A1_UNORM_PACK16;}
+	else if(format_str == "A1R5G5B5_UNORM_PACK16"s) {res = VK_FORMAT_A1R5G5B5_UNORM_PACK16;}
+	else if(format_str == "R8_UNORM"s) {res = VK_FORMAT_R8_UNORM;}
+	else if(format_str == "R8_SNORM"s) {res = VK_FORMAT_R8_SNORM;}
+	else if(format_str == "R8_USCALED"s) {res = VK_FORMAT_R8_USCALED;}
+	else if(format_str == "R8_SSCALED"s) {res = VK_FORMAT_R8_SSCALED;}
+	else if(format_str == "R8_UINT"s) {res = VK_FORMAT_R8_UINT;}
+	else if(format_str == "R8_SINT"s) {res = VK_FORMAT_R8_SINT;}
+	else if(format_str == "R8_SRGB"s) {res = VK_FORMAT_R8_SRGB;}
+	else if(format_str == "R8G8_UNORM"s) {res = VK_FORMAT_R8G8_UNORM;}
+	else if(format_str == "R8G8_SNORM"s) {res = VK_FORMAT_R8G8_SNORM;}
+	else if(format_str == "R8G8_USCALED"s) {res = VK_FORMAT_R8G8_USCALED;}
+	else if(format_str == "R8G8_SSCALED"s) {res = VK_FORMAT_R8G8_SSCALED;}
+	else if(format_str == "R8G8_UINT"s) {res = VK_FORMAT_R8G8_UINT;}
+	else if(format_str == "R8G8_SINT"s) {res = VK_FORMAT_R8G8_SINT;}
+	else if(format_str == "R8G8_SRGB"s) {res = VK_FORMAT_R8G8_SRGB;}
+	else if(format_str == "R8G8B8_UNORM"s) {res = VK_FORMAT_R8G8B8_UNORM;}
+	else if(format_str == "R8G8B8_SNORM"s) {res = VK_FORMAT_R8G8B8_SNORM;}
+	else if(format_str == "R8G8B8_USCALED"s) {res = VK_FORMAT_R8G8B8_USCALED;}
+	else if(format_str == "R8G8B8_SSCALED"s) {res = VK_FORMAT_R8G8B8_SSCALED;}
+	else if(format_str == "R8G8B8_UINT"s) {res = VK_FORMAT_R8G8B8_UINT;}
+	else if(format_str == "R8G8B8_SINT"s) {res = VK_FORMAT_R8G8B8_SINT;}
+	else if(format_str == "R8G8B8_SRGB"s) {res = VK_FORMAT_R8G8B8_SRGB;}
+	else if(format_str == "B8G8R8_UNORM"s) {res = VK_FORMAT_B8G8R8_UNORM;}
+	else if(format_str == "B8G8R8_SNORM"s) {res = VK_FORMAT_B8G8R8_SNORM;}
+	else if(format_str == "B8G8R8_USCALED"s) {res = VK_FORMAT_B8G8R8_USCALED;}
+	else if(format_str == "B8G8R8_SSCALED"s) {res = VK_FORMAT_B8G8R8_SSCALED;}
+	else if(format_str == "B8G8R8_UINT"s) {res = VK_FORMAT_B8G8R8_UINT;}
+	else if(format_str == "B8G8R8_SINT"s) {res = VK_FORMAT_B8G8R8_SINT;}
+	else if(format_str == "B8G8R8_SRGB"s) {res = VK_FORMAT_B8G8R8_SRGB;}
+	else if(format_str == "R8G8B8A8_UNORM"s) {res = VK_FORMAT_R8G8B8A8_UNORM;}
+	else if(format_str == "R8G8B8A8_SNORM"s) {res = VK_FORMAT_R8G8B8A8_SNORM;}
+	else if(format_str == "R8G8B8A8_USCALED"s) {res = VK_FORMAT_R8G8B8A8_USCALED;}
+	else if(format_str == "R8G8B8A8_SSCALED"s) {res = VK_FORMAT_R8G8B8A8_SSCALED;}
+	else if(format_str == "R8G8B8A8_UINT"s) {res = VK_FORMAT_R8G8B8A8_UINT;}
+	else if(format_str == "R8G8B8A8_SINT"s) {res = VK_FORMAT_R8G8B8A8_SINT;}
+	else if(format_str == "R8G8B8A8_SRGB"s) {res = VK_FORMAT_R8G8B8A8_SRGB;}
+	else if(format_str == "B8G8R8A8_UNORM"s) {res = VK_FORMAT_B8G8R8A8_UNORM;}
+	else if(format_str == "B8G8R8A8_SNORM"s) {res = VK_FORMAT_B8G8R8A8_SNORM;}
+	else if(format_str == "B8G8R8A8_USCALED"s) {res = VK_FORMAT_B8G8R8A8_USCALED;}
+	else if(format_str == "B8G8R8A8_SSCALED"s) {res = VK_FORMAT_B8G8R8A8_SSCALED;}
+	else if(format_str == "B8G8R8A8_UINT"s) {res = VK_FORMAT_B8G8R8A8_UINT;}
+	else if(format_str == "B8G8R8A8_SINT"s) {res = VK_FORMAT_B8G8R8A8_SINT;}
+	else if(format_str == "B8G8R8A8_SRGB"s) {res = VK_FORMAT_B8G8R8A8_SRGB;}
+	else if(format_str == "A8B8G8R8_UNORM_PACK32"s) {res = VK_FORMAT_A8B8G8R8_UNORM_PACK32;}
+	else if(format_str == "A8B8G8R8_SNORM_PACK32"s) {res = VK_FORMAT_A8B8G8R8_SNORM_PACK32;}
+	else if(format_str == "A8B8G8R8_USCALED_PACK32"s) {res = VK_FORMAT_A8B8G8R8_USCALED_PACK32;}
+	else if(format_str == "A8B8G8R8_SSCALED_PACK32"s) {res = VK_FORMAT_A8B8G8R8_SSCALED_PACK32;}
+	else if(format_str == "A8B8G8R8_UINT_PACK32"s) {res = VK_FORMAT_A8B8G8R8_UINT_PACK32;}
+	else if(format_str == "A8B8G8R8_SINT_PACK32"s) {res = VK_FORMAT_A8B8G8R8_SINT_PACK32;}
+	else if(format_str == "A8B8G8R8_SRGB_PACK32"s) {res = VK_FORMAT_A8B8G8R8_SRGB_PACK32;}
+	else if(format_str == "A2R10G10B10_UNORM_PACK32"s) {res = VK_FORMAT_A2R10G10B10_UNORM_PACK32;}
+	else if(format_str == "A2R10G10B10_SNORM_PACK32"s) {res = VK_FORMAT_A2R10G10B10_SNORM_PACK32;}
+	else if(format_str == "A2R10G10B10_USCALED_PACK32"s) {res = VK_FORMAT_A2R10G10B10_USCALED_PACK32;}
+	else if(format_str == "A2R10G10B10_SSCALED_PACK32"s) {res = VK_FORMAT_A2R10G10B10_SSCALED_PACK32;}
+	else if(format_str == "A2R10G10B10_UINT_PACK32"s) {res = VK_FORMAT_A2R10G10B10_UINT_PACK32;}
+	else if(format_str == "A2R10G10B10_SINT_PACK32"s) {res = VK_FORMAT_A2R10G10B10_SINT_PACK32;}
+	else if(format_str == "A2B10G10R10_UNORM_PACK32"s) {res = VK_FORMAT_A2B10G10R10_UNORM_PACK32;}
+	else if(format_str == "A2B10G10R10_SNORM_PACK32"s) {res = VK_FORMAT_A2B10G10R10_SNORM_PACK32;}
+	else if(format_str == "A2B10G10R10_USCALED_PACK32"s) {res = VK_FORMAT_A2B10G10R10_USCALED_PACK32;}
+	else if(format_str == "A2B10G10R10_SSCALED_PACK32"s) {res = VK_FORMAT_A2B10G10R10_SSCALED_PACK32;}
+	else if(format_str == "A2B10G10R10_UINT_PACK32"s) {res = VK_FORMAT_A2B10G10R10_UINT_PACK32;}
+	else if(format_str == "A2B10G10R10_SINT_PACK32"s) {res = VK_FORMAT_A2B10G10R10_SINT_PACK32;}
+	else if(format_str == "R16_UNORM"s) {res = VK_FORMAT_R16_UNORM;}
+	else if(format_str == "R16_SNORM"s) {res = VK_FORMAT_R16_SNORM;}
+	else if(format_str == "R16_USCALED"s) {res = VK_FORMAT_R16_USCALED;}
+	else if(format_str == "R16_SSCALED"s) {res = VK_FORMAT_R16_SSCALED;}
+	else if(format_str == "R16_UINT"s) {res = VK_FORMAT_R16_UINT;}
+	else if(format_str == "R16_SINT"s) {res = VK_FORMAT_R16_SINT;}
+	else if(format_str == "R16_SFLOAT"s) {res = VK_FORMAT_R16_SFLOAT;}
+	else if(format_str == "R16G16_UNORM"s) {res = VK_FORMAT_R16G16_UNORM;}
+	else if(format_str == "R16G16_SNORM"s) {res = VK_FORMAT_R16G16_SNORM;}
+	else if(format_str == "R16G16_USCALED"s) {res = VK_FORMAT_R16G16_USCALED;}
+	else if(format_str == "R16G16_SSCALED"s) {res = VK_FORMAT_R16G16_SSCALED;}
+	else if(format_str == "R16G16_UINT"s) {res = VK_FORMAT_R16G16_UINT;}
+	else if(format_str == "R16G16_SINT"s) {res = VK_FORMAT_R16G16_SINT;}
+	else if(format_str == "R16G16_SFLOAT"s) {res = VK_FORMAT_R16G16_SFLOAT;}
+	else if(format_str == "R16G16B16_UNORM"s) {res = VK_FORMAT_R16G16B16_UNORM;}
+	else if(format_str == "R16G16B16_SNORM"s) {res = VK_FORMAT_R16G16B16_SNORM;}
+	else if(format_str == "R16G16B16_USCALED"s) {res = VK_FORMAT_R16G16B16_USCALED;}
+	else if(format_str == "R16G16B16_SSCALED"s) {res = VK_FORMAT_R16G16B16_SSCALED;}
+	else if(format_str == "R16G16B16_UINT"s) {res = VK_FORMAT_R16G16B16_UINT;}
+	else if(format_str == "R16G16B16_SINT"s) {res = VK_FORMAT_R16G16B16_SINT;}
+	else if(format_str == "R16G16B16_SFLOAT"s) {res = VK_FORMAT_R16G16B16_SFLOAT;}
+	else if(format_str == "R16G16B16A16_UNORM"s) {res = VK_FORMAT_R16G16B16A16_UNORM;}
+	else if(format_str == "R16G16B16A16_SNORM"s) {res = VK_FORMAT_R16G16B16A16_SNORM;}
+	else if(format_str == "R16G16B16A16_USCALED"s) {res = VK_FORMAT_R16G16B16A16_USCALED;}
+	else if(format_str == "R16G16B16A16_SSCALED"s) {res = VK_FORMAT_R16G16B16A16_SSCALED;}
+	else if(format_str == "R16G16B16A16_UINT"s) {res = VK_FORMAT_R16G16B16A16_UINT;}
+	else if(format_str == "R16G16B16A16_SINT"s) {res = VK_FORMAT_R16G16B16A16_SINT;}
+	else if(format_str == "R16G16B16A16_SFLOAT"s) {res = VK_FORMAT_R16G16B16A16_SFLOAT;}
+	else if(format_str == "R32_UINT"s) {res = VK_FORMAT_R32_UINT;}
+	else if(format_str == "R32_SINT"s) {res = VK_FORMAT_R32_SINT;}
+	else if(format_str == "R32_SFLOAT"s) {res = VK_FORMAT_R32_SFLOAT;}
+	else if(format_str == "R32G32_UINT"s) {res = VK_FORMAT_R32G32_UINT;}
+	else if(format_str == "R32G32_SINT"s) {res = VK_FORMAT_R32G32_SINT;}
+	else if(format_str == "R32G32_SFLOAT"s) {res = VK_FORMAT_R32G32_SFLOAT;}
+	else if(format_str == "R32G32B32_UINT"s) {res = VK_FORMAT_R32G32B32_UINT;}
+	else if(format_str == "R32G32B32_SINT"s) {res = VK_FORMAT_R32G32B32_SINT;}
+	else if(format_str == "R32G32B32_SFLOAT"s) {res = VK_FORMAT_R32G32B32_SFLOAT;}
+	else if(format_str == "R32G32B32A32_UINT"s) {res = VK_FORMAT_R32G32B32A32_UINT;}
+	else if(format_str == "R32G32B32A32_SINT"s) {res = VK_FORMAT_R32G32B32A32_SINT;}
+	else if(format_str == "R32G32B32A32_SFLOAT"s) {res = VK_FORMAT_R32G32B32A32_SFLOAT;}
+	else if(format_str == "R64_UINT"s) {res = VK_FORMAT_R64_UINT;}
+	else if(format_str == "R64_SINT"s) {res = VK_FORMAT_R64_SINT;}
+	else if(format_str == "R64_SFLOAT"s) {res = VK_FORMAT_R64_SFLOAT;}
+	else if(format_str == "R64G64_UINT"s) {res = VK_FORMAT_R64G64_UINT;}
+	else if(format_str == "R64G64_SINT"s) {res = VK_FORMAT_R64G64_SINT;}
+	else if(format_str == "R64G64_SFLOAT"s) {res = VK_FORMAT_R64G64_SFLOAT;}
+	else if(format_str == "R64G64B64_UINT"s) {res = VK_FORMAT_R64G64B64_UINT;}
+	else if(format_str == "R64G64B64_SINT"s) {res = VK_FORMAT_R64G64B64_SINT;}
+	else if(format_str == "R64G64B64_SFLOAT"s) {res = VK_FORMAT_R64G64B64_SFLOAT;}
+	else if(format_str == "R64G64B64A64_UINT"s) {res = VK_FORMAT_R64G64B64A64_UINT;}
+	else if(format_str == "R64G64B64A64_SINT"s) {res = VK_FORMAT_R64G64B64A64_SINT;}
+	else if(format_str == "R64G64B64A64_SFLOAT"s) {res = VK_FORMAT_R64G64B64A64_SFLOAT;}
+	else if(format_str == "B10G11R11_UFLOAT_PACK32"s) {res = VK_FORMAT_B10G11R11_UFLOAT_PACK32;}
+	else if(format_str == "E5B9G9R9_UFLOAT_PACK32"s) {res = VK_FORMAT_E5B9G9R9_UFLOAT_PACK32;}
+	else if(format_str == "D16_UNORM"s) {res = VK_FORMAT_D16_UNORM;}
+	else if(format_str == "X8_D24_UNORM_PACK32"s) {res = VK_FORMAT_X8_D24_UNORM_PACK32;}
+	else if(format_str == "D32_SFLOAT"s) {res = VK_FORMAT_D32_SFLOAT;}
+	else if(format_str == "S8_UINT"s) {res = VK_FORMAT_S8_UINT;}
+	else if(format_str == "D16_UNORM_S8_UINT"s) {res = VK_FORMAT_D16_UNORM_S8_UINT;}
+	else if(format_str == "D24_UNORM_S8_UINT"s) {res = VK_FORMAT_D24_UNORM_S8_UINT;}
+	else if(format_str == "D32_SFLOAT_S8_UINT"s) {res = VK_FORMAT_D32_SFLOAT_S8_UINT;}
+	else if(format_str == "BC1_RGB_UNORM_BLOCK"s) {res = VK_FORMAT_BC1_RGB_UNORM_BLOCK;}
+	else if(format_str == "BC1_RGB_SRGB_BLOCK"s) {res = VK_FORMAT_BC1_RGB_SRGB_BLOCK;}
+	else if(format_str == "BC1_RGBA_UNORM_BLOCK"s) {res = VK_FORMAT_BC1_RGBA_UNORM_BLOCK;}
+	else if(format_str == "BC1_RGBA_SRGB_BLOCK"s) {res = VK_FORMAT_BC1_RGBA_SRGB_BLOCK;}
+	else if(format_str == "BC2_UNORM_BLOCK"s) {res = VK_FORMAT_BC2_UNORM_BLOCK;}
+	else if(format_str == "BC2_SRGB_BLOCK"s) {res = VK_FORMAT_BC2_SRGB_BLOCK;}
+	else if(format_str == "BC3_UNORM_BLOCK"s) {res = VK_FORMAT_BC3_UNORM_BLOCK;}
+	else if(format_str == "BC3_SRGB_BLOCK"s) {res = VK_FORMAT_BC3_SRGB_BLOCK;}
+	else if(format_str == "BC4_UNORM_BLOCK"s) {res = VK_FORMAT_BC4_UNORM_BLOCK;}
+	else if(format_str == "BC4_SNORM_BLOCK"s) {res = VK_FORMAT_BC4_SNORM_BLOCK;}
+	else if(format_str == "BC5_UNORM_BLOCK"s) {res = VK_FORMAT_BC5_UNORM_BLOCK;}
+	else if(format_str == "BC5_SNORM_BLOCK"s) {res = VK_FORMAT_BC5_SNORM_BLOCK;}
+	else if(format_str == "BC6H_UFLOAT_BLOCK"s) {res = VK_FORMAT_BC6H_UFLOAT_BLOCK;}
+	else if(format_str == "BC6H_SFLOAT_BLOCK"s) {res = VK_FORMAT_BC6H_SFLOAT_BLOCK;}
+	else if(format_str == "BC7_UNORM_BLOCK"s) {res = VK_FORMAT_BC7_UNORM_BLOCK;}
+	else if(format_str == "BC7_SRGB_BLOCK"s) {res = VK_FORMAT_BC7_SRGB_BLOCK;}
+	else if(format_str == "ETC2_R8G8B8_UNORM_BLOCK"s) {res = VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK;}
+	else if(format_str == "ETC2_R8G8B8_SRGB_BLOCK"s) {res = VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK;}
+	else if(format_str == "ETC2_R8G8B8A1_UNORM_BLOCK"s) {res = VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK;}
+	else if(format_str == "ETC2_R8G8B8A1_SRGB_BLOCK"s) {res = VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK;}
+	else if(format_str == "ETC2_R8G8B8A8_UNORM_BLOCK"s) {res = VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK;}
+	else if(format_str == "ETC2_R8G8B8A8_SRGB_BLOCK"s) {res = VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK;}
+	else if(format_str == "EAC_R11_UNORM_BLOCK"s) {res = VK_FORMAT_EAC_R11_UNORM_BLOCK;}
+	else if(format_str == "EAC_R11_SNORM_BLOCK"s) {res = VK_FORMAT_EAC_R11_SNORM_BLOCK;}
+	else if(format_str == "EAC_R11G11_UNORM_BLOCK"s) {res = VK_FORMAT_EAC_R11G11_UNORM_BLOCK;}
+	else if(format_str == "EAC_R11G11_SNORM_BLOCK"s) {res = VK_FORMAT_EAC_R11G11_SNORM_BLOCK;}
+	else if(format_str == "ASTC_4X4_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_4x4_UNORM_BLOCK;}
+	else if(format_str == "ASTC_4X4_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_4x4_SRGB_BLOCK;}
+	else if(format_str == "ASTC_5X4_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_5x4_UNORM_BLOCK;}
+	else if(format_str == "ASTC_5X4_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_5x4_SRGB_BLOCK;}
+	else if(format_str == "ASTC_5X5_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_5x5_UNORM_BLOCK;}
+	else if(format_str == "ASTC_5X5_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_5x5_SRGB_BLOCK;}
+	else if(format_str == "ASTC_6X5_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_6x5_UNORM_BLOCK;}
+	else if(format_str == "ASTC_6X5_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_6x5_SRGB_BLOCK;}
+	else if(format_str == "ASTC_6X6_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_6x6_UNORM_BLOCK;}
+	else if(format_str == "ASTC_6X6_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_6x6_SRGB_BLOCK;}
+	else if(format_str == "ASTC_8X5_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_8x5_UNORM_BLOCK;}
+	else if(format_str == "ASTC_8X5_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_8x5_SRGB_BLOCK;}
+	else if(format_str == "ASTC_8X6_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_8x6_UNORM_BLOCK;}
+	else if(format_str == "ASTC_8X6_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_8x6_SRGB_BLOCK;}
+	else if(format_str == "ASTC_8X8_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_8x8_UNORM_BLOCK;}
+	else if(format_str == "ASTC_8X8_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_8x8_SRGB_BLOCK;}
+	else if(format_str == "ASTC_10X5_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_10x5_UNORM_BLOCK;}
+	else if(format_str == "ASTC_10X5_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_10x5_SRGB_BLOCK;}
+	else if(format_str == "ASTC_10X6_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_10x6_UNORM_BLOCK;}
+	else if(format_str == "ASTC_10X6_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_10x6_SRGB_BLOCK;}
+	else if(format_str == "ASTC_10X8_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_10x8_UNORM_BLOCK;}
+	else if(format_str == "ASTC_10X8_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_10x8_SRGB_BLOCK;}
+	else if(format_str == "ASTC_10X10_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_10x10_UNORM_BLOCK;}
+	else if(format_str == "ASTC_10X10_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_10x10_SRGB_BLOCK;}
+	else if(format_str == "ASTC_12X10_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_12x10_UNORM_BLOCK;}
+	else if(format_str == "ASTC_12X10_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_12x10_SRGB_BLOCK;}
+	else if(format_str == "ASTC_12X12_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_12x12_UNORM_BLOCK;}
+	else if(format_str == "ASTC_12X12_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_12x12_SRGB_BLOCK;}
+	else if(format_str == "G8B8G8R8_422_UNORM"s) {res = VK_FORMAT_G8B8G8R8_422_UNORM;}
+	else if(format_str == "B8G8R8G8_422_UNORM"s) {res = VK_FORMAT_B8G8R8G8_422_UNORM;}
+	else if(format_str == "G8_B8_R8_3PLANE_420_UNORM"s) {res = VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM;}
+	else if(format_str == "G8_B8R8_2PLANE_420_UNORM"s) {res = VK_FORMAT_G8_B8R8_2PLANE_420_UNORM;}
+	else if(format_str == "G8_B8_R8_3PLANE_422_UNORM"s) {res = VK_FORMAT_G8_B8_R8_3PLANE_422_UNORM;}
+	else if(format_str == "G8_B8R8_2PLANE_422_UNORM"s) {res = VK_FORMAT_G8_B8R8_2PLANE_422_UNORM;}
+	else if(format_str == "G8_B8_R8_3PLANE_444_UNORM"s) {res = VK_FORMAT_G8_B8_R8_3PLANE_444_UNORM;}
+	else if(format_str == "R10X6_UNORM_PACK16"s) {res = VK_FORMAT_R10X6_UNORM_PACK16;}
+	else if(format_str == "R10X6G10X6_UNORM_2PACK16"s) {res = VK_FORMAT_R10X6G10X6_UNORM_2PACK16;}
+	else if(format_str == "R10X6G10X6B10X6A10X6_UNORM_4PACK16"s) {res = VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16;}
+	else if(format_str == "G10X6B10X6G10X6R10X6_422_UNORM_4PACK16"s) {res = VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16;}
+	else if(format_str == "B10X6G10X6R10X6G10X6_422_UNORM_4PACK16"s) {res = VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16;}
+	else if(format_str == "G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16"s) {res = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16;}
+	else if(format_str == "G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16"s) {res = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16;}
+	else if(format_str == "G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16"s) {res = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16;}
+	else if(format_str == "G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16"s) {res = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16;}
+	else if(format_str == "G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16"s) {res = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16;}
+	else if(format_str == "R12X4_UNORM_PACK16"s) {res = VK_FORMAT_R12X4_UNORM_PACK16;}
+	else if(format_str == "R12X4G12X4_UNORM_2PACK16"s) {res = VK_FORMAT_R12X4G12X4_UNORM_2PACK16;}
+	else if(format_str == "R12X4G12X4B12X4A12X4_UNORM_4PACK16"s) {res = VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16;}
+	else if(format_str == "G12X4B12X4G12X4R12X4_422_UNORM_4PACK16"s) {res = VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16;}
+	else if(format_str == "B12X4G12X4R12X4G12X4_422_UNORM_4PACK16"s) {res = VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16;}
+	else if(format_str == "G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16"s) {res = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16;}
+	else if(format_str == "G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16"s) {res = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16;}
+	else if(format_str == "G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16"s) {res = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16;}
+	else if(format_str == "G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16"s) {res = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16;}
+	else if(format_str == "G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16"s) {res = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16;}
+	else if(format_str == "G16B16G16R16_422_UNORM"s) {res = VK_FORMAT_G16B16G16R16_422_UNORM;}
+	else if(format_str == "B16G16R16G16_422_UNORM"s) {res = VK_FORMAT_B16G16R16G16_422_UNORM;}
+	else if(format_str == "G16_B16_R16_3PLANE_420_UNORM"s) {res = VK_FORMAT_G16_B16_R16_3PLANE_420_UNORM;}
+	else if(format_str == "G16_B16R16_2PLANE_420_UNORM"s) {res = VK_FORMAT_G16_B16R16_2PLANE_420_UNORM;}
+	else if(format_str == "G16_B16_R16_3PLANE_422_UNORM"s) {res = VK_FORMAT_G16_B16_R16_3PLANE_422_UNORM;}
+	else if(format_str == "G16_B16R16_2PLANE_422_UNORM"s) {res = VK_FORMAT_G16_B16R16_2PLANE_422_UNORM;}
+	else if(format_str == "G16_B16_R16_3PLANE_444_UNORM"s) {res = VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM;}
+	else if(format_str == "G8_B8R8_2PLANE_444_UNORM"s) {res = VK_FORMAT_G8_B8R8_2PLANE_444_UNORM;}
+	else if(format_str == "G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16"s) {res = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16;}
+	else if(format_str == "G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16"s) {res = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16;}
+	else if(format_str == "G16_B16R16_2PLANE_444_UNORM"s) {res = VK_FORMAT_G16_B16R16_2PLANE_444_UNORM;}
+	else if(format_str == "A4R4G4B4_UNORM_PACK16"s) {res = VK_FORMAT_A4R4G4B4_UNORM_PACK16;}
+	else if(format_str == "A4B4G4R4_UNORM_PACK16"s) {res = VK_FORMAT_A4B4G4R4_UNORM_PACK16;}
+	else if(format_str == "ASTC_4X4_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK;}
+	else if(format_str == "ASTC_5X4_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK;}
+	else if(format_str == "ASTC_5X5_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK;}
+	else if(format_str == "ASTC_6X5_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK;}
+	else if(format_str == "ASTC_6X6_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK;}
+	else if(format_str == "ASTC_8X5_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK;}
+	else if(format_str == "ASTC_8X6_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK;}
+	else if(format_str == "ASTC_8X8_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK;}
+	else if(format_str == "ASTC_10X5_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK;}
+	else if(format_str == "ASTC_10X6_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK;}
+	else if(format_str == "ASTC_10X8_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK;}
+	else if(format_str == "ASTC_10X10_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK;}
+	else if(format_str == "ASTC_12X10_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK;}
+	else if(format_str == "ASTC_12X12_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK;}
+	else if(format_str == "PVRTC1_2BPP_UNORM_BLOCK_IMG"s) {res = VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG;}
+	else if(format_str == "PVRTC1_4BPP_UNORM_BLOCK_IMG"s) {res = VK_FORMAT_PVRTC1_4BPP_UNORM_BLOCK_IMG;}
+	else if(format_str == "PVRTC2_2BPP_UNORM_BLOCK_IMG"s) {res = VK_FORMAT_PVRTC2_2BPP_UNORM_BLOCK_IMG;}
+	else if(format_str == "PVRTC2_4BPP_UNORM_BLOCK_IMG"s) {res = VK_FORMAT_PVRTC2_4BPP_UNORM_BLOCK_IMG;}
+	else if(format_str == "PVRTC1_2BPP_SRGB_BLOCK_IMG"s) {res = VK_FORMAT_PVRTC1_2BPP_SRGB_BLOCK_IMG;}
+	else if(format_str == "PVRTC1_4BPP_SRGB_BLOCK_IMG"s) {res = VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG;}
+	else if(format_str == "PVRTC2_2BPP_SRGB_BLOCK_IMG"s) {res = VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG;}
+	else if(format_str == "PVRTC2_4BPP_SRGB_BLOCK_IMG"s) {res = VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG;}
+	else if(format_str == "R16G16_SFIXED5_NV"s) {res = VK_FORMAT_R16G16_SFIXED5_NV;}
+	else if(format_str == "A1B5G5R5_UNORM_PACK16_KHR"s) {res = VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR;}
+	else if(format_str == "A8_UNORM_KHR"s) {res = VK_FORMAT_A8_UNORM_KHR;}
+	else if(format_str == "ASTC_4X4_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "ASTC_5X4_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "ASTC_5X5_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "ASTC_6X5_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "ASTC_6X6_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "ASTC_8X5_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "ASTC_8X6_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "ASTC_8X8_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "ASTC_10X5_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "ASTC_10X6_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "ASTC_10X8_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "ASTC_10X10_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "ASTC_12X10_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "ASTC_12X12_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "G8B8G8R8_422_UNORM_KHR"s) {res = VK_FORMAT_G8B8G8R8_422_UNORM_KHR;}
+	else if(format_str == "B8G8R8G8_422_UNORM_KHR"s) {res = VK_FORMAT_B8G8R8G8_422_UNORM_KHR;}
+	else if(format_str == "G8_B8_R8_3PLANE_420_UNORM_KHR"s) {res = VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM_KHR;}
+	else if(format_str == "G8_B8R8_2PLANE_420_UNORM_KHR"s) {res = VK_FORMAT_G8_B8R8_2PLANE_420_UNORM_KHR;}
+	else if(format_str == "G8_B8_R8_3PLANE_422_UNORM_KHR"s) {res = VK_FORMAT_G8_B8_R8_3PLANE_422_UNORM_KHR;}
+	else if(format_str == "G8_B8R8_2PLANE_422_UNORM_KHR"s) {res = VK_FORMAT_G8_B8R8_2PLANE_422_UNORM_KHR;}
+	else if(format_str == "G8_B8_R8_3PLANE_444_UNORM_KHR"s) {res = VK_FORMAT_G8_B8_R8_3PLANE_444_UNORM_KHR;}
+	else if(format_str == "R10X6_UNORM_PACK16_KHR"s) {res = VK_FORMAT_R10X6_UNORM_PACK16_KHR;}
+	else if(format_str == "R10X6G10X6_UNORM_2PACK16_KHR"s) {res = VK_FORMAT_R10X6G10X6_UNORM_2PACK16_KHR;}
+	else if(format_str == "R10X6G10X6B10X6A10X6_UNORM_4PACK16_KHR"s) {res = VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16_KHR;}
+	else if(format_str == "G10X6B10X6G10X6R10X6_422_UNORM_4PACK16_KHR"s) {res = VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16_KHR;}
+	else if(format_str == "B10X6G10X6R10X6G10X6_422_UNORM_4PACK16_KHR"s) {res = VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16_KHR;}
+	else if(format_str == "G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16_KHR"s) {res = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16_KHR;}
+	else if(format_str == "G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16_KHR"s) {res = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16_KHR;}
+	else if(format_str == "G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16_KHR"s) {res = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16_KHR;}
+	else if(format_str == "G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16_KHR"s) {res = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16_KHR;}
+	else if(format_str == "G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16_KHR"s) {res = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16_KHR;}
+	else if(format_str == "R12X4_UNORM_PACK16_KHR"s) {res = VK_FORMAT_R12X4_UNORM_PACK16_KHR;}
+	else if(format_str == "R12X4G12X4_UNORM_2PACK16_KHR"s) {res = VK_FORMAT_R12X4G12X4_UNORM_2PACK16_KHR;}
+	else if(format_str == "R12X4G12X4B12X4A12X4_UNORM_4PACK16_KHR"s) {res = VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16_KHR;}
+	else if(format_str == "G12X4B12X4G12X4R12X4_422_UNORM_4PACK16_KHR"s) {res = VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16_KHR;}
+	else if(format_str == "B12X4G12X4R12X4G12X4_422_UNORM_4PACK16_KHR"s) {res = VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16_KHR;}
+	else if(format_str == "G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16_KHR"s) {res = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16_KHR;}
+	else if(format_str == "G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16_KHR"s) {res = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16_KHR;}
+	else if(format_str == "G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16_KHR"s) {res = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16_KHR;}
+	else if(format_str == "G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16_KHR"s) {res = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16_KHR;}
+	else if(format_str == "G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16_KHR"s) {res = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16_KHR;}
+	else if(format_str == "G16B16G16R16_422_UNORM_KHR"s) {res = VK_FORMAT_G16B16G16R16_422_UNORM_KHR;}
+	else if(format_str == "B16G16R16G16_422_UNORM_KHR"s) {res = VK_FORMAT_B16G16R16G16_422_UNORM_KHR;}
+	else if(format_str == "G16_B16_R16_3PLANE_420_UNORM_KHR"s) {res = VK_FORMAT_G16_B16_R16_3PLANE_420_UNORM_KHR;}
+	else if(format_str == "G16_B16R16_2PLANE_420_UNORM_KHR"s) {res = VK_FORMAT_G16_B16R16_2PLANE_420_UNORM_KHR;}
+	else if(format_str == "G16_B16_R16_3PLANE_422_UNORM_KHR"s) {res = VK_FORMAT_G16_B16_R16_3PLANE_422_UNORM_KHR;}
+	else if(format_str == "G16_B16R16_2PLANE_422_UNORM_KHR"s) {res = VK_FORMAT_G16_B16R16_2PLANE_422_UNORM_KHR;}
+	else if(format_str == "G16_B16_R16_3PLANE_444_UNORM_KHR"s) {res = VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM_KHR;}
+	else if(format_str == "G8_B8R8_2PLANE_444_UNORM_EXT"s) {res = VK_FORMAT_G8_B8R8_2PLANE_444_UNORM_EXT;}
+	else if(format_str == "G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16_EXT"s) {res = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16_EXT;}
+	else if(format_str == "G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16_EXT"s) {res = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16_EXT;}
+	else if(format_str == "G16_B16R16_2PLANE_444_UNORM_EXT"s) {res = VK_FORMAT_G16_B16R16_2PLANE_444_UNORM_EXT;}
+	else if(format_str == "A4R4G4B4_UNORM_PACK16_EXT"s) {res = VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT;}
+	else if(format_str == "A4B4G4R4_UNORM_PACK16_EXT"s) {res = VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT;}
+	else if(format_str == "R16G16_S10_5_NV"s) {res = VK_FORMAT_R16G16_S10_5_NV;}
+    
+    return res;
+}
+
+VkAttachmentLoadOp getAttachmentLoadOp(const std::string& load_op_str) {
+	using namespace std::literals;
+    VkAttachmentLoadOp res{};
+
+         if(load_op_str == "load"s) {res = VK_ATTACHMENT_LOAD_OP_LOAD;}
+	else if(load_op_str == "clear"s) {res = VK_ATTACHMENT_LOAD_OP_CLEAR;}
+	else if(load_op_str == "dont_care"s) {res = VK_ATTACHMENT_LOAD_OP_DONT_CARE;}
+	else if(load_op_str == "none_khr"s) {res = VK_ATTACHMENT_LOAD_OP_NONE_KHR;}
+	else if(load_op_str == "none_ext"s) {res = VK_ATTACHMENT_LOAD_OP_NONE_EXT;}
+    
+    return res;
+}
+
+VkAttachmentStoreOp getAttachmentStoreOp(const std::string& store_op_str) {
+	using namespace std::literals;
+    VkAttachmentStoreOp res{};
+
+         if(store_op_str == "store"s) {res = VK_ATTACHMENT_STORE_OP_STORE;}
+	else if(store_op_str == "dont_care"s) {res = VK_ATTACHMENT_STORE_OP_DONT_CARE;}
+	else if(store_op_str == "none"s) {res = VK_ATTACHMENT_STORE_OP_NONE;}
+	else if(store_op_str == "none_khr"s) {res = VK_ATTACHMENT_STORE_OP_NONE_KHR;}
+	else if(store_op_str == "none_qcom"s) {res = VK_ATTACHMENT_STORE_OP_NONE_QCOM;}
+	else if(store_op_str == "none_ext"s) {res = VK_ATTACHMENT_STORE_OP_NONE_EXT;}
+    
+    return res;
+}
+
+VkImageLayout getImageLayout(const std::string& layout_str) {
+	using namespace std::literals;
+    VkImageLayout res{};
+
+         if(layout_str == "UNDEFINED"s) {res = VK_IMAGE_LAYOUT_UNDEFINED;}
+	else if(layout_str == "GENERAL"s) {res = VK_IMAGE_LAYOUT_GENERAL;}
+	else if(layout_str == "COLOR_ATTACHMENT_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;}
+	else if(layout_str == "DEPTH_STENCIL_ATTACHMENT_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;}
+	else if(layout_str == "DEPTH_STENCIL_READ_ONLY_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;}
+	else if(layout_str == "SHADER_READ_ONLY_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;}
+	else if(layout_str == "TRANSFER_SRC_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;}
+	else if(layout_str == "TRANSFER_DST_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;}
+	else if(layout_str == "PREINITIALIZED"s) {res = VK_IMAGE_LAYOUT_PREINITIALIZED;}
+	else if(layout_str == "DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL;}
+	else if(layout_str == "DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL;}
+	else if(layout_str == "DEPTH_ATTACHMENT_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;}
+	else if(layout_str == "DEPTH_READ_ONLY_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;}
+	else if(layout_str == "STENCIL_ATTACHMENT_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL;}
+	else if(layout_str == "STENCIL_READ_ONLY_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL;}
+	else if(layout_str == "READ_ONLY_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL;}
+	else if(layout_str == "ATTACHMENT_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;}
+	else if(layout_str == "PRESENT_SRC_KHR"s) {res = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;}
+	else if(layout_str == "VIDEO_DECODE_DST_KHR"s) {res = VK_IMAGE_LAYOUT_VIDEO_DECODE_DST_KHR;}
+	else if(layout_str == "VIDEO_DECODE_SRC_KHR"s) {res = VK_IMAGE_LAYOUT_VIDEO_DECODE_SRC_KHR;}
+	else if(layout_str == "VIDEO_DECODE_DPB_KHR"s) {res = VK_IMAGE_LAYOUT_VIDEO_DECODE_DPB_KHR;}
+	else if(layout_str == "SHARED_PRESENT_KHR"s) {res = VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR;}
+	else if(layout_str == "FRAGMENT_DENSITY_MAP_OPTIMAL_EXT"s) {res = VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT;}
+	else if(layout_str == "FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR"s) {res = VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR;}
+	else if(layout_str == "RENDERING_LOCAL_READ_KHR"s) {res = VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR;}
+	else if(layout_str == "VIDEO_ENCODE_DST_KHR"s) {res = VK_IMAGE_LAYOUT_VIDEO_ENCODE_DST_KHR;}
+	else if(layout_str == "VIDEO_ENCODE_SRC_KHR"s) {res = VK_IMAGE_LAYOUT_VIDEO_ENCODE_SRC_KHR;}
+	else if(layout_str == "VIDEO_ENCODE_DPB_KHR"s) {res = VK_IMAGE_LAYOUT_VIDEO_ENCODE_DPB_KHR;}
+	else if(layout_str == "ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT"s) {res = VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT;}
+	else if(layout_str == "DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL_KHR"s) {res = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL_KHR;}
+	else if(layout_str == "DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL_KHR"s) {res = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL_KHR;}
+	else if(layout_str == "SHADING_RATE_OPTIMAL_NV"s) {res = VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV;}
+	else if(layout_str == "DEPTH_ATTACHMENT_OPTIMAL_KHR"s) {res = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL_KHR;}
+	else if(layout_str == "DEPTH_READ_ONLY_OPTIMAL_KHR"s) {res = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL_KHR;}
+	else if(layout_str == "STENCIL_ATTACHMENT_OPTIMAL_KHR"s) {res = VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL_KHR;}
+	else if(layout_str == "STENCIL_READ_ONLY_OPTIMAL_KHR"s) {res = VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL_KHR;}
+	else if(layout_str == "READ_ONLY_OPTIMAL_KHR"s) {res = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL_KHR;}
+	else if(layout_str == "ATTACHMENT_OPTIMAL_KHR"s) {res = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;}
     
     return res;
 }

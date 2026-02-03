@@ -9,6 +9,7 @@
             <PageSize>8</PageSize>
         </DescriptorAllocator>
     </DescriptorAllocators>
+    
     <Descriptors>
         <DescriptorSet name="basic_diffuse_descriptor_set" allocator="basic_alloc">
             <Layout>
@@ -129,6 +130,83 @@
         </Shader>
     </Shaders>
 
+    <RenderPases>
+        <RenderPass name="basic_render_target">
+            <AttachmentDescriptions>
+                <AttachmentDescription name="color_attachment">
+                    <Format>as_swapchain</Format>
+                    <Samples>as_device</Samples>
+                    <LoadOp>load</LoadOp>
+                    <StoreOp>store</StoreOp>
+                    <StencilLoadOp>load</StencilLoadOp>
+                    <StencilStoreOp>dont_care</StencilStoreOp>
+                    <InitialLayout>present_src_khr</InitialLayout>
+                    <FinalLayout>present_src_khr</FinalLayout>
+                </AttachmentDescription>
+                <AttachmentDescription name="depth_attachment">
+                    <Format>find_suitable_depth</Format>
+                    <Samples>as_device</Samples>
+                    <LoadOp>load</LoadOp>
+                    <StoreOp>store</StoreOp>
+                    <StencilLoadOp>load</StencilLoadOp>
+                    <StencilStoreOp>dont_care</StencilStoreOp>
+                    <InitialLayout>auto_depth_stencil_attachment_optimal</InitialLayout>
+                    <FinalLayout>auto_depth_stencil_attachment_optimal</FinalLayout>
+                </AttachmentDescription>
+            </AttachmentDescriptions>
+        </RenderPass>
+
+        <RenderPass name="basic_mulisample_render_target">
+            <AttachmentDescriptions>
+                <AttachmentDescription name="color_attachment">
+                    <Format>as_swapchain</Format>
+                    <Samples>as_device</Samples>
+                    <LoadOp>load</LoadOp>
+                    <StoreOp>store</StoreOp>
+                    <StencilLoadOp>load</StencilLoadOp>
+                    <StencilStoreOp>dont_care</StencilStoreOp>
+                    <InitialLayout>color_attachment_optimal</InitialLayout>
+                    <FinalLayout>color_attachment_optimal</FinalLayout>
+                </AttachmentDescription>
+                <AttachmentDescription name="depth_attachment">
+                    <Format>find_suitable_depth</Format>
+                    <Samples>as_device</Samples>
+                    <LoadOp>load</LoadOp>
+                    <StoreOp>store</StoreOp>
+                    <StencilLoadOp>load</StencilLoadOp>
+                    <StencilStoreOp>dont_care</StencilStoreOp>
+                    <InitialLayout>auto_depth_stencil_attachment_optimal</InitialLayout>
+                    <FinalLayout>auto_depth_stencil_attachment_optimal</FinalLayout>
+                </AttachmentDescription>
+                <AttachmentDescription name="resolve_attachment">
+                    <Format>as_swapchain</Format>
+                    <Samples>1_bit</Samples>
+                    <LoadOp>dont_care</LoadOp>
+                    <StoreOp>store</StoreOp>
+                    <StencilLoadOp>load</StencilLoadOp>
+                    <StencilStoreOp>dont_care</StencilStoreOp>
+                    <InitialLayout>present_src_khr</InitialLayout>
+                    <FinalLayout>present_src_khr</FinalLayout>
+                </AttachmentDescription>
+            </AttachmentDescriptions>
+            <SubpassDescriptions>
+                <Subpass name="only_subpass">
+                    <PipelineBindPoint>graphics</PipelineBindPoint>
+                    <OutputAttachments>
+                        <ColorAttachment>
+                            <AttachmentName>color_attachment</AttachmentName>
+                            <Layout>color_attachment_optimal</Layout>
+                        </ColorAttachment>
+                        <DepthStencilAttachmen>
+                            <AttachmentName>depth_attachment</AttachmentName>
+                            <Layout>auto_depth_stencil_attachment_optimal</Layout>
+                        </DepthStencilAttachmen>
+                    </OutputAttachments>
+                </Subpass>
+            </SubpassDescriptions>
+        </RenderPass>
+    </RenderPases>
+
     <Pipelines>
         <GraphicsPipeline name="basic_diffuse_pipeline">
             <Shaders>
@@ -137,7 +215,7 @@
             </Shaders>
             <InputAssembly>
                 <Topology>triangle_list</Topology>
-                <PrimitiveRestartEnable>true</PrimitiveRestartEnable>
+                <PrimitiveRestartEnable>false</PrimitiveRestartEnable>
             </InputAssembly>
             <RasterizationState>
                 <DepthClampEnable>false</DepthClampEnable>
@@ -195,6 +273,10 @@
                 <Dynamic>viewport</Dynamic>
                 <Dynamic>scissor</Dynamic>
             </DynamicState>
+            <RenderPass>
+                <RenderPassName>basic_mulisample_render_target</RenderPassName>
+                <Subpass>0</Subpass>
+            </RenderPass>
         </GraphicsPipeline>
 
         <GraphicsPipeline name="imgui_pipeline">
@@ -204,7 +286,7 @@
             </Shaders>
             <InputAssembly>
                 <Topology>triangle_list</Topology>
-                <PrimitiveRestartEnable>true</PrimitiveRestartEnable>
+                <PrimitiveRestartEnable>false</PrimitiveRestartEnable>
             </InputAssembly>
             <RasterizationState>
                 <DepthClampEnable>false</DepthClampEnable>
@@ -266,6 +348,10 @@
                 <Dynamic>viewport</Dynamic>
                 <Dynamic>scissor</Dynamic>
             </DynamicState>
+            <RenderPass>
+                <RenderPassName>basic_mulisample_render_target</RenderPassName>
+                <Subpass>0</Subpass>
+            </RenderPass>
         </GraphicsPipeline>
     </Pipelines>
 </RenderGraph>

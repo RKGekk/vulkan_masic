@@ -11,6 +11,8 @@
 #include <vector>
 #include <unordered_map>
 
+class VulkanDevice;
+
 class VulkanShadersManager {
 public:
     bool init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_name);

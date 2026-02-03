@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+
+
 bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR surface, GLFWwindow* window, std::shared_ptr<ThreadPool> thread_pool) {
     using namespace std::literals;
 

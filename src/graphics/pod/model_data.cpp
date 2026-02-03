@@ -85,7 +85,7 @@ VkPipelineVertexInputStateCreateInfo ModelData::GetVertextInputInfo() const {
         for (size_t i = 0; i < sz; ++i) {
             attribute_desc[i].binding = 0u;
             attribute_desc[i].location = i;
-            attribute_desc[i].format = getVkFormat(m_vertex_format.getAttribFormat(i));
+            attribute_desc[i].format = getAttributeFormat(m_vertex_format.getAttribFormat(i));
             attribute_desc[i].offset = m_vertex_format.getOffset(i);
         }
     });

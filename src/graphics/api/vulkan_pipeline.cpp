@@ -158,7 +158,7 @@ VkPipelineVertexInputStateCreateInfo VulkanPipeline::getVertexInputInfo(const st
                     VkVertexInputAttributeDescription attribute_desc{};
                     attribute_desc.binding = b;
                     attribute_desc.location = i;
-                    attribute_desc.format = getVkFormat(vertex_format.getAttribFormat(i));
+                    attribute_desc.format = getAttributeFormat(vertex_format.getAttribFormat(i));
                     attribute_desc.offset = vertex_format.getOffset(i);
 
                     m_input_attribute_descs.push_back(attribute_desc);

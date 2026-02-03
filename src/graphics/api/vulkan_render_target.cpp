@@ -135,10 +135,12 @@ VkFramebuffer RenderTarget::createFramebuffer(VkRenderPass render_pass) const {
 VkRenderPass RenderTarget::createRenderPass(VkAttachmentLoadOp load_op) const {
 
     VkSubpassDependency subpass_dependency{};
+    subpass_dependency.dependencyFlags = 0u;
     subpass_dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-    subpass_dependency.dstSubpass = 0;
     subpass_dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
     subpass_dependency.srcAccessMask = 0u;
+
+    subpass_dependency.dstSubpass = 0u;
     subpass_dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
     subpass_dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
@@ -184,12 +186,22 @@ VkRenderPass RenderTarget::createRenderPass(VkAttachmentLoadOp load_op) const {
     color_attachment_resolve_ref.attachment = 2u;
     color_attachment_resolve_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     
+
     VkSubpassDescription subpass_desc{};
     subpass_desc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+
+    subpass_desc.inputAttachmentCount = 0u;
+    subpass_desc.pInputAttachments = nullptr;
+
     subpass_desc.colorAttachmentCount = 1u;
     subpass_desc.pColorAttachments = &color_attachment_ref;
+
     subpass_desc.pDepthStencilAttachment = &depth_attachment_ref;
     subpass_desc.pResolveAttachments = m_msaa_samples == VK_SAMPLE_COUNT_1_BIT ? nullptr : &color_attachment_resolve_ref;
+
+    subpass_desc.preserveAttachmentCount = 0u;
+    subpass_desc.pPreserveAttachments = nullptr;
+    
     
     std::vector<VkAttachmentDescription> attachments;
     if(m_msaa_samples != VK_SAMPLE_COUNT_1_BIT) {
@@ -204,10 +216,13 @@ VkRenderPass RenderTarget::createRenderPass(VkAttachmentLoadOp load_op) const {
     
     VkRenderPassCreateInfo render_pass_info{};
     render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+
     render_pass_info.attachmentCount = static_cast<uint32_t>(attachments.size());
     render_pass_info.pAttachments = attachments.data();
+
     render_pass_info.subpassCount = static_cast<uint32_t>(subpases.size());
     render_pass_info.pSubpasses = subpases.data();
+
     render_pass_info.dependencyCount = static_cast<uint32_t>(subdependencies.size());
     render_pass_info.pDependencies = subdependencies.data();
     
