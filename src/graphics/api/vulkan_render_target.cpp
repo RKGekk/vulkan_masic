@@ -195,9 +195,9 @@ VkRenderPass RenderTarget::createRenderPass(VkAttachmentLoadOp load_op) const {
 
     subpass_desc.colorAttachmentCount = 1u;
     subpass_desc.pColorAttachments = &color_attachment_ref;
+    subpass_desc.pResolveAttachments = m_msaa_samples == VK_SAMPLE_COUNT_1_BIT ? nullptr : &color_attachment_resolve_ref;
 
     subpass_desc.pDepthStencilAttachment = &depth_attachment_ref;
-    subpass_desc.pResolveAttachments = m_msaa_samples == VK_SAMPLE_COUNT_1_BIT ? nullptr : &color_attachment_resolve_ref;
 
     subpass_desc.preserveAttachmentCount = 0u;
     subpass_desc.pPreserveAttachments = nullptr;

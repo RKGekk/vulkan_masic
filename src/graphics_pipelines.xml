@@ -18,7 +18,7 @@
                     <DescriptorType>uniform_buffer</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
                     <ShaderStageFlags>
-                        <Flag>vertex_bit</Flag>
+                        <Flag>vertex</Flag>
                     </ShaderStageFlags>
                 </LayoutBinding>
                 <LayoutBinding>
@@ -26,7 +26,7 @@
                     <DescriptorType>combined_image_sampler</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
                     <ShaderStageFlags>
-                        <Flag>fragment_bit</Flag>
+                        <Flag>fragment</Flag>
                     </ShaderStageFlags>
                 </LayoutBinding>
             </Layout>
@@ -39,7 +39,7 @@
                     <DescriptorType>uniform_buffer</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
                     <ShaderStageFlags>
-                        <Flag>vertex_bit</Flag>
+                        <Flag>vertex</Flag>
                     </ShaderStageFlags>
                 </LayoutBinding>
                 <LayoutBinding>
@@ -47,7 +47,7 @@
                     <DescriptorType>combined_image_sampler</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
                     <ShaderStageFlags>
-                        <Flag>fragment_bit</Flag>
+                        <Flag>fragment</Flag>
                     </ShaderStageFlags>
                 </LayoutBinding>
             </Layout>
@@ -58,7 +58,7 @@
         <Shader name="basic_diffuse_vertex_shader">
             <FilePath file_name="shader.vert"></FilePath>
             <EntryPointName>main</EntryPointName>
-            <Stage>vertex_bit</Stage>
+            <Stage>vertex</Stage>
             <InputAttributeDescription>
                 <Binding num="0" input_rate="vertex">
                     <Attribute name="inPosition">
@@ -86,7 +86,7 @@
         <Shader name="basic_diffuse_pixel_shader">
             <FilePath file_name="shader.frag"></FilePath>
             <EntryPointName>main</EntryPointName>
-            <Stage>fragment_bit</Stage>
+            <Stage>fragment</Stage>
             <DescriptorSet>
                 <Set slot="0">basic_diffuse_descriptor_set</Set>
             </DescriptorSet>
@@ -95,7 +95,7 @@
         <Shader name="imgui_vertex_shader">
             <FilePath file_name="imgui.vert"></FilePath>
             <EntryPointName>main</EntryPointName>
-            <Stage>vertex_bit</Stage>
+            <Stage>vertex</Stage>
             <InputAttributeDescription>
                 <Binding num="0" input_rate="vertex">
                     <Attribute name="inPosition">
@@ -123,7 +123,7 @@
         <Shader name="imgui_pixel_shader">
             <FilePath file_name="imgui.frag"></FilePath>
             <EntryPointName>main</EntryPointName>
-            <Stage>fragment_bit</Stage>
+            <Stage>fragment</Stage>
             <DescriptorSet>
                 <Set slot="0">imgui_descriptor_set</Set>
             </DescriptorSet>
@@ -193,11 +193,19 @@
                 <Subpass name="only_subpass">
                     <PipelineBindPoint>graphics</PipelineBindPoint>
                     <OutputAttachments>
-                        <ColorAttachment>
-                            <AttachmentName>color_attachment</AttachmentName>
-                            <Layout>color_attachment_optimal</Layout>
-                        </ColorAttachment>
-                        <DepthStencilAttachmen>
+                        <AttachmentReferences>
+                            <AttachmentReference>
+                                <ColorAttachment attachment_unused="false">
+                                    <AttachmentName>color_attachment</AttachmentName>
+                                    <Layout>color_attachment_optimal</Layout>
+                                </ColorAttachment>
+                                <ResolveAttachment attachment_unused="false">
+                                    <AttachmentName>resolve_attachment</AttachmentName>
+                                    <Layout>color_attachment_optimal</Layout>
+                                </ResolveAttachment>
+                            </AttachmentReference>
+                        </AttachmentReferences>
+                        <DepthStencilAttachmen attachment_unused="false">
                             <AttachmentName>depth_attachment</AttachmentName>
                             <Layout>auto_depth_stencil_attachment_optimal</Layout>
                         </DepthStencilAttachmen>

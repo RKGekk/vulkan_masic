@@ -20,8 +20,8 @@
     <xs:simpleType name="ColorFormatSimpleType">
         <xs:restriction base="xs:string">
             <xs:enumeration value="as_swapchain"></xs:enumeration>
-            <xs:enumeration value="find_suitable_color"></xs:enumeration>
             <xs:enumeration value="find_suitable_depth"></xs:enumeration>
+
             <xs:enumeration value="undefined"></xs:enumeration>
             <xs:enumeration value="r4g4_unorm_pack8"></xs:enumeration>
             <xs:enumeration value="r4g4b4a4_unorm_pack16"></xs:enumeration>
@@ -761,6 +761,7 @@
         <xs:restriction base="xs:string">
             <xs:enumeration value="as_user"></xs:enumeration>
             <xs:enumeration value="as_device"></xs:enumeration>
+
             <xs:enumeration value="1_bit"></xs:enumeration>
             <xs:enumeration value="2_bit"></xs:enumeration>
             <xs:enumeration value="4_bit"></xs:enumeration>
@@ -1307,6 +1308,7 @@
     <xs:simpleType name="ImageLayoutSimpleType">
         <xs:restriction base="xs:string">
             <xs:enumeration value="auto_depth_stencil_attachment_optimal"></xs:enumeration>
+
             <xs:enumeration value="undefined"></xs:enumeration>
             <xs:enumeration value="general"></xs:enumeration>
             <xs:enumeration value="color_attachment_optimal"></xs:enumeration>
@@ -1374,6 +1376,7 @@
             <xs:element name="AttachmentName" type="xs:string"></xs:element>
             <xs:element name="Layout" type="target:ImageLayoutSimpleType"></xs:element>
         </xs:sequence>
+        <xs:attribute name="attachment_unused" type="xs:boolean" use="required"></xs:attribute>
     </xs:complexType>
 
     <xs:complexType name="InputAttachmentReferencesComplexType">
@@ -1384,8 +1387,20 @@
 
     <xs:complexType name="OutputAttachmentReferencesComplexType">
         <xs:sequence>
-            <xs:element name="ColorAttachment" type="target:AttachmentReferenceComplexType" minOccurs="0" maxOccurs="1"></xs:element>
-            <xs:element name="ResolveAttachment" type="target:AttachmentReferenceComplexType" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="AttachmentReferences" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="AttachmentReference" minOccurs="1" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="ColorAttachment" type="target:AttachmentReferenceComplexType" minOccurs="1" maxOccurs="1"></xs:element>
+                                    <xs:element name="ResolveAttachment" type="target:AttachmentReferenceComplexType" minOccurs="0" maxOccurs="1"></xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="DepthStencilAttachmen" type="target:AttachmentReferenceComplexType" minOccurs="0" maxOccurs="1"></xs:element>
         </xs:sequence>
     </xs:complexType>
@@ -1405,7 +1420,7 @@
             <xs:element name="PreserveAttachments" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element name="AttachmentReference" type="target:AttachmentReferenceComplexType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                        <xs:element name="AttachmentName" type="xs:string" minOccurs="0" maxOccurs="unbounded"></xs:element>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
