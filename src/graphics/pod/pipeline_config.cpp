@@ -9,7 +9,7 @@ bool PipelineConfig::init(const pugi::xml_node& pipeline_data) {
     pugi::xml_node pipeline_create_flags_node = pipeline_data.child("Falgs");
     if(pipeline_create_flags_node) {
         for (pugi::xml_node flag_node = pipeline_create_flags_node.first_child(); flag_node; flag_node = flag_node.next_sibling()) {
-		    m_rasterizer_info.cullMode |= getPipelineCreateFlagBit(flag_node.text().as_string());
+		    m_rasterizer_info.cullMode |= getPipelineCreateFlag(flag_node.text().as_string());
 		}
     }
 
@@ -47,7 +47,7 @@ bool PipelineConfig::init(const pugi::xml_node& pipeline_data) {
         pugi::xml_node cull_mode_flags_node = rasterization_state_node.child("CullMode").child("Flags");
         if(cull_mode_flags_node) {
             for (pugi::xml_node flag_node = cull_mode_flags_node.first_child(); flag_node; flag_node = flag_node.next_sibling()) {
-			    m_rasterizer_info.cullMode |= getCullModeFlagBit(flag_node.text().as_string());
+			    m_rasterizer_info.cullMode |= getCullModeFlag(flag_node.text().as_string());
 		    }
         }
 
@@ -63,7 +63,7 @@ bool PipelineConfig::init(const pugi::xml_node& pipeline_data) {
     m_multisample_info.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     pugi::xml_node multisample_state_node = pipeline_data.child("MultisampleState");
     if(multisample_state_node) {
-        m_multisample_info.rasterizationSamples = getSampleCountFlagBit(multisample_state_node.child("SampleCount").text().as_string());
+        m_multisample_info.rasterizationSamples = getSampleCountFlag(multisample_state_node.child("SampleCount").text().as_string());
         m_multisample_info.sampleShadingEnable = multisample_state_node.child("SampleShadingEnable").text().as_bool();
         m_multisample_info.minSampleShading = multisample_state_node.child("MinSampleShading").text().as_float();
         m_multisample_info.pSampleMask = nullptr;
@@ -79,7 +79,7 @@ bool PipelineConfig::init(const pugi::xml_node& pipeline_data) {
         pugi::xml_node depth_stencil_flags_node = rasterization_state_node.child("Flags");
         if(depth_stencil_flags_node) {
             for (pugi::xml_node flag_node = depth_stencil_flags_node.first_child(); flag_node; flag_node = flag_node.next_sibling()) {
-			    m_depth_stencil_info.flags |= getPipelineDepthStencilStateCreateFlagBit(flag_node.text().as_string());
+			    m_depth_stencil_info.flags |= getPipelineDepthStencilStateCreateFlag(flag_node.text().as_string());
 		    }
         }
 
@@ -123,7 +123,7 @@ bool PipelineConfig::init(const pugi::xml_node& pipeline_data) {
         pugi::xml_node color_blend_flags_node = color_blend_state_node.child("Flags");
         if(color_blend_flags_node) {
             for (pugi::xml_node flag_node = color_blend_flags_node.first_child(); flag_node; flag_node = flag_node.next_sibling()) {
-			    m_color_blend_info.flags |= getPipelineColorBlendStateCreateFlagBit(flag_node.text().as_string());
+			    m_color_blend_info.flags |= getPipelineColorBlendStateCreateFlag(flag_node.text().as_string());
 		    }
         }
 
@@ -146,7 +146,7 @@ bool PipelineConfig::init(const pugi::xml_node& pipeline_data) {
                 pugi::xml_node color_write_masks_node = color_blend_state_node.child("ColorWriteMask");
                 if(color_write_masks_node) {
                     for (pugi::xml_node mask_node = color_write_masks_node.first_child(); mask_node; mask_node = mask_node.next_sibling()) {
-		        	    attachment.colorWriteMask |= getColorComponentFlagBit(mask_node.text().as_string());
+		        	    attachment.colorWriteMask |= getColorComponentFlag(mask_node.text().as_string());
 		            }
                 }
 

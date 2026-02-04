@@ -204,6 +204,29 @@
                     </OutputAttachments>
                 </Subpass>
             </SubpassDescriptions>
+            <SubpassDependenciesSynchronization>
+                <Dependency>
+                    <srcSubpass>
+                        <SubpassType>External</SubpassType>
+                    </srcSubpass>
+                    <dstSubpass>
+                        <SubpassType>External</SubpassType>
+                    </dstSubpass>
+                    <srcStageMask>
+                        <Mask>color_attachment_output</Mask>
+                        <Mask>early_fragment_tests</Mask>
+                    </srcStageMask>
+                    <dstStageMask>
+                        <Mask>color_attachment_output</Mask>
+                        <Mask>early_fragment_tests</Mask>
+                    </dstStageMask>
+                    <srcAccessMask></srcAccessMask>
+                    <dstAccessMask>
+                        <Mask>color_attachment_write</Mask>
+                        <Mask>depth_stencil_attachment_write</Mask>
+                    </dstAccessMask>
+                </Dependency>
+            </SubpassDependenciesSynchronization>
         </RenderPass>
     </RenderPases>
 

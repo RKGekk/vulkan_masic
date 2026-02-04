@@ -352,21 +352,21 @@ void writeFile(const std::string& file_name, size_t file_size, const void* data)
     file.write((const char*)data, file_size);
 }
 
-VkShaderCreateFlagBitsEXT getShaderCreateFlagBitsEXT(const std::string& flag_str) {
+VkShaderCreateFlagBitsEXT getShaderCreateFlagEXT(const std::string& flag_str) {
     using namespace std::literals;
     VkShaderCreateFlagBitsEXT res{};
-         if(flag_str == "link_stage_bit_ext"s) { res = VK_SHADER_CREATE_LINK_STAGE_BIT_EXT; }
+         if(flag_str == "link_stage_ext"s) { res = VK_SHADER_CREATE_LINK_STAGE_BIT_EXT; }
     else if(flag_str == "allow_varying_subgroup_size"s) { res = VK_SHADER_CREATE_ALLOW_VARYING_SUBGROUP_SIZE_BIT_EXT; }
     else if(flag_str == "require_full_subgroups"s) { res = VK_SHADER_CREATE_REQUIRE_FULL_SUBGROUPS_BIT_EXT; }
-    else if(flag_str == "no_task_shader_bit_ext"s) { res = VK_SHADER_CREATE_NO_TASK_SHADER_BIT_EXT; }
-    else if(flag_str == "dispatch_base_bit_ext"s) { res = VK_SHADER_CREATE_DISPATCH_BASE_BIT_EXT; }
-    else if(flag_str == "fragment_shading_rate_attachment_bit_ext"s) { res = VK_SHADER_CREATE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_EXT; }
-    else if(flag_str == "fragment_density_map_attachment_bit_ext"s) { res = VK_SHADER_CREATE_FRAGMENT_DENSITY_MAP_ATTACHMENT_BIT_EXT; }
-    else if(flag_str == "indirect_bindable_bit_ext"s) { res = VK_SHADER_CREATE_INDIRECT_BINDABLE_BIT_EXT; }
+    else if(flag_str == "no_task_shader_ext"s) { res = VK_SHADER_CREATE_NO_TASK_SHADER_BIT_EXT; }
+    else if(flag_str == "dispatch_base_ext"s) { res = VK_SHADER_CREATE_DISPATCH_BASE_BIT_EXT; }
+    else if(flag_str == "fragment_shading_rate_attachment_ext"s) { res = VK_SHADER_CREATE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_EXT; }
+    else if(flag_str == "fragment_density_map_attachment_ext"s) { res = VK_SHADER_CREATE_FRAGMENT_DENSITY_MAP_ATTACHMENT_BIT_EXT; }
+    else if(flag_str == "indirect_bindable_ext"s) { res = VK_SHADER_CREATE_INDIRECT_BINDABLE_BIT_EXT; }
     return res;
 }
 
-VkPipelineShaderStageCreateFlagBits getPipelineShaderStageCreateFlagBits(const std::string& flag_str) {
+VkPipelineShaderStageCreateFlagBits getPipelineShaderStageCreateFlag(const std::string& flag_str) {
     using namespace std::literals;
 
     VkPipelineShaderStageCreateFlagBits res{};
@@ -378,35 +378,35 @@ VkPipelineShaderStageCreateFlagBits getPipelineShaderStageCreateFlagBits(const s
     return res;
 }
 
-VkShaderStageFlagBits getShaderStageFlagBits(const std::string& stage_str) {
+VkShaderStageFlagBits getShaderStageFlag(const std::string& stage_str) {
     using namespace std::literals;
     VkShaderStageFlagBits res{};
-         if(stage_str == "vertex_bit"s) {res = VK_SHADER_STAGE_VERTEX_BIT;}
-    else if(stage_str == "tessellation_control_bit"s) {res = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;}
-    else if(stage_str == "tessellation_evaluation_bit"s) {res = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;}
-    else if(stage_str == "geometry_bit"s) {res = VK_SHADER_STAGE_GEOMETRY_BIT;}
-    else if(stage_str == "fragment_bit"s) {res = VK_SHADER_STAGE_FRAGMENT_BIT;}
-    else if(stage_str == "compute_bit"s) {res = VK_SHADER_STAGE_COMPUTE_BIT;}
+         if(stage_str == "vertex"s) {res = VK_SHADER_STAGE_VERTEX_BIT;}
+    else if(stage_str == "tessellation_control"s) {res = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;}
+    else if(stage_str == "tessellation_evaluation"s) {res = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;}
+    else if(stage_str == "geometry"s) {res = VK_SHADER_STAGE_GEOMETRY_BIT;}
+    else if(stage_str == "fragment"s) {res = VK_SHADER_STAGE_FRAGMENT_BIT;}
+    else if(stage_str == "compute"s) {res = VK_SHADER_STAGE_COMPUTE_BIT;}
     else if(stage_str == "all_graphics"s) {res = VK_SHADER_STAGE_ALL_GRAPHICS;}
     else if(stage_str == "all"s) {res = VK_SHADER_STAGE_ALL;}
-    else if(stage_str == "raygen_bit_khr"s) {res = VK_SHADER_STAGE_RAYGEN_BIT_KHR;}
-    else if(stage_str == "any_hit_bit_khr"s) {res = VK_SHADER_STAGE_ANY_HIT_BIT_KHR;}
-    else if(stage_str == "closest_hit_bit_khr"s) {res = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;}
-    else if(stage_str == "miss_bit_khr"s) {res = VK_SHADER_STAGE_MISS_BIT_KHR;}
-    else if(stage_str == "intersection_bit_khr"s) {res = VK_SHADER_STAGE_INTERSECTION_BIT_KHR;}
-    else if(stage_str == "callable_bit_khr"s) {res = VK_SHADER_STAGE_CALLABLE_BIT_KHR;}
-    else if(stage_str == "task_bit_ext"s) {res = VK_SHADER_STAGE_TASK_BIT_EXT;}
-    else if(stage_str == "mesh_bit_ext"s) {res = VK_SHADER_STAGE_MESH_BIT_EXT;}
-    else if(stage_str == "subpass_shading_bit_huawei"s) {res = VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI;}
-    else if(stage_str == "cluster_culling_bit_huawei"s) {res = VK_SHADER_STAGE_CLUSTER_CULLING_BIT_HUAWEI;}
-    else if(stage_str == "raygen_bit_nv"s) {res = VK_SHADER_STAGE_RAYGEN_BIT_NV;}
-    else if(stage_str == "any_hit_bit_nv"s) {res = VK_SHADER_STAGE_ANY_HIT_BIT_NV;}
-    else if(stage_str == "closest_hit_bit_nv"s) {res = VK_SHADER_STAGE_CLOSEST_HIT_BIT_NV;}
-    else if(stage_str == "miss_bit_nv"s) {res = VK_SHADER_STAGE_MISS_BIT_NV;}
-    else if(stage_str == "intersection_bit_nv"s) {res = VK_SHADER_STAGE_INTERSECTION_BIT_NV;}
-    else if(stage_str == "callable_bit_nv"s) {res = VK_SHADER_STAGE_CALLABLE_BIT_NV;}
-    else if(stage_str == "task_bit_nv"s) {res = VK_SHADER_STAGE_TASK_BIT_NV;}
-    else if(stage_str == "mesh_bit_nv"s) {res = VK_SHADER_STAGE_MESH_BIT_NV;}
+    else if(stage_str == "raygen_khr"s) {res = VK_SHADER_STAGE_RAYGEN_BIT_KHR;}
+    else if(stage_str == "any_hit_khr"s) {res = VK_SHADER_STAGE_ANY_HIT_BIT_KHR;}
+    else if(stage_str == "closest_hit_khr"s) {res = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;}
+    else if(stage_str == "miss_khr"s) {res = VK_SHADER_STAGE_MISS_BIT_KHR;}
+    else if(stage_str == "intersection_khr"s) {res = VK_SHADER_STAGE_INTERSECTION_BIT_KHR;}
+    else if(stage_str == "callable_khr"s) {res = VK_SHADER_STAGE_CALLABLE_BIT_KHR;}
+    else if(stage_str == "task_ext"s) {res = VK_SHADER_STAGE_TASK_BIT_EXT;}
+    else if(stage_str == "mesh_ext"s) {res = VK_SHADER_STAGE_MESH_BIT_EXT;}
+    else if(stage_str == "subpass_shading_huawei"s) {res = VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI;}
+    else if(stage_str == "cluster_culling_huawei"s) {res = VK_SHADER_STAGE_CLUSTER_CULLING_BIT_HUAWEI;}
+    else if(stage_str == "raygen_nv"s) {res = VK_SHADER_STAGE_RAYGEN_BIT_NV;}
+    else if(stage_str == "any_hit_nv"s) {res = VK_SHADER_STAGE_ANY_HIT_BIT_NV;}
+    else if(stage_str == "closest_hit_nv"s) {res = VK_SHADER_STAGE_CLOSEST_HIT_BIT_NV;}
+    else if(stage_str == "miss_nv"s) {res = VK_SHADER_STAGE_MISS_BIT_NV;}
+    else if(stage_str == "intersection_nv"s) {res = VK_SHADER_STAGE_INTERSECTION_BIT_NV;}
+    else if(stage_str == "callable_nv"s) {res = VK_SHADER_STAGE_CALLABLE_BIT_NV;}
+    else if(stage_str == "task_nv"s) {res = VK_SHADER_STAGE_TASK_BIT_NV;}
+    else if(stage_str == "mesh_nv"s) {res = VK_SHADER_STAGE_MESH_BIT_NV;}
     return res;
 }
 
@@ -481,15 +481,15 @@ VkDescriptorType getDescriptorType(const std::string& desc_str) {
     return res;
 }
 
-VkSamplerCreateFlagBits getSamplerCreateFlagBit(const std::string& flag_str) {
+VkSamplerCreateFlagBits getSamplerCreateFlag(const std::string& flag_str) {
     using namespace std::literals;
     VkSamplerCreateFlagBits res{};
 
-         if(flag_str == "subsampled_bit_ext"s) {res = VK_SAMPLER_CREATE_SUBSAMPLED_BIT_EXT;}
-    else if(flag_str == "subsampled_coarse_reconstruction_bit_ext"s) {res = VK_SAMPLER_CREATE_SUBSAMPLED_COARSE_RECONSTRUCTION_BIT_EXT;}
-    else if(flag_str == "descriptor_buffer_capture_replay_bit_ext"s) {res = VK_SAMPLER_CREATE_DESCRIPTOR_BUFFER_CAPTURE_REPLAY_BIT_EXT;}
-    else if(flag_str == "non_seamless_cube_map_bit_ext"s) {res = VK_SAMPLER_CREATE_NON_SEAMLESS_CUBE_MAP_BIT_EXT;}
-    else if(flag_str == "image_processing_bit_qcom"s) {res = VK_SAMPLER_CREATE_IMAGE_PROCESSING_BIT_QCOM;}
+         if(flag_str == "subsampled_ext"s) {res = VK_SAMPLER_CREATE_SUBSAMPLED_BIT_EXT;}
+    else if(flag_str == "subsampled_coarse_reconstruction_ext"s) {res = VK_SAMPLER_CREATE_SUBSAMPLED_COARSE_RECONSTRUCTION_BIT_EXT;}
+    else if(flag_str == "descriptor_buffer_capture_replay_ext"s) {res = VK_SAMPLER_CREATE_DESCRIPTOR_BUFFER_CAPTURE_REPLAY_BIT_EXT;}
+    else if(flag_str == "non_seamless_cube_map_ext"s) {res = VK_SAMPLER_CREATE_NON_SEAMLESS_CUBE_MAP_BIT_EXT;}
+    else if(flag_str == "image_processing_qcom"s) {res = VK_SAMPLER_CREATE_IMAGE_PROCESSING_BIT_QCOM;}
 
     return res;
 }
@@ -593,7 +593,7 @@ VkPolygonMode getPolygonMode(const std::string& mode_str) {
     return res;
 }
 
-VkCullModeFlagBits getCullModeFlagBit(const std::string& mode_str) {
+VkCullModeFlagBits getCullModeFlag(const std::string& mode_str) {
     using namespace std::literals;
     VkCullModeFlagBits res{};
 
@@ -615,7 +615,7 @@ VkFrontFace getFrontFace(const std::string& face_str) {
     return res;
 }
 
-VkSampleCountFlagBits getSampleCountFlagBit(const std::string& samples_str) {
+VkSampleCountFlagBits getSampleCountFlag(const std::string& samples_str) {
     using namespace std::literals;
     VkSampleCountFlagBits res{};
 
@@ -630,14 +630,14 @@ VkSampleCountFlagBits getSampleCountFlagBit(const std::string& samples_str) {
     return res;
 }
 
-VkPipelineDepthStencilStateCreateFlagBits getPipelineDepthStencilStateCreateFlagBit(const std::string& flag_str) {
+VkPipelineDepthStencilStateCreateFlagBits getPipelineDepthStencilStateCreateFlag(const std::string& flag_str) {
     using namespace std::literals;
     VkPipelineDepthStencilStateCreateFlagBits res{};
 
-         if(flag_str == "rasterization_order_attachment_depth_access_bit_ext"s) {res = VK_PIPELINE_DEPTH_STENCIL_STATE_CREATE_RASTERIZATION_ORDER_ATTACHMENT_DEPTH_ACCESS_BIT_EXT;}
-    else if(flag_str == "rasterization_order_attachment_stencil_access_bit_ext"s) {res = VK_PIPELINE_DEPTH_STENCIL_STATE_CREATE_RASTERIZATION_ORDER_ATTACHMENT_STENCIL_ACCESS_BIT_EXT;}
-    else if(flag_str == "rasterization_order_attachment_depth_access_bit_arm"s) {res = VK_PIPELINE_DEPTH_STENCIL_STATE_CREATE_RASTERIZATION_ORDER_ATTACHMENT_DEPTH_ACCESS_BIT_ARM;}
-    else if(flag_str == "rasterization_order_attachment_stencil_access_bit_arm"s) {res = VK_PIPELINE_DEPTH_STENCIL_STATE_CREATE_RASTERIZATION_ORDER_ATTACHMENT_STENCIL_ACCESS_BIT_ARM;}
+         if(flag_str == "rasterization_order_attachment_depth_access_ext"s) {res = VK_PIPELINE_DEPTH_STENCIL_STATE_CREATE_RASTERIZATION_ORDER_ATTACHMENT_DEPTH_ACCESS_BIT_EXT;}
+    else if(flag_str == "rasterization_order_attachment_stencil_access_ext"s) {res = VK_PIPELINE_DEPTH_STENCIL_STATE_CREATE_RASTERIZATION_ORDER_ATTACHMENT_STENCIL_ACCESS_BIT_EXT;}
+    else if(flag_str == "rasterization_order_attachment_depth_access_arm"s) {res = VK_PIPELINE_DEPTH_STENCIL_STATE_CREATE_RASTERIZATION_ORDER_ATTACHMENT_DEPTH_ACCESS_BIT_ARM;}
+    else if(flag_str == "rasterization_order_attachment_stencil_access_arm"s) {res = VK_PIPELINE_DEPTH_STENCIL_STATE_CREATE_RASTERIZATION_ORDER_ATTACHMENT_STENCIL_ACCESS_BIT_ARM;}
     
     return res;
 }
@@ -658,7 +658,7 @@ VkStencilOp getStencilOp(const std::string& op_str) {
     return res;
 }
 
-VkPipelineColorBlendStateCreateFlagBits getPipelineColorBlendStateCreateFlagBit(const std::string& flag_str) {
+VkPipelineColorBlendStateCreateFlagBits getPipelineColorBlendStateCreateFlag(const std::string& flag_str) {
 	using namespace std::literals;
     VkPipelineColorBlendStateCreateFlagBits res{};
 
@@ -778,7 +778,7 @@ VkBlendOp getBlendOp(const std::string& op_str) {
     return res;
 }
 
-VkColorComponentFlagBits getColorComponentFlagBit(const std::string& mask_str) {
+VkColorComponentFlagBits getColorComponentFlag(const std::string& mask_str) {
 	using namespace std::literals;
     VkColorComponentFlagBits res{};
 
@@ -887,7 +887,7 @@ VkDynamicState getDynamicState(const std::string& dynamic_str) {
     return res;
 }
 
-VkDescriptorSetLayoutCreateFlagBits getDescriptorSetLayoutCreateFlagBit(const std::string& flag_str) {
+VkDescriptorSetLayoutCreateFlagBits getDescriptorSetLayoutCreateFlag(const std::string& flag_str) {
 	using namespace std::literals;
     VkDescriptorSetLayoutCreateFlagBits res{};
 
@@ -904,7 +904,7 @@ VkDescriptorSetLayoutCreateFlagBits getDescriptorSetLayoutCreateFlagBit(const st
     return res;
 }
 
-VkPipelineCreateFlagBits getPipelineCreateFlagBit(const std::string& flag_str) {
+VkPipelineCreateFlagBits getPipelineCreateFlag(const std::string& flag_str) {
 	using namespace std::literals;
     VkPipelineCreateFlagBits res{};
 
@@ -980,7 +980,7 @@ VkFormat getAttributeFormat(VertexAttributeFormat attrib_format) {
     }
 }
 
-VkDescriptorPoolCreateFlagBits getDescriptorPoolCreateFlagBit(const std::string& flag_str) {
+VkDescriptorPoolCreateFlagBits getDescriptorPoolCreateFlag(const std::string& flag_str) {
 	using namespace std::literals;
     VkDescriptorPoolCreateFlagBits res{};
 
@@ -1049,311 +1049,311 @@ VkFormat getFormat(const std::string& format_str) {
 	using namespace std::literals;
     VkFormat res{};
 
-         if(format_str == "UNDEFINED"s) {res = VK_FORMAT_UNDEFINED;}
-	else if(format_str == "R4G4_UNORM_PACK8"s) {res = VK_FORMAT_R4G4_UNORM_PACK8;}
-	else if(format_str == "R4G4B4A4_UNORM_PACK16"s) {res = VK_FORMAT_R4G4B4A4_UNORM_PACK16;}
-	else if(format_str == "B4G4R4A4_UNORM_PACK16"s) {res = VK_FORMAT_B4G4R4A4_UNORM_PACK16;}
-	else if(format_str == "R5G6B5_UNORM_PACK16"s) {res = VK_FORMAT_R5G6B5_UNORM_PACK16;}
-	else if(format_str == "B5G6R5_UNORM_PACK16"s) {res = VK_FORMAT_B5G6R5_UNORM_PACK16;}
-	else if(format_str == "R5G5B5A1_UNORM_PACK16"s) {res = VK_FORMAT_R5G5B5A1_UNORM_PACK16;}
-	else if(format_str == "B5G5R5A1_UNORM_PACK16"s) {res = VK_FORMAT_B5G5R5A1_UNORM_PACK16;}
-	else if(format_str == "A1R5G5B5_UNORM_PACK16"s) {res = VK_FORMAT_A1R5G5B5_UNORM_PACK16;}
-	else if(format_str == "R8_UNORM"s) {res = VK_FORMAT_R8_UNORM;}
-	else if(format_str == "R8_SNORM"s) {res = VK_FORMAT_R8_SNORM;}
-	else if(format_str == "R8_USCALED"s) {res = VK_FORMAT_R8_USCALED;}
-	else if(format_str == "R8_SSCALED"s) {res = VK_FORMAT_R8_SSCALED;}
-	else if(format_str == "R8_UINT"s) {res = VK_FORMAT_R8_UINT;}
-	else if(format_str == "R8_SINT"s) {res = VK_FORMAT_R8_SINT;}
-	else if(format_str == "R8_SRGB"s) {res = VK_FORMAT_R8_SRGB;}
-	else if(format_str == "R8G8_UNORM"s) {res = VK_FORMAT_R8G8_UNORM;}
-	else if(format_str == "R8G8_SNORM"s) {res = VK_FORMAT_R8G8_SNORM;}
-	else if(format_str == "R8G8_USCALED"s) {res = VK_FORMAT_R8G8_USCALED;}
-	else if(format_str == "R8G8_SSCALED"s) {res = VK_FORMAT_R8G8_SSCALED;}
-	else if(format_str == "R8G8_UINT"s) {res = VK_FORMAT_R8G8_UINT;}
-	else if(format_str == "R8G8_SINT"s) {res = VK_FORMAT_R8G8_SINT;}
-	else if(format_str == "R8G8_SRGB"s) {res = VK_FORMAT_R8G8_SRGB;}
-	else if(format_str == "R8G8B8_UNORM"s) {res = VK_FORMAT_R8G8B8_UNORM;}
-	else if(format_str == "R8G8B8_SNORM"s) {res = VK_FORMAT_R8G8B8_SNORM;}
-	else if(format_str == "R8G8B8_USCALED"s) {res = VK_FORMAT_R8G8B8_USCALED;}
-	else if(format_str == "R8G8B8_SSCALED"s) {res = VK_FORMAT_R8G8B8_SSCALED;}
-	else if(format_str == "R8G8B8_UINT"s) {res = VK_FORMAT_R8G8B8_UINT;}
-	else if(format_str == "R8G8B8_SINT"s) {res = VK_FORMAT_R8G8B8_SINT;}
-	else if(format_str == "R8G8B8_SRGB"s) {res = VK_FORMAT_R8G8B8_SRGB;}
-	else if(format_str == "B8G8R8_UNORM"s) {res = VK_FORMAT_B8G8R8_UNORM;}
-	else if(format_str == "B8G8R8_SNORM"s) {res = VK_FORMAT_B8G8R8_SNORM;}
-	else if(format_str == "B8G8R8_USCALED"s) {res = VK_FORMAT_B8G8R8_USCALED;}
-	else if(format_str == "B8G8R8_SSCALED"s) {res = VK_FORMAT_B8G8R8_SSCALED;}
-	else if(format_str == "B8G8R8_UINT"s) {res = VK_FORMAT_B8G8R8_UINT;}
-	else if(format_str == "B8G8R8_SINT"s) {res = VK_FORMAT_B8G8R8_SINT;}
-	else if(format_str == "B8G8R8_SRGB"s) {res = VK_FORMAT_B8G8R8_SRGB;}
-	else if(format_str == "R8G8B8A8_UNORM"s) {res = VK_FORMAT_R8G8B8A8_UNORM;}
-	else if(format_str == "R8G8B8A8_SNORM"s) {res = VK_FORMAT_R8G8B8A8_SNORM;}
-	else if(format_str == "R8G8B8A8_USCALED"s) {res = VK_FORMAT_R8G8B8A8_USCALED;}
-	else if(format_str == "R8G8B8A8_SSCALED"s) {res = VK_FORMAT_R8G8B8A8_SSCALED;}
-	else if(format_str == "R8G8B8A8_UINT"s) {res = VK_FORMAT_R8G8B8A8_UINT;}
-	else if(format_str == "R8G8B8A8_SINT"s) {res = VK_FORMAT_R8G8B8A8_SINT;}
-	else if(format_str == "R8G8B8A8_SRGB"s) {res = VK_FORMAT_R8G8B8A8_SRGB;}
-	else if(format_str == "B8G8R8A8_UNORM"s) {res = VK_FORMAT_B8G8R8A8_UNORM;}
-	else if(format_str == "B8G8R8A8_SNORM"s) {res = VK_FORMAT_B8G8R8A8_SNORM;}
-	else if(format_str == "B8G8R8A8_USCALED"s) {res = VK_FORMAT_B8G8R8A8_USCALED;}
-	else if(format_str == "B8G8R8A8_SSCALED"s) {res = VK_FORMAT_B8G8R8A8_SSCALED;}
-	else if(format_str == "B8G8R8A8_UINT"s) {res = VK_FORMAT_B8G8R8A8_UINT;}
-	else if(format_str == "B8G8R8A8_SINT"s) {res = VK_FORMAT_B8G8R8A8_SINT;}
-	else if(format_str == "B8G8R8A8_SRGB"s) {res = VK_FORMAT_B8G8R8A8_SRGB;}
-	else if(format_str == "A8B8G8R8_UNORM_PACK32"s) {res = VK_FORMAT_A8B8G8R8_UNORM_PACK32;}
-	else if(format_str == "A8B8G8R8_SNORM_PACK32"s) {res = VK_FORMAT_A8B8G8R8_SNORM_PACK32;}
-	else if(format_str == "A8B8G8R8_USCALED_PACK32"s) {res = VK_FORMAT_A8B8G8R8_USCALED_PACK32;}
-	else if(format_str == "A8B8G8R8_SSCALED_PACK32"s) {res = VK_FORMAT_A8B8G8R8_SSCALED_PACK32;}
-	else if(format_str == "A8B8G8R8_UINT_PACK32"s) {res = VK_FORMAT_A8B8G8R8_UINT_PACK32;}
-	else if(format_str == "A8B8G8R8_SINT_PACK32"s) {res = VK_FORMAT_A8B8G8R8_SINT_PACK32;}
-	else if(format_str == "A8B8G8R8_SRGB_PACK32"s) {res = VK_FORMAT_A8B8G8R8_SRGB_PACK32;}
-	else if(format_str == "A2R10G10B10_UNORM_PACK32"s) {res = VK_FORMAT_A2R10G10B10_UNORM_PACK32;}
-	else if(format_str == "A2R10G10B10_SNORM_PACK32"s) {res = VK_FORMAT_A2R10G10B10_SNORM_PACK32;}
-	else if(format_str == "A2R10G10B10_USCALED_PACK32"s) {res = VK_FORMAT_A2R10G10B10_USCALED_PACK32;}
-	else if(format_str == "A2R10G10B10_SSCALED_PACK32"s) {res = VK_FORMAT_A2R10G10B10_SSCALED_PACK32;}
-	else if(format_str == "A2R10G10B10_UINT_PACK32"s) {res = VK_FORMAT_A2R10G10B10_UINT_PACK32;}
-	else if(format_str == "A2R10G10B10_SINT_PACK32"s) {res = VK_FORMAT_A2R10G10B10_SINT_PACK32;}
-	else if(format_str == "A2B10G10R10_UNORM_PACK32"s) {res = VK_FORMAT_A2B10G10R10_UNORM_PACK32;}
-	else if(format_str == "A2B10G10R10_SNORM_PACK32"s) {res = VK_FORMAT_A2B10G10R10_SNORM_PACK32;}
-	else if(format_str == "A2B10G10R10_USCALED_PACK32"s) {res = VK_FORMAT_A2B10G10R10_USCALED_PACK32;}
-	else if(format_str == "A2B10G10R10_SSCALED_PACK32"s) {res = VK_FORMAT_A2B10G10R10_SSCALED_PACK32;}
-	else if(format_str == "A2B10G10R10_UINT_PACK32"s) {res = VK_FORMAT_A2B10G10R10_UINT_PACK32;}
-	else if(format_str == "A2B10G10R10_SINT_PACK32"s) {res = VK_FORMAT_A2B10G10R10_SINT_PACK32;}
-	else if(format_str == "R16_UNORM"s) {res = VK_FORMAT_R16_UNORM;}
-	else if(format_str == "R16_SNORM"s) {res = VK_FORMAT_R16_SNORM;}
-	else if(format_str == "R16_USCALED"s) {res = VK_FORMAT_R16_USCALED;}
-	else if(format_str == "R16_SSCALED"s) {res = VK_FORMAT_R16_SSCALED;}
-	else if(format_str == "R16_UINT"s) {res = VK_FORMAT_R16_UINT;}
-	else if(format_str == "R16_SINT"s) {res = VK_FORMAT_R16_SINT;}
-	else if(format_str == "R16_SFLOAT"s) {res = VK_FORMAT_R16_SFLOAT;}
-	else if(format_str == "R16G16_UNORM"s) {res = VK_FORMAT_R16G16_UNORM;}
-	else if(format_str == "R16G16_SNORM"s) {res = VK_FORMAT_R16G16_SNORM;}
-	else if(format_str == "R16G16_USCALED"s) {res = VK_FORMAT_R16G16_USCALED;}
-	else if(format_str == "R16G16_SSCALED"s) {res = VK_FORMAT_R16G16_SSCALED;}
-	else if(format_str == "R16G16_UINT"s) {res = VK_FORMAT_R16G16_UINT;}
-	else if(format_str == "R16G16_SINT"s) {res = VK_FORMAT_R16G16_SINT;}
-	else if(format_str == "R16G16_SFLOAT"s) {res = VK_FORMAT_R16G16_SFLOAT;}
-	else if(format_str == "R16G16B16_UNORM"s) {res = VK_FORMAT_R16G16B16_UNORM;}
-	else if(format_str == "R16G16B16_SNORM"s) {res = VK_FORMAT_R16G16B16_SNORM;}
-	else if(format_str == "R16G16B16_USCALED"s) {res = VK_FORMAT_R16G16B16_USCALED;}
-	else if(format_str == "R16G16B16_SSCALED"s) {res = VK_FORMAT_R16G16B16_SSCALED;}
-	else if(format_str == "R16G16B16_UINT"s) {res = VK_FORMAT_R16G16B16_UINT;}
-	else if(format_str == "R16G16B16_SINT"s) {res = VK_FORMAT_R16G16B16_SINT;}
-	else if(format_str == "R16G16B16_SFLOAT"s) {res = VK_FORMAT_R16G16B16_SFLOAT;}
-	else if(format_str == "R16G16B16A16_UNORM"s) {res = VK_FORMAT_R16G16B16A16_UNORM;}
-	else if(format_str == "R16G16B16A16_SNORM"s) {res = VK_FORMAT_R16G16B16A16_SNORM;}
-	else if(format_str == "R16G16B16A16_USCALED"s) {res = VK_FORMAT_R16G16B16A16_USCALED;}
-	else if(format_str == "R16G16B16A16_SSCALED"s) {res = VK_FORMAT_R16G16B16A16_SSCALED;}
-	else if(format_str == "R16G16B16A16_UINT"s) {res = VK_FORMAT_R16G16B16A16_UINT;}
-	else if(format_str == "R16G16B16A16_SINT"s) {res = VK_FORMAT_R16G16B16A16_SINT;}
-	else if(format_str == "R16G16B16A16_SFLOAT"s) {res = VK_FORMAT_R16G16B16A16_SFLOAT;}
-	else if(format_str == "R32_UINT"s) {res = VK_FORMAT_R32_UINT;}
-	else if(format_str == "R32_SINT"s) {res = VK_FORMAT_R32_SINT;}
-	else if(format_str == "R32_SFLOAT"s) {res = VK_FORMAT_R32_SFLOAT;}
-	else if(format_str == "R32G32_UINT"s) {res = VK_FORMAT_R32G32_UINT;}
-	else if(format_str == "R32G32_SINT"s) {res = VK_FORMAT_R32G32_SINT;}
-	else if(format_str == "R32G32_SFLOAT"s) {res = VK_FORMAT_R32G32_SFLOAT;}
-	else if(format_str == "R32G32B32_UINT"s) {res = VK_FORMAT_R32G32B32_UINT;}
-	else if(format_str == "R32G32B32_SINT"s) {res = VK_FORMAT_R32G32B32_SINT;}
-	else if(format_str == "R32G32B32_SFLOAT"s) {res = VK_FORMAT_R32G32B32_SFLOAT;}
-	else if(format_str == "R32G32B32A32_UINT"s) {res = VK_FORMAT_R32G32B32A32_UINT;}
-	else if(format_str == "R32G32B32A32_SINT"s) {res = VK_FORMAT_R32G32B32A32_SINT;}
-	else if(format_str == "R32G32B32A32_SFLOAT"s) {res = VK_FORMAT_R32G32B32A32_SFLOAT;}
-	else if(format_str == "R64_UINT"s) {res = VK_FORMAT_R64_UINT;}
-	else if(format_str == "R64_SINT"s) {res = VK_FORMAT_R64_SINT;}
-	else if(format_str == "R64_SFLOAT"s) {res = VK_FORMAT_R64_SFLOAT;}
-	else if(format_str == "R64G64_UINT"s) {res = VK_FORMAT_R64G64_UINT;}
-	else if(format_str == "R64G64_SINT"s) {res = VK_FORMAT_R64G64_SINT;}
-	else if(format_str == "R64G64_SFLOAT"s) {res = VK_FORMAT_R64G64_SFLOAT;}
-	else if(format_str == "R64G64B64_UINT"s) {res = VK_FORMAT_R64G64B64_UINT;}
-	else if(format_str == "R64G64B64_SINT"s) {res = VK_FORMAT_R64G64B64_SINT;}
-	else if(format_str == "R64G64B64_SFLOAT"s) {res = VK_FORMAT_R64G64B64_SFLOAT;}
-	else if(format_str == "R64G64B64A64_UINT"s) {res = VK_FORMAT_R64G64B64A64_UINT;}
-	else if(format_str == "R64G64B64A64_SINT"s) {res = VK_FORMAT_R64G64B64A64_SINT;}
-	else if(format_str == "R64G64B64A64_SFLOAT"s) {res = VK_FORMAT_R64G64B64A64_SFLOAT;}
-	else if(format_str == "B10G11R11_UFLOAT_PACK32"s) {res = VK_FORMAT_B10G11R11_UFLOAT_PACK32;}
-	else if(format_str == "E5B9G9R9_UFLOAT_PACK32"s) {res = VK_FORMAT_E5B9G9R9_UFLOAT_PACK32;}
-	else if(format_str == "D16_UNORM"s) {res = VK_FORMAT_D16_UNORM;}
-	else if(format_str == "X8_D24_UNORM_PACK32"s) {res = VK_FORMAT_X8_D24_UNORM_PACK32;}
-	else if(format_str == "D32_SFLOAT"s) {res = VK_FORMAT_D32_SFLOAT;}
-	else if(format_str == "S8_UINT"s) {res = VK_FORMAT_S8_UINT;}
-	else if(format_str == "D16_UNORM_S8_UINT"s) {res = VK_FORMAT_D16_UNORM_S8_UINT;}
-	else if(format_str == "D24_UNORM_S8_UINT"s) {res = VK_FORMAT_D24_UNORM_S8_UINT;}
-	else if(format_str == "D32_SFLOAT_S8_UINT"s) {res = VK_FORMAT_D32_SFLOAT_S8_UINT;}
-	else if(format_str == "BC1_RGB_UNORM_BLOCK"s) {res = VK_FORMAT_BC1_RGB_UNORM_BLOCK;}
-	else if(format_str == "BC1_RGB_SRGB_BLOCK"s) {res = VK_FORMAT_BC1_RGB_SRGB_BLOCK;}
-	else if(format_str == "BC1_RGBA_UNORM_BLOCK"s) {res = VK_FORMAT_BC1_RGBA_UNORM_BLOCK;}
-	else if(format_str == "BC1_RGBA_SRGB_BLOCK"s) {res = VK_FORMAT_BC1_RGBA_SRGB_BLOCK;}
-	else if(format_str == "BC2_UNORM_BLOCK"s) {res = VK_FORMAT_BC2_UNORM_BLOCK;}
-	else if(format_str == "BC2_SRGB_BLOCK"s) {res = VK_FORMAT_BC2_SRGB_BLOCK;}
-	else if(format_str == "BC3_UNORM_BLOCK"s) {res = VK_FORMAT_BC3_UNORM_BLOCK;}
-	else if(format_str == "BC3_SRGB_BLOCK"s) {res = VK_FORMAT_BC3_SRGB_BLOCK;}
-	else if(format_str == "BC4_UNORM_BLOCK"s) {res = VK_FORMAT_BC4_UNORM_BLOCK;}
-	else if(format_str == "BC4_SNORM_BLOCK"s) {res = VK_FORMAT_BC4_SNORM_BLOCK;}
-	else if(format_str == "BC5_UNORM_BLOCK"s) {res = VK_FORMAT_BC5_UNORM_BLOCK;}
-	else if(format_str == "BC5_SNORM_BLOCK"s) {res = VK_FORMAT_BC5_SNORM_BLOCK;}
-	else if(format_str == "BC6H_UFLOAT_BLOCK"s) {res = VK_FORMAT_BC6H_UFLOAT_BLOCK;}
-	else if(format_str == "BC6H_SFLOAT_BLOCK"s) {res = VK_FORMAT_BC6H_SFLOAT_BLOCK;}
-	else if(format_str == "BC7_UNORM_BLOCK"s) {res = VK_FORMAT_BC7_UNORM_BLOCK;}
-	else if(format_str == "BC7_SRGB_BLOCK"s) {res = VK_FORMAT_BC7_SRGB_BLOCK;}
-	else if(format_str == "ETC2_R8G8B8_UNORM_BLOCK"s) {res = VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK;}
-	else if(format_str == "ETC2_R8G8B8_SRGB_BLOCK"s) {res = VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK;}
-	else if(format_str == "ETC2_R8G8B8A1_UNORM_BLOCK"s) {res = VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK;}
-	else if(format_str == "ETC2_R8G8B8A1_SRGB_BLOCK"s) {res = VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK;}
-	else if(format_str == "ETC2_R8G8B8A8_UNORM_BLOCK"s) {res = VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK;}
-	else if(format_str == "ETC2_R8G8B8A8_SRGB_BLOCK"s) {res = VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK;}
-	else if(format_str == "EAC_R11_UNORM_BLOCK"s) {res = VK_FORMAT_EAC_R11_UNORM_BLOCK;}
-	else if(format_str == "EAC_R11_SNORM_BLOCK"s) {res = VK_FORMAT_EAC_R11_SNORM_BLOCK;}
-	else if(format_str == "EAC_R11G11_UNORM_BLOCK"s) {res = VK_FORMAT_EAC_R11G11_UNORM_BLOCK;}
-	else if(format_str == "EAC_R11G11_SNORM_BLOCK"s) {res = VK_FORMAT_EAC_R11G11_SNORM_BLOCK;}
-	else if(format_str == "ASTC_4X4_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_4x4_UNORM_BLOCK;}
-	else if(format_str == "ASTC_4X4_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_4x4_SRGB_BLOCK;}
-	else if(format_str == "ASTC_5X4_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_5x4_UNORM_BLOCK;}
-	else if(format_str == "ASTC_5X4_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_5x4_SRGB_BLOCK;}
-	else if(format_str == "ASTC_5X5_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_5x5_UNORM_BLOCK;}
-	else if(format_str == "ASTC_5X5_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_5x5_SRGB_BLOCK;}
-	else if(format_str == "ASTC_6X5_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_6x5_UNORM_BLOCK;}
-	else if(format_str == "ASTC_6X5_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_6x5_SRGB_BLOCK;}
-	else if(format_str == "ASTC_6X6_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_6x6_UNORM_BLOCK;}
-	else if(format_str == "ASTC_6X6_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_6x6_SRGB_BLOCK;}
-	else if(format_str == "ASTC_8X5_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_8x5_UNORM_BLOCK;}
-	else if(format_str == "ASTC_8X5_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_8x5_SRGB_BLOCK;}
-	else if(format_str == "ASTC_8X6_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_8x6_UNORM_BLOCK;}
-	else if(format_str == "ASTC_8X6_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_8x6_SRGB_BLOCK;}
-	else if(format_str == "ASTC_8X8_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_8x8_UNORM_BLOCK;}
-	else if(format_str == "ASTC_8X8_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_8x8_SRGB_BLOCK;}
-	else if(format_str == "ASTC_10X5_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_10x5_UNORM_BLOCK;}
-	else if(format_str == "ASTC_10X5_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_10x5_SRGB_BLOCK;}
-	else if(format_str == "ASTC_10X6_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_10x6_UNORM_BLOCK;}
-	else if(format_str == "ASTC_10X6_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_10x6_SRGB_BLOCK;}
-	else if(format_str == "ASTC_10X8_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_10x8_UNORM_BLOCK;}
-	else if(format_str == "ASTC_10X8_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_10x8_SRGB_BLOCK;}
-	else if(format_str == "ASTC_10X10_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_10x10_UNORM_BLOCK;}
-	else if(format_str == "ASTC_10X10_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_10x10_SRGB_BLOCK;}
-	else if(format_str == "ASTC_12X10_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_12x10_UNORM_BLOCK;}
-	else if(format_str == "ASTC_12X10_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_12x10_SRGB_BLOCK;}
-	else if(format_str == "ASTC_12X12_UNORM_BLOCK"s) {res = VK_FORMAT_ASTC_12x12_UNORM_BLOCK;}
-	else if(format_str == "ASTC_12X12_SRGB_BLOCK"s) {res = VK_FORMAT_ASTC_12x12_SRGB_BLOCK;}
-	else if(format_str == "G8B8G8R8_422_UNORM"s) {res = VK_FORMAT_G8B8G8R8_422_UNORM;}
-	else if(format_str == "B8G8R8G8_422_UNORM"s) {res = VK_FORMAT_B8G8R8G8_422_UNORM;}
-	else if(format_str == "G8_B8_R8_3PLANE_420_UNORM"s) {res = VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM;}
-	else if(format_str == "G8_B8R8_2PLANE_420_UNORM"s) {res = VK_FORMAT_G8_B8R8_2PLANE_420_UNORM;}
-	else if(format_str == "G8_B8_R8_3PLANE_422_UNORM"s) {res = VK_FORMAT_G8_B8_R8_3PLANE_422_UNORM;}
-	else if(format_str == "G8_B8R8_2PLANE_422_UNORM"s) {res = VK_FORMAT_G8_B8R8_2PLANE_422_UNORM;}
-	else if(format_str == "G8_B8_R8_3PLANE_444_UNORM"s) {res = VK_FORMAT_G8_B8_R8_3PLANE_444_UNORM;}
-	else if(format_str == "R10X6_UNORM_PACK16"s) {res = VK_FORMAT_R10X6_UNORM_PACK16;}
-	else if(format_str == "R10X6G10X6_UNORM_2PACK16"s) {res = VK_FORMAT_R10X6G10X6_UNORM_2PACK16;}
-	else if(format_str == "R10X6G10X6B10X6A10X6_UNORM_4PACK16"s) {res = VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16;}
-	else if(format_str == "G10X6B10X6G10X6R10X6_422_UNORM_4PACK16"s) {res = VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16;}
-	else if(format_str == "B10X6G10X6R10X6G10X6_422_UNORM_4PACK16"s) {res = VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16;}
-	else if(format_str == "G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16"s) {res = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16;}
-	else if(format_str == "G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16"s) {res = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16;}
-	else if(format_str == "G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16"s) {res = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16;}
-	else if(format_str == "G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16"s) {res = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16;}
-	else if(format_str == "G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16"s) {res = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16;}
-	else if(format_str == "R12X4_UNORM_PACK16"s) {res = VK_FORMAT_R12X4_UNORM_PACK16;}
-	else if(format_str == "R12X4G12X4_UNORM_2PACK16"s) {res = VK_FORMAT_R12X4G12X4_UNORM_2PACK16;}
-	else if(format_str == "R12X4G12X4B12X4A12X4_UNORM_4PACK16"s) {res = VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16;}
-	else if(format_str == "G12X4B12X4G12X4R12X4_422_UNORM_4PACK16"s) {res = VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16;}
-	else if(format_str == "B12X4G12X4R12X4G12X4_422_UNORM_4PACK16"s) {res = VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16;}
-	else if(format_str == "G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16"s) {res = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16;}
-	else if(format_str == "G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16"s) {res = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16;}
-	else if(format_str == "G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16"s) {res = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16;}
-	else if(format_str == "G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16"s) {res = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16;}
-	else if(format_str == "G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16"s) {res = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16;}
-	else if(format_str == "G16B16G16R16_422_UNORM"s) {res = VK_FORMAT_G16B16G16R16_422_UNORM;}
-	else if(format_str == "B16G16R16G16_422_UNORM"s) {res = VK_FORMAT_B16G16R16G16_422_UNORM;}
-	else if(format_str == "G16_B16_R16_3PLANE_420_UNORM"s) {res = VK_FORMAT_G16_B16_R16_3PLANE_420_UNORM;}
-	else if(format_str == "G16_B16R16_2PLANE_420_UNORM"s) {res = VK_FORMAT_G16_B16R16_2PLANE_420_UNORM;}
-	else if(format_str == "G16_B16_R16_3PLANE_422_UNORM"s) {res = VK_FORMAT_G16_B16_R16_3PLANE_422_UNORM;}
-	else if(format_str == "G16_B16R16_2PLANE_422_UNORM"s) {res = VK_FORMAT_G16_B16R16_2PLANE_422_UNORM;}
-	else if(format_str == "G16_B16_R16_3PLANE_444_UNORM"s) {res = VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM;}
-	else if(format_str == "G8_B8R8_2PLANE_444_UNORM"s) {res = VK_FORMAT_G8_B8R8_2PLANE_444_UNORM;}
-	else if(format_str == "G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16"s) {res = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16;}
-	else if(format_str == "G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16"s) {res = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16;}
-	else if(format_str == "G16_B16R16_2PLANE_444_UNORM"s) {res = VK_FORMAT_G16_B16R16_2PLANE_444_UNORM;}
-	else if(format_str == "A4R4G4B4_UNORM_PACK16"s) {res = VK_FORMAT_A4R4G4B4_UNORM_PACK16;}
-	else if(format_str == "A4B4G4R4_UNORM_PACK16"s) {res = VK_FORMAT_A4B4G4R4_UNORM_PACK16;}
-	else if(format_str == "ASTC_4X4_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK;}
-	else if(format_str == "ASTC_5X4_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK;}
-	else if(format_str == "ASTC_5X5_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK;}
-	else if(format_str == "ASTC_6X5_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK;}
-	else if(format_str == "ASTC_6X6_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK;}
-	else if(format_str == "ASTC_8X5_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK;}
-	else if(format_str == "ASTC_8X6_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK;}
-	else if(format_str == "ASTC_8X8_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK;}
-	else if(format_str == "ASTC_10X5_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK;}
-	else if(format_str == "ASTC_10X6_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK;}
-	else if(format_str == "ASTC_10X8_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK;}
-	else if(format_str == "ASTC_10X10_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK;}
-	else if(format_str == "ASTC_12X10_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK;}
-	else if(format_str == "ASTC_12X12_SFLOAT_BLOCK"s) {res = VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK;}
-	else if(format_str == "PVRTC1_2BPP_UNORM_BLOCK_IMG"s) {res = VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG;}
-	else if(format_str == "PVRTC1_4BPP_UNORM_BLOCK_IMG"s) {res = VK_FORMAT_PVRTC1_4BPP_UNORM_BLOCK_IMG;}
-	else if(format_str == "PVRTC2_2BPP_UNORM_BLOCK_IMG"s) {res = VK_FORMAT_PVRTC2_2BPP_UNORM_BLOCK_IMG;}
-	else if(format_str == "PVRTC2_4BPP_UNORM_BLOCK_IMG"s) {res = VK_FORMAT_PVRTC2_4BPP_UNORM_BLOCK_IMG;}
-	else if(format_str == "PVRTC1_2BPP_SRGB_BLOCK_IMG"s) {res = VK_FORMAT_PVRTC1_2BPP_SRGB_BLOCK_IMG;}
-	else if(format_str == "PVRTC1_4BPP_SRGB_BLOCK_IMG"s) {res = VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG;}
-	else if(format_str == "PVRTC2_2BPP_SRGB_BLOCK_IMG"s) {res = VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG;}
-	else if(format_str == "PVRTC2_4BPP_SRGB_BLOCK_IMG"s) {res = VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG;}
-	else if(format_str == "R16G16_SFIXED5_NV"s) {res = VK_FORMAT_R16G16_SFIXED5_NV;}
-	else if(format_str == "A1B5G5R5_UNORM_PACK16_KHR"s) {res = VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR;}
-	else if(format_str == "A8_UNORM_KHR"s) {res = VK_FORMAT_A8_UNORM_KHR;}
-	else if(format_str == "ASTC_4X4_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT;}
-	else if(format_str == "ASTC_5X4_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK_EXT;}
-	else if(format_str == "ASTC_5X5_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK_EXT;}
-	else if(format_str == "ASTC_6X5_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK_EXT;}
-	else if(format_str == "ASTC_6X6_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK_EXT;}
-	else if(format_str == "ASTC_8X5_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK_EXT;}
-	else if(format_str == "ASTC_8X6_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK_EXT;}
-	else if(format_str == "ASTC_8X8_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK_EXT;}
-	else if(format_str == "ASTC_10X5_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK_EXT;}
-	else if(format_str == "ASTC_10X6_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK_EXT;}
-	else if(format_str == "ASTC_10X8_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK_EXT;}
-	else if(format_str == "ASTC_10X10_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK_EXT;}
-	else if(format_str == "ASTC_12X10_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK_EXT;}
-	else if(format_str == "ASTC_12X12_SFLOAT_BLOCK_EXT"s) {res = VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT;}
-	else if(format_str == "G8B8G8R8_422_UNORM_KHR"s) {res = VK_FORMAT_G8B8G8R8_422_UNORM_KHR;}
-	else if(format_str == "B8G8R8G8_422_UNORM_KHR"s) {res = VK_FORMAT_B8G8R8G8_422_UNORM_KHR;}
-	else if(format_str == "G8_B8_R8_3PLANE_420_UNORM_KHR"s) {res = VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM_KHR;}
-	else if(format_str == "G8_B8R8_2PLANE_420_UNORM_KHR"s) {res = VK_FORMAT_G8_B8R8_2PLANE_420_UNORM_KHR;}
-	else if(format_str == "G8_B8_R8_3PLANE_422_UNORM_KHR"s) {res = VK_FORMAT_G8_B8_R8_3PLANE_422_UNORM_KHR;}
-	else if(format_str == "G8_B8R8_2PLANE_422_UNORM_KHR"s) {res = VK_FORMAT_G8_B8R8_2PLANE_422_UNORM_KHR;}
-	else if(format_str == "G8_B8_R8_3PLANE_444_UNORM_KHR"s) {res = VK_FORMAT_G8_B8_R8_3PLANE_444_UNORM_KHR;}
-	else if(format_str == "R10X6_UNORM_PACK16_KHR"s) {res = VK_FORMAT_R10X6_UNORM_PACK16_KHR;}
-	else if(format_str == "R10X6G10X6_UNORM_2PACK16_KHR"s) {res = VK_FORMAT_R10X6G10X6_UNORM_2PACK16_KHR;}
-	else if(format_str == "R10X6G10X6B10X6A10X6_UNORM_4PACK16_KHR"s) {res = VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16_KHR;}
-	else if(format_str == "G10X6B10X6G10X6R10X6_422_UNORM_4PACK16_KHR"s) {res = VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16_KHR;}
-	else if(format_str == "B10X6G10X6R10X6G10X6_422_UNORM_4PACK16_KHR"s) {res = VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16_KHR;}
-	else if(format_str == "G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16_KHR"s) {res = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16_KHR;}
-	else if(format_str == "G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16_KHR"s) {res = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16_KHR;}
-	else if(format_str == "G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16_KHR"s) {res = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16_KHR;}
-	else if(format_str == "G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16_KHR"s) {res = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16_KHR;}
-	else if(format_str == "G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16_KHR"s) {res = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16_KHR;}
-	else if(format_str == "R12X4_UNORM_PACK16_KHR"s) {res = VK_FORMAT_R12X4_UNORM_PACK16_KHR;}
-	else if(format_str == "R12X4G12X4_UNORM_2PACK16_KHR"s) {res = VK_FORMAT_R12X4G12X4_UNORM_2PACK16_KHR;}
-	else if(format_str == "R12X4G12X4B12X4A12X4_UNORM_4PACK16_KHR"s) {res = VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16_KHR;}
-	else if(format_str == "G12X4B12X4G12X4R12X4_422_UNORM_4PACK16_KHR"s) {res = VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16_KHR;}
-	else if(format_str == "B12X4G12X4R12X4G12X4_422_UNORM_4PACK16_KHR"s) {res = VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16_KHR;}
-	else if(format_str == "G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16_KHR"s) {res = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16_KHR;}
-	else if(format_str == "G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16_KHR"s) {res = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16_KHR;}
-	else if(format_str == "G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16_KHR"s) {res = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16_KHR;}
-	else if(format_str == "G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16_KHR"s) {res = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16_KHR;}
-	else if(format_str == "G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16_KHR"s) {res = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16_KHR;}
-	else if(format_str == "G16B16G16R16_422_UNORM_KHR"s) {res = VK_FORMAT_G16B16G16R16_422_UNORM_KHR;}
-	else if(format_str == "B16G16R16G16_422_UNORM_KHR"s) {res = VK_FORMAT_B16G16R16G16_422_UNORM_KHR;}
-	else if(format_str == "G16_B16_R16_3PLANE_420_UNORM_KHR"s) {res = VK_FORMAT_G16_B16_R16_3PLANE_420_UNORM_KHR;}
-	else if(format_str == "G16_B16R16_2PLANE_420_UNORM_KHR"s) {res = VK_FORMAT_G16_B16R16_2PLANE_420_UNORM_KHR;}
-	else if(format_str == "G16_B16_R16_3PLANE_422_UNORM_KHR"s) {res = VK_FORMAT_G16_B16_R16_3PLANE_422_UNORM_KHR;}
-	else if(format_str == "G16_B16R16_2PLANE_422_UNORM_KHR"s) {res = VK_FORMAT_G16_B16R16_2PLANE_422_UNORM_KHR;}
-	else if(format_str == "G16_B16_R16_3PLANE_444_UNORM_KHR"s) {res = VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM_KHR;}
-	else if(format_str == "G8_B8R8_2PLANE_444_UNORM_EXT"s) {res = VK_FORMAT_G8_B8R8_2PLANE_444_UNORM_EXT;}
-	else if(format_str == "G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16_EXT"s) {res = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16_EXT;}
-	else if(format_str == "G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16_EXT"s) {res = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16_EXT;}
-	else if(format_str == "G16_B16R16_2PLANE_444_UNORM_EXT"s) {res = VK_FORMAT_G16_B16R16_2PLANE_444_UNORM_EXT;}
-	else if(format_str == "A4R4G4B4_UNORM_PACK16_EXT"s) {res = VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT;}
-	else if(format_str == "A4B4G4R4_UNORM_PACK16_EXT"s) {res = VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT;}
-	else if(format_str == "R16G16_S10_5_NV"s) {res = VK_FORMAT_R16G16_S10_5_NV;}
+         if(format_str == "undefined"s) {res = VK_FORMAT_UNDEFINED;}
+	else if(format_str == "r4g4_unorm_pack8"s) {res = VK_FORMAT_R4G4_UNORM_PACK8;}
+	else if(format_str == "r4g4b4a4_unorm_pack16"s) {res = VK_FORMAT_R4G4B4A4_UNORM_PACK16;}
+	else if(format_str == "b4g4r4a4_unorm_pack16"s) {res = VK_FORMAT_B4G4R4A4_UNORM_PACK16;}
+	else if(format_str == "r5g6b5_unorm_pack16"s) {res = VK_FORMAT_R5G6B5_UNORM_PACK16;}
+	else if(format_str == "b5g6r5_unorm_pack16"s) {res = VK_FORMAT_B5G6R5_UNORM_PACK16;}
+	else if(format_str == "r5g5b5a1_unorm_pack16"s) {res = VK_FORMAT_R5G5B5A1_UNORM_PACK16;}
+	else if(format_str == "b5g5r5a1_unorm_pack16"s) {res = VK_FORMAT_B5G5R5A1_UNORM_PACK16;}
+	else if(format_str == "a1r5g5b5_unorm_pack16"s) {res = VK_FORMAT_A1R5G5B5_UNORM_PACK16;}
+	else if(format_str == "r8_unorm"s) {res = VK_FORMAT_R8_UNORM;}
+	else if(format_str == "r8_snorm"s) {res = VK_FORMAT_R8_SNORM;}
+	else if(format_str == "r8_uscaled"s) {res = VK_FORMAT_R8_USCALED;}
+	else if(format_str == "r8_sscaled"s) {res = VK_FORMAT_R8_SSCALED;}
+	else if(format_str == "r8_uint"s) {res = VK_FORMAT_R8_UINT;}
+	else if(format_str == "r8_sint"s) {res = VK_FORMAT_R8_SINT;}
+	else if(format_str == "r8_srgb"s) {res = VK_FORMAT_R8_SRGB;}
+	else if(format_str == "r8g8_unorm"s) {res = VK_FORMAT_R8G8_UNORM;}
+	else if(format_str == "r8g8_snorm"s) {res = VK_FORMAT_R8G8_SNORM;}
+	else if(format_str == "r8g8_uscaled"s) {res = VK_FORMAT_R8G8_USCALED;}
+	else if(format_str == "r8g8_sscaled"s) {res = VK_FORMAT_R8G8_SSCALED;}
+	else if(format_str == "r8g8_uint"s) {res = VK_FORMAT_R8G8_UINT;}
+	else if(format_str == "r8g8_sint"s) {res = VK_FORMAT_R8G8_SINT;}
+	else if(format_str == "r8g8_srgb"s) {res = VK_FORMAT_R8G8_SRGB;}
+	else if(format_str == "r8g8b8_unorm"s) {res = VK_FORMAT_R8G8B8_UNORM;}
+	else if(format_str == "r8g8b8_snorm"s) {res = VK_FORMAT_R8G8B8_SNORM;}
+	else if(format_str == "r8g8b8_uscaled"s) {res = VK_FORMAT_R8G8B8_USCALED;}
+	else if(format_str == "r8g8b8_sscaled"s) {res = VK_FORMAT_R8G8B8_SSCALED;}
+	else if(format_str == "r8g8b8_uint"s) {res = VK_FORMAT_R8G8B8_UINT;}
+	else if(format_str == "r8g8b8_sint"s) {res = VK_FORMAT_R8G8B8_SINT;}
+	else if(format_str == "r8g8b8_srgb"s) {res = VK_FORMAT_R8G8B8_SRGB;}
+	else if(format_str == "b8g8r8_unorm"s) {res = VK_FORMAT_B8G8R8_UNORM;}
+	else if(format_str == "b8g8r8_snorm"s) {res = VK_FORMAT_B8G8R8_SNORM;}
+	else if(format_str == "b8g8r8_uscaled"s) {res = VK_FORMAT_B8G8R8_USCALED;}
+	else if(format_str == "b8g8r8_sscaled"s) {res = VK_FORMAT_B8G8R8_SSCALED;}
+	else if(format_str == "b8g8r8_uint"s) {res = VK_FORMAT_B8G8R8_UINT;}
+	else if(format_str == "b8g8r8_sint"s) {res = VK_FORMAT_B8G8R8_SINT;}
+	else if(format_str == "b8g8r8_srgb"s) {res = VK_FORMAT_B8G8R8_SRGB;}
+	else if(format_str == "r8g8b8a8_unorm"s) {res = VK_FORMAT_R8G8B8A8_UNORM;}
+	else if(format_str == "r8g8b8a8_snorm"s) {res = VK_FORMAT_R8G8B8A8_SNORM;}
+	else if(format_str == "r8g8b8a8_uscaled"s) {res = VK_FORMAT_R8G8B8A8_USCALED;}
+	else if(format_str == "r8g8b8a8_sscaled"s) {res = VK_FORMAT_R8G8B8A8_SSCALED;}
+	else if(format_str == "r8g8b8a8_uint"s) {res = VK_FORMAT_R8G8B8A8_UINT;}
+	else if(format_str == "r8g8b8a8_sint"s) {res = VK_FORMAT_R8G8B8A8_SINT;}
+	else if(format_str == "r8g8b8a8_srgb"s) {res = VK_FORMAT_R8G8B8A8_SRGB;}
+	else if(format_str == "b8g8r8a8_unorm"s) {res = VK_FORMAT_B8G8R8A8_UNORM;}
+	else if(format_str == "b8g8r8a8_snorm"s) {res = VK_FORMAT_B8G8R8A8_SNORM;}
+	else if(format_str == "b8g8r8a8_uscaled"s) {res = VK_FORMAT_B8G8R8A8_USCALED;}
+	else if(format_str == "b8g8r8a8_sscaled"s) {res = VK_FORMAT_B8G8R8A8_SSCALED;}
+	else if(format_str == "b8g8r8a8_uint"s) {res = VK_FORMAT_B8G8R8A8_UINT;}
+	else if(format_str == "b8g8r8a8_sint"s) {res = VK_FORMAT_B8G8R8A8_SINT;}
+	else if(format_str == "b8g8r8a8_srgb"s) {res = VK_FORMAT_B8G8R8A8_SRGB;}
+	else if(format_str == "a8b8g8r8_unorm_pack32"s) {res = VK_FORMAT_A8B8G8R8_UNORM_PACK32;}
+	else if(format_str == "a8b8g8r8_snorm_pack32"s) {res = VK_FORMAT_A8B8G8R8_SNORM_PACK32;}
+	else if(format_str == "a8b8g8r8_uscaled_pack32"s) {res = VK_FORMAT_A8B8G8R8_USCALED_PACK32;}
+	else if(format_str == "a8b8g8r8_sscaled_pack32"s) {res = VK_FORMAT_A8B8G8R8_SSCALED_PACK32;}
+	else if(format_str == "a8b8g8r8_uint_pack32"s) {res = VK_FORMAT_A8B8G8R8_UINT_PACK32;}
+	else if(format_str == "a8b8g8r8_sint_pack32"s) {res = VK_FORMAT_A8B8G8R8_SINT_PACK32;}
+	else if(format_str == "a8b8g8r8_srgb_pack32"s) {res = VK_FORMAT_A8B8G8R8_SRGB_PACK32;}
+	else if(format_str == "a2r10g10b10_unorm_pack32"s) {res = VK_FORMAT_A2R10G10B10_UNORM_PACK32;}
+	else if(format_str == "a2r10g10b10_snorm_pack32"s) {res = VK_FORMAT_A2R10G10B10_SNORM_PACK32;}
+	else if(format_str == "a2r10g10b10_uscaled_pack32"s) {res = VK_FORMAT_A2R10G10B10_USCALED_PACK32;}
+	else if(format_str == "a2r10g10b10_sscaled_pack32"s) {res = VK_FORMAT_A2R10G10B10_SSCALED_PACK32;}
+	else if(format_str == "a2r10g10b10_uint_pack32"s) {res = VK_FORMAT_A2R10G10B10_UINT_PACK32;}
+	else if(format_str == "a2r10g10b10_sint_pack32"s) {res = VK_FORMAT_A2R10G10B10_SINT_PACK32;}
+	else if(format_str == "a2b10g10r10_unorm_pack32"s) {res = VK_FORMAT_A2B10G10R10_UNORM_PACK32;}
+	else if(format_str == "a2b10g10r10_snorm_pack32"s) {res = VK_FORMAT_A2B10G10R10_SNORM_PACK32;}
+	else if(format_str == "a2b10g10r10_uscaled_pack32"s) {res = VK_FORMAT_A2B10G10R10_USCALED_PACK32;}
+	else if(format_str == "a2b10g10r10_sscaled_pack32"s) {res = VK_FORMAT_A2B10G10R10_SSCALED_PACK32;}
+	else if(format_str == "a2b10g10r10_uint_pack32"s) {res = VK_FORMAT_A2B10G10R10_UINT_PACK32;}
+	else if(format_str == "a2b10g10r10_sint_pack32"s) {res = VK_FORMAT_A2B10G10R10_SINT_PACK32;}
+	else if(format_str == "r16_unorm"s) {res = VK_FORMAT_R16_UNORM;}
+	else if(format_str == "r16_snorm"s) {res = VK_FORMAT_R16_SNORM;}
+	else if(format_str == "r16_uscaled"s) {res = VK_FORMAT_R16_USCALED;}
+	else if(format_str == "r16_sscaled"s) {res = VK_FORMAT_R16_SSCALED;}
+	else if(format_str == "r16_uint"s) {res = VK_FORMAT_R16_UINT;}
+	else if(format_str == "r16_sint"s) {res = VK_FORMAT_R16_SINT;}
+	else if(format_str == "r16_sfloat"s) {res = VK_FORMAT_R16_SFLOAT;}
+	else if(format_str == "r16g16_unorm"s) {res = VK_FORMAT_R16G16_UNORM;}
+	else if(format_str == "r16g16_snorm"s) {res = VK_FORMAT_R16G16_SNORM;}
+	else if(format_str == "r16g16_uscaled"s) {res = VK_FORMAT_R16G16_USCALED;}
+	else if(format_str == "r16g16_sscaled"s) {res = VK_FORMAT_R16G16_SSCALED;}
+	else if(format_str == "r16g16_uint"s) {res = VK_FORMAT_R16G16_UINT;}
+	else if(format_str == "r16g16_sint"s) {res = VK_FORMAT_R16G16_SINT;}
+	else if(format_str == "r16g16_sfloat"s) {res = VK_FORMAT_R16G16_SFLOAT;}
+	else if(format_str == "r16g16b16_unorm"s) {res = VK_FORMAT_R16G16B16_UNORM;}
+	else if(format_str == "r16g16b16_snorm"s) {res = VK_FORMAT_R16G16B16_SNORM;}
+	else if(format_str == "r16g16b16_uscaled"s) {res = VK_FORMAT_R16G16B16_USCALED;}
+	else if(format_str == "r16g16b16_sscaled"s) {res = VK_FORMAT_R16G16B16_SSCALED;}
+	else if(format_str == "r16g16b16_uint"s) {res = VK_FORMAT_R16G16B16_UINT;}
+	else if(format_str == "r16g16b16_sint"s) {res = VK_FORMAT_R16G16B16_SINT;}
+	else if(format_str == "r16g16b16_sfloat"s) {res = VK_FORMAT_R16G16B16_SFLOAT;}
+	else if(format_str == "r16g16b16a16_unorm"s) {res = VK_FORMAT_R16G16B16A16_UNORM;}
+	else if(format_str == "r16g16b16a16_snorm"s) {res = VK_FORMAT_R16G16B16A16_SNORM;}
+	else if(format_str == "r16g16b16a16_uscaled"s) {res = VK_FORMAT_R16G16B16A16_USCALED;}
+	else if(format_str == "r16g16b16a16_sscaled"s) {res = VK_FORMAT_R16G16B16A16_SSCALED;}
+	else if(format_str == "r16g16b16a16_uint"s) {res = VK_FORMAT_R16G16B16A16_UINT;}
+	else if(format_str == "r16g16b16a16_sint"s) {res = VK_FORMAT_R16G16B16A16_SINT;}
+	else if(format_str == "r16g16b16a16_sfloat"s) {res = VK_FORMAT_R16G16B16A16_SFLOAT;}
+	else if(format_str == "r32_uint"s) {res = VK_FORMAT_R32_UINT;}
+	else if(format_str == "r32_sint"s) {res = VK_FORMAT_R32_SINT;}
+	else if(format_str == "r32_sfloat"s) {res = VK_FORMAT_R32_SFLOAT;}
+	else if(format_str == "r32g32_uint"s) {res = VK_FORMAT_R32G32_UINT;}
+	else if(format_str == "r32g32_sint"s) {res = VK_FORMAT_R32G32_SINT;}
+	else if(format_str == "r32g32_sfloat"s) {res = VK_FORMAT_R32G32_SFLOAT;}
+	else if(format_str == "r32g32b32_uint"s) {res = VK_FORMAT_R32G32B32_UINT;}
+	else if(format_str == "r32g32b32_sint"s) {res = VK_FORMAT_R32G32B32_SINT;}
+	else if(format_str == "r32g32b32_sfloat"s) {res = VK_FORMAT_R32G32B32_SFLOAT;}
+	else if(format_str == "r32g32b32a32_uint"s) {res = VK_FORMAT_R32G32B32A32_UINT;}
+	else if(format_str == "r32g32b32a32_sint"s) {res = VK_FORMAT_R32G32B32A32_SINT;}
+	else if(format_str == "r32g32b32a32_sfloat"s) {res = VK_FORMAT_R32G32B32A32_SFLOAT;}
+	else if(format_str == "r64_uint"s) {res = VK_FORMAT_R64_UINT;}
+	else if(format_str == "r64_sint"s) {res = VK_FORMAT_R64_SINT;}
+	else if(format_str == "r64_sfloat"s) {res = VK_FORMAT_R64_SFLOAT;}
+	else if(format_str == "r64g64_uint"s) {res = VK_FORMAT_R64G64_UINT;}
+	else if(format_str == "r64g64_sint"s) {res = VK_FORMAT_R64G64_SINT;}
+	else if(format_str == "r64g64_sfloat"s) {res = VK_FORMAT_R64G64_SFLOAT;}
+	else if(format_str == "r64g64b64_uint"s) {res = VK_FORMAT_R64G64B64_UINT;}
+	else if(format_str == "r64g64b64_sint"s) {res = VK_FORMAT_R64G64B64_SINT;}
+	else if(format_str == "r64g64b64_sfloat"s) {res = VK_FORMAT_R64G64B64_SFLOAT;}
+	else if(format_str == "r64g64b64a64_uint"s) {res = VK_FORMAT_R64G64B64A64_UINT;}
+	else if(format_str == "r64g64b64a64_sint"s) {res = VK_FORMAT_R64G64B64A64_SINT;}
+	else if(format_str == "r64g64b64a64_sfloat"s) {res = VK_FORMAT_R64G64B64A64_SFLOAT;}
+	else if(format_str == "b10g11r11_ufloat_pack32"s) {res = VK_FORMAT_B10G11R11_UFLOAT_PACK32;}
+	else if(format_str == "e5b9g9r9_ufloat_pack32"s) {res = VK_FORMAT_E5B9G9R9_UFLOAT_PACK32;}
+	else if(format_str == "d16_unorm"s) {res = VK_FORMAT_D16_UNORM;}
+	else if(format_str == "x8_d24_unorm_pack32"s) {res = VK_FORMAT_X8_D24_UNORM_PACK32;}
+	else if(format_str == "d32_sfloat"s) {res = VK_FORMAT_D32_SFLOAT;}
+	else if(format_str == "s8_uint"s) {res = VK_FORMAT_S8_UINT;}
+	else if(format_str == "d16_unorm_s8_uint"s) {res = VK_FORMAT_D16_UNORM_S8_UINT;}
+	else if(format_str == "d24_unorm_s8_uint"s) {res = VK_FORMAT_D24_UNORM_S8_UINT;}
+	else if(format_str == "d32_sfloat_s8_uint"s) {res = VK_FORMAT_D32_SFLOAT_S8_UINT;}
+	else if(format_str == "bc1_rgb_unorm_block"s) {res = VK_FORMAT_BC1_RGB_UNORM_BLOCK;}
+	else if(format_str == "bc1_rgb_srgb_block"s) {res = VK_FORMAT_BC1_RGB_SRGB_BLOCK;}
+	else if(format_str == "bc1_rgba_unorm_block"s) {res = VK_FORMAT_BC1_RGBA_UNORM_BLOCK;}
+	else if(format_str == "bc1_rgba_srgb_block"s) {res = VK_FORMAT_BC1_RGBA_SRGB_BLOCK;}
+	else if(format_str == "bc2_unorm_block"s) {res = VK_FORMAT_BC2_UNORM_BLOCK;}
+	else if(format_str == "bc2_srgb_block"s) {res = VK_FORMAT_BC2_SRGB_BLOCK;}
+	else if(format_str == "bc3_unorm_block"s) {res = VK_FORMAT_BC3_UNORM_BLOCK;}
+	else if(format_str == "bc3_srgb_block"s) {res = VK_FORMAT_BC3_SRGB_BLOCK;}
+	else if(format_str == "bc4_unorm_block"s) {res = VK_FORMAT_BC4_UNORM_BLOCK;}
+	else if(format_str == "bc4_snorm_block"s) {res = VK_FORMAT_BC4_SNORM_BLOCK;}
+	else if(format_str == "bc5_unorm_block"s) {res = VK_FORMAT_BC5_UNORM_BLOCK;}
+	else if(format_str == "bc5_snorm_block"s) {res = VK_FORMAT_BC5_SNORM_BLOCK;}
+	else if(format_str == "bc6h_ufloat_block"s) {res = VK_FORMAT_BC6H_UFLOAT_BLOCK;}
+	else if(format_str == "bc6h_sfloat_block"s) {res = VK_FORMAT_BC6H_SFLOAT_BLOCK;}
+	else if(format_str == "bc7_unorm_block"s) {res = VK_FORMAT_BC7_UNORM_BLOCK;}
+	else if(format_str == "bc7_srgb_block"s) {res = VK_FORMAT_BC7_SRGB_BLOCK;}
+	else if(format_str == "etc2_r8g8b8_unorm_block"s) {res = VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK;}
+	else if(format_str == "etc2_r8g8b8_srgb_block"s) {res = VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK;}
+	else if(format_str == "etc2_r8g8b8a1_unorm_block"s) {res = VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK;}
+	else if(format_str == "etc2_r8g8b8a1_srgb_block"s) {res = VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK;}
+	else if(format_str == "etc2_r8g8b8a8_unorm_block"s) {res = VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK;}
+	else if(format_str == "etc2_r8g8b8a8_srgb_block"s) {res = VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK;}
+	else if(format_str == "eac_r11_unorm_block"s) {res = VK_FORMAT_EAC_R11_UNORM_BLOCK;}
+	else if(format_str == "eac_r11_snorm_block"s) {res = VK_FORMAT_EAC_R11_SNORM_BLOCK;}
+	else if(format_str == "eac_r11g11_unorm_block"s) {res = VK_FORMAT_EAC_R11G11_UNORM_BLOCK;}
+	else if(format_str == "eac_r11g11_snorm_block"s) {res = VK_FORMAT_EAC_R11G11_SNORM_BLOCK;}
+	else if(format_str == "astc_4x4_unorm_block"s) {res = VK_FORMAT_ASTC_4x4_UNORM_BLOCK;}
+	else if(format_str == "astc_4x4_srgb_block"s) {res = VK_FORMAT_ASTC_4x4_SRGB_BLOCK;}
+	else if(format_str == "astc_5x4_unorm_block"s) {res = VK_FORMAT_ASTC_5x4_UNORM_BLOCK;}
+	else if(format_str == "astc_5x4_srgb_block"s) {res = VK_FORMAT_ASTC_5x4_SRGB_BLOCK;}
+	else if(format_str == "astc_5x5_unorm_block"s) {res = VK_FORMAT_ASTC_5x5_UNORM_BLOCK;}
+	else if(format_str == "astc_5x5_srgb_block"s) {res = VK_FORMAT_ASTC_5x5_SRGB_BLOCK;}
+	else if(format_str == "astc_6x5_unorm_block"s) {res = VK_FORMAT_ASTC_6x5_UNORM_BLOCK;}
+	else if(format_str == "astc_6x5_srgb_block"s) {res = VK_FORMAT_ASTC_6x5_SRGB_BLOCK;}
+	else if(format_str == "astc_6x6_unorm_block"s) {res = VK_FORMAT_ASTC_6x6_UNORM_BLOCK;}
+	else if(format_str == "astc_6x6_srgb_block"s) {res = VK_FORMAT_ASTC_6x6_SRGB_BLOCK;}
+	else if(format_str == "astc_8x5_unorm_block"s) {res = VK_FORMAT_ASTC_8x5_UNORM_BLOCK;}
+	else if(format_str == "astc_8x5_srgb_block"s) {res = VK_FORMAT_ASTC_8x5_SRGB_BLOCK;}
+	else if(format_str == "astc_8x6_unorm_block"s) {res = VK_FORMAT_ASTC_8x6_UNORM_BLOCK;}
+	else if(format_str == "astc_8x6_srgb_block"s) {res = VK_FORMAT_ASTC_8x6_SRGB_BLOCK;}
+	else if(format_str == "astc_8x8_unorm_block"s) {res = VK_FORMAT_ASTC_8x8_UNORM_BLOCK;}
+	else if(format_str == "astc_8x8_srgb_block"s) {res = VK_FORMAT_ASTC_8x8_SRGB_BLOCK;}
+	else if(format_str == "astc_10x5_unorm_block"s) {res = VK_FORMAT_ASTC_10x5_UNORM_BLOCK;}
+	else if(format_str == "astc_10x5_srgb_block"s) {res = VK_FORMAT_ASTC_10x5_SRGB_BLOCK;}
+	else if(format_str == "astc_10x6_unorm_block"s) {res = VK_FORMAT_ASTC_10x6_UNORM_BLOCK;}
+	else if(format_str == "astc_10x6_srgb_block"s) {res = VK_FORMAT_ASTC_10x6_SRGB_BLOCK;}
+	else if(format_str == "astc_10x8_unorm_block"s) {res = VK_FORMAT_ASTC_10x8_UNORM_BLOCK;}
+	else if(format_str == "astc_10x8_srgb_block"s) {res = VK_FORMAT_ASTC_10x8_SRGB_BLOCK;}
+	else if(format_str == "astc_10x10_unorm_block"s) {res = VK_FORMAT_ASTC_10x10_UNORM_BLOCK;}
+	else if(format_str == "astc_10x10_srgb_block"s) {res = VK_FORMAT_ASTC_10x10_SRGB_BLOCK;}
+	else if(format_str == "astc_12x10_unorm_block"s) {res = VK_FORMAT_ASTC_12x10_UNORM_BLOCK;}
+	else if(format_str == "astc_12x10_srgb_block"s) {res = VK_FORMAT_ASTC_12x10_SRGB_BLOCK;}
+	else if(format_str == "astc_12x12_unorm_block"s) {res = VK_FORMAT_ASTC_12x12_UNORM_BLOCK;}
+	else if(format_str == "astc_12x12_srgb_block"s) {res = VK_FORMAT_ASTC_12x12_SRGB_BLOCK;}
+	else if(format_str == "g8b8g8r8_422_unorm"s) {res = VK_FORMAT_G8B8G8R8_422_UNORM;}
+	else if(format_str == "b8g8r8g8_422_unorm"s) {res = VK_FORMAT_B8G8R8G8_422_UNORM;}
+	else if(format_str == "g8_b8_r8_3plane_420_unorm"s) {res = VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM;}
+	else if(format_str == "g8_b8r8_2plane_420_unorm"s) {res = VK_FORMAT_G8_B8R8_2PLANE_420_UNORM;}
+	else if(format_str == "g8_b8_r8_3plane_422_unorm"s) {res = VK_FORMAT_G8_B8_R8_3PLANE_422_UNORM;}
+	else if(format_str == "g8_b8r8_2plane_422_unorm"s) {res = VK_FORMAT_G8_B8R8_2PLANE_422_UNORM;}
+	else if(format_str == "g8_b8_r8_3plane_444_unorm"s) {res = VK_FORMAT_G8_B8_R8_3PLANE_444_UNORM;}
+	else if(format_str == "r10x6_unorm_pack16"s) {res = VK_FORMAT_R10X6_UNORM_PACK16;}
+	else if(format_str == "r10x6g10x6_unorm_2pack16"s) {res = VK_FORMAT_R10X6G10X6_UNORM_2PACK16;}
+	else if(format_str == "r10x6g10x6b10x6a10x6_unorm_4pack16"s) {res = VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16;}
+	else if(format_str == "g10x6b10x6g10x6r10x6_422_unorm_4pack16"s) {res = VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16;}
+	else if(format_str == "b10x6g10x6r10x6g10x6_422_unorm_4pack16"s) {res = VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16;}
+	else if(format_str == "g10x6_b10x6_r10x6_3plane_420_unorm_3pack16"s) {res = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16;}
+	else if(format_str == "g10x6_b10x6r10x6_2plane_420_unorm_3pack16"s) {res = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16;}
+	else if(format_str == "g10x6_b10x6_r10x6_3plane_422_unorm_3pack16"s) {res = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16;}
+	else if(format_str == "g10x6_b10x6r10x6_2plane_422_unorm_3pack16"s) {res = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16;}
+	else if(format_str == "g10x6_b10x6_r10x6_3plane_444_unorm_3pack16"s) {res = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16;}
+	else if(format_str == "r12x4_unorm_pack16"s) {res = VK_FORMAT_R12X4_UNORM_PACK16;}
+	else if(format_str == "r12x4g12x4_unorm_2pack16"s) {res = VK_FORMAT_R12X4G12X4_UNORM_2PACK16;}
+	else if(format_str == "r12x4g12x4b12x4a12x4_unorm_4pack16"s) {res = VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16;}
+	else if(format_str == "g12x4b12x4g12x4r12x4_422_unorm_4pack16"s) {res = VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16;}
+	else if(format_str == "b12x4g12x4r12x4g12x4_422_unorm_4pack16"s) {res = VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16;}
+	else if(format_str == "g12x4_b12x4_r12x4_3plane_420_unorm_3pack16"s) {res = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16;}
+	else if(format_str == "g12x4_b12x4r12x4_2plane_420_unorm_3pack16"s) {res = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16;}
+	else if(format_str == "g12x4_b12x4_r12x4_3plane_422_unorm_3pack16"s) {res = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16;}
+	else if(format_str == "g12x4_b12x4r12x4_2plane_422_unorm_3pack16"s) {res = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16;}
+	else if(format_str == "g12x4_b12x4_r12x4_3plane_444_unorm_3pack16"s) {res = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16;}
+	else if(format_str == "g16b16g16r16_422_unorm"s) {res = VK_FORMAT_G16B16G16R16_422_UNORM;}
+	else if(format_str == "b16g16r16g16_422_unorm"s) {res = VK_FORMAT_B16G16R16G16_422_UNORM;}
+	else if(format_str == "g16_b16_r16_3plane_420_unorm"s) {res = VK_FORMAT_G16_B16_R16_3PLANE_420_UNORM;}
+	else if(format_str == "g16_b16r16_2plane_420_unorm"s) {res = VK_FORMAT_G16_B16R16_2PLANE_420_UNORM;}
+	else if(format_str == "g16_b16_r16_3plane_422_unorm"s) {res = VK_FORMAT_G16_B16_R16_3PLANE_422_UNORM;}
+	else if(format_str == "g16_b16r16_2plane_422_unorm"s) {res = VK_FORMAT_G16_B16R16_2PLANE_422_UNORM;}
+	else if(format_str == "g16_b16_r16_3plane_444_unorm"s) {res = VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM;}
+	else if(format_str == "g8_b8r8_2plane_444_unorm"s) {res = VK_FORMAT_G8_B8R8_2PLANE_444_UNORM;}
+	else if(format_str == "g10x6_b10x6r10x6_2plane_444_unorm_3pack16"s) {res = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16;}
+	else if(format_str == "g12x4_b12x4r12x4_2plane_444_unorm_3pack16"s) {res = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16;}
+	else if(format_str == "g16_b16r16_2plane_444_unorm"s) {res = VK_FORMAT_G16_B16R16_2PLANE_444_UNORM;}
+	else if(format_str == "a4r4g4b4_unorm_pack16"s) {res = VK_FORMAT_A4R4G4B4_UNORM_PACK16;}
+	else if(format_str == "a4b4g4r4_unorm_pack16"s) {res = VK_FORMAT_A4B4G4R4_UNORM_PACK16;}
+	else if(format_str == "astc_4x4_sfloat_block"s) {res = VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK;}
+	else if(format_str == "astc_5x4_sfloat_block"s) {res = VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK;}
+	else if(format_str == "astc_5x5_sfloat_block"s) {res = VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK;}
+	else if(format_str == "astc_6x5_sfloat_block"s) {res = VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK;}
+	else if(format_str == "astc_6x6_sfloat_block"s) {res = VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK;}
+	else if(format_str == "astc_8x5_sfloat_block"s) {res = VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK;}
+	else if(format_str == "astc_8x6_sfloat_block"s) {res = VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK;}
+	else if(format_str == "astc_8x8_sfloat_block"s) {res = VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK;}
+	else if(format_str == "astc_10x5_sfloat_block"s) {res = VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK;}
+	else if(format_str == "astc_10x6_sfloat_block"s) {res = VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK;}
+	else if(format_str == "astc_10x8_sfloat_block"s) {res = VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK;}
+	else if(format_str == "astc_10x10_sfloat_block"s) {res = VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK;}
+	else if(format_str == "astc_12x10_sfloat_block"s) {res = VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK;}
+	else if(format_str == "astc_12x12_sfloat_block"s) {res = VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK;}
+	else if(format_str == "pvrtc1_2bpp_unorm_block_img"s) {res = VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG;}
+	else if(format_str == "pvrtc1_4bpp_unorm_block_img"s) {res = VK_FORMAT_PVRTC1_4BPP_UNORM_BLOCK_IMG;}
+	else if(format_str == "pvrtc2_2bpp_unorm_block_img"s) {res = VK_FORMAT_PVRTC2_2BPP_UNORM_BLOCK_IMG;}
+	else if(format_str == "pvrtc2_4bpp_unorm_block_img"s) {res = VK_FORMAT_PVRTC2_4BPP_UNORM_BLOCK_IMG;}
+	else if(format_str == "pvrtc1_2bpp_srgb_block_img"s) {res = VK_FORMAT_PVRTC1_2BPP_SRGB_BLOCK_IMG;}
+	else if(format_str == "pvrtc1_4bpp_srgb_block_img"s) {res = VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG;}
+	else if(format_str == "pvrtc2_2bpp_srgb_block_img"s) {res = VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG;}
+	else if(format_str == "pvrtc2_4bpp_srgb_block_img"s) {res = VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG;}
+	else if(format_str == "r16g16_sfixed5_nv"s) {res = VK_FORMAT_R16G16_SFIXED5_NV;}
+	else if(format_str == "a1b5g5r5_unorm_pack16_khr"s) {res = VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR;}
+	else if(format_str == "a8_unorm_khr"s) {res = VK_FORMAT_A8_UNORM_KHR;}
+	else if(format_str == "astc_4x4_sfloat_block_ext"s) {res = VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "astc_5x4_sfloat_block_ext"s) {res = VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "astc_5x5_sfloat_block_ext"s) {res = VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "astc_6x5_sfloat_block_ext"s) {res = VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "astc_6x6_sfloat_block_ext"s) {res = VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "astc_8x5_sfloat_block_ext"s) {res = VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "astc_8x6_sfloat_block_ext"s) {res = VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "astc_8x8_sfloat_block_ext"s) {res = VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "astc_10x5_sfloat_block_ext"s) {res = VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "astc_10x6_sfloat_block_ext"s) {res = VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "astc_10x8_sfloat_block_ext"s) {res = VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "astc_10x10_sfloat_block_ext"s) {res = VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "astc_12x10_sfloat_block_ext"s) {res = VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "astc_12x12_sfloat_block_ext"s) {res = VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT;}
+	else if(format_str == "g8b8g8r8_422_unorm_khr"s) {res = VK_FORMAT_G8B8G8R8_422_UNORM_KHR;}
+	else if(format_str == "b8g8r8g8_422_unorm_khr"s) {res = VK_FORMAT_B8G8R8G8_422_UNORM_KHR;}
+	else if(format_str == "g8_b8_r8_3plane_420_unorm_khr"s) {res = VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM_KHR;}
+	else if(format_str == "g8_b8r8_2plane_420_unorm_khr"s) {res = VK_FORMAT_G8_B8R8_2PLANE_420_UNORM_KHR;}
+	else if(format_str == "g8_b8_r8_3plane_422_unorm_khr"s) {res = VK_FORMAT_G8_B8_R8_3PLANE_422_UNORM_KHR;}
+	else if(format_str == "g8_b8r8_2plane_422_unorm_khr"s) {res = VK_FORMAT_G8_B8R8_2PLANE_422_UNORM_KHR;}
+	else if(format_str == "g8_b8_r8_3plane_444_unorm_khr"s) {res = VK_FORMAT_G8_B8_R8_3PLANE_444_UNORM_KHR;}
+	else if(format_str == "r10x6_unorm_pack16_khr"s) {res = VK_FORMAT_R10X6_UNORM_PACK16_KHR;}
+	else if(format_str == "r10x6g10x6_unorm_2pack16_khr"s) {res = VK_FORMAT_R10X6G10X6_UNORM_2PACK16_KHR;}
+	else if(format_str == "r10x6g10x6b10x6a10x6_unorm_4pack16_khr"s) {res = VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16_KHR;}
+	else if(format_str == "g10x6b10x6g10x6r10x6_422_unorm_4pack16_khr"s) {res = VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16_KHR;}
+	else if(format_str == "b10x6g10x6r10x6g10x6_422_unorm_4pack16_khr"s) {res = VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16_KHR;}
+	else if(format_str == "g10x6_b10x6_r10x6_3plane_420_unorm_3pack16_khr"s) {res = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16_KHR;}
+	else if(format_str == "g10x6_b10x6r10x6_2plane_420_unorm_3pack16_khr"s) {res = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16_KHR;}
+	else if(format_str == "g10x6_b10x6_r10x6_3plane_422_unorm_3pack16_khr"s) {res = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16_KHR;}
+	else if(format_str == "g10x6_b10x6r10x6_2plane_422_unorm_3pack16_khr"s) {res = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16_KHR;}
+	else if(format_str == "g10x6_b10x6_r10x6_3plane_444_unorm_3pack16_khr"s) {res = VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16_KHR;}
+	else if(format_str == "r12x4_unorm_pack16_khr"s) {res = VK_FORMAT_R12X4_UNORM_PACK16_KHR;}
+	else if(format_str == "r12x4g12x4_unorm_2pack16_khr"s) {res = VK_FORMAT_R12X4G12X4_UNORM_2PACK16_KHR;}
+	else if(format_str == "r12x4g12x4b12x4a12x4_unorm_4pack16_khr"s) {res = VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16_KHR;}
+	else if(format_str == "g12x4b12x4g12x4r12x4_422_unorm_4pack16_khr"s) {res = VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16_KHR;}
+	else if(format_str == "b12x4g12x4r12x4g12x4_422_unorm_4pack16_khr"s) {res = VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16_KHR;}
+	else if(format_str == "g12x4_b12x4_r12x4_3plane_420_unorm_3pack16_khr"s) {res = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16_KHR;}
+	else if(format_str == "g12x4_b12x4r12x4_2plane_420_unorm_3pack16_khr"s) {res = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16_KHR;}
+	else if(format_str == "g12x4_b12x4_r12x4_3plane_422_unorm_3pack16_khr"s) {res = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16_KHR;}
+	else if(format_str == "g12x4_b12x4r12x4_2plane_422_unorm_3pack16_khr"s) {res = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16_KHR;}
+	else if(format_str == "g12x4_b12x4_r12x4_3plane_444_unorm_3pack16_khr"s) {res = VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16_KHR;}
+	else if(format_str == "g16b16g16r16_422_unorm_khr"s) {res = VK_FORMAT_G16B16G16R16_422_UNORM_KHR;}
+	else if(format_str == "b16g16r16g16_422_unorm_khr"s) {res = VK_FORMAT_B16G16R16G16_422_UNORM_KHR;}
+	else if(format_str == "g16_b16_r16_3plane_420_unorm_khr"s) {res = VK_FORMAT_G16_B16_R16_3PLANE_420_UNORM_KHR;}
+	else if(format_str == "g16_b16r16_2plane_420_unorm_khr"s) {res = VK_FORMAT_G16_B16R16_2PLANE_420_UNORM_KHR;}
+	else if(format_str == "g16_b16_r16_3plane_422_unorm_khr"s) {res = VK_FORMAT_G16_B16_R16_3PLANE_422_UNORM_KHR;}
+	else if(format_str == "g16_b16r16_2plane_422_unorm_khr"s) {res = VK_FORMAT_G16_B16R16_2PLANE_422_UNORM_KHR;}
+	else if(format_str == "g16_b16_r16_3plane_444_unorm_khr"s) {res = VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM_KHR;}
+	else if(format_str == "g8_b8r8_2plane_444_unorm_ext"s) {res = VK_FORMAT_G8_B8R8_2PLANE_444_UNORM_EXT;}
+	else if(format_str == "g10x6_b10x6r10x6_2plane_444_unorm_3pack16_ext"s) {res = VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16_EXT;}
+	else if(format_str == "g12x4_b12x4r12x4_2plane_444_unorm_3pack16_ext"s) {res = VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16_EXT;}
+	else if(format_str == "g16_b16r16_2plane_444_unorm_ext"s) {res = VK_FORMAT_G16_B16R16_2PLANE_444_UNORM_EXT;}
+	else if(format_str == "a4r4g4b4_unorm_pack16_ext"s) {res = VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT;}
+	else if(format_str == "a4b4g4r4_unorm_pack16_ext"s) {res = VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT;}
+	else if(format_str == "r16g16_s10_5_nv"s) {res = VK_FORMAT_R16G16_S10_5_NV;}
     
     return res;
 }
@@ -1389,44 +1389,128 @@ VkImageLayout getImageLayout(const std::string& layout_str) {
 	using namespace std::literals;
     VkImageLayout res{};
 
-         if(layout_str == "UNDEFINED"s) {res = VK_IMAGE_LAYOUT_UNDEFINED;}
-	else if(layout_str == "GENERAL"s) {res = VK_IMAGE_LAYOUT_GENERAL;}
-	else if(layout_str == "COLOR_ATTACHMENT_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;}
-	else if(layout_str == "DEPTH_STENCIL_ATTACHMENT_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;}
-	else if(layout_str == "DEPTH_STENCIL_READ_ONLY_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;}
-	else if(layout_str == "SHADER_READ_ONLY_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;}
-	else if(layout_str == "TRANSFER_SRC_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;}
-	else if(layout_str == "TRANSFER_DST_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;}
-	else if(layout_str == "PREINITIALIZED"s) {res = VK_IMAGE_LAYOUT_PREINITIALIZED;}
-	else if(layout_str == "DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL;}
-	else if(layout_str == "DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL;}
-	else if(layout_str == "DEPTH_ATTACHMENT_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;}
-	else if(layout_str == "DEPTH_READ_ONLY_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;}
-	else if(layout_str == "STENCIL_ATTACHMENT_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL;}
-	else if(layout_str == "STENCIL_READ_ONLY_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL;}
-	else if(layout_str == "READ_ONLY_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL;}
-	else if(layout_str == "ATTACHMENT_OPTIMAL"s) {res = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;}
-	else if(layout_str == "PRESENT_SRC_KHR"s) {res = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;}
-	else if(layout_str == "VIDEO_DECODE_DST_KHR"s) {res = VK_IMAGE_LAYOUT_VIDEO_DECODE_DST_KHR;}
-	else if(layout_str == "VIDEO_DECODE_SRC_KHR"s) {res = VK_IMAGE_LAYOUT_VIDEO_DECODE_SRC_KHR;}
-	else if(layout_str == "VIDEO_DECODE_DPB_KHR"s) {res = VK_IMAGE_LAYOUT_VIDEO_DECODE_DPB_KHR;}
-	else if(layout_str == "SHARED_PRESENT_KHR"s) {res = VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR;}
-	else if(layout_str == "FRAGMENT_DENSITY_MAP_OPTIMAL_EXT"s) {res = VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT;}
-	else if(layout_str == "FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR"s) {res = VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR;}
-	else if(layout_str == "RENDERING_LOCAL_READ_KHR"s) {res = VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR;}
-	else if(layout_str == "VIDEO_ENCODE_DST_KHR"s) {res = VK_IMAGE_LAYOUT_VIDEO_ENCODE_DST_KHR;}
-	else if(layout_str == "VIDEO_ENCODE_SRC_KHR"s) {res = VK_IMAGE_LAYOUT_VIDEO_ENCODE_SRC_KHR;}
-	else if(layout_str == "VIDEO_ENCODE_DPB_KHR"s) {res = VK_IMAGE_LAYOUT_VIDEO_ENCODE_DPB_KHR;}
-	else if(layout_str == "ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT"s) {res = VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT;}
-	else if(layout_str == "DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL_KHR"s) {res = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL_KHR;}
-	else if(layout_str == "DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL_KHR"s) {res = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL_KHR;}
-	else if(layout_str == "SHADING_RATE_OPTIMAL_NV"s) {res = VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV;}
-	else if(layout_str == "DEPTH_ATTACHMENT_OPTIMAL_KHR"s) {res = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL_KHR;}
-	else if(layout_str == "DEPTH_READ_ONLY_OPTIMAL_KHR"s) {res = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL_KHR;}
-	else if(layout_str == "STENCIL_ATTACHMENT_OPTIMAL_KHR"s) {res = VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL_KHR;}
-	else if(layout_str == "STENCIL_READ_ONLY_OPTIMAL_KHR"s) {res = VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL_KHR;}
-	else if(layout_str == "READ_ONLY_OPTIMAL_KHR"s) {res = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL_KHR;}
-	else if(layout_str == "ATTACHMENT_OPTIMAL_KHR"s) {res = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;}
+         if(layout_str == "undefined"s) {res = VK_IMAGE_LAYOUT_UNDEFINED;}
+	else if(layout_str == "general"s) {res = VK_IMAGE_LAYOUT_GENERAL;}
+	else if(layout_str == "color_attachment_optimal"s) {res = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;}
+	else if(layout_str == "depth_stencil_attachment_optimal"s) {res = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;}
+	else if(layout_str == "depth_stencil_read_only_optimal"s) {res = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;}
+	else if(layout_str == "shader_read_only_optimal"s) {res = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;}
+	else if(layout_str == "transfer_src_optimal"s) {res = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;}
+	else if(layout_str == "transfer_dst_optimal"s) {res = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;}
+	else if(layout_str == "preinitialized"s) {res = VK_IMAGE_LAYOUT_PREINITIALIZED;}
+	else if(layout_str == "depth_read_only_stencil_attachment_optimal"s) {res = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL;}
+	else if(layout_str == "depth_attachment_stencil_read_only_optimal"s) {res = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL;}
+	else if(layout_str == "depth_attachment_optimal"s) {res = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;}
+	else if(layout_str == "depth_read_only_optimal"s) {res = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;}
+	else if(layout_str == "stencil_attachment_optimal"s) {res = VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL;}
+	else if(layout_str == "stencil_read_only_optimal"s) {res = VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL;}
+	else if(layout_str == "read_only_optimal"s) {res = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL;}
+	else if(layout_str == "attachment_optimal"s) {res = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;}
+	else if(layout_str == "present_src_khr"s) {res = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;}
+	else if(layout_str == "video_decode_dst_khr"s) {res = VK_IMAGE_LAYOUT_VIDEO_DECODE_DST_KHR;}
+	else if(layout_str == "video_decode_src_khr"s) {res = VK_IMAGE_LAYOUT_VIDEO_DECODE_SRC_KHR;}
+	else if(layout_str == "video_decode_dpb_khr"s) {res = VK_IMAGE_LAYOUT_VIDEO_DECODE_DPB_KHR;}
+	else if(layout_str == "shared_present_khr"s) {res = VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR;}
+	else if(layout_str == "fragment_density_map_optimal_ext"s) {res = VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT;}
+	else if(layout_str == "fragment_shading_rate_attachment_optimal_khr"s) {res = VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR;}
+	else if(layout_str == "rendering_local_read_khr"s) {res = VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR;}
+	else if(layout_str == "video_encode_dst_khr"s) {res = VK_IMAGE_LAYOUT_VIDEO_ENCODE_DST_KHR;}
+	else if(layout_str == "video_encode_src_khr"s) {res = VK_IMAGE_LAYOUT_VIDEO_ENCODE_SRC_KHR;}
+	else if(layout_str == "video_encode_dpb_khr"s) {res = VK_IMAGE_LAYOUT_VIDEO_ENCODE_DPB_KHR;}
+	else if(layout_str == "attachment_feedback_loop_optimal_ext"s) {res = VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT;}
+	else if(layout_str == "depth_read_only_stencil_attachment_optimal_khr"s) {res = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL_KHR;}
+	else if(layout_str == "depth_attachment_stencil_read_only_optimal_khr"s) {res = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL_KHR;}
+	else if(layout_str == "shading_rate_optimal_nv"s) {res = VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV;}
+	else if(layout_str == "depth_attachment_optimal_khr"s) {res = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL_KHR;}
+	else if(layout_str == "depth_read_only_optimal_khr"s) {res = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL_KHR;}
+	else if(layout_str == "stencil_attachment_optimal_khr"s) {res = VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL_KHR;}
+	else if(layout_str == "stencil_read_only_optimal_khr"s) {res = VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL_KHR;}
+	else if(layout_str == "read_only_optimal_khr"s) {res = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL_KHR;}
+	else if(layout_str == "attachment_optimal_khr"s) {res = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;}
+    
+    return res;
+}
+
+VkPipelineStageFlagBits getPipelineStageFlag(const std::string& flag_str) {
+	using namespace std::literals;
+    VkPipelineStageFlagBits res{};
+
+         if(flag_str == "top_of_pipe"s) {res = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;}
+	else if(flag_str == "draw_indirect"s) {res = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;}
+	else if(flag_str == "vertex_input"s) {res = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;}
+	else if(flag_str == "vertex_shader"s) {res = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;}
+	else if(flag_str == "tessellation_control_shader"s) {res = VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;}
+	else if(flag_str == "tessellation_evaluation_shader"s) {res = VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;}
+	else if(flag_str == "geometry_shader"s) {res = VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;}
+	else if(flag_str == "fragment_shader"s) {res = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;}
+	else if(flag_str == "early_fragment_tests"s) {res = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;}
+	else if(flag_str == "late_fragment_tests"s) {res = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;}
+	else if(flag_str == "color_attachment_output"s) {res = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;}
+	else if(flag_str == "compute_shader"s) {res = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;}
+	else if(flag_str == "transfer"s) {res = VK_PIPELINE_STAGE_TRANSFER_BIT;}
+	else if(flag_str == "bottom_of_pipe"s) {res = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;}
+	else if(flag_str == "host"s) {res = VK_PIPELINE_STAGE_HOST_BIT;}
+	else if(flag_str == "all_graphics"s) {res = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;}
+	else if(flag_str == "all_commands"s) {res = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;}
+	else if(flag_str == "none"s) {res = VK_PIPELINE_STAGE_NONE;}
+	else if(flag_str == "transform_feedback_ext"s) {res = VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT;}
+	else if(flag_str == "conditional_rendering_ext"s) {res = VK_PIPELINE_STAGE_CONDITIONAL_RENDERING_BIT_EXT;}
+	else if(flag_str == "acceleration_structure_build_khr"s) {res = VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;}
+	else if(flag_str == "ray_tracing_shader_khr"s) {res = VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR;}
+	else if(flag_str == "fragment_density_process_ext"s) {res = VK_PIPELINE_STAGE_FRAGMENT_DENSITY_PROCESS_BIT_EXT;}
+	else if(flag_str == "fragment_shading_rate_attachment_khr"s) {res = VK_PIPELINE_STAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;}
+	else if(flag_str == "command_preprocess_nv"s) {res = VK_PIPELINE_STAGE_COMMAND_PREPROCESS_BIT_NV;}
+	else if(flag_str == "task_shader_ext"s) {res = VK_PIPELINE_STAGE_TASK_SHADER_BIT_EXT;}
+	else if(flag_str == "mesh_shader_ext"s) {res = VK_PIPELINE_STAGE_MESH_SHADER_BIT_EXT;}
+	else if(flag_str == "shading_rate_image_nv"s) {res = VK_PIPELINE_STAGE_SHADING_RATE_IMAGE_BIT_NV;}
+	else if(flag_str == "ray_tracing_shader_nv"s) {res = VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_NV;}
+	else if(flag_str == "acceleration_structure_build_nv"s) {res = VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_NV;}
+	else if(flag_str == "task_shader_nv"s) {res = VK_PIPELINE_STAGE_TASK_SHADER_BIT_NV;}
+	else if(flag_str == "mesh_shader_nv"s) {res = VK_PIPELINE_STAGE_MESH_SHADER_BIT_NV;}
+	else if(flag_str == "none_khr"s) {res = VK_PIPELINE_STAGE_NONE_KHR;}
+	else if(flag_str == "command_preprocess_ext"s) {res = VK_PIPELINE_STAGE_COMMAND_PREPROCESS_BIT_EXT;}
+    
+    return res;
+}
+
+VkAccessFlagBits getVkAccessFlag(const std::string& flag_str) {
+	using namespace std::literals;
+    VkAccessFlagBits res{};
+
+         if(flag_str == "top_of_pipe"s) {res = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;}
+	else if(flag_str == "draw_indirect"s) {res = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;}
+	else if(flag_str == "vertex_input"s) {res = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;}
+	else if(flag_str == "vertex_shader"s) {res = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;}
+	else if(flag_str == "tessellation_control_shader"s) {res = VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;}
+	else if(flag_str == "tessellation_evaluation_shader"s) {res = VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;}
+	else if(flag_str == "geometry_shader"s) {res = VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;}
+	else if(flag_str == "fragment_shader"s) {res = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;}
+	else if(flag_str == "early_fragment_tests"s) {res = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;}
+	else if(flag_str == "late_fragment_tests"s) {res = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;}
+	else if(flag_str == "color_attachment_output"s) {res = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;}
+	else if(flag_str == "compute_shader"s) {res = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;}
+	else if(flag_str == "transfer"s) {res = VK_PIPELINE_STAGE_TRANSFER_BIT;}
+	else if(flag_str == "bottom_of_pipe"s) {res = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;}
+	else if(flag_str == "host"s) {res = VK_PIPELINE_STAGE_HOST_BIT;}
+	else if(flag_str == "all_graphics"s) {res = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;}
+	else if(flag_str == "all_commands"s) {res = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;}
+	else if(flag_str == "none"s) {res = VK_PIPELINE_STAGE_NONE;}
+	else if(flag_str == "transform_feedback_ext"s) {res = VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT;}
+	else if(flag_str == "conditional_rendering_ext"s) {res = VK_PIPELINE_STAGE_CONDITIONAL_RENDERING_BIT_EXT;}
+	else if(flag_str == "acceleration_structure_build_khr"s) {res = VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;}
+	else if(flag_str == "ray_tracing_shader_khr"s) {res = VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR;}
+	else if(flag_str == "fragment_density_process_ext"s) {res = VK_PIPELINE_STAGE_FRAGMENT_DENSITY_PROCESS_BIT_EXT;}
+	else if(flag_str == "fragment_shading_rate_attachment_khr"s) {res = VK_PIPELINE_STAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;}
+	else if(flag_str == "command_preprocess_nv"s) {res = VK_PIPELINE_STAGE_COMMAND_PREPROCESS_BIT_NV;}
+	else if(flag_str == "task_shader_ext"s) {res = VK_PIPELINE_STAGE_TASK_SHADER_BIT_EXT;}
+	else if(flag_str == "mesh_shader_ext"s) {res = VK_PIPELINE_STAGE_MESH_SHADER_BIT_EXT;}
+	else if(flag_str == "shading_rate_image_nv"s) {res = VK_PIPELINE_STAGE_SHADING_RATE_IMAGE_BIT_NV;}
+	else if(flag_str == "ray_tracing_shader_nv"s) {res = VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_NV;}
+	else if(flag_str == "acceleration_structure_build_nv"s) {res = VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_NV;}
+	else if(flag_str == "task_shader_nv"s) {res = VK_PIPELINE_STAGE_TASK_SHADER_BIT_NV;}
+	else if(flag_str == "mesh_shader_nv"s) {res = VK_PIPELINE_STAGE_MESH_SHADER_BIT_NV;}
+	else if(flag_str == "none_khr"s) {res = VK_PIPELINE_STAGE_NONE_KHR;}
+	else if(flag_str == "command_preprocess_ext"s) {res = VK_PIPELINE_STAGE_COMMAND_PREPROCESS_BIT_EXT;}
     
     return res;
 }

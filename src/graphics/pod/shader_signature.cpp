@@ -55,7 +55,7 @@ bool ShaderSignature::init(const pugi::xml_node& shader_data) {
     pugi::xml_node flags_node = shader_data.child("Flags");
 	if (flags_node) {
         for (pugi::xml_node flag_node = flags_node.first_child(); flag_node; flag_node = flag_node.next_sibling()) {
-			m_create_flags |= getShaderCreateFlagBitsEXT(flag_node.text().as_string());
+			m_create_flags |= getShaderCreateFlagEXT(flag_node.text().as_string());
 		}
     }
 
@@ -63,13 +63,13 @@ bool ShaderSignature::init(const pugi::xml_node& shader_data) {
     pugi::xml_node pipeline_shader_stage_create_flags_node = shader_data.child("PipelineShaderStageCreateFlags");
 	if (pipeline_shader_stage_create_flags_node) {
         for (pugi::xml_node flag_node = pipeline_shader_stage_create_flags_node.first_child(); flag_node; flag_node = flag_node.next_sibling()) {
-			m_pipeline_shader_stage_create_flags |= getPipelineShaderStageCreateFlagBits(flag_node.text().as_string());
+			m_pipeline_shader_stage_create_flags |= getPipelineShaderStageCreateFlag(flag_node.text().as_string());
 		}
     }
 
     pugi::xml_node stages_node = shader_data.child("Stage");
 	if (stages_node) {
-        m_stage = getShaderStageFlagBits(stages_node.text().as_string());
+        m_stage = getShaderStageFlag(stages_node.text().as_string());
     }
 
     pugi::xml_node entry_point_name_node = shader_data.child("EntryPointName");

@@ -384,11 +384,11 @@
                         <xs:element name="Flags" minOccurs="0" maxOccurs="unbounded">
                             <xs:simpleType>
                                 <xs:restriction base="xs:string">
-                                    <xs:enumeration value="subsampled_bit_ext"></xs:enumeration>
-                                    <xs:enumeration value="subsampled_coarse_reconstruction_bit_ext"></xs:enumeration>
-                                    <xs:enumeration value="descriptor_buffer_capture_replay_bit_ext"></xs:enumeration>
-                                    <xs:enumeration value="non_seamless_cube_map_bit_ext"></xs:enumeration>
-                                    <xs:enumeration value="image_processing_bit_qcom"></xs:enumeration>
+                                    <xs:enumeration value="subsampled_ext"></xs:enumeration>
+                                    <xs:enumeration value="subsampled_coarse_reconstruction_ext"></xs:enumeration>
+                                    <xs:enumeration value="descriptor_buffer_capture_replay_ext"></xs:enumeration>
+                                    <xs:enumeration value="non_seamless_cube_map_ext"></xs:enumeration>
+                                    <xs:enumeration value="image_processing_qcom"></xs:enumeration>
                                 </xs:restriction>
                             </xs:simpleType>
                         </xs:element>
@@ -420,37 +420,37 @@
         </xs:sequence>
     </xs:complexType>
 
-    <xs:complexType name="ShaderStageFlagBitsComplexType">
+    <xs:complexType name="ShaderStageFlagComplexType">
         <xs:sequence>
             <xs:element name="Flag" minOccurs="0" maxOccurs="unbounded">
                 <xs:simpleType>
                     <xs:restriction base="xs:string">
-                        <xs:enumeration value="vertex_bit"></xs:enumeration>
-                        <xs:enumeration value="tessellation_control_bit"></xs:enumeration>
-                        <xs:enumeration value="tessellation_evaluation_bit"></xs:enumeration>
-                        <xs:enumeration value="geometry_bit"></xs:enumeration>
-                        <xs:enumeration value="fragment_bit"></xs:enumeration>
-                        <xs:enumeration value="compute_bit"></xs:enumeration>
+                        <xs:enumeration value="vertex"></xs:enumeration>
+                        <xs:enumeration value="tessellation_control"></xs:enumeration>
+                        <xs:enumeration value="tessellation_evaluation"></xs:enumeration>
+                        <xs:enumeration value="geometry"></xs:enumeration>
+                        <xs:enumeration value="fragment"></xs:enumeration>
+                        <xs:enumeration value="compute"></xs:enumeration>
                         <xs:enumeration value="all_graphics"></xs:enumeration>
                         <xs:enumeration value="all"></xs:enumeration>
-                        <xs:enumeration value="raygen_bit_khr"></xs:enumeration>
-                        <xs:enumeration value="any_hit_bit_khr"></xs:enumeration>
-                        <xs:enumeration value="closest_hit_bit_khr"></xs:enumeration>
-                        <xs:enumeration value="miss_bit_khr"></xs:enumeration>
-                        <xs:enumeration value="intersection_bit_khr"></xs:enumeration>
-                        <xs:enumeration value="callable_bit_khr"></xs:enumeration>
-                        <xs:enumeration value="task_bit_ext"></xs:enumeration>
-                        <xs:enumeration value="mesh_bit_ext"></xs:enumeration>
-                        <xs:enumeration value="subpass_shading_bit_huawei"></xs:enumeration>
-                        <xs:enumeration value="cluster_culling_bit_huawei"></xs:enumeration>
-                        <xs:enumeration value="raygen_bit_nv"></xs:enumeration>
-                        <xs:enumeration value="any_hit_bit_nv"></xs:enumeration>
-                        <xs:enumeration value="closest_hit_bit_nv"></xs:enumeration>
-                        <xs:enumeration value="miss_bit_nv"></xs:enumeration>
-                        <xs:enumeration value="intersection_bit_nv"></xs:enumeration>
-                        <xs:enumeration value="callable_bit_nv"></xs:enumeration>
-                        <xs:enumeration value="task_bit_nv"></xs:enumeration>
-                        <xs:enumeration value="mesh_bit_nv"></xs:enumeration>
+                        <xs:enumeration value="raygen_khr"></xs:enumeration>
+                        <xs:enumeration value="any_hit_khr"></xs:enumeration>
+                        <xs:enumeration value="closest_hit_khr"></xs:enumeration>
+                        <xs:enumeration value="miss_khr"></xs:enumeration>
+                        <xs:enumeration value="intersection_khr"></xs:enumeration>
+                        <xs:enumeration value="callable_khr"></xs:enumeration>
+                        <xs:enumeration value="task_ext"></xs:enumeration>
+                        <xs:enumeration value="mesh_ext"></xs:enumeration>
+                        <xs:enumeration value="subpass_shading_huawei"></xs:enumeration>
+                        <xs:enumeration value="cluster_culling_huawei"></xs:enumeration>
+                        <xs:enumeration value="raygen_nv"></xs:enumeration>
+                        <xs:enumeration value="any_hit_nv"></xs:enumeration>
+                        <xs:enumeration value="closest_hit_nv"></xs:enumeration>
+                        <xs:enumeration value="miss_nv"></xs:enumeration>
+                        <xs:enumeration value="intersection_nv"></xs:enumeration>
+                        <xs:enumeration value="callable_nv"></xs:enumeration>
+                        <xs:enumeration value="task_nv"></xs:enumeration>
+                        <xs:enumeration value="mesh_nv"></xs:enumeration>
                     </xs:restriction>
                 </xs:simpleType>
             </xs:element>
@@ -504,7 +504,7 @@
             </xs:element>
             <xs:element name="DescriptorType" type="target:DescriptorTypeSimpleType" minOccurs="0" maxOccurs="1"></xs:element>
             <xs:element name="DescriptorCount" type="xs:unsignedInt" minOccurs="0" maxOccurs="1"></xs:element>
-            <xs:element name="ShaderStageFlags" type="target:ShaderStageFlagBitsComplexType" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="ShaderStageFlags" type="target:ShaderStageFlagComplexType" minOccurs="0" maxOccurs="1"></xs:element>
             <xs:element name="ImmutableSamplers" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
@@ -517,32 +517,32 @@
 
     <xs:simpleType name="ShaderStageSimpleType">
         <xs:restriction base="xs:string">
-            <xs:enumeration value="vertex_bit"></xs:enumeration>
-            <xs:enumeration value="tessellation_control_bit"></xs:enumeration>
-            <xs:enumeration value="tessellation_evaluation_bit"></xs:enumeration>
-            <xs:enumeration value="geometry_bit"></xs:enumeration>
-            <xs:enumeration value="fragment_bit"></xs:enumeration>
-            <xs:enumeration value="compute_bit"></xs:enumeration>
+            <xs:enumeration value="vertex"></xs:enumeration>
+            <xs:enumeration value="tessellation_control"></xs:enumeration>
+            <xs:enumeration value="tessellation_evaluation"></xs:enumeration>
+            <xs:enumeration value="geometry"></xs:enumeration>
+            <xs:enumeration value="fragment"></xs:enumeration>
+            <xs:enumeration value="compute"></xs:enumeration>
             <xs:enumeration value="all_graphics"></xs:enumeration>
             <xs:enumeration value="all"></xs:enumeration>
-            <xs:enumeration value="raygen_bit_khr"></xs:enumeration>
-            <xs:enumeration value="any_hit_bit_khr"></xs:enumeration>
-            <xs:enumeration value="closest_hit_bit_khr"></xs:enumeration>
-            <xs:enumeration value="miss_bit_khr"></xs:enumeration>
-            <xs:enumeration value="intersection_bit_khr"></xs:enumeration>
-            <xs:enumeration value="callable_bit_khr"></xs:enumeration>
-            <xs:enumeration value="task_bit_ext"></xs:enumeration>
-            <xs:enumeration value="mesh_bit_ext"></xs:enumeration>
-            <xs:enumeration value="subpass_shading_bit_huawei"></xs:enumeration>
-            <xs:enumeration value="cluster_culling_bit_huawei"></xs:enumeration>
-            <xs:enumeration value="raygen_bit_nv"></xs:enumeration>
-            <xs:enumeration value="any_hit_bit_nv"></xs:enumeration>
-            <xs:enumeration value="closest_hit_bit_nv"></xs:enumeration>
-            <xs:enumeration value="miss_bit_nv"></xs:enumeration>
-            <xs:enumeration value="intersection_bit_nv"></xs:enumeration>
-            <xs:enumeration value="callable_bit_nv"></xs:enumeration>
-            <xs:enumeration value="task_bit_nv"></xs:enumeration>
-            <xs:enumeration value="mesh_bit_nv"></xs:enumeration>
+            <xs:enumeration value="raygen_khr"></xs:enumeration>
+            <xs:enumeration value="any_hit_khr"></xs:enumeration>
+            <xs:enumeration value="closest_hit_khr"></xs:enumeration>
+            <xs:enumeration value="miss_khr"></xs:enumeration>
+            <xs:enumeration value="intersection_khr"></xs:enumeration>
+            <xs:enumeration value="callable_khr"></xs:enumeration>
+            <xs:enumeration value="task_ext"></xs:enumeration>
+            <xs:enumeration value="mesh_ext"></xs:enumeration>
+            <xs:enumeration value="subpass_shading_huawei"></xs:enumeration>
+            <xs:enumeration value="cluster_culling_huawei"></xs:enumeration>
+            <xs:enumeration value="raygen_nv"></xs:enumeration>
+            <xs:enumeration value="any_hit_nv"></xs:enumeration>
+            <xs:enumeration value="closest_hit_nv"></xs:enumeration>
+            <xs:enumeration value="miss_nv"></xs:enumeration>
+            <xs:enumeration value="intersection_nv"></xs:enumeration>
+            <xs:enumeration value="callable_nv"></xs:enumeration>
+            <xs:enumeration value="task_nv"></xs:enumeration>
+            <xs:enumeration value="mesh_nv"></xs:enumeration>
         </xs:restriction>
     </xs:simpleType>
 
@@ -588,14 +588,14 @@
 
     <xs:simpleType name="ShaderFlagSimpleType">
         <xs:restriction base="xs:string">
-            <xs:enumeration value="link_stage_bit_ext"></xs:enumeration>
+            <xs:enumeration value="link_stage_ext"></xs:enumeration>
             <xs:enumeration value="allow_varying_subgroup_size"></xs:enumeration>
             <xs:enumeration value="require_full_subgroups"></xs:enumeration>
-            <xs:enumeration value="no_task_shader_bit_ext"></xs:enumeration>
-            <xs:enumeration value="dispatch_base_bit_ext"></xs:enumeration>
-            <xs:enumeration value="fragment_shading_rate_attachment_bit_ext"></xs:enumeration>
-            <xs:enumeration value="fragment_density_map_attachment_bit_ext"></xs:enumeration>
-            <xs:enumeration value="indirect_bindable_bit_ext"></xs:enumeration>
+            <xs:enumeration value="no_task_shader_ext"></xs:enumeration>
+            <xs:enumeration value="dispatch_base_ext"></xs:enumeration>
+            <xs:enumeration value="fragment_shading_rate_attachment_ext"></xs:enumeration>
+            <xs:enumeration value="fragment_density_map_attachment_ext"></xs:enumeration>
+            <xs:enumeration value="indirect_bindable_ext"></xs:enumeration>
         </xs:restriction>
     </xs:simpleType>
 
@@ -624,7 +624,7 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:simpleType name="PipelineShaderStageCreateFlagBitsSimpleType">
+    <xs:simpleType name="PipelineShaderStageCreateFlagSimpleType">
         <xs:restriction base="xs:string">
             <xs:enumeration value="allow_varying_subgroup_size"></xs:enumeration>
             <xs:enumeration value="require_full_subgroups"></xs:enumeration>
@@ -635,7 +635,7 @@
 
     <xs:complexType name="PipelineShaderStageCreateFlagsComplexType">
         <xs:sequence>
-            <xs:element name="Flag" type="target:PipelineShaderStageCreateFlagBitsSimpleType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+            <xs:element name="Flag" type="target:PipelineShaderStageCreateFlagSimpleType" minOccurs="0" maxOccurs="unbounded"></xs:element>
         </xs:sequence>
     </xs:complexType>
 
@@ -773,10 +773,10 @@
 
     <xs:simpleType name="DepthStencilStateFlag">
         <xs:restriction base="xs:string">
-            <xs:enumeration value="rasterization_order_attachment_depth_access_bit_ext"></xs:enumeration>
-            <xs:enumeration value="rasterization_order_attachment_stencil_access_bit_ext"></xs:enumeration>
-            <xs:enumeration value="rasterization_order_attachment_depth_access_bit_arm"></xs:enumeration>
-            <xs:enumeration value="rasterization_order_attachment_stencil_access_bit_arm"></xs:enumeration>
+            <xs:enumeration value="rasterization_order_attachment_depth_access_ext"></xs:enumeration>
+            <xs:enumeration value="rasterization_order_attachment_stencil_access_ext"></xs:enumeration>
+            <xs:enumeration value="rasterization_order_attachment_depth_access_arm"></xs:enumeration>
+            <xs:enumeration value="rasterization_order_attachment_stencil_access_arm"></xs:enumeration>
         </xs:restriction>
     </xs:simpleType>
 
@@ -807,8 +807,8 @@
 
     <xs:simpleType name="ColorBlendStateFlag">
         <xs:restriction base="xs:string">
-            <xs:enumeration value="rasterization_order_attachment_access_bit_ext"></xs:enumeration>
-            <xs:enumeration value="rasterization_order_attachment_access_bit_arm"></xs:enumeration>
+            <xs:enumeration value="rasterization_order_attachment_access_ext"></xs:enumeration>
+            <xs:enumeration value="rasterization_order_attachment_access_arm"></xs:enumeration>
         </xs:restriction>
     </xs:simpleType>
 
@@ -1042,7 +1042,7 @@
         </xs:sequence>
     </xs:complexType>
 
-    <xs:simpleType name="PipelineCreateFlagBitSimpleType">
+    <xs:simpleType name="PipelineCreateFlagSimpleType">
         <xs:restriction base="xs:string">
             <xs:enumeration value="disable_optimization"></xs:enumeration>
             <xs:enumeration value="allow_derivatives"></xs:enumeration>
@@ -1092,7 +1092,7 @@
             <xs:element name="Falgs" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element name="Flag" type="target:PipelineCreateFlagBitSimpleType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                        <xs:element name="Flag" type="target:PipelineCreateFlagSimpleType" minOccurs="1" maxOccurs="unbounded"></xs:element>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1233,7 +1233,7 @@
         </xs:sequence>
     </xs:complexType>
 
-    <xs:simpleType name="DescriptorPoolCreateFlagBitSimpleType">
+    <xs:simpleType name="DescriptorPoolCreateFlagSimpleType">
         <xs:restriction base="xs:string">
             <xs:enumeration value="free_descriptor_set"></xs:enumeration>
             <xs:enumeration value="update_after_bind"></xs:enumeration>
@@ -1413,6 +1413,109 @@
         <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
     </xs:complexType>
             
+    <xs:complexType name="SubpassDependencyIndexComplexType">
+        <xs:sequence>
+            <xs:element name="SubpassType" minOccurs="1" maxOccurs="1">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="Internal"></xs:enumeration>
+                        <xs:enumeration value="External"></xs:enumeration>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="SubpassName" type="xs:string" minOccurs="0" maxOccurs="1"></xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:simpleType name="PipelineStageFlagSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="top_of_pipe"></xs:enumeration>
+            <xs:enumeration value="draw_indirect"></xs:enumeration>
+            <xs:enumeration value="vertex_input"></xs:enumeration>
+            <xs:enumeration value="vertex_shader"></xs:enumeration>
+            <xs:enumeration value="tessellation_control_shader"></xs:enumeration>
+            <xs:enumeration value="tessellation_evaluation_shader"></xs:enumeration>
+            <xs:enumeration value="geometry_shader"></xs:enumeration>
+            <xs:enumeration value="fragment_shader"></xs:enumeration>
+            <xs:enumeration value="early_fragment_tests"></xs:enumeration>
+            <xs:enumeration value="late_fragment_tests"></xs:enumeration>
+            <xs:enumeration value="color_attachment_output"></xs:enumeration>
+            <xs:enumeration value="compute_shader"></xs:enumeration>
+            <xs:enumeration value="transfer"></xs:enumeration>
+            <xs:enumeration value="bottom_of_pipe"></xs:enumeration>
+            <xs:enumeration value="host"></xs:enumeration>
+            <xs:enumeration value="all_graphics"></xs:enumeration>
+            <xs:enumeration value="all_commands"></xs:enumeration>
+            <xs:enumeration value="none"></xs:enumeration>
+            <xs:enumeration value="transform_feedback_ext"></xs:enumeration>
+            <xs:enumeration value="conditional_rendering_ext"></xs:enumeration>
+            <xs:enumeration value="acceleration_structure_build_khr"></xs:enumeration>
+            <xs:enumeration value="ray_tracing_shader_khr"></xs:enumeration>
+            <xs:enumeration value="fragment_density_process_ext"></xs:enumeration>
+            <xs:enumeration value="fragment_shading_rate_attachment_khr"></xs:enumeration>
+            <xs:enumeration value="command_preprocess_nv"></xs:enumeration>
+            <xs:enumeration value="task_shader_ext"></xs:enumeration>
+            <xs:enumeration value="mesh_shader_ext"></xs:enumeration>
+            <xs:enumeration value="shading_rate_image_nv"></xs:enumeration>
+            <xs:enumeration value="ray_tracing_shader_nv"></xs:enumeration>
+            <xs:enumeration value="acceleration_structure_build_nv"></xs:enumeration>
+            <xs:enumeration value="task_shader_nv"></xs:enumeration>
+            <xs:enumeration value="mesh_shader_nv"></xs:enumeration>
+            <xs:enumeration value="none_khr"></xs:enumeration>
+            <xs:enumeration value="command_preprocess_ext"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="AccessFlagSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="indirect_command_read"></xs:enumeration>
+            <xs:enumeration value="index_read"></xs:enumeration>
+            <xs:enumeration value="vertex_attribute_read"></xs:enumeration>
+            <xs:enumeration value="uniform_read"></xs:enumeration>
+            <xs:enumeration value="input_attachment_read"></xs:enumeration>
+            <xs:enumeration value="shader_read"></xs:enumeration>
+            <xs:enumeration value="shader_write"></xs:enumeration>
+            <xs:enumeration value="color_attachment_read"></xs:enumeration>
+            <xs:enumeration value="color_attachment_write"></xs:enumeration>
+            <xs:enumeration value="depth_stencil_attachment_read"></xs:enumeration>
+            <xs:enumeration value="depth_stencil_attachment_write"></xs:enumeration>
+            <xs:enumeration value="transfer_read"></xs:enumeration>
+            <xs:enumeration value="transfer_write"></xs:enumeration>
+            <xs:enumeration value="host_read"></xs:enumeration>
+            <xs:enumeration value="host_write"></xs:enumeration>
+            <xs:enumeration value="memory_read"></xs:enumeration>
+            <xs:enumeration value="memory_write"></xs:enumeration>
+            <xs:enumeration value="none"></xs:enumeration>
+            <xs:enumeration value="transform_feedback_write_ext"></xs:enumeration>
+            <xs:enumeration value="transform_feedback_counter_read_ext"></xs:enumeration>
+            <xs:enumeration value="transform_feedback_counter_write_ext"></xs:enumeration>
+            <xs:enumeration value="conditional_rendering_read_ext"></xs:enumeration>
+            <xs:enumeration value="color_attachment_read_noncoherent_ext"></xs:enumeration>
+            <xs:enumeration value="acceleration_structure_read_khr"></xs:enumeration>
+            <xs:enumeration value="acceleration_structure_write_khr"></xs:enumeration>
+            <xs:enumeration value="fragment_density_map_read_ext"></xs:enumeration>
+            <xs:enumeration value="fragment_shading_rate_attachment_read_khr"></xs:enumeration>
+            <xs:enumeration value="command_preprocess_read_nv"></xs:enumeration>
+            <xs:enumeration value="command_preprocess_write_nv"></xs:enumeration>
+            <xs:enumeration value="shading_rate_image_read_nv"></xs:enumeration>
+            <xs:enumeration value="acceleration_structure_read_nv"></xs:enumeration>
+            <xs:enumeration value="acceleration_structure_write_nv"></xs:enumeration>
+            <xs:enumeration value="none_khr"></xs:enumeration>
+            <xs:enumeration value="command_preprocess_read_ext"></xs:enumeration>
+            <xs:enumeration value="command_preprocess_write_ext"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="DependencyFlagSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="by_region"></xs:enumeration>
+            <xs:enumeration value="device_group"></xs:enumeration>
+            <xs:enumeration value="view_local"></xs:enumeration>
+            <xs:enumeration value="feedback_loop_ext"></xs:enumeration>
+            <xs:enumeration value="view_local_khr"></xs:enumeration>
+            <xs:enumeration value="device_group_khr"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
 
     <xs:complexType name="RenderPassComplexType">
         <xs:sequence>
@@ -1437,11 +1540,51 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="SubpassDependencys" minOccurs="1" maxOccurs="1">
+            <xs:element name="SubpassDependenciesSynchronization" minOccurs="1" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element name="Dependency">
-                            
+                        <xs:element name="Dependency" minOccurs="1" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="srcSubpass" type="target:SubpassDependencyIndexComplexType" minOccurs="1" maxOccurs="1"></xs:element>
+                                    <xs:element name="dstSubpass" type="target:SubpassDependencyIndexComplexType" minOccurs="1" maxOccurs="1"></xs:element>
+                                    <xs:element name="srcStageMask" minOccurs="1" maxOccurs="1">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="Mask" type="target:PipelineStageFlagSimpleType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                    <xs:element name="dstStageMask" minOccurs="1" maxOccurs="1">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="Mask" type="target:PipelineStageFlagSimpleType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                    <xs:element name="srcAccessMask" minOccurs="1" maxOccurs="1">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="Mask" type="target:AccessFlagSimpleType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                    <xs:element name="dstAccessMask" minOccurs="1" maxOccurs="1">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="Mask" type="target:AccessFlagSimpleType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                    <xs:element name="dependencyFlags" minOccurs="0" maxOccurs="1">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="Flag" type="target:DependencyFlagSimpleType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
                         </xs:element>
                     </xs:sequence>
                 </xs:complexType>
@@ -1462,7 +1605,7 @@
                                         <xs:element name="Flags" minOccurs="0" maxOccurs="1">
                                             <xs:complexType>
                                                 <xs:sequence>
-                                                    <xs:element name="Flag" type="target:DescriptorPoolCreateFlagBitSimpleType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                                                    <xs:element name="Flag" type="target:DescriptorPoolCreateFlagSimpleType" minOccurs="0" maxOccurs="unbounded"></xs:element>
                                                 </xs:sequence>
                                             </xs:complexType>
                                         </xs:element>

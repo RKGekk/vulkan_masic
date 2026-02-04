@@ -28,7 +28,7 @@ bool DescSetLayout::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_n
             
             pugi::xml_node create_flags_node = sampler_node.child("CreateFlags");
             for (pugi::xml_node create_flag = create_flags_node.first_child(); create_flag; create_flag = create_flag.next_sibling()) {
-	     	    sampler_info.flags |= getSamplerCreateFlagBit(create_flag.text().as_string());
+	     	    sampler_info.flags |= getSamplerCreateFlag(create_flag.text().as_string());
 	        }
             sampler_info.magFilter = getSamplerFilter(sampler_node.child("MagFilter").text().as_string());
             sampler_info.minFilter = getSamplerFilter(sampler_node.child("MinFilter").text().as_string());
