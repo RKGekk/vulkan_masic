@@ -2,8 +2,6 @@
 
 #include <algorithm>
 
-
-
 bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR surface, GLFWwindow* window, std::shared_ptr<ThreadPool> thread_pool) {
     using namespace std::literals;
 
@@ -13,7 +11,10 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR sur
     m_swapchain->init(m_device, surface, window);
 
     int max_frames = m_swapchain->getMaxFrames();
-    m_command_buffers.reserve(max_frames);
+
+    m_managers = std::make_shared<Managers>();
+
+    m_per_frame.reserve(max_frames);
     m_render_targets.reserve(max_frames);
     for(int i = 0; i < max_frames; ++i) {
         RenderTarget rt;
@@ -22,14 +23,14 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR sur
         m_command_buffers.push_back(m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::GRAPICS));
     }
 
-    m_descriptors_manager = std::make_shared<VulkanDescriptorsManager>();
-    m_descriptors_manager->init(m_device, "graphics_pipelines.xml"s);
+    m_managers->descriptors_manager = std::make_shared<VulkanDescriptorsManager>();
+    m_managers->descriptors_manager->init(m_device, "graphics_pipelines.xml"s);
 
-    m_shaders_manager = std::make_shared<VulkanShadersManager>();
-    m_shaders_manager->init(m_device, "graphics_pipelines.xml"s);
+    m_managers->shaders_manager = std::make_shared<VulkanShadersManager>();
+    m_managers->shaders_manager->init(m_device, "graphics_pipelines.xml"s);
 
-    m_pipelines_manager = std::make_shared<VulkanPipelinesManager>();
-    m_pipelines_manager->init(m_device, "graphics_pipelines.xml"s);
+    m_managers->pipelines_manager = std::make_shared<VulkanPipelinesManager>();
+    m_managers->pipelines_manager->init(m_device, "graphics_pipelines.xml"s);
 
     return true;
 }

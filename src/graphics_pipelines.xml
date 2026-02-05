@@ -131,32 +131,8 @@
     </Shaders>
 
     <RenderPases>
-        <RenderPass name="basic_render_target">
-            <AttachmentDescriptions>
-                <AttachmentDescription name="color_attachment">
-                    <Format>as_swapchain</Format>
-                    <Samples>as_device</Samples>
-                    <LoadOp>load</LoadOp>
-                    <StoreOp>store</StoreOp>
-                    <StencilLoadOp>load</StencilLoadOp>
-                    <StencilStoreOp>dont_care</StencilStoreOp>
-                    <InitialLayout>present_src_khr</InitialLayout>
-                    <FinalLayout>present_src_khr</FinalLayout>
-                </AttachmentDescription>
-                <AttachmentDescription name="depth_attachment">
-                    <Format>find_suitable_depth</Format>
-                    <Samples>as_device</Samples>
-                    <LoadOp>load</LoadOp>
-                    <StoreOp>store</StoreOp>
-                    <StencilLoadOp>load</StencilLoadOp>
-                    <StencilStoreOp>dont_care</StencilStoreOp>
-                    <InitialLayout>auto_depth_stencil_attachment_optimal</InitialLayout>
-                    <FinalLayout>auto_depth_stencil_attachment_optimal</FinalLayout>
-                </AttachmentDescription>
-            </AttachmentDescriptions>
-        </RenderPass>
 
-        <RenderPass name="basic_mulisample_render_target">
+        <RenderPass name="basic_mulisample_render_pass">
             <AttachmentDescriptions>
                 <AttachmentDescription name="color_attachment">
                     <Format>as_swapchain</Format>

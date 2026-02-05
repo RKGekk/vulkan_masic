@@ -33,8 +33,8 @@ struct Managers {
     std::shared_ptr<VulkanDescriptorsManager> descriptors_manager;
     std::shared_ptr<VulkanShadersManager> shaders_manager;
     std::shared_ptr<VulkanPipelinesManager> pipelines_manager;
-	VulkanFenceManager fence_manager;
-	VulkanSemaphoresManager semaphore_manager;
+	std::shared_ptr<VulkanFenceManager> fence_manager;
+	std::shared_ptr<VulkanSemaphoresManager> semaphore_manager;
 };
 
 struct PerFrame {
@@ -43,7 +43,6 @@ struct PerFrame {
 	
 	bool wait(uint64_t timeout);
 	void begin();
-	void trim_command_pools();
 
 	unsigned frame_index;
 	Managers &managers;
@@ -84,6 +83,8 @@ private:
     
     std::shared_ptr<VulkanSwapChain> m_swapchain;
     std::vector<RenderTarget> m_render_targets;
+
+    std::vector<PerFrame> m_per_frame;
     std::shared_ptr<Managers> m_managers;
     
     std::shared_ptr<ThreadPool> m_thread_pool;

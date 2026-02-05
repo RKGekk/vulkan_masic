@@ -262,5 +262,19 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
         m_subpass_dependencies_syncs.push_back(subpass_dependency_sync);
     }
 
+    m_render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    m_render_pass_create_info.pNext = nullptr;
+    m_render_pass_create_info.flags = m_create_flags;
+    m_render_pass_create_info.attachmentCount = static_cast<uint32_t>(m_attachment_descriptions.size());
+    m_render_pass_create_info.pAttachments = m_attachment_descriptions.data();
+    m_render_pass_create_info.subpassCount = static_cast<uint32_t>(m_subpass_descriptions.size());
+    m_render_pass_create_info.pSubpasses = m_subpass_descriptions.data();
+    m_render_pass_create_info.dependencyCount = static_cast<uint32_t>(m_subpass_dependencies_syncs.size());
+    m_render_pass_create_info.pDependencies = m_subpass_dependencies_syncs.data();
+
     return true;
+}
+
+const VkRenderPassCreateInfo& getRenderPassCreateInfo() const {
+    return m_render_pass_create_info;
 }

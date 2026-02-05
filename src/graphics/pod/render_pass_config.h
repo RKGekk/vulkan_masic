@@ -17,7 +17,8 @@ class VulkanSwapChain;
 class RenderPassConfig {
 public:
     bool init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanSwapChain>& swapchain, const pugi::xml_node& render_pass_data);
-    void destroy();
+
+    const VkRenderPassCreateInfo& getRenderPassCreateInfo() const;
 
 private:
     std::string m_name;
@@ -37,4 +38,6 @@ private:
     std::unordered_map<std::string, size_t> m_subpass_name_to_idx_map;
 
     std::vector<VkSubpassDependency> m_subpass_dependencies_syncs;
+
+    VkRenderPassCreateInfo m_render_pass_create_info;
 };
