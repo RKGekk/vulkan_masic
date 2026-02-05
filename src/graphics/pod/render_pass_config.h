@@ -35,4 +35,6 @@ private:
 
     std::vector<VkSubpassDescription> m_subpass_descriptions;
     std::unordered_map<std::string, size_t> m_subpass_name_to_idx_map;
+
+    std::vector<VkSubpassDependency> m_subpass_dependencies_syncs;
 };

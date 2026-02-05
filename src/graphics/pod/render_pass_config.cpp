@@ -165,7 +165,7 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
                         VkAttachmentReference resolve_attach_ref{};
                         std::string resolve_attachment_ref_name = resolve_output_attachments_node.child("AttachmentName").text().as_string();
                         size_t resolve_attachment_ref_idx = m_attachment_name_to_attach_idx_map.at(resolve_attachment_ref_name);
-                        bool attachment_unused = attachment_desc_node.attribute("attachment_unused").as_bool();
+                        bool attachment_unused = resolve_output_attachments_node.attribute("attachment_unused").as_bool();
                         resolve_attach_ref.attachment = attachment_unused ? VK_ATTACHMENT_UNUSED : resolve_attachment_ref_idx;
                         resolve_attach_ref.layout = getImageLayout(resolve_output_attachments_node.child("Layout").text().as_string());
                         m_resolve_desc_attach_refs.push_back(resolve_attach_ref);
@@ -190,6 +190,76 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
 
             m_subpass_descriptions.push_back(subpass_desc);
         }
+    }
+
+    pugi::xml_node subpass_dependency_sync_node = render_pass_data.child("SubpassDependenciesSynchronization");
+	if (subpass_dependency_sync_node) {
+        for (pugi::xml_node subpass_dependency_node = subpass_dependency_sync_node.first_child(); subpass_dependency_node; subpass_dependency_node = subpass_dependency_node.next_sibling()) {
+            VkSubpassDependency subpass_dependency_sync{};
+
+            pugi::xml_node src_subpass_node = output_attachments_node.child("srcSubpass");
+	        if (src_subpass_node) {
+                std::string subpass_type_str = src_subpass_node.child("SubpassType").text().as_string(); 
+                std::string subpass_name = src_subpass_node.child("SubpassName").text().as_string(); 
+                if(subpass_type_str == "Internal"s) {
+                    size_t subpass_idx = m_subpass_name_to_idx_map.at(subpass_name);
+                    subpass_dependency_sync.srcSubpass = stztic_cast<uint32_t>(subpass_idx);
+                }
+                else {
+                    subpass_dependency_sync.srcSubpass = VK_SUBPASS_EXTERNAL;
+                }
+            }
+
+            pugi::xml_node dst_subpass_node = output_attachments_node.child("dstSubpass");
+	        if (dst_subpass_node) {
+                std::string subpass_type_str = dst_subpass_node.child("SubpassType").text().as_string(); 
+                std::string subpass_name = dst_subpass_node.child("SubpassName").text().as_string(); 
+                if(subpass_type_str == "Internal"s) {
+                    size_t subpass_idx = m_subpass_name_to_idx_map.at(subpass_name);
+                    subpass_dependency_sync.dstSubpass = stztic_cast<uint32_t>(subpass_idx);
+                }
+                else {
+                    subpass_dependency_sync.dstSubpass = VK_SUBPASS_EXTERNAL;
+                }
+            }
+
+            pugi::xml_node src_stage_mask_node = output_attachments_node.child("srcStageMask");
+	        if (src_stage_mask_node) {
+                for (pugi::xml_node mask_node = src_stage_mask_node.first_child(); mask_node; mask_node = mask_node.next_sibling()) {
+                    subpass_dependency_sync.srcStageMask |= getPipelineStageFlag(mask_node.text().as_string());
+                }
+            }
+
+            pugi::xml_node dst_stage_mask_node = output_attachments_node.child("dstStageMask");
+	        if (dst_stage_mask_node) {
+                for (pugi::xml_node mask_node = dst_stage_mask_node.first_child(); mask_node; mask_node = mask_node.next_sibling()) {
+                    subpass_dependency_sync.dstStageMask |= getPipelineStageFlag(mask_node.text().as_string());
+                }
+            }
+
+            pugi::xml_node src_access_mask_node = output_attachments_node.child("srcAccessMask");
+	        if (src_access_mask_node) {
+                for (pugi::xml_node mask_node = src_access_mask_node.first_child(); mask_node; mask_node = mask_node.next_sibling()) {
+                    subpass_dependency_sync.srcAccessMask |= getVkAccessFlag(mask_node.text().as_string());
+                }
+            }
+
+            pugi::xml_node dst_stage_mask_node = output_attachments_node.child("dstAccessMask");
+	        if (dst_stage_mask_node) {
+                for (pugi::xml_node mask_node = dst_stage_mask_node.first_child(); mask_node; mask_node = mask_node.next_sibling()) {
+                    subpass_dependency_sync.dstAccessMask |= getVkAccessFlag(mask_node.text().as_string());
+                }
+            }
+
+            pugi::xml_node dependency_flags_node = output_attachments_node.child("dependencyFlags");
+	        if (dependency_flags_node) {
+                for (pugi::xml_node flag_node = dependency_flags_node.first_child(); flag_node; flag_node = flag_node.next_sibling()) {
+                    subpass_dependency_sync.dependencyFlags |= getDependencyFlag(flag_node.text().as_string());
+                }
+            }
+        }
+        
+        m_subpass_dependencies_syncs.push_back(subpass_dependency_sync);
     }
 
     return true;

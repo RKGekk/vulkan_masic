@@ -1514,3 +1514,17 @@ VkAccessFlagBits getVkAccessFlag(const std::string& flag_str) {
     
     return res;
 }
+
+VkDependencyFlagBits getDependencyFlag(const std::string& flag_str) {
+	using namespace std::literals;
+    VkDependencyFlagBits res{};
+
+         if(flag_str == "by_region"s) {res = VK_DEPENDENCY_BY_REGION_BIT;}
+	else if(flag_str == "device_group"s) {res = VK_DEPENDENCY_DEVICE_GROUP_BIT;}
+	else if(flag_str == "view_local"s) {res = VK_DEPENDENCY_VIEW_LOCAL_BIT;}
+	else if(flag_str == "feedback_loop_ext"s) {res = VK_DEPENDENCY_FEEDBACK_LOOP_BIT_EXT;}
+	else if(flag_str == "view_local_khr"s) {res = VK_DEPENDENCY_VIEW_LOCAL_BIT_KHR;}
+	else if(flag_str == "device_group_khr"s) {res = VK_DEPENDENCY_DEVICE_GROUP_BIT_KHR;}
+    
+    return res;
+}
