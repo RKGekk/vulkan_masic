@@ -26,6 +26,7 @@ public:
     VkPipeline getPipeline() const;
     VkPipelineLayout getPipelineLayout() const;
     const std::vector<VkPipelineShaderStageCreateInfo>& getShadersInfo() const;
+    const std::shared_ptr<PipelineConfig>& getPipelineConfig() const;
 
 private:
     std::vector<VkDescriptorSetLayout> getVkDescriptorSetLayouts(const std::vector<std::string>& shader_names, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager) const;

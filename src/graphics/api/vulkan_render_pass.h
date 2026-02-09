@@ -10,6 +10,7 @@
 #include <vector>
 
 class VulkanDevice;
+class RenderPassConfig;
 
 class VulkanRenderPass {
 public:

@@ -223,3 +223,7 @@ VkPipelineLayout VulkanPipeline::getPipelineLayout() const {
 const std::vector<VkPipelineShaderStageCreateInfo>& VulkanPipeline::getShadersInfo() const {
     return m_shaders_infos;
 }
+
+const std::shared_ptr<PipelineConfig>& VulkanPipeline::getPipelineConfig() const {
+    return m_pipeline_config;
+}

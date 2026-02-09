@@ -1679,6 +1679,8 @@
                 </xs:element>
 
                 <xs:element name="Pipelines" type="target:PipelinesComplexType" minOccurs="1" maxOccurs="1"></xs:element>
+
+                
             </xs:sequence>
         </xs:complexType>
     </xs:element>
