@@ -28,6 +28,8 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR sur
         per_frame->render_target->init(m_device, m_swapchain, i);
 
         per_frame->command_buffer = m_managers->command_manager->allocCommandBufferPtr(PoolTypeEnum::GRAPICS);
+
+        m_per_frame.push_back(std::move(per_frame));
     }
 
     m_managers->descriptors_manager = std::make_shared<VulkanDescriptorsManager>();
@@ -56,8 +58,8 @@ void VulkanRenderer::destroy() {
     size_t sz = m_swapchain->getMaxFrames();
     m_swapchain->destroy();
     for(size_t i = 0u; i < sz; ++i) {
-        m_command_buffers[i].destroy();
-        m_render_targets[i].destroy();
+        m_per_frame[i]->command_buffer->destroy();
+        m_per_frame[i]->render_target->destroy();
     }
 
     for (const std::shared_ptr<IVulkanDrawable>& drawable : m_drawable_list) {
@@ -71,17 +73,19 @@ void VulkanRenderer::recreate() {
     
     size_t sz = m_swapchain->getMaxFrames();
     for(size_t i = 0u; i < sz; ++i) {
-        m_command_buffers[i].destroy();
-        m_render_targets[i].destroy();
+        m_per_frame[i]->command_buffer->destroy();
+        m_per_frame[i]->render_target->destroy();
     }
     
     for(int i = 0; i < m_swapchain->getMaxFrames(); ++i) {
-        m_render_targets[i].init(m_device, m_swapchain, i);
-        m_command_buffers[i] = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::GRAPICS);
+        m_per_frame[i]->render_target = std::make_shared<RenderTarget>();
+        m_per_frame[i]->render_target->init(m_device, m_swapchain, i);
+
+        m_per_frame[i]->command_buffer = m_managers->command_manager->allocCommandBufferPtr(PoolTypeEnum::GRAPICS);
     }
 
     for (const std::shared_ptr<IVulkanDrawable>& drawable : m_drawable_list) {
-        drawable->reset(m_render_targets[0]);
+        drawable->reset(*m_per_frame[0]->render_target);
     }
 }
 
@@ -90,10 +94,10 @@ const std::shared_ptr<VulkanSwapChain>& VulkanRenderer::getSwapchain() const {
 }
 
 const RenderTarget& VulkanRenderer::getRenderTarget(uint32_t image_index) const {
-    return m_render_targets.at(image_index);
+    return *m_per_frame.at(image_index)->render_target;
 }
 
-const std::shared_ptr<VulkanDevice>& VulkanRenderer::GetDevice() {
+std::shared_ptr<VulkanDevice> VulkanRenderer::GetDevice() {
     return m_device;
 }
 
@@ -102,41 +106,41 @@ void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer) {
 
     uint32_t current_frame = m_swapchain->getCurrentFrame();
     for(const std::shared_ptr<IVulkanDrawable> renderable : m_drawable_list) {
-        renderable->recordCommandBuffer(command_buffer, m_render_targets[current_frame], current_frame);
-        m_render_targets[current_frame].incExecCounter();
+        renderable->recordCommandBuffer(command_buffer, *m_per_frame[current_frame]->render_target, current_frame);
+        m_per_frame[current_frame]->render_target->incExecCounter();
     }
     
     VulkanCommandManager::endCommandBuffer(command_buffer);
 }
 
 void VulkanRenderer::drawFrame() {
-    bool next_frame_available = m_swapchain->setNextFrame(m_command_buffers[m_swapchain->fetchNextSync()].getRenderFence());
+    bool next_frame_available = m_swapchain->setNextFrame(m_per_frame[m_swapchain->fetchNextSync()]->command_buffer->getRenderFence());
     if (!next_frame_available || m_framebuffer_resized) {
         recreate();
         return;
     }
 
-    m_command_buffers[m_swapchain->getCurrentSync()].reset();
-    m_render_targets[m_swapchain->getCurrentFrame()].resetExecCounter();
-    recordCommandBuffer(m_command_buffers[m_swapchain->getCurrentSync()]);
+    m_per_frame[m_swapchain->getCurrentSync()]->command_buffer->reset();
+    m_per_frame[m_swapchain->getCurrentFrame()]->render_target->resetExecCounter();
+    recordCommandBuffer(*m_per_frame[m_swapchain->getCurrentSync()]->command_buffer);
     
     CommandBatch::BatchWaitInfo wait_info;
     wait_info.wait_for_semaphores.push_back(m_swapchain->getImageAvailableSemaphore());
     wait_info.wait_for_stages.push_back(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
-    VkSubmitInfo submit_info = m_command_buffers[m_swapchain->getCurrentSync()].getSubmitInfo(&wait_info);
+    VkSubmitInfo submit_info = m_per_frame[m_swapchain->getCurrentSync()]->command_buffer->getSubmitInfo(&wait_info);
 
-    m_device->getCommandManager().submitCommandBuffer(m_command_buffers[m_swapchain->getCurrentSync()], VulkanCommandManager::SELECT_ALL_BUFFERS, &submit_info);
+    m_managers->command_manager->submitCommandBuffer(*m_per_frame[m_swapchain->getCurrentSync()]->command_buffer, VulkanCommandManager::SELECT_ALL_BUFFERS, &submit_info);
     
     VkSwapchainKHR swapchains[] = {m_swapchain->getSwapchain()};
     VkPresentInfoKHR present_info{};
     present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     present_info.waitSemaphoreCount = 1u;
-    present_info.pWaitSemaphores = m_command_buffers[m_swapchain->getCurrentSync()].getInProgressSemaphorePtr();
+    present_info.pWaitSemaphores = m_per_frame[m_swapchain->getCurrentSync()]->command_buffer->getInProgressSemaphorePtr();
     present_info.swapchainCount = 1u;
     present_info.pSwapchains = swapchains;
     present_info.pImageIndices = m_swapchain->getCurrentFramePtr();
     present_info.pResults = nullptr;
-    VkResult result = vkQueuePresentKHR(m_device->getCommandManager().getQueue(), &present_info);
+    VkResult result = vkQueuePresentKHR(m_managers->command_manager->getQueue(), &present_info);
     if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to present swap chain image!");
     }
