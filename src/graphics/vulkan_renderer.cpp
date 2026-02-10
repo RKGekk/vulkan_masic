@@ -14,13 +14,20 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR sur
 
     m_managers = std::make_shared<Managers>();
 
+    m_managers->command_manager = m_device->getCommandManager();
+
     m_per_frame.reserve(max_frames);
-    m_render_targets.reserve(max_frames);
     for(int i = 0; i < max_frames; ++i) {
-        RenderTarget rt;
-        rt.init(m_device, m_swapchain, i);
-        m_render_targets.push_back(rt);
-        m_command_buffers.push_back(m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::GRAPICS));
+        std::shared_ptr<PerFrame> per_frame = std::make_shared<PerFrame>();
+        per_frame->init(m_device, i);
+
+        std::shared_ptr<RenderTarget> rt = std::make_shared<RenderTarget>();
+        rt->init(m_device, m_swapchain, i);
+
+        per_frame->render_target = std::make_shared<RenderTarget>();
+        per_frame->render_target->init(m_device, m_swapchain, i);
+
+        per_frame->command_buffer = m_managers->command_manager->allocCommandBufferPtr(PoolTypeEnum::GRAPICS);
     }
 
     m_managers->descriptors_manager = std::make_shared<VulkanDescriptorsManager>();
@@ -31,6 +38,15 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR sur
 
     m_managers->pipelines_manager = std::make_shared<VulkanPipelinesManager>();
     m_managers->pipelines_manager->init(m_device, "graphics_pipelines.xml"s);
+
+    m_managers->fence_manager = std::make_shared<VulkanFenceManager>();
+    m_managers->fence_manager->init(m_device);
+
+    m_managers->semaphore_manager = std::make_shared<VulkanSemaphoresManager>();
+    m_managers->semaphore_manager->init(m_device);
+
+    m_managers->render_graph = std::make_shared<RenderGraph>();
+    m_managers->render_graph->init(m_device);
 
     return true;
 }

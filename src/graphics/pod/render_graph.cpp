@@ -74,3 +74,34 @@ void RenderGraph::topological_sort() {
 
     std::reverse(m_topologically_sorted_nodes.begin(), m_topologically_sorted_nodes.end());
 }
+
+void RenderGraph::build_dependency_levels() {
+    m_dependency_levels.clear();
+
+    std::unordered_map<RenderNodePtr, int> node_dist_to_start;
+    for (const RenderNodePtr& node_ptr : m_topologically_sorted_nodes) {
+        node_dist_to_start[node_ptr] = 0;
+    }
+
+    int dependency_level_count = 1;
+
+    for (RenderNodeList::reverse_iterator it = m_topologically_sorted_nodes.rbegin(); it != m_topologically_sorted_nodes.rend(); ++it) {
+        const RenderNodePtr& node_ptr = *it;
+        int max_neighbor_dist = -1;
+
+        for (const RenderNodePtr& adj_node_ptr : m_adjency_list.at(node_ptr)) {
+            max_neighbor_dist = std::max(max_neighbor_dist, node_dist_to_start[adj_node_ptr]);
+        }
+
+        if (max_neighbor_dist != -1) {
+            node_dist_to_start[node_ptr] = 1 + max_neighbor_dist;
+            dependency_level_count = std::max(1 + max_neighbor_dist, dependency_level_count);
+        }
+    }
+
+    m_dependency_levels.resize(dependency_level_count);
+    for (const auto&[node_ptr, level] : node_dist_to_start) {
+        std::shared_ptr<DependencyLevel> dependency_level = std::make_shared<DependencyLevel>(level);
+        m_dependency_levels[level] = std::move(dependency_level);
+    }
+}

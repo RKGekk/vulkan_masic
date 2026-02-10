@@ -335,6 +335,8 @@ set(APP_SOURCES
     "${SRC_DIR}/graphics/api/vulkan_render_pass.cpp"
     "${SRC_DIR}/graphics/pod/render_pass_config.h"
     "${SRC_DIR}/graphics/pod/render_pass_config.cpp"
+    "${SRC_DIR}/graphics/pod/dependency_level.h"
+    "${SRC_DIR}/graphics/pod/dependency_level.cpp"
     "${SRC_DIR}/graphics/vulkan_renderer.h"
     "${SRC_DIR}/graphics/vulkan_renderer.cpp"
     "${SRC_DIR}/graphics/drawables/imgui_drawable.h"

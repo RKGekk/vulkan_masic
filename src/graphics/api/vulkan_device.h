@@ -93,8 +93,8 @@ public:
     const DeviceAbilities& getDeviceAbilities() const;
     VkSampleCountFlagBits getMsaaSamples() const;
     bool checkFeaturesSupported(const VkPhysicalDeviceFeatures& features);
-    const VulkanCommandManager& getCommandManager() const;
-    VulkanCommandManager& getCommandManager();
+    const std::shared_ptr<VulkanCommandManager>& getCommandManager() const;
+    std::shared_ptr<VulkanCommandManager>& getCommandManager();
 
     uint32_t findMemoryType(uint32_t type_filter, VkMemoryPropertyFlags properties) const;
     VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features, VkImageUsageFlags usage, VkExtent2D extent, uint32_t mip_levels, VkSampleCountFlags sample_count, VkImageCreateFlags flags = 0u) const;
@@ -135,7 +135,7 @@ private:
     VulkanDeviceExtensions m_extensions;
     VkDevice m_device;
     DeviceAbilities m_device_abilities;
-    VulkanCommandManager m_command_manager;
+    std::shared_ptr<VulkanCommandManager> m_command_manager;
     std::shared_ptr<ThreadPool> m_thread_pool;
 
     VkSampleCountFlagBits m_msaa_samples = VK_SAMPLE_COUNT_1_BIT;

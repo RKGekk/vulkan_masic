@@ -13,6 +13,7 @@
 
 #include "render_resource.h"
 #include "render_node.h"
+#include "dependency_level.h"
 
 class VulkanDevice;
 
@@ -23,12 +24,16 @@ public:
 
 	void add_pass(std::shared_ptr<RenderNode> render_node);
 	void topological_sort();
-
+	void build_dependency_levels();
 
 private:
 	using RenderNodePtr = std::shared_ptr<RenderNode>;
+	using RenderNodeList = std::vector<RenderNodePtr>;
+	using RenderNodeSet = std::unordered_set<RenderNodePtr>;
+
 	std::shared_ptr<VulkanDevice> m_device;
-	std::vector<RenderNodePtr> m_render_nodes;
-	std::unordered_map<RenderNodePtr, std::unordered_set<RenderNodePtr>> m_adjency_list;
-	std::vector<RenderNodePtr> m_topologically_sorted_nodes;
+	RenderNodeList m_render_nodes;
+	std::unordered_map<RenderNodePtr, RenderNodeSet> m_adjency_list;
+	RenderNodeList m_topologically_sorted_nodes;
+	std::vector<std::shared_ptr<DependencyLevel>> m_dependency_levels;
 };

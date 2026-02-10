@@ -19,13 +19,14 @@ bool VulkanDevice::init(const VulkanInstance& instance, VkSurfaceKHR surface, st
     QueueFamilyIndices queue_family_indices;
     queue_family_indices.init(m_device_abilities.physical_device, surface);
     m_device = createLogicalDevice(m_device_abilities, queue_family_indices.getFamilies(), m_extensions, instance.getLayersAndExtensions());
-    m_command_manager.init(m_device_abilities.physical_device, m_device, surface, m_thread_pool);
+    m_command_manager = std::make_shared<VulkanCommandManager>();
+    m_command_manager->init(m_device_abilities.physical_device, m_device, surface, m_thread_pool);
 
     return all_device_ext_supported;
 }
 
 void VulkanDevice::destroy() {
-    m_command_manager.destroy();
+    m_command_manager->destroy();
     vkDestroyDevice(m_device, nullptr);
 }
 
@@ -55,11 +56,11 @@ bool VulkanDevice::checkFeaturesSupported(const VkPhysicalDeviceFeatures& featur
     return (device_features_flags & to_check_features_flags) == to_check_features_flags;
 }
 
-const VulkanCommandManager& VulkanDevice::getCommandManager() const {
+const std::shared_ptr<VulkanCommandManager>& VulkanDevice::getCommandManager() const {
     return m_command_manager;
 }
 
-VulkanCommandManager& VulkanDevice::getCommandManager() {
+std::shared_ptr<VulkanCommandManager>& VulkanDevice::getCommandManager() {
     return m_command_manager;
 }
 

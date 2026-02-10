@@ -28,6 +28,7 @@
 #include "api/vulkan_semaphores_manager.h"
 #include "api/vulkan_fence_manager.h"
 #include "../engine/views/iengine_view.h"
+#include "pod/render_graph.h"
 
 struct Managers {
     std::shared_ptr<VulkanDescriptorsManager> descriptors_manager;
@@ -35,6 +36,8 @@ struct Managers {
     std::shared_ptr<VulkanPipelinesManager> pipelines_manager;
 	std::shared_ptr<VulkanFenceManager> fence_manager;
 	std::shared_ptr<VulkanSemaphoresManager> semaphore_manager;
+    std::shared_ptr<VulkanCommandManager> command_manager;
+    std::shared_ptr<RenderGraph> render_graph;
 };
 
 struct PerFrame {
@@ -52,7 +55,8 @@ struct PerFrame {
 
 	std::vector<VkFence> wait_and_recycle_fences;
 
-	std::vector<CommandBatch> m_command_buffers;
+    std::shared_ptr<RenderTarget> render_target;
+	std::shared_ptr<CommandBatch> command_buffer;
 	std::vector<VkSemaphore> recycled_semaphores;
 	std::vector<VkEvent> recycled_events;
 	std::vector<VkSemaphore> consumed_semaphores;
@@ -82,9 +86,8 @@ private:
     std::shared_ptr<VulkanDevice> m_device;
     
     std::shared_ptr<VulkanSwapChain> m_swapchain;
-    std::vector<RenderTarget> m_render_targets;
 
-    std::vector<PerFrame> m_per_frame;
+    std::vector<std::shared_ptr<PerFrame>> m_per_frame;
     std::shared_ptr<Managers> m_managers;
     
     std::shared_ptr<ThreadPool> m_thread_pool;
