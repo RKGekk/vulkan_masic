@@ -4,7 +4,6 @@
 
 #include "iscreen_element.h"
 #include "../../scene/scene.h"
-#include "../../graphics/drawables/scene_drawable.h"
 #include "../../events/ievent_data.h"
 
 class ScreenElementScene : public IScreenElement, public Scene {
@@ -35,8 +34,6 @@ private:
 	bool m_is_visible = true;
 	uint32_t m_width;
 	uint32_t m_height;
-
-	std::shared_ptr<SceneDrawable> m_scene_draw;
 
 private:
 	void RegisterAllDelegates();

@@ -1,7 +1,12 @@
 #include "vulkan_vertex_buffer.h"
 
-bool VertexBuffer::init(std::shared_ptr<VulkanDevice> device, const void* vertices_data, size_t vertices_count, const void* indices_data, size_t indices_count, VkIndexType index_type, VkPipelineVertexInputStateCreateInfo vertex_info, VkMemoryPropertyFlags properties) {
-    m_device = std::move(device);
+#include "vulkan_device.h"
+
+VertexBuffer::VertexBuffer(std::shared_ptr<VulkanDevice> device, std::string name) : m_device(std::move(device)), m_name(std::move(name)) {}
+
+VertexBuffer::VertexBuffer(std::shared_ptr<VulkanDevice> device) : m_device(std::move(device)), m_name(std::to_string(rand())) {}
+
+bool VertexBuffer::init(const void* vertices_data, size_t vertices_count, const void* indices_data, size_t indices_count, VkIndexType index_type, VkPipelineVertexInputStateCreateInfo vertex_info, VkMemoryPropertyFlags properties) {
     m_indices_count = indices_count;
     m_vertex_count = vertices_count;
     m_index_type = index_type;
@@ -12,30 +17,30 @@ bool VertexBuffer::init(std::shared_ptr<VulkanDevice> device, const void* vertic
 
     bool result = false;
     if(vertices_data) {
-        CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
+        CommandBatch command_buffer = m_device->getCommandManager()->allocCommandBuffer(PoolTypeEnum::TRANSFER);
         
         m_vertex_buffer = std::make_shared<VulkanBuffer>();
-        bool result = m_vertex_buffer->init(m_device, command_buffer, vertices_data, vertices_buffer_size, properties, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+        bool result = m_vertex_buffer->init(command_buffer, vertices_data, vertices_buffer_size, properties, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
         
         m_index_buffer = std::make_shared<VulkanBuffer>();
-        result &= m_index_buffer->init(m_device, command_buffer, indices_data, indices_buffer_size, properties, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+        result &= m_index_buffer->init(command_buffer, indices_data, indices_buffer_size, properties, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
         
-        m_device->getCommandManager().submitCommandBuffer(command_buffer);
-        m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
+        m_device->getCommandManager()->submitCommandBuffer(command_buffer);
+        m_device->getCommandManager()->wait(PoolTypeEnum::TRANSFER);
     }
     else {
         m_vertex_buffer = std::make_shared<VulkanBuffer>();
-        bool result = m_vertex_buffer->init(m_device, vertices_data, vertices_buffer_size, properties, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+        bool result = m_vertex_buffer->init(vertices_data, vertices_buffer_size, properties, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
         
         m_index_buffer = std::make_shared<VulkanBuffer>();
-        result &= m_index_buffer->init(m_device, indices_data, indices_buffer_size, properties, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+        result &= m_index_buffer->init(indices_data, indices_buffer_size, properties, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
     }
 
     return result;
 }
 
-bool VertexBuffer::init(std::shared_ptr<VulkanDevice> device, CommandBatch& command_buffer, const void* vertices_data, size_t vertices_count, const void* indices_data, size_t indices_count, VkIndexType index_type, VkPipelineVertexInputStateCreateInfo vertex_info, VkMemoryPropertyFlags properties) {
-    bool result = init(std::move(device), nullptr, vertices_count, nullptr, indices_count, index_type, vertex_info, properties);
+bool VertexBuffer::init(CommandBatch& command_buffer, const void* vertices_data, size_t vertices_count, const void* indices_data, size_t indices_count, VkIndexType index_type, VkPipelineVertexInputStateCreateInfo vertex_info, VkMemoryPropertyFlags properties) {
+    bool result = init(nullptr, vertices_count, nullptr, indices_count, index_type, vertex_info, properties);
 
     if(vertices_data) {
         VkDeviceSize vertices_buffer_size = vertex_info.pVertexBindingDescriptions->stride * vertices_count;
@@ -94,4 +99,12 @@ VkIndexType VertexBuffer::getIndexTypeByCount(size_t sz) {
         case 4 : return VK_INDEX_TYPE_UINT32;
         default: return VK_INDEX_TYPE_UINT32;
     }
+}
+
+const RenderResource::ResourceName& VertexBuffer::getName() const {
+    return m_name;
+}
+
+RenderResource::Type VertexBuffer::getType() const {
+    return RenderResource::Type::VERTEX_BUFFER;
 }

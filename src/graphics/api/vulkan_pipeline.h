@@ -11,6 +11,7 @@ class VulkanDevice;
 class VulkanDescriptorsManager;
 class VulkanShadersManager;
 class PipelineConfig;
+class VulkanRenderPass;
 
 class VulkanPipeline {
 public:
@@ -19,7 +20,7 @@ public:
         COMPUTE
     };
 
-    bool init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& pipeline_data, VkExtent2D viewport_extent, VkRenderPass render_pass, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager);
+    bool init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& pipeline_data, VkExtent2D viewport_extent, std::shared_ptr<VulkanRenderPass> render_pass, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager);
     void destroy();
 
     PipelineType getPipelineType() const;
@@ -27,6 +28,7 @@ public:
     VkPipelineLayout getPipelineLayout() const;
     const std::vector<VkPipelineShaderStageCreateInfo>& getShadersInfo() const;
     const std::shared_ptr<PipelineConfig>& getPipelineConfig() const;
+    std::shared_ptr<VulkanRenderPass> getRenderPass();
 
 private:
     std::vector<VkDescriptorSetLayout> getVkDescriptorSetLayouts(const std::vector<std::string>& shader_names, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager) const;
@@ -53,4 +55,5 @@ private:
     VkPipeline m_pipeline = VK_NULL_HANDLE;
     std::shared_ptr<PipelineConfig> m_pipeline_config;
     VkPipelineCache m_pipeline_cache = VK_NULL_HANDLE;
+    std::shared_ptr<VulkanRenderPass> m_render_pass;
 };

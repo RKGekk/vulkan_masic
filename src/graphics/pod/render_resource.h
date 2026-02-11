@@ -4,7 +4,10 @@
 #include <GLFW/glfw3.h>
 
 #include <cstdint>
+#include <memory>
 #include <string>
+
+class VulkanDevice;
 
 class RenderResource {
 public:
@@ -12,7 +15,6 @@ public:
 
     enum class Type : uint32_t {
         VERTEX_BUFFER,
-        INDEX_BUFFER,
         TEXTURE_BUFFER,
         UNIFORM_BUFFER
     };

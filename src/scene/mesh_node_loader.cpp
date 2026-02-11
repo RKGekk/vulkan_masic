@@ -34,7 +34,7 @@ std::unordered_map<MeshNodeLoader::NodeIdx, MeshNodeLoader::NodeIdx> MeshNodeLoa
     return node_parent_map;
 }
 
-std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem::path& model_path, std::shared_ptr<VulkanShaderManager> shader_manager, std::shared_ptr<SceneNode> root_transform) {
+std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem::path& model_path, std::shared_ptr<VulkanShadersManager> shader_manager, std::shared_ptr<SceneNode> root_transform) {
 	using namespace std::literals;
 
     Application& app = Application::Get();
@@ -210,6 +210,8 @@ VkIndexType MeshNodeLoader::getIndexType(int accessor_component_type) {
 }
 
 std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& gltf_mesh, Scene::NodeIndex node) {
+	using namespace std::literals;
+
     std::shared_ptr<MeshNode> mesh_node = std::make_shared<MeshNode>(m_scene, node);
 	m_scene->addProperty(mesh_node);
     const std::string& mesh_name = gltf_mesh.name;
@@ -247,8 +249,8 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& g
 
     	std::vector<float> vertices = GetVertices(primitive, m_pbr_shader_signature->getVertexFormat());
 		const void* vertices_data = vertices.data();
-		std::shared_ptr<VertexBuffer> vertex_buffer = std::make_shared<VertexBuffer>();
-        vertex_buffer->init(m_device, vertices_data, num_vertices, indices_data, index_count, getIndexType(indices_component_type), model_data->GetVertextInputInfo());
+		std::shared_ptr<VertexBuffer> vertex_buffer = std::make_shared<VertexBuffer>(m_device, mesh_name + prop_set->GetName() + "VertexBuffer");
+        vertex_buffer->init(vertices_data, num_vertices, indices_data, index_count, getIndexType(indices_component_type), model_data->GetVertextInputInfo());
 
 		model_data->SetVertexBuffer(vertex_buffer);
 		
@@ -501,7 +503,7 @@ void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, M
 	uint32_t mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(texture_image.width, texture_image.height))));
 	std::shared_ptr<VulkanSampler> sampler = createTextureSampler(mip_levels, texture_sampler);
 
-	std::shared_ptr<VulkanTexture> texture = std::make_shared<VulkanTexture>();
+	std::shared_ptr<VulkanTexture> texture = std::make_shared<VulkanTexture>(m_device, gltf_texture.name);
 	if (mime_is_file) {
 		std::string texture_image_file_name = texture_image.uri;
 		bool file_exists = std::filesystem::exists(texture_image_file_name);
@@ -509,7 +511,7 @@ void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, M
 			texture_image_file_name = "textures/"s + texture_image.uri;
 			file_exists = std::filesystem::exists(texture_image_file_name);
 		}
-		texture->init(m_device, texture_image_file_name, std::move(sampler));
+		texture->init(texture_image_file_name, std::move(sampler));
 		material->SetTexture(texture_type_enum, std::move(texture));
 	}
 	else {
@@ -518,7 +520,7 @@ void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, M
 		size_t texture_image_buffer_idx = texture_image_view.buffer;
 		tinygltf::Buffer& texture_image_buffer = m_gltf_model.buffers[texture_image_buffer_idx];
 
-		texture->init(m_device, texture_image_buffer.data.data(), texture_image_buffer.data.size(), std::move(sampler));
+		texture->init(texture_image_buffer.data.data(), texture_image_buffer.data.size(), std::move(sampler));
 		material->SetTexture(texture_type_enum, std::move(texture));
 	}
 }

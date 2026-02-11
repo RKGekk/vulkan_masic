@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 
 #include <cstdint>
+#include <string>
 #include <memory>
 
 #include "../pod/render_resource.h"
@@ -13,8 +14,11 @@ class VulkanDevice;
 
 class VulkanBuffer : public RenderResource {
 public:
-    bool init(std::shared_ptr<VulkanDevice> device, const void* data, VkDeviceSize buffer_size, VkMemoryPropertyFlags properties, VkBufferUsageFlags usage);
-    bool init(std::shared_ptr<VulkanDevice> device, CommandBatch& command_buffer, const void* data, VkDeviceSize buffer_size, VkMemoryPropertyFlags properties, VkBufferUsageFlags usage);
+    VulkanBuffer(std::shared_ptr<VulkanDevice> device, std::string name);
+    VulkanBuffer(std::shared_ptr<VulkanDevice> device);
+
+    bool init(const void* data, VkDeviceSize buffer_size, VkMemoryPropertyFlags properties, VkBufferUsageFlags usage);
+    bool init(CommandBatch& command_buffer, const void* data, VkDeviceSize buffer_size, VkMemoryPropertyFlags properties, VkBufferUsageFlags usage);
 
     void destroy() override;
 
@@ -32,11 +36,15 @@ public:
     void update(CommandBatch& command_buffer, const void* src_data, VkDeviceSize buffer_size);
     void update(const void* src_data, VkDeviceSize buffer_size);
 
+    const ResourceName& getName() const override;
+    Type getType() const override;
+
 protected:
     void setGlobalMemoryUpdateBarier(CommandBatch& command_buffer, VkAccessFlags dstAccessMask);
     void setMemoryUpdateBarier(CommandBatch& command_buffer, VkAccessFlags dstAccessMask);
 
     std::shared_ptr<VulkanDevice> m_device;
+    std::string m_name;
 
     VkBuffer m_buffer;
     VkDeviceMemory m_memory;

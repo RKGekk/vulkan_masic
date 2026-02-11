@@ -3,8 +3,10 @@
 #include "vulkan_device.h"
 #include "vulkan_buffer.h"
 
-bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, VkImage image, VkExtent2D extent, VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) {
-    m_device = std::move(device);
+VulkanImageBuffer::VulkanImageBuffer(std::shared_ptr<VulkanDevice> device, std::string name) : m_device(std::move(device)), m_name(std::move(name)) {}
+VulkanImageBuffer::VulkanImageBuffer(std::shared_ptr<VulkanDevice> device) : m_device(std::move(device)), m_name(std::to_string(rand())) {}
+
+bool VulkanImageBuffer::init(VkImage image, VkExtent2D extent, VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) {
     m_image = image;
 
     VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
@@ -21,7 +23,7 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, VkImage image
         samples
     );
     
-    static std::vector<uint32_t> families = m_device->getCommandManager().getQueueFamilyIndices().getIndices();
+    static std::vector<uint32_t> families = m_device->getCommandManager()->getQueueFamilyIndices().getIndices();
     m_image_info = {};
     m_image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     m_image_info.imageType = VK_IMAGE_TYPE_2D;
@@ -34,7 +36,7 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, VkImage image
     m_image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
     m_image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     m_image_info.usage = usage;
-    m_image_info.sharingMode = m_device->getCommandManager().getBufferSharingMode();
+    m_image_info.sharingMode = m_device->getCommandManager()->getBufferSharingMode();
     m_image_info.queueFamilyIndexCount = static_cast<uint32_t>(families.size());
     m_image_info.pQueueFamilyIndices = families.data();
     m_image_info.samples = samples;
@@ -57,12 +59,11 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, VkImage image
     return true;
 }
 
-bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, VkImageCreateInfo image_info, VkMemoryPropertyFlags properties, VkImageAspectFlags aspect_flags) {
+bool VulkanImageBuffer::init(unsigned char* pixels, VkImageCreateInfo image_info, VkMemoryPropertyFlags properties, VkImageAspectFlags aspect_flags) {
     size_t bytes_count = VulkanDevice::getBytesCount(image_info.format);
     size_t initial_image_size = image_info.extent.width * image_info.extent.height * bytes_count;
     uint32_t mip_levels = image_info.mipLevels;
 
-    m_device = std::move(device);
     m_image_info = image_info;
     m_layout = image_info.initialLayout;
     m_properties = properties;
@@ -97,29 +98,29 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char
         return true;
     }
 
-    std::shared_ptr<VulkanBuffer> staging_buffer = std::make_shared<VulkanBuffer>();
-    staging_buffer->init(m_device, pixels, initial_image_size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    std::shared_ptr<VulkanBuffer> staging_buffer = std::make_shared<VulkanBuffer>(m_device);
+    staging_buffer->init(pixels, initial_image_size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
     //staging_buffer->update(pixels, initial_image_size);
     
-    CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
+    CommandBatch command_buffer = m_device->getCommandManager()->allocCommandBuffer(PoolTypeEnum::TRANSFER);
     command_buffer.addResource(staging_buffer);
-    m_device->getCommandManager().transitionImageLayout(command_buffer.getCommandBufer(), m_image, image_info.format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mip_levels);
-    m_device->getCommandManager().copyBufferToImage(command_buffer.getCommandBufer(), staging_buffer->getBuffer(), m_image, static_cast<uint32_t>(image_info.extent.width), static_cast<uint32_t>(image_info.extent.height));
-    m_device->getCommandManager().generateMipmaps(command_buffer.getCommandBufer(), m_image, image_info.format, image_info.extent.width, image_info.extent.height, mip_levels);
+    m_device->getCommandManager()->transitionImageLayout(command_buffer.getCommandBufer(), m_image, image_info.format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mip_levels);
+    m_device->getCommandManager()->copyBufferToImage(command_buffer.getCommandBufer(), staging_buffer->getBuffer(), m_image, static_cast<uint32_t>(image_info.extent.width), static_cast<uint32_t>(image_info.extent.height));
+    m_device->getCommandManager()->generateMipmaps(command_buffer.getCommandBufer(), m_image, image_info.format, image_info.extent.width, image_info.extent.height, mip_levels);
     //m_device->getCommandManager().transitionImageLayout(m_image, image_info.format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mip_levels);
-    m_device->getCommandManager().submitCommandBuffer(command_buffer);
-    m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
+    m_device->getCommandManager()->submitCommandBuffer(command_buffer);
+    m_device->getCommandManager()->wait(PoolTypeEnum::TRANSFER);
 
     m_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
     return true;
 }
 
-bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, VkExtent2D extent, VkFormat format, VkMemoryPropertyFlags properties, VkImageAspectFlags aspect_flags) {
+bool VulkanImageBuffer::init(unsigned char* pixels, VkExtent2D extent, VkFormat format, VkMemoryPropertyFlags properties, VkImageAspectFlags aspect_flags) {
     uint32_t mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(extent.width, extent.height))));
     VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
     VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
-    VkFormat image_format = device->findSupportedFormat(
+    VkFormat image_format = m_device->findSupportedFormat(
         {
             format
         },
@@ -131,7 +132,7 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char
         samples
     );
     
-    static std::vector<uint32_t> families = device->getCommandManager().getQueueFamilyIndices().getIndices();
+    static std::vector<uint32_t> families = m_device->getCommandManager()->getQueueFamilyIndices().getIndices();
     VkImageCreateInfo image_info = {};
     image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     image_info.imageType = VK_IMAGE_TYPE_2D;
@@ -144,13 +145,13 @@ bool VulkanImageBuffer::init(std::shared_ptr<VulkanDevice> device, unsigned char
     image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
     image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     image_info.usage = usage;
-    image_info.sharingMode = device->getCommandManager().getBufferSharingMode();
+    image_info.sharingMode = m_device->getCommandManager()->getBufferSharingMode();
     image_info.queueFamilyIndexCount = static_cast<uint32_t>(families.size());
     image_info.pQueueFamilyIndices = families.data();
     image_info.samples = samples;
     image_info.flags = 0u;
 
-    return init(device, pixels, image_info, properties, aspect_flags);
+    return init(pixels, image_info, properties, aspect_flags);
 }
 
 void VulkanImageBuffer::destroy() {
@@ -200,14 +201,14 @@ VkSubresourceLayout VulkanImageBuffer::getSubresourceSizes(VkImageAspectFlags as
 }
 
 void VulkanImageBuffer::changeLayout(VkImageLayout new_layout) {
-    CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
+    CommandBatch command_buffer = m_device->getCommandManager()->allocCommandBuffer(PoolTypeEnum::TRANSFER);
     changeLayout(command_buffer, new_layout);
 }
 
 void VulkanImageBuffer::changeLayout(CommandBatch& command_buffer, VkImageLayout new_layout) {
-    m_device->getCommandManager().transitionImageLayout(command_buffer.getCommandBufer(), m_image, m_image_info.format, m_layout, new_layout, m_image_info.mipLevels);
-    m_device->getCommandManager().submitCommandBuffer(command_buffer);
-    m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
+    m_device->getCommandManager()->transitionImageLayout(command_buffer.getCommandBufer(), m_image, m_image_info.format, m_layout, new_layout, m_image_info.mipLevels);
+    m_device->getCommandManager()->submitCommandBuffer(command_buffer);
+    m_device->getCommandManager()->wait(PoolTypeEnum::TRANSFER);
 
     m_layout = new_layout;
 }
@@ -215,6 +216,24 @@ void VulkanImageBuffer::changeLayout(CommandBatch& command_buffer, VkImageLayout
 VkImageView VulkanImageBuffer::createImageView(VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const {
     VkImageViewCreateInfo view_info = createImageViewInfo(format, aspect_flags, mip_levels);
     return createImageView(view_info);
+}
+
+const RenderResource::ResourceName& VulkanImageBuffer::getName() const {
+    return m_name;
+}
+
+RenderResource::Type VulkanImageBuffer::getType() const {
+    return RenderResource::Type::TEXTURE_BUFFER;
+}
+
+VkImageView VulkanImageBuffer::createImageView(VkImageViewCreateInfo view_create_info) const {
+    VkImageView image_view;
+    VkResult result = vkCreateImageView(m_device->getDevice(), &view_create_info, nullptr, &image_view);
+    if(result != VK_SUCCESS) {
+        throw std::runtime_error("failed to create texture image view!");
+    }
+    
+    return image_view;
 }
 
 VkImageViewCreateInfo VulkanImageBuffer::createImageViewInfo(VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const {
@@ -234,14 +253,4 @@ VkImageViewCreateInfo VulkanImageBuffer::createImageViewInfo(VkFormat format, Vk
     view_info.subresourceRange.layerCount = 1u;
 
     return view_info;
-}
-
-VkImageView VulkanImageBuffer::createImageView(VkImageViewCreateInfo view_create_info) const {
-    VkImageView image_view;
-    VkResult result = vkCreateImageView(m_device->getDevice(), &view_create_info, nullptr, &image_view);
-    if(result != VK_SUCCESS) {
-        throw std::runtime_error("failed to create texture image view!");
-    }
-    
-    return image_view;
 }

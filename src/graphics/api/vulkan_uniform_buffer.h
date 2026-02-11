@@ -11,15 +11,19 @@
 
 #include <memory>
 #include <stdexcept>
+#include <string>
 #include <utility>
 #include <vector>
 
 class VulkanUniformBuffer : public VulkanBuffer {
 public:
 
+    VulkanUniformBuffer(std::shared_ptr<VulkanDevice> device, std::string name);
+    VulkanUniformBuffer(std::shared_ptr<VulkanDevice> device);
+
     template<typename UniformType>
-    bool init(std::shared_ptr<VulkanDevice> device, VkMemoryPropertyFlags properties) {
-        VulkanBuffer::init(device, nullptr, sizeof(UniformType), properties, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+    bool init(VkMemoryPropertyFlags properties) {
+        VulkanBuffer::init(nullptr, sizeof(UniformType), properties, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
         
         m_buffers_info = VkDescriptorBufferInfo{};
         m_buffers_info.buffer = m_buffer;

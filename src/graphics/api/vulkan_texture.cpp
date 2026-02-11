@@ -5,15 +5,18 @@
 //#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, int width, int height, VkFormat format) {
-    m_device = device;
+#include <utility>
+
+VulkanTexture::VulkanTexture(std::shared_ptr<VulkanDevice> device, std::string name) : VulkanImageBuffer(std::move(device), std::move(name)) {}
+
+bool VulkanTexture::init(unsigned char* pixels, int width, int height, VkFormat format) {
     std::shared_ptr<VulkanSampler> texture_sampler = std::make_shared<VulkanSampler>();
-    texture_sampler->init(device, m_image_info.mipLevels);
-    return init(device, pixels, width, height, std::move(texture_sampler), format);
+    texture_sampler->init(m_device, m_image_info.mipLevels);
+    return init(pixels, width, height, std::move(texture_sampler), format);
 }
 
-bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, int width, int height, std::shared_ptr<VulkanSampler> sampler, VkFormat format) {
-    VulkanImageBuffer::init(device, pixels, {(uint32_t)width, (uint32_t)height}, format);
+bool VulkanTexture::init(unsigned char* pixels, int width, int height, std::shared_ptr<VulkanSampler> sampler, VkFormat format) {
+    VulkanImageBuffer::init(pixels, {(uint32_t)width, (uint32_t)height}, format);
 
     m_texture_sampler = std::move(sampler);
 
@@ -24,11 +27,10 @@ bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, unsigned char* pi
     return true;
 }
 
-bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, const std::string& path_to_file) {
-    m_device = device;
+bool VulkanTexture::init(const std::string& path_to_file) {
     std::shared_ptr<VulkanSampler> texture_sampler = std::make_shared<VulkanSampler>();
-    texture_sampler->init(device, m_image_info.mipLevels);
-    return init(device, path_to_file, std::move(texture_sampler));
+    texture_sampler->init(m_device, m_image_info.mipLevels);
+    return init(path_to_file, std::move(texture_sampler));
 }
 
 void fast_unpack(char* rgba, const char* rgb, const int count) {
@@ -42,7 +44,7 @@ void fast_unpack(char* rgba, const char* rgb, const int count) {
     }
 }
 
-bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, const std::string& path_to_file, std::shared_ptr<VulkanSampler> sampler) {
+bool VulkanTexture::init(const std::string& path_to_file, std::shared_ptr<VulkanSampler> sampler) {
     int tex_width;
     int tex_height;
     int tex_channels;
@@ -51,14 +53,14 @@ bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, const std::string
         throw std::runtime_error("failed to load texture image!");
     }
 
-    bool result = init(std::move(device), pixels, tex_width, tex_height, std::move(sampler), VK_FORMAT_R8G8B8A8_UNORM);
+    bool result = init(pixels, tex_width, tex_height, std::move(sampler), VK_FORMAT_R8G8B8A8_UNORM);
 
     stbi_image_free(pixels);
 
     return result;
 }
 
-bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, unsigned char* data, size_t size) {
+bool VulkanTexture::init(unsigned char* data, size_t size) {
     int tex_width;
     int tex_height;
     int tex_channels;
@@ -68,18 +70,17 @@ bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, unsigned char* da
     }
     uint32_t mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(tex_width, tex_height))));
 
-    bool result = false;
     std::shared_ptr<VulkanSampler> texture_sampler = std::make_shared<VulkanSampler>();
-    texture_sampler->init(device, m_image_info.mipLevels);
+    texture_sampler->init(m_device, m_image_info.mipLevels);
     
-    result = init(std::move(device), pixels, tex_width, tex_height, std::move(texture_sampler), VK_FORMAT_R8G8B8A8_UNORM);
+    bool result = init(pixels, tex_width, tex_height, std::move(texture_sampler), VK_FORMAT_R8G8B8A8_UNORM);
 
     stbi_image_free(pixels);
 
     return result;
 }
 
-bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, unsigned char* data, size_t size, std::shared_ptr<VulkanSampler> sampler) {
+bool VulkanTexture::init(unsigned char* data, size_t size, std::shared_ptr<VulkanSampler> sampler) {
     int tex_width;
     int tex_height;
     int tex_channels;
@@ -89,10 +90,7 @@ bool VulkanTexture::init(std::shared_ptr<VulkanDevice> device, unsigned char* da
     }
     uint32_t mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(tex_width, tex_height))));
 
-    bool result = false;
-    
-    result = init(std::move(device), pixels, tex_width, tex_height, std::move(sampler), VK_FORMAT_R8G8B8A8_UNORM);
-    
+    bool result = init(pixels, tex_width, tex_height, std::move(sampler), VK_FORMAT_R8G8B8A8_UNORM);
 
     stbi_image_free(pixels);
 

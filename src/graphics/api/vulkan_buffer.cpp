@@ -3,22 +3,24 @@
 #include "vulkan_device.h"
 #include "vulkan_command_buffer.h"
 
+VulkanBuffer::VulkanBuffer(std::shared_ptr<VulkanDevice> device, std::string name) : m_device(std::move(device)), m_name(std::move(name)) {}
+VulkanBuffer::VulkanBuffer(std::shared_ptr<VulkanDevice> device) : m_device(std::move(device)), m_name(std::to_string(rand())) {};
 
-bool VulkanBuffer::init(std::shared_ptr<VulkanDevice> device, const void* data, VkDeviceSize buffer_size, VkMemoryPropertyFlags properties, VkBufferUsageFlags usage) {
-    m_device = std::move(device);
+bool VulkanBuffer::init(const void* data, VkDeviceSize buffer_size, VkMemoryPropertyFlags properties, VkBufferUsageFlags usage) {
+    
     m_size = buffer_size;
     m_usage = usage;
     m_properties = properties;
 
     if (!buffer_size) return true;
     
-    std::vector<uint32_t> family_indices = m_device->getCommandManager().getQueueFamilyIndices().getIndices();
+    std::vector<uint32_t> family_indices = m_device->getCommandManager()->getQueueFamilyIndices().getIndices();
     
     VkBufferCreateInfo buffer_info{};
     buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     buffer_info.size = buffer_size;
     buffer_info.usage = data || (m_properties & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) ? VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage : usage;
-    buffer_info.sharingMode = m_device->getCommandManager().getBufferSharingMode();
+    buffer_info.sharingMode = m_device->getCommandManager()->getBufferSharingMode();
     buffer_info.queueFamilyIndexCount = static_cast<uint32_t>(family_indices.size());
     buffer_info.pQueueFamilyIndices = family_indices.data();
     
@@ -55,8 +57,8 @@ bool VulkanBuffer::init(std::shared_ptr<VulkanDevice> device, const void* data, 
     return true;
 }
 
-bool VulkanBuffer::init(std::shared_ptr<VulkanDevice> device, CommandBatch& command_buffer, const void* data, VkDeviceSize buffer_size, VkMemoryPropertyFlags properties, VkBufferUsageFlags usage) {
-    init(device, nullptr, buffer_size, properties, usage);
+bool VulkanBuffer::init(CommandBatch& command_buffer, const void* data, VkDeviceSize buffer_size, VkMemoryPropertyFlags properties, VkBufferUsageFlags usage) {
+    init(nullptr, buffer_size, properties, usage);
     update(command_buffer, data, buffer_size);
  
     return true;
@@ -122,7 +124,7 @@ VkBufferView VulkanBuffer::createBufferView(VkFormat format, VkDeviceSize range,
 void VulkanBuffer::update(const void* src_data, VkDeviceSize buffer_size) {
     if (buffer_size > m_size) {
         destroy();
-        init(m_device, src_data, buffer_size, m_properties, m_usage);
+        init(src_data, buffer_size, m_properties, m_usage);
         return;
     }
     if(!src_data) {
@@ -147,10 +149,10 @@ void VulkanBuffer::update(const void* src_data, VkDeviceSize buffer_size) {
         return;
     }
     else {
-        CommandBatch command_buffer = m_device->getCommandManager().allocCommandBuffer(PoolTypeEnum::TRANSFER);
+        CommandBatch command_buffer = m_device->getCommandManager()->allocCommandBuffer(PoolTypeEnum::TRANSFER);
         update(command_buffer, src_data, buffer_size);
-        m_device->getCommandManager().submitCommandBuffer(command_buffer);
-        m_device->getCommandManager().wait(PoolTypeEnum::TRANSFER);
+        m_device->getCommandManager()->submitCommandBuffer(command_buffer);
+        m_device->getCommandManager()->wait(PoolTypeEnum::TRANSFER);
 
         return;
     }
@@ -159,7 +161,7 @@ void VulkanBuffer::update(const void* src_data, VkDeviceSize buffer_size) {
 void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, VkDeviceSize buffer_size, VkAccessFlags dstAccessMask) {
     if (buffer_size > m_size) {
         destroy();
-        init(m_device, src_data, buffer_size, m_properties, m_usage);
+        init(src_data, buffer_size, m_properties, m_usage);
         return;
     }
     if(!src_data) {
@@ -195,11 +197,11 @@ void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, Vk
         return;
     }
 
-    std::shared_ptr<VulkanBuffer> staging_buffer = std::make_shared<VulkanBuffer>();
-    staging_buffer->init(m_device, src_data, m_size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    std::shared_ptr<VulkanBuffer> staging_buffer = std::make_shared<VulkanBuffer>(m_device);
+    staging_buffer->init(src_data, m_size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
     command_buffer.addResource(staging_buffer);
 
-    m_device->getCommandManager().copyBuffer(command_buffer.getCommandBufer(), staging_buffer->getBuffer(), m_buffer, buffer_size);
+    m_device->getCommandManager()->copyBuffer(command_buffer.getCommandBufer(), staging_buffer->getBuffer(), m_buffer, buffer_size);
 
     // alternative to vkCmdCopyBuffer from m_device->getCommandManager().copyBuffer, the data is consumed from host memory as soon as vkCmdUpdateBuffer() is called, Vulkan make a copy of the data you’ve supplied! Data is not written into the buffer until vkCmdUpdateBuffer() is executed by the device after the command buffer has been submitted! The maximum size of data that can be placed in a buffer with vkCmdUpdateBuffer() is 65,536 bytes.
     // vkCmdUpdateBuffer(command_buffer.getCommandBufer(), m_buffer, 0u, buffer_size, src_data);
@@ -210,6 +212,14 @@ void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, Vk
 
 void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, VkDeviceSize buffer_size) {
     update(command_buffer, src_data, buffer_size, VulkanDevice::getDstAccessMask(m_usage));
+}
+
+const RenderResource::ResourceName& VulkanBuffer::getName() const {
+    return m_name;
+}
+
+RenderResource::Type VulkanBuffer::getType() const {
+    return RenderResource::Type::UNIFORM_BUFFER;
 }
 
 void VulkanBuffer::setGlobalMemoryUpdateBarier(CommandBatch& command_buffer, VkAccessFlags dstAccessMask) {

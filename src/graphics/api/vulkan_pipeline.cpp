@@ -5,6 +5,7 @@
 #include "vulkan_shaders_manager.h"
 #include "vulkan_pipelines_manager.h"
 #include "vulkan_descriptors_manager.h"
+#include "vulkan_render_pass.h"
 #include "../../tools/string_tools.h"
 
 #include <array>
@@ -12,8 +13,9 @@
 #include <stdexcept>
 #include <unordered_set>
 
-bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& pipeline_data, VkExtent2D viewport_extent, VkRenderPass render_pass, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager) {
+bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& pipeline_data, VkExtent2D viewport_extent, std::shared_ptr<VulkanRenderPass> render_pass, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager) {
     m_device = device;
+    m_render_pass = render_pass;
 
     m_pipeline_config = std::make_shared<PipelineConfig>();
     m_pipeline_config->init(pipeline_data);
@@ -92,7 +94,7 @@ bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_
     m_pipeline_info.pColorBlendState = &m_pipeline_config->getColorBlendInfo();
     m_pipeline_info.pDynamicState = &m_pipeline_config->getDynamicInfo();
     m_pipeline_info.layout = m_pipeline_layout;
-    m_pipeline_info.renderPass = render_pass;
+    m_pipeline_info.renderPass = m_render_pass->getRenderPass();
     m_pipeline_info.subpass = 0u;
     m_pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
     m_pipeline_info.basePipelineIndex = -1;
@@ -226,4 +228,8 @@ const std::vector<VkPipelineShaderStageCreateInfo>& VulkanPipeline::getShadersIn
 
 const std::shared_ptr<PipelineConfig>& VulkanPipeline::getPipelineConfig() const {
     return m_pipeline_config;
+}
+
+std::shared_ptr<VulkanRenderPass> VulkanPipeline::getRenderPass() {
+    return m_render_pass;
 }

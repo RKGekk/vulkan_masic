@@ -14,13 +14,16 @@
 class VulkanDevice;
 class VulkanShadersManager;
 class VulkanDescriptorsManager;
+class VulkanRenderPassesManager;
 
 class VulkanPipelinesManager {
 public:
-    bool init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_path, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shaders_manager);
+    bool init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_path, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shaders_manager, std::shared_ptr<VulkanRenderPassesManager> render_passes_manager);
     void destroy();
-private:
 
+    std::shared_ptr<VulkanPipeline> getPipeline(std::string pipeline_name);
+
+private:
     std::shared_ptr<VulkanDevice> m_device;
     std::unordered_map<std::string, std::shared_ptr<VulkanPipeline>> m_pipeline_name_map;
 };

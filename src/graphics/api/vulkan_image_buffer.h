@@ -3,7 +3,9 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <cstdint>
 #include <memory>
+#include <string>
 
 #include "../pod/render_resource.h"
 #include "vulkan_command_buffer.h"
@@ -12,9 +14,12 @@ class VulkanDevice;
 
 class VulkanImageBuffer : public RenderResource {
 public:
-    bool init(std::shared_ptr<VulkanDevice> device, VkImage image, VkExtent2D extent, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM, VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT, uint32_t mip_levels = 1u);
-    bool init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, VkExtent2D extent, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM, VkMemoryPropertyFlags properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT);
-    bool init(std::shared_ptr<VulkanDevice> device, unsigned char* pixels, VkImageCreateInfo image_info, VkMemoryPropertyFlags properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT);
+    VulkanImageBuffer(std::shared_ptr<VulkanDevice> device, std::string name);
+    VulkanImageBuffer(std::shared_ptr<VulkanDevice> device);
+
+    bool init(VkImage image, VkExtent2D extent, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM, VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT, uint32_t mip_levels = 1u);
+    bool init(unsigned char* pixels, VkExtent2D extent, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM, VkMemoryPropertyFlags properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT);
+    bool init(unsigned char* pixels, VkImageCreateInfo image_info, VkMemoryPropertyFlags properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT);
 
     void destroy() override;
 
@@ -32,7 +37,13 @@ public:
 
     VkImageView createImageView(VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const;
 
+    const ResourceName& getName() const override;
+    Type getType() const override;
+
 protected:
+    std::shared_ptr<VulkanDevice> m_device;
+    std::string m_name;
+
     VkImageView createImageView(VkImageViewCreateInfo view_create_info) const;
     VkImageViewCreateInfo createImageViewInfo(VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const;
 

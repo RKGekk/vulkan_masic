@@ -25,10 +25,12 @@
 #include "api/vulkan_command_buffer.h"
 #include "api/vulkan_command_pool_type.h"
 #include "api/vulkan_uniform_buffer.h"
+#include "api/vulkan_render_passes_manager.h"
 #include "api/vulkan_semaphores_manager.h"
 #include "api/vulkan_fence_manager.h"
 #include "../engine/views/iengine_view.h"
 #include "pod/render_graph.h"
+#include "pod/render_node.h"
 
 struct Managers {
     std::shared_ptr<VulkanDescriptorsManager> descriptors_manager;
@@ -37,7 +39,7 @@ struct Managers {
 	std::shared_ptr<VulkanFenceManager> fence_manager;
 	std::shared_ptr<VulkanSemaphoresManager> semaphore_manager;
     std::shared_ptr<VulkanCommandManager> command_manager;
-    std::shared_ptr<RenderGraph> render_graph;
+    std::shared_ptr<VulkanRenderPassesManager> render_passes_manager;
 };
 
 struct PerFrame {
@@ -55,7 +57,6 @@ struct PerFrame {
 
 	std::vector<VkFence> wait_and_recycle_fences;
 
-    std::shared_ptr<RenderTarget> render_target;
 	std::shared_ptr<CommandBatch> command_buffer;
 	std::vector<VkSemaphore> recycled_semaphores;
 	std::vector<VkEvent> recycled_events;
@@ -66,20 +67,15 @@ class VulkanRenderer {
 public:
     bool init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR surface, GLFWwindow* window, std::shared_ptr<ThreadPool> thread_pool);
     void destroy();
-    void recreate();
 
     const std::shared_ptr<VulkanSwapChain>& getSwapchain() const;
-    const RenderTarget& getRenderTarget(uint32_t image_index = 0u) const;
-    std::shared_ptr<VulkanDevice> GetDevice();
-    std::shared_ptr<VulkanDescriptorsManager> getDescriptorsManager();
-    std::shared_ptr<VulkanShadersManager> getShadersManager();
-    std::shared_ptr<VulkanPipelinesManager> getPipelinesManager();
+    std::shared_ptr<VulkanDevice>& GetDevice();
+    std::shared_ptr<Managers>& getManagers();
 
-    void recordCommandBuffer(CommandBatch& command_buffer);
     void drawFrame();
-    void setFramebufferResized();
+    
     void update_frame(const GameTimerDelta& delta, uint32_t image_index);
-    void addDrawable(std::shared_ptr<IVulkanDrawable> drawable);
+    void addRenderNode(std::shared_ptr<RenderNode> render_node);
 
 private:
 
@@ -89,10 +85,7 @@ private:
 
     std::vector<std::shared_ptr<PerFrame>> m_per_frame;
     std::shared_ptr<Managers> m_managers;
+    std::shared_ptr<RenderGraph> m_render_graph;
     
     std::shared_ptr<ThreadPool> m_thread_pool;
-
-    std::vector<std::shared_ptr<IVulkanDrawable>> m_drawable_list;
-
-    bool m_framebuffer_resized = false;
 };

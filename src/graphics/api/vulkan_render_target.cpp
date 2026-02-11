@@ -236,8 +236,10 @@ VkRenderPass RenderTarget::createRenderPass(VkAttachmentLoadOp load_op) const {
 }
 
 VulkanImageBuffer RenderTarget::createResource(VkFormat format, VkImageUsageFlags usage, VkImageAspectFlags image_aspect, VkImageLayout initial_layout) const {
+    using namespace std::literals;
+
     uint32_t mip_levels = 1u;
-    std::vector<uint32_t> families = m_device->getCommandManager().getQueueFamilyIndices().getIndices();
+    std::vector<uint32_t> families = m_device->getCommandManager()->getQueueFamilyIndices().getIndices();
     VkImageCreateInfo image_info{};
     image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     image_info.imageType = VK_IMAGE_TYPE_2D;
@@ -256,8 +258,8 @@ VulkanImageBuffer RenderTarget::createResource(VkFormat format, VkImageUsageFlag
     image_info.samples = m_device->getMsaaSamples();
     image_info.flags = 0u;
 
-    VulkanImageBuffer out_image;
-    out_image.init(m_device, nullptr, image_info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image_aspect);
+    VulkanImageBuffer out_image(m_device, "SwapchainRenderTarget"s);
+    out_image.init(nullptr, image_info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image_aspect);
     out_image.changeLayout(initial_layout);
 
     return out_image;

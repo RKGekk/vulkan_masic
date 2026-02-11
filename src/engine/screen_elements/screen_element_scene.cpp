@@ -7,15 +7,9 @@
 #include "../../events/cicadas/evt_data_new_model_component.h"
 #include "../../scene/nodes/scene_node.h"
 #include "../../scene/nodes/mesh_node.h"
+#include "../../graphics/pod/render_node.h"
 
 ScreenElementScene::ScreenElementScene() : Scene() {
-    VulkanRenderer& renderer = Application::GetRenderer();
-	std::shared_ptr<VulkanDevice> device = renderer.GetDevice();
-
-    m_scene_draw = std::make_shared<SceneDrawable>();
-    m_scene_draw->init(device, renderer.getRenderTarget(), renderer.getSwapchain()->getMaxFrames());
-	renderer.addDrawable(m_scene_draw);
-
     RegisterAllDelegates();
 };
 
@@ -63,12 +57,34 @@ void ScreenElementScene::NewModelComponentDelegate(IEventDataPtr pEventData) {
 void ScreenElementScene::ModifiedSceneNode(std::shared_ptr<SceneNode> node) {};
 
 void ScreenElementScene::NewModelComponent(std::shared_ptr<SceneNode> root_node) {
+    using namespace std::literals;
+
     std::shared_ptr<Scene> scene = root_node->GetScene();
-    root_node->Accept([scene, drawable = m_scene_draw](std::shared_ptr<SceneNode> node){
+    root_node->Accept([scene](std::shared_ptr<SceneNode> node){
         std::shared_ptr<SceneNode> pMeshNode = scene->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_MESH);
         if(pMeshNode) {
-            std::shared_ptr<MeshNode> pMesh = std::dynamic_pointer_cast<MeshNode>(pMeshNode);
-            drawable->addRendeNode(pMesh);
+            VulkanRenderer& renderer = Application::GetRenderer();
+            std::shared_ptr<VulkanDevice> device = renderer.GetDevice();
+            std::shared_ptr<MeshNode> pMeshNode = std::dynamic_pointer_cast<MeshNode>(pMeshNode);
+            
+            std::shared_ptr<VulkanPipeline> pipeline = renderer.getManagers()->pipelines_manager->getPipeline("basic_diffuse_pipeline"s);
+            std::shared_ptr<RenderNode> render_node = std::make_shared<RenderNode>();
+            render_node->init(pipeline);
+            for (const std::shared_ptr<ModelData>& model_data : pMeshNode->GetMeshes()) {
+
+                std::shared_ptr<Material> material = model_data->GetMaterial();
+                std::shared_ptr<VulkanTexture> texture = material->GetTexture();
+                render_node->addReadDependency(texture);
+                
+                std::shared_ptr<VulkanUniformBuffer> uniform_buffer = std::make_shared<VulkanUniformBuffer>(device, model_data->GetName() + "Uniform"s);
+                uniform_buffer->init<UniformBufferObject>(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+                render_node->addReadDependency(uniform_buffer);
+
+                std::shared_ptr<VertexBuffer> vertex_buffer = model_data->GetVertexBuffer();
+                render_node->addReadDependency(vertex_buffer);
+
+                render_node->addDynamicWriteDependency("swap_chain_color"s);
+            }
         }
     });
 }
