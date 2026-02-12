@@ -280,3 +280,11 @@ VulkanPipeline::PipelineCfg SceneDrawable::createPipelineCfg(const std::vector<V
 
     return pipeline_cfg;
 }
+
+const ResourceName& SceneDrawable::getName() const {
+    
+}
+
+Type SceneDrawable::getType() const {
+
+}

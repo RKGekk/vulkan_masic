@@ -11,6 +11,7 @@
 #include "vulkan_device.h"
 #include "vulkan_command_manager.h"
 #include "vulkan_image_buffer.h"
+#include "../pod/render_resource.h"
 
 struct SwapchainSupportDetails {
     VkSurfaceCapabilitiesKHR capabilities;
@@ -26,12 +27,12 @@ struct SwapchainParams {
     VkSharingMode images_sharing_mode;
 };
 
-class VulkanSwapChain {
+class VulkanSwapChain : public RenderResource {
 public:
     static const uint32_t CURRENT_SYNC = -1;
 
     bool init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR surface, GLFWwindow* window);
-    void destroy();
+    void destroy() override;
     void recreate();
 
     const SwapchainSupportDetails& getSwapchainSupportDetails() const;
@@ -54,6 +55,9 @@ public:
 
     static VkSurfaceKHR createSurface(VkInstance vk_instance, GLFWwindow* glfw_window_ptr);
     static SwapchainSupportDetails querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
+
+    const ResourceName& getName() const override;
+    Type getType() const override;
 
 private:
     static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const SwapchainSupportDetails& available_formats);

@@ -14,9 +14,12 @@ public:
     using ResourceName = std::string;
 
     enum class Type : uint32_t {
+        BUFFER,
+        IMAGE_BUFFER,
         VERTEX_BUFFER,
         TEXTURE_BUFFER,
-        UNIFORM_BUFFER
+        UNIFORM_BUFFER,
+        SWAPCHAIN_BUFFER
     };
 
     virtual void destroy() = 0;

@@ -233,3 +233,7 @@ const std::shared_ptr<PipelineConfig>& VulkanPipeline::getPipelineConfig() const
 std::shared_ptr<VulkanRenderPass> VulkanPipeline::getRenderPass() {
     return m_render_pass;
 }
+
+VkPipelineVertexInputStateCreateInfo VulkanPipeline::getInputInfo() const {
+    return m_input_info;
+}

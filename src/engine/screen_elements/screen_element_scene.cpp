@@ -68,9 +68,9 @@ void ScreenElementScene::NewModelComponent(std::shared_ptr<SceneNode> root_node)
             std::shared_ptr<MeshNode> pMeshNode = std::dynamic_pointer_cast<MeshNode>(pMeshNode);
             
             std::shared_ptr<VulkanPipeline> pipeline = renderer.getManagers()->pipelines_manager->getPipeline("basic_diffuse_pipeline"s);
-            std::shared_ptr<RenderNode> render_node = std::make_shared<RenderNode>();
-            render_node->init(pipeline);
             for (const std::shared_ptr<ModelData>& model_data : pMeshNode->GetMeshes()) {
+                std::shared_ptr<RenderNode> render_node = std::make_shared<RenderNode>();
+                render_node->init(pipeline);
 
                 std::shared_ptr<Material> material = model_data->GetMaterial();
                 std::shared_ptr<VulkanTexture> texture = material->GetTexture();
@@ -83,7 +83,10 @@ void ScreenElementScene::NewModelComponent(std::shared_ptr<SceneNode> root_node)
                 std::shared_ptr<VertexBuffer> vertex_buffer = model_data->GetVertexBuffer();
                 render_node->addReadDependency(vertex_buffer);
 
-                render_node->addDynamicWriteDependency("swap_chain_color"s);
+                std::shared_ptr<VulkanSwapChain> swap_chain_ptr = renderer.getSwapchain();
+                render_node->addWriteDependency(swap_chain_ptr);
+
+                renderer.addRenderNode(render_node);
             }
         }
     });
