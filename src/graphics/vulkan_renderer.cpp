@@ -74,6 +74,24 @@ std::shared_ptr<Managers>& VulkanRenderer::getManagers() {
     return m_managers;
 }
 
+void VulkanRenderer::TransitionResourcesToProperState(const std::shared_ptr<RenderNode>& render_node_ptr, CommandBatch& command_buffer) {
+    const std::shared_ptr<VulkanPipeline>& pipeline_ptr = render_node_ptr->getPipeline();
+    const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = pipeline_ptr->getRenderPass();
+
+    for(const auto&[gloabal_name, att_slot] : render_node_ptr->getReadResourcesMap()){
+        if(std::shared_ptr<RenderNode> last_written_by_node = m_render_graph->getLastWritten(render_node_ptr, gloabal_name)) {
+
+        }
+        else {
+            
+        }
+    }
+
+    for(const auto&[gloabal_name, att_slot] : render_node_ptr->getWrittenResourcesMap()){
+        
+    }
+}
+
 void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer) {
     VulkanCommandManager::beginCommandBuffer(command_buffer);
 
@@ -82,7 +100,7 @@ void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer) {
         const std::shared_ptr<VulkanPipeline>& pipeline_ptr = render_node_ptr->getPipeline();
         const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = pipeline_ptr->getRenderPass();
 
-        // transition resource to propper state(as render pass)
+        TransitionResourcesToProperState(render_node_ptr, command_buffer);
 
         VkRenderPassBeginInfo renderpass_info{};
         renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;

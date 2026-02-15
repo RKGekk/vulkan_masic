@@ -72,12 +72,14 @@ public:
     std::shared_ptr<VulkanDevice>& GetDevice();
     std::shared_ptr<Managers>& getManagers();
 
+    void recordCommandBuffer(CommandBatch& command_buffer);
     void drawFrame();
     
     void update_frame(const GameTimerDelta& delta, uint32_t image_index);
     void addRenderNode(std::shared_ptr<RenderNode> render_node);
 
 private:
+    void TransitionResourcesToProperState(const std::shared_ptr<RenderNode>& render_node, CommandBatch& command_buffer);
 
     std::shared_ptr<VulkanDevice> m_device;
     

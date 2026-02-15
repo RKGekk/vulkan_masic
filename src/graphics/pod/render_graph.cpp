@@ -15,19 +15,25 @@ void RenderGraph::destroy() {
 }
 
 void RenderGraph::add_pass(std::shared_ptr<RenderNode> render_node) {
-
-    for(const RenderNodePtr& graph_node : m_render_nodes) {
-        for(const auto&[written_resource_name, written_resource_ptr] : render_node->getWrittenResourcesMap()) {
-            if(graph_node->isRead(written_resource_name)) {
-                m_adjency_list[render_node].insert(graph_node);
-            }
-        }
+    for(const auto&[written_resource_name, written_resource_ptr] : render_node->getWrittenResourcesMap()) {
+        m_written_map[written_resource_name].insert(render_node);
+    }
+    
+    for(const auto&[read_resource_name, read_resource_ptr] : render_node->getReadResourcesMap()) {
+        m_read_map[read_resource_name].insert(render_node);
     }
 
     m_render_nodes.push_back(std::move(render_node));
 }
 
 void RenderGraph::topological_sort() {
+    for(const RenderNodePtr& render_node : m_render_nodes) for(const auto&[written_resource_name, written_resource_ptr] : render_node->getWrittenResourcesMap()) {
+        for(const RenderNodePtr& reader_node : m_read_map.at(written_resource_name)) {
+            m_adjency_list[render_node].insert(reader_node);
+            m_rev_adjency_list[reader_node].insert(render_node);
+        }
+    }
+
     m_topologically_sorted_nodes.clear();
     m_topologically_sorted_nodes.reserve(m_render_nodes.size());
 
@@ -75,6 +81,10 @@ void RenderGraph::topological_sort() {
     }
 
     std::reverse(m_topologically_sorted_nodes.begin(), m_topologically_sorted_nodes.end());
+    for(size_t i = 0; i < m_topologically_sorted_nodes.size(); ++i) {
+        const RenderNodePtr& render_node = m_topologically_sorted_nodes.at(i);
+        m_render_node_sort_idx[render_node] = i;
+    }
 }
 
 void RenderGraph::build_dependency_levels() {
@@ -110,4 +120,21 @@ void RenderGraph::build_dependency_levels() {
 
 const RenderGraph::RenderNodeList& RenderGraph::getTopologicallySortedNodes() {
     return m_topologically_sorted_nodes;
+}
+
+RenderGraph::RenderNodePtr RenderGraph::getLastWritten(const RenderNodePtr& render_node, RenderNode::GlobalName resuotce_name) const {
+    size_t current_idx = -1;
+    for (const RenderNodePtr& write_node : m_rev_adjency_list.at(render_node)) {
+        if(!write_node->isWritten(resuotce_name)) continue;
+        size_t write_node_idx = m_render_node_sort_idx.at(write_node);
+        if(current_idx > write_node_idx) {
+            current_idx = write_node_idx;
+        }
+    }
+    if(current_idx == -1) {
+        return nullptr;
+    }
+    else {
+        return m_topologically_sorted_nodes.at(current_idx);
+    }
 }

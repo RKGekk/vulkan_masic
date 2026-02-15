@@ -60,7 +60,6 @@ const RenderNode::AttachMap& RenderNode::getWrittenAttachmentMap() const {
 void RenderNode::finishRenderNode() {
     VulkanRenderer& renderer = Application::GetRenderer();
 
-
     int max_frames = renderer.getSwapchain()->getMaxFrames();
     m_frame_buffers.resize(max_frames);
     for(int current_frame = 0; current_frame < max_frames; ++current_frame) {
@@ -71,11 +70,11 @@ void RenderNode::finishRenderNode() {
         for(const auto&[attach_name, attach_idx] : render_pass_cfg_ptr->getAttachmentNameMap()) {
             if(std::shared_ptr<VulkanImageBuffer> image_resource = std::dynamic_pointer_cast<VulkanImageBuffer>(m_written_attached.at(attach_name).resource)) {
                 attachments[attach_idx] = image_resource->getImageBufferView();
-                viewport_extent = {image_resource->getImageInfo().extent.width, image_resource->getImageInfo().extent.height};
+                m_viewport_extent = {image_resource->getImageInfo().extent.width, image_resource->getImageInfo().extent.height};
             }
             else if(std::shared_ptr<VulkanSwapChain> swapchain_resource = std::dynamic_pointer_cast<VulkanSwapChain>(m_written_attached.at(attach_name).resource)) {
                 attachments[attach_idx] = swapchain_resource->getSwapchainImages().at(current_frame).getImageBufferView();
-                viewport_extent = swapchain_resource->getSwapchainParams().extent;
+                m_viewport_extent = swapchain_resource->getSwapchainParams().extent;
             }
         }
 
@@ -84,8 +83,8 @@ void RenderNode::finishRenderNode() {
         framebuffer_info.renderPass = render_pass_ptr->getRenderPass();
         framebuffer_info.attachmentCount = static_cast<uint32_t>(attachments.size());
         framebuffer_info.pAttachments = attachments.data();
-        framebuffer_info.width = viewport_extent.width;
-        framebuffer_info.height = viewport_extent.height;
+        framebuffer_info.width = m_viewport_extent.width;
+        framebuffer_info.height = m_viewport_extent.height;
         framebuffer_info.layers = 1u;
 
         VkResult result = vkCreateFramebuffer(m_device->getDevice(), &framebuffer_info, nullptr, &m_frame_buffers[current_frame]);

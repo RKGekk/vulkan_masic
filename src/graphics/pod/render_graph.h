@@ -31,12 +31,18 @@ public:
 	void build_dependency_levels();
 
 	const RenderNodeList& getTopologicallySortedNodes();
+	RenderNodePtr getLastWritten(const RenderNodePtr& render_node, RenderNode::GlobalName resuotce_name) const;
 
 private:
 
 	std::shared_ptr<VulkanDevice> m_device;
 	RenderNodeList m_render_nodes;
-	std::unordered_map<RenderNodePtr, RenderNodeSet> m_adjency_list;
+	std::unordered_map<RenderNode::GlobalName, RenderNodeSet> m_read_map;
+	std::unordered_map<RenderNode::GlobalName, RenderNodeSet> m_written_map;
+
+	std::unordered_map<RenderNodePtr, RenderNodeSet> m_adjency_list; // Write To Read
+	std::unordered_map<RenderNodePtr, RenderNodeSet> m_rev_adjency_list; // Read To Write
 	RenderNodeList m_topologically_sorted_nodes;
+	std::unordered_map<RenderNodePtr, size_t> m_render_node_sort_idx;
 	std::vector<std::shared_ptr<DependencyLevel>> m_dependency_levels;
 };
