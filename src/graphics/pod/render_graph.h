@@ -19,6 +19,10 @@ class VulkanDevice;
 
 class RenderGraph {
 public:
+	using RenderNodePtr = std::shared_ptr<RenderNode>;
+	using RenderNodeList = std::vector<RenderNodePtr>;
+	using RenderNodeSet = std::unordered_set<RenderNodePtr>;
+
 	bool init(std::shared_ptr<VulkanDevice> device);
     void destroy();
 
@@ -26,10 +30,9 @@ public:
 	void topological_sort();
 	void build_dependency_levels();
 
+	const RenderNodeList& getTopologicallySortedNodes();
+
 private:
-	using RenderNodePtr = std::shared_ptr<RenderNode>;
-	using RenderNodeList = std::vector<RenderNodePtr>;
-	using RenderNodeSet = std::unordered_set<RenderNodePtr>;
 
 	std::shared_ptr<VulkanDevice> m_device;
 	RenderNodeList m_render_nodes;

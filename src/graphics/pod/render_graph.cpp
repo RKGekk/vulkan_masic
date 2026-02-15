@@ -1,6 +1,8 @@
 #include "render_graph.h"
 
 #include "vulkan_device.h"
+#include "vulkan_pipeline.h"
+#include "vulkan_render_pass.h"
 
 bool RenderGraph::init(std::shared_ptr<VulkanDevice> device) {
     m_device = std::move(device);
@@ -104,4 +106,8 @@ void RenderGraph::build_dependency_levels() {
         std::shared_ptr<DependencyLevel> dependency_level = std::make_shared<DependencyLevel>(level);
         m_dependency_levels[level] = std::move(dependency_level);
     }
+}
+
+const RenderGraph::RenderNodeList& RenderGraph::getTopologicallySortedNodes() {
+    return m_topologically_sorted_nodes;
 }

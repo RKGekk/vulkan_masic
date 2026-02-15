@@ -70,7 +70,7 @@ void ScreenElementScene::NewModelComponent(std::shared_ptr<SceneNode> root_node)
             std::shared_ptr<VulkanPipeline> pipeline = renderer.getManagers()->pipelines_manager->getPipeline("basic_diffuse_pipeline"s);
             for (const std::shared_ptr<ModelData>& model_data : pMeshNode->GetMeshes()) {
                 std::shared_ptr<RenderNode> render_node = std::make_shared<RenderNode>();
-                render_node->init(pipeline);
+                render_node->init(device, pipeline);
 
                 std::shared_ptr<Material> material = model_data->GetMaterial();
                 std::shared_ptr<VulkanTexture> texture = material->GetTexture();

@@ -28,7 +28,7 @@ public:
     VkPipelineLayout getPipelineLayout() const;
     const std::vector<VkPipelineShaderStageCreateInfo>& getShadersInfo() const;
     const std::shared_ptr<PipelineConfig>& getPipelineConfig() const;
-    std::shared_ptr<VulkanRenderPass> getRenderPass();
+    const std::shared_ptr<VulkanRenderPass>& getRenderPass();
     VkPipelineVertexInputStateCreateInfo getInputInfo() const;
 
 private:

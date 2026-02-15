@@ -74,6 +74,27 @@ std::shared_ptr<Managers>& VulkanRenderer::getManagers() {
     return m_managers;
 }
 
+void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer) {
+    VulkanCommandManager::beginCommandBuffer(command_buffer);
+
+    uint32_t current_frame = m_swapchain->getCurrentFrame();
+    for(const std::shared_ptr<RenderNode> render_node_ptr : m_render_graph->getTopologicallySortedNodes()) {
+        const std::shared_ptr<VulkanPipeline>& pipeline_ptr = render_node_ptr->getPipeline();
+        const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = pipeline_ptr->getRenderPass();
+
+        // transition resource to propper state(as render pass)
+
+        VkRenderPassBeginInfo renderpass_info{};
+        renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderpass_info.renderPass = render_pass_ptr->getRenderPass();
+        renderpass_info.framebuffer = render_node_ptr->getFramebuffer(m_swapchain->getCurrentSync());
+        renderpass_info.renderArea.offset = {0, 0};
+        renderpass_info.renderArea.extent = render_node_ptr->getViewportExtent();
+    }
+    
+    VulkanCommandManager::endCommandBuffer(command_buffer);
+}
+
 void VulkanRenderer::drawFrame() {
     bool next_frame_available = m_swapchain->setNextFrame(m_per_frame[m_swapchain->fetchNextSync()]->command_buffer->getRenderFence());
     if (!next_frame_available) {
@@ -81,7 +102,7 @@ void VulkanRenderer::drawFrame() {
     }
 
     m_per_frame[m_swapchain->getCurrentSync()]->command_buffer->reset();
-    
+    recordCommandBuffer(*m_per_frame[m_swapchain->getCurrentSync()]->command_buffer);
     
     CommandBatch::BatchWaitInfo wait_info;
     wait_info.wait_for_semaphores.push_back(m_swapchain->getImageAvailableSemaphore());

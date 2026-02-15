@@ -42,7 +42,7 @@ public:
 
 protected:
     std::shared_ptr<VulkanDevice> m_device;
-    std::string m_name;
+    ResourceName m_name;
 
     VkImageView createImageView(VkImageViewCreateInfo view_create_info) const;
     VkImageViewCreateInfo createImageViewInfo(VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const;

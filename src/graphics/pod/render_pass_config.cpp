@@ -12,7 +12,7 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
     VkImageUsageFlags depth_usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
     VkFormat swapchain_color_format = swapchain->getSwapchainParams().surface_format.format;
     VkFormat swapchain_depth_format = device->findDepthFormat(depth_usage, swapchain_extent, 1u, samples);
-    bool has_stencil = m_device->hasStencilComponent(swapchain_depth_format);
+    bool has_stencil = device->hasStencilComponent(swapchain_depth_format);
     
     m_name = render_pass_data.attribute("name").as_string();
 
@@ -197,69 +197,68 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
         for (pugi::xml_node subpass_dependency_node = subpass_dependency_sync_node.first_child(); subpass_dependency_node; subpass_dependency_node = subpass_dependency_node.next_sibling()) {
             VkSubpassDependency subpass_dependency_sync{};
 
-            pugi::xml_node src_subpass_node = output_attachments_node.child("srcSubpass");
+            pugi::xml_node src_subpass_node = subpass_dependency_node.child("srcSubpass");
 	        if (src_subpass_node) {
                 std::string subpass_type_str = src_subpass_node.child("SubpassType").text().as_string(); 
                 std::string subpass_name = src_subpass_node.child("SubpassName").text().as_string(); 
                 if(subpass_type_str == "Internal"s) {
                     size_t subpass_idx = m_subpass_name_to_idx_map.at(subpass_name);
-                    subpass_dependency_sync.srcSubpass = stztic_cast<uint32_t>(subpass_idx);
+                    subpass_dependency_sync.srcSubpass = static_cast<uint32_t>(subpass_idx);
                 }
                 else {
                     subpass_dependency_sync.srcSubpass = VK_SUBPASS_EXTERNAL;
                 }
             }
 
-            pugi::xml_node dst_subpass_node = output_attachments_node.child("dstSubpass");
+            pugi::xml_node dst_subpass_node = subpass_dependency_node.child("dstSubpass");
 	        if (dst_subpass_node) {
                 std::string subpass_type_str = dst_subpass_node.child("SubpassType").text().as_string(); 
                 std::string subpass_name = dst_subpass_node.child("SubpassName").text().as_string(); 
                 if(subpass_type_str == "Internal"s) {
                     size_t subpass_idx = m_subpass_name_to_idx_map.at(subpass_name);
-                    subpass_dependency_sync.dstSubpass = stztic_cast<uint32_t>(subpass_idx);
+                    subpass_dependency_sync.dstSubpass = static_cast<uint32_t>(subpass_idx);
                 }
                 else {
                     subpass_dependency_sync.dstSubpass = VK_SUBPASS_EXTERNAL;
                 }
             }
 
-            pugi::xml_node src_stage_mask_node = output_attachments_node.child("srcStageMask");
+            pugi::xml_node src_stage_mask_node = subpass_dependency_node.child("srcStageMask");
 	        if (src_stage_mask_node) {
                 for (pugi::xml_node mask_node = src_stage_mask_node.first_child(); mask_node; mask_node = mask_node.next_sibling()) {
                     subpass_dependency_sync.srcStageMask |= getPipelineStageFlag(mask_node.text().as_string());
                 }
             }
 
-            pugi::xml_node dst_stage_mask_node = output_attachments_node.child("dstStageMask");
+            pugi::xml_node dst_stage_mask_node = subpass_dependency_node.child("dstStageMask");
 	        if (dst_stage_mask_node) {
                 for (pugi::xml_node mask_node = dst_stage_mask_node.first_child(); mask_node; mask_node = mask_node.next_sibling()) {
                     subpass_dependency_sync.dstStageMask |= getPipelineStageFlag(mask_node.text().as_string());
                 }
             }
 
-            pugi::xml_node src_access_mask_node = output_attachments_node.child("srcAccessMask");
+            pugi::xml_node src_access_mask_node = subpass_dependency_node.child("srcAccessMask");
 	        if (src_access_mask_node) {
                 for (pugi::xml_node mask_node = src_access_mask_node.first_child(); mask_node; mask_node = mask_node.next_sibling()) {
-                    subpass_dependency_sync.srcAccessMask |= getVkAccessFlag(mask_node.text().as_string());
+                    subpass_dependency_sync.srcAccessMask |= getAccessFlag(mask_node.text().as_string());
                 }
             }
 
-            pugi::xml_node dst_stage_mask_node = output_attachments_node.child("dstAccessMask");
+            pugi::xml_node dst_stage_mask_node = subpass_dependency_node.child("dstAccessMask");
 	        if (dst_stage_mask_node) {
                 for (pugi::xml_node mask_node = dst_stage_mask_node.first_child(); mask_node; mask_node = mask_node.next_sibling()) {
-                    subpass_dependency_sync.dstAccessMask |= getVkAccessFlag(mask_node.text().as_string());
+                    subpass_dependency_sync.dstAccessMask |= getAccessFlag(mask_node.text().as_string());
                 }
             }
 
-            pugi::xml_node dependency_flags_node = output_attachments_node.child("dependencyFlags");
+            pugi::xml_node dependency_flags_node = subpass_dependency_node.child("dependencyFlags");
 	        if (dependency_flags_node) {
                 for (pugi::xml_node flag_node = dependency_flags_node.first_child(); flag_node; flag_node = flag_node.next_sibling()) {
                     subpass_dependency_sync.dependencyFlags |= getDependencyFlag(flag_node.text().as_string());
                 }
             }
+            m_subpass_dependencies_syncs.push_back(subpass_dependency_sync);
         }
-        
-        m_subpass_dependencies_syncs.push_back(subpass_dependency_sync);
     }
 
     m_render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -275,6 +274,6 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
     return true;
 }
 
-const VkRenderPassCreateInfo& getRenderPassCreateInfo() const {
+const VkRenderPassCreateInfo& RenderPassConfig::getRenderPassCreateInfo() const {
     return m_render_pass_create_info;
 }

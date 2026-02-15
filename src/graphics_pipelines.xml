@@ -13,7 +13,7 @@
     <Descriptors>
         <DescriptorSet name="basic_diffuse_descriptor_set" allocator="basic_alloc">
             <Layout>
-                <LayoutBinding>
+                <LayoutBinding name="uniform">
                     <Binding>0</Binding>
                     <DescriptorType>uniform_buffer</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
@@ -21,7 +21,7 @@
                         <Flag>vertex</Flag>
                     </ShaderStageFlags>
                 </LayoutBinding>
-                <LayoutBinding>
+                <LayoutBinding name="image">
                     <Binding>1</Binding>
                     <DescriptorType>combined_image_sampler</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
@@ -34,7 +34,7 @@
         
         <DescriptorSet name="imgui_descriptor_set" allocator="imgui_alloc">
             <Layout>
-                <LayoutBinding>
+                <LayoutBinding name="uniform">
                     <Binding>0</Binding>
                     <DescriptorType>uniform_buffer</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
@@ -42,7 +42,7 @@
                         <Flag>vertex</Flag>
                     </ShaderStageFlags>
                 </LayoutBinding>
-                <LayoutBinding>
+                <LayoutBinding name="image">
                     <Binding>1</Binding>
                     <DescriptorType>combined_image_sampler</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>

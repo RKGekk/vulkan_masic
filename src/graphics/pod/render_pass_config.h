@@ -19,6 +19,7 @@ public:
     bool init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanSwapChain>& swapchain, const pugi::xml_node& render_pass_data);
 
     const VkRenderPassCreateInfo& getRenderPassCreateInfo() const;
+    const std::unordered_map<std::string, size_t>& getAttachmentNameMap();
 
 private:
     std::string m_name;
