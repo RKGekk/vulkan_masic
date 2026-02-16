@@ -79,10 +79,18 @@ void VulkanRenderer::TransitionResourcesToProperState(const std::shared_ptr<Rend
     const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = pipeline_ptr->getRenderPass();
 
     for(const auto&[gloabal_name, att_slot] : render_node_ptr->getReadResourcesMap()){
+        RenderResource::Type att_slot_res_type = att_slot.resource->getType();
+        if(att_slot_res_type == RenderResource::Type::BUFFER || att_slot_res_type == RenderResource::Type::UNIFORM_BUFFER || att_slot_res_type == RenderResource::Type::VERTEX_BUFFER) continue;
+
         size_t last_written_by_node_id = m_render_graph->getLastWrittenIdentity(render_node_ptr, gloabal_name);
         size_t last_read_by_node_id = m_render_graph->getLastReadIdentity(render_node_ptr, gloabal_name);
+
         if(last_read_by_node_id != RenderGraph::NO_ID && last_read_by_node_id > last_written_by_node_id) {
-            const RenderGraph::RenderNodePtr& last_read_by_node = m_render_graph->getRenderNodeByID(last_read_by_node_id);
+            continue;
+        }
+
+        if(last_written_by_node_id != RenderGraph::NO_ID && last_written_by_node_id > last_read_by_node_id) {
+            const RenderGraph::RenderNodePtr& last_written_by_node = m_render_graph->getRenderNodeByID(last_read_by_node_id);
             
         }
     }

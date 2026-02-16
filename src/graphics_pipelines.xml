@@ -363,37 +363,123 @@
         </GraphicsPipeline>
     </Pipelines>
 
-    <RenderNode name="mesh_render">
-        <Pipeline>basic_diffuse_pipeline</Pipeline>
-        <ReadResources>
-            <Resource name="image">
-                <ImageBuffer>
-                    <ImageType>2D</ImageType>
-                    <Format>r8g8b8a8_unorm</Format>
-                    <Extent source="auto"></Extent>
-                    <MipLevels>auto</MipLevels>
-                    <ArrayLayers>1</ArrayLayers>
-                    <Samples>as_device</Samples>
-                    <Tiling>optimal</Tiling>
-                    <ImageUsageFlags>
-                        <Flag>transfer_src</Flag>
-                        <Flag>transfer_dst</Flag>
-                        <Flag>sampled</Flag>
-                    </ImageUsageFlags>
-                    <InitialLayout>undefined</InitialLayout>
-                    <ReadLayout>shader_read_only_optimal</ReadLayout>
-                </ImageBuffer>
-            </Resource>
-            <Resource name="uniform">
-                <Buffer>
-                    <BufferUsageFlags>
-                        <Flag>uniform_buffer</Flag>
-                    </BufferUsageFlags>
-                </Buffer>
-            </Resource>
-        </ReadResources>
-        <WrittenResources>
-            
-        </WrittenResources>
-    </RenderNode>
+    <RenderNodes>
+        <RenderNode name="mesh_render">
+            <Pipeline>basic_diffuse_pipeline</Pipeline>
+            <ReadResources>
+                <Resource name="image">
+                    <ImageBuffer>
+                        <ImageType>2D</ImageType>
+                        <Format>r8g8b8a8_unorm</Format>
+                        <Extent source="auto"></Extent>
+                        <MipLevels>auto</MipLevels>
+                        <ArrayLayers>1</ArrayLayers>
+                        <Samples>as_device</Samples>
+                        <Tiling>optimal</Tiling>
+                        <ImageUsageFlags>
+                            <Flag>transfer_src</Flag>
+                            <Flag>transfer_dst</Flag>
+                            <Flag>sampled</Flag>
+                        </ImageUsageFlags>
+                        <InitialLayout>undefined</InitialLayout>
+                        <ReadLayout>shader_read_only_optimal</ReadLayout>
+                    </ImageBuffer>
+                </Resource>
+                <Resource name="uniform">
+                    <Buffer>
+                        <BufferUsageFlags>
+                            <Flag>uniform_buffer</Flag>
+                        </BufferUsageFlags>
+                        <MemoryProperties>
+                            <Property>host_visible</Property>
+                            <Property>host_coherent</Property>
+                        </MemoryProperties>
+                    </Buffer>
+                </Resource>
+                <Resource name="vertex">
+                    <Buffer>
+                        <BufferUsageFlags>
+                            <Flag>transfer_dst</Flag>
+                            <Flag>vertex_buffer</Flag>
+                        </BufferUsageFlags>
+                        <MemoryProperties>
+                            <Property>device_local</Property>
+                        </MemoryProperties>
+                    </Buffer>
+                </Resource>
+                <Resource name="index">
+                    <Buffer>
+                        <BufferUsageFlags>
+                            <Flag>transfer_dst</Flag>
+                            <Flag>index_buffer</Flag>
+                        </BufferUsageFlags>
+                        <MemoryProperties>
+                            <Property>device_local</Property>
+                        </MemoryProperties>
+                    </Buffer>
+                </Resource>
+            </ReadResources>
+            <WrittenResources output_type="AsPipelineRendertarget"></WrittenResources>
+        </RenderNode>
+
+        <RenderNode name="imgui_renderer">
+            <Pipeline>imgui_pipeline</Pipeline>
+            <ReadResources>
+                <Resource name="uniform">
+                    <Buffer>
+                        <BufferUsageFlags>
+                            <Flag>uniform_buffer</Flag>
+                        </BufferUsageFlags>
+                        <MemoryProperties>
+                            <Property>host_visible</Property>
+                            <Property>host_coherent</Property>
+                        </MemoryProperties>
+                    </Buffer>
+                </Resource>
+                <Resource name="image">
+                    <ImageBuffer>
+                        <ImageType>2D</ImageType>
+                        <Format>r8g8b8a8_unorm</Format>
+                        <Extent source="auto"></Extent>
+                        <MipLevels>auto</MipLevels>
+                        <ArrayLayers>1</ArrayLayers>
+                        <Samples>as_device</Samples>
+                        <Tiling>optimal</Tiling>
+                        <ImageUsageFlags>
+                            <Flag>transfer_src</Flag>
+                            <Flag>transfer_dst</Flag>
+                            <Flag>sampled</Flag>
+                        </ImageUsageFlags>
+                        <InitialLayout>undefined</InitialLayout>
+                        <ReadLayout>shader_read_only_optimal</ReadLayout>
+                    </ImageBuffer>
+                </Resource>
+                <Resource name="vertex">
+                    <Buffer>
+                        <BufferUsageFlags>
+                            <Flag>transfer_dst</Flag>
+                            <Flag>vertex_buffer</Flag>
+                        </BufferUsageFlags>
+                        <MemoryProperties>
+                            <Property>host_coherent</Property>
+                            <Property>host_visible</Property>
+                        </MemoryProperties>
+                    </Buffer>
+                </Resource>
+                <Resource name="index">
+                    <Buffer>
+                        <BufferUsageFlags>
+                            <Flag>transfer_dst</Flag>
+                            <Flag>index_buffer</Flag>
+                        </BufferUsageFlags>
+                        <MemoryProperties>
+                            <Property>host_coherent</Property>
+                            <Property>host_visible</Property>
+                        </MemoryProperties>
+                    </Buffer>
+                </Resource>
+            </ReadResources>
+            <WrittenResources output_type="AsPipelineRendertarget" />
+        </RenderNode>
+    </RenderNodes>
 </RenderGraph>

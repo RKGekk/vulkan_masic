@@ -26,11 +26,13 @@ public:
     bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<VulkanPipeline> pipeline);
     void destroy();
 
-    void addReadDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as);
+    void addReadDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as, bool only_read = true);
     void addWriteDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as);
 
-    bool isRead(const RenderResource::ResourceName& name) const;
-    bool isWritten(const RenderResource::ResourceName& name) const;
+    bool isReadGlobal(const GlobalName& name) const;
+    bool isWrittenGlobal(const GlobalName& name) const;
+    bool isReadAttached(const LocalName& name) const;
+    bool isWrittenAttached(const LocalName& name) const;
 
     const ResourceMap& getReadResourcesMap() const;
     const AttachMap& getReadAttachmentMap() const;
@@ -44,9 +46,13 @@ public:
     VkFramebuffer getFramebuffer(uint32_t frame_index) const;
     VkExtent2D getViewportExtent() const;
 
+    const std::shared_ptr<RenderResource>& getAttachedResource(LocalName attached_as, uint32_t frame_index = -1) const;
+
 private:
     std::shared_ptr<VulkanDevice> m_device;
     std::shared_ptr<VulkanPipeline> m_pipeline;
+
+    uint32_t m_max_frames;
 
     std::vector<VkFramebuffer> m_frame_buffers;
     VkExtent2D m_viewport_extent;

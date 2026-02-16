@@ -33,12 +33,20 @@ void RenderNode::addWriteDependency(std::shared_ptr<RenderResource> resource, Lo
     m_written_attached[attached_as] = std::move(attachment_slot);
 }
 
-bool RenderNode::isRead(const RenderResource::ResourceName& name) const {
+bool RenderNode::isReadGlobal(const GlobalName& name) const {
     return m_read_resources.count(name);
 }
 
-bool RenderNode::isWritten(const RenderResource::ResourceName& name) const {
+bool RenderNode::isWrittenGlobal(const GlobalName& name) const {
     return m_written_resources.count(name);
+}
+
+bool RenderNode::isReadAttached(const LocalName& name) const {
+    return m_read_attached.count(name);
+}
+
+bool RenderNode::isWrittenAttached(const LocalName& name) const {
+    return m_written_attached.count(name);
 }
 
 const RenderNode::ResourceMap& RenderNode::getReadResourcesMap() const {
@@ -60,9 +68,9 @@ const RenderNode::AttachMap& RenderNode::getWrittenAttachmentMap() const {
 void RenderNode::finishRenderNode() {
     VulkanRenderer& renderer = Application::GetRenderer();
 
-    int max_frames = renderer.getSwapchain()->getMaxFrames();
-    m_frame_buffers.resize(max_frames);
-    for(int current_frame = 0; current_frame < max_frames; ++current_frame) {
+    m_max_frames = renderer.getSwapchain()->getMaxFrames();
+    m_frame_buffers.resize(m_max_frames);
+    for(int current_frame = 0; current_frame < m_max_frames; ++current_frame) {
         const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = m_pipeline->getRenderPass();
         const std::shared_ptr<RenderPassConfig>& render_pass_cfg_ptr = render_pass_ptr->getRenderPassConfig();
         std::vector<VkImageView> attachments;
@@ -104,4 +112,18 @@ VkFramebuffer RenderNode::getFramebuffer(uint32_t frame_index) const {
 
 VkExtent2D RenderNode::getViewportExtent() const {
     return m_viewport_extent;
+}
+
+const std::shared_ptr<RenderResource>& RenderNode::getAttachedResource(LocalName attached_as) const {
+    if(isReadAttached(attached_as)) {
+        return m_read_attached.at(attached_as).resource;
+    }
+
+    if(isWrittenAttached(attached_as)) {
+        return m_written_attached.at(attached_as).resource;
+    }
+
+    //const static std::shared_ptr<RenderResource> null_render_ptr = nullptr;
+    //return null_render_ptr;
+    return nullptr;
 }

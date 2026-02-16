@@ -1741,6 +1741,20 @@
         </xs:restriction>
     </xs:simpleType>
 
+    <xs:simpleType name="MemoryPropertyFlagsSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="device_local"></xs:enumeration>
+            <xs:enumeration value="host_visible"></xs:enumeration>
+            <xs:enumeration value="host_coherent"></xs:enumeration>
+            <xs:enumeration value="host_cached"></xs:enumeration>
+            <xs:enumeration value="lazily_allocated"></xs:enumeration>
+            <xs:enumeration value="protected"></xs:enumeration>
+            <xs:enumeration value="device_coherent_amd"></xs:enumeration>
+            <xs:enumeration value="device_uncached_amd"></xs:enumeration>
+            <xs:enumeration value="rdma_capable_nv"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:complexType name="BufferComplexType">
         <xs:sequence>
             <xs:element name="Flags" minOccurs="0" maxOccurs="1">
@@ -1754,6 +1768,13 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element name="Flag" type="target:BufferUsageFlagsSimpleType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="MemoryProperties" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Property" type="target:MemoryPropertyFlagsSimpleType" minOccurs="1" maxOccurs="unbounded"></xs:element>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1836,6 +1857,39 @@
         <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
     </xs:complexType>
 
+    <xs:complexType name="RenderNodeComplexType">
+        <xs:sequence>
+            <xs:element name="Pipeline" type="xs:string"></xs:element>
+            <xs:element name="ReadResources" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Resource" minOccurs="1" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:choice>
+                                    <xs:element name="ImageBuffer" type="target:ReadImageBufferComplexType"></xs:element>
+                                    <xs:element name="Buffer" type="target:BufferComplexType"></xs:element>
+                                </xs:choice>
+                                <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="WrittenResources" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attribute name="output_type" use="required">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:enumeration value="AsPipelineRendertarget"></xs:enumeration>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:attribute>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+    </xs:complexType>
+
     <xs:element name="RenderGraph">
         <xs:complexType>
             <xs:sequence>
@@ -1908,33 +1962,14 @@
 
                 <xs:element name="Pipelines" type="target:PipelinesComplexType" minOccurs="1" maxOccurs="1"></xs:element>
 
-                <xs:element name="RenderNode">
+                <xs:element name="RenderNodes">
                     <xs:complexType>
                         <xs:sequence>
-                            <xs:element name="Pipeline" type="xs:string"></xs:element>
-                            <xs:element name="ReadResources" minOccurs="1" maxOccurs="1">
-                                <xs:complexType>
-                                    <xs:sequence>
-                                        <xs:element name="Resource" minOccurs="1" maxOccurs="unbounded">
-                                            <xs:complexType>
-                                                <xs:choice>
-                                                    <xs:element name="ImageBuffer" type="target:ReadImageBufferComplexType"></xs:element>
-                                                    <xs:element name="Buffer" type="target:BufferComplexType"></xs:element>
-                                                </xs:choice>
-                                                <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
-                                            </xs:complexType>
-                                        </xs:element>
-                                    </xs:sequence>
-                                </xs:complexType>
-                            </xs:element>
-                            <xs:element name="WrittenResources" minOccurs="1" maxOccurs="1">
-
-                            </xs:element>
+                            <xs:element name="RenderNode" type="target:RenderNodeComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
                         </xs:sequence>
-                        <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
                     </xs:complexType>
                 </xs:element>
-                
+
             </xs:sequence>
         </xs:complexType>
     </xs:element>
