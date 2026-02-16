@@ -122,8 +122,22 @@ const RenderGraph::RenderNodeList& RenderGraph::getTopologicallySortedNodes() {
     return m_topologically_sorted_nodes;
 }
 
-RenderGraph::RenderNodePtr RenderGraph::getLastWritten(const RenderNodePtr& render_node, RenderNode::GlobalName resuotce_name) const {
-    size_t current_idx = -1;
+const RenderGraph::RenderNodePtr& RenderGraph::getRenderNodeByID(size_t id) const {
+    return m_topologically_sorted_nodes.at(id);
+}
+
+const RenderGraph::RenderNodePtr& RenderGraph::getLastWritten(const RenderNodePtr& render_node, RenderNode::GlobalName resuotce_name) const {
+    size_t current_idx = getLastWrittenIdentity(render_node, resuotce_name);
+    if(current_idx == NO_ID) {
+        return nullptr;
+    }
+    else {
+        return m_topologically_sorted_nodes.at(current_idx);
+    }
+}
+
+size_t RenderGraph::getLastWrittenIdentity(const RenderNodePtr& render_node, RenderNode::GlobalName resuotce_name) const {
+    size_t current_idx = NO_ID;
     for (const RenderNodePtr& write_node : m_rev_adjency_list.at(render_node)) {
         if(!write_node->isWritten(resuotce_name)) continue;
         size_t write_node_idx = m_render_node_sort_idx.at(write_node);
@@ -131,10 +145,31 @@ RenderGraph::RenderNodePtr RenderGraph::getLastWritten(const RenderNodePtr& rend
             current_idx = write_node_idx;
         }
     }
-    if(current_idx == -1) {
+    return current_idx;
+}
+
+const RenderGraph::RenderNodePtr& RenderGraph::getLastRead(const RenderNodePtr& render_node, RenderNode::GlobalName resuotce_name) const {
+    size_t current_idx = getLastReadIdentity(render_node, resuotce_name);
+    if(current_idx == NO_ID) {
         return nullptr;
     }
     else {
         return m_topologically_sorted_nodes.at(current_idx);
     }
+}
+
+size_t RenderGraph::getLastReadIdentity(const RenderNodePtr& render_node, RenderNode::GlobalName resuotce_name) const {
+    size_t current_idx = NO_ID;
+    for (const RenderNodePtr& write_node : m_rev_adjency_list.at(render_node)) {
+        if(!write_node->isWritten(resuotce_name)) continue;
+        size_t write_node_idx = m_render_node_sort_idx.at(write_node);
+        if(current_idx > write_node_idx) {
+            current_idx = write_node_idx;
+        }
+    }
+    return current_idx;
+}
+
+size_t RenderGraph::getTopologicalIdentity(const RenderNodePtr& render_node) const {
+    return m_render_node_sort_idx.at(render_node);
 }

@@ -74,17 +74,22 @@ void ScreenElementScene::NewModelComponent(std::shared_ptr<SceneNode> root_node)
 
                 std::shared_ptr<Material> material = model_data->GetMaterial();
                 std::shared_ptr<VulkanTexture> texture = material->GetTexture();
-                render_node->addReadDependency(texture);
+                render_node->addReadDependency(texture, "image"s);
                 
                 std::shared_ptr<VulkanUniformBuffer> uniform_buffer = std::make_shared<VulkanUniformBuffer>(device, model_data->GetName() + "Uniform"s);
                 uniform_buffer->init<UniformBufferObject>(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-                render_node->addReadDependency(uniform_buffer);
+                render_node->addReadDependency(uniform_buffer, "uniform"s);
 
                 std::shared_ptr<VertexBuffer> vertex_buffer = model_data->GetVertexBuffer();
-                render_node->addReadDependency(vertex_buffer);
+                render_node->addReadDependency(vertex_buffer, "vertex");
 
-                std::shared_ptr<VulkanSwapChain> swap_chain_ptr = renderer.getSwapchain();
-                render_node->addWriteDependency(swap_chain_ptr);
+                if(renderer.GetDevice()->getMsaaSamples() == VK_SAMPLE_COUNT_1_BIT) {
+
+                }
+                else {
+                    std::shared_ptr<VulkanSwapChain> swap_chain_ptr = renderer.getSwapchain();
+                    render_node->addWriteDependency(swap_chain_ptr, "resolve_attachment"s);
+                }
 
                 renderer.addRenderNode(render_node);
             }

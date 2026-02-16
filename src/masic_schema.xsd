@@ -1533,6 +1533,233 @@
         </xs:restriction>
     </xs:simpleType>
 
+    <xs:simpleType name="ImageFlagsSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="sparse_binding"></xs:enumeration>
+            <xs:enumeration value="sparse_residency"></xs:enumeration>
+            <xs:enumeration value="sparse_aliased"></xs:enumeration>
+            <xs:enumeration value="mutable_format"></xs:enumeration>
+            <xs:enumeration value="cube_compatible"></xs:enumeration>
+            <xs:enumeration value="alias"></xs:enumeration>
+            <xs:enumeration value="split_instance_bind_regions"></xs:enumeration>
+            <xs:enumeration value="2d_array_compatible"></xs:enumeration>
+            <xs:enumeration value="block_texel_view_compatible"></xs:enumeration>
+            <xs:enumeration value="extended_usage"></xs:enumeration>
+            <xs:enumeration value="protected"></xs:enumeration>
+            <xs:enumeration value="disjoint"></xs:enumeration>
+            <xs:enumeration value="corner_sampled"></xs:enumeration>
+            <xs:enumeration value="sample_locations_compatible_depth_ext"></xs:enumeration>
+            <xs:enumeration value="subsampled_ext"></xs:enumeration>
+            <xs:enumeration value="descriptor_buffer_capture_replay_ext"></xs:enumeration>
+            <xs:enumeration value="multisampled_render_to_single_sampled_ext"></xs:enumeration>
+            <xs:enumeration value="2d_view_compatible_ext"></xs:enumeration>
+            <xs:enumeration value="fragment_density_map_offset_qcom"></xs:enumeration>
+            <xs:enumeration value="video_profile_independent_khr"></xs:enumeration>
+            <xs:enumeration value="split_instance_bind_regions_khr"></xs:enumeration>
+            <xs:enumeration value="2d_array_compatible_khr"></xs:enumeration>
+            <xs:enumeration value="block_texel_view_compatible_khr"></xs:enumeration>
+            <xs:enumeration value="extended_usage_khr"></xs:enumeration>
+            <xs:enumeration value="disjoint_khr"></xs:enumeration>
+            <xs:enumeration value="alias_khr"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="ImageTypeSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="1D"></xs:enumeration>
+            <xs:enumeration value="2D"></xs:enumeration>
+            <xs:enumeration value="3D"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="MipLevelsSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="none"></xs:enumeration>
+            <xs:enumeration value="auto"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="Extent2DComplexType">
+        <xs:sequence>
+            <xs:element name="width" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="height" minOccurs="0" maxOccurs="1"></xs:element>
+        </xs:sequence>
+        <xs:attribute name="source">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="auto"></xs:enumeration>
+                    <xs:enumeration value="as_swapchain"></xs:enumeration>
+                    <xs:enumeration value="exact"></xs:enumeration>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="Extent3DComplexType">
+        <xs:sequence>
+            <xs:element name="width" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="height" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="depth" minOccurs="0" maxOccurs="1"></xs:element>
+        </xs:sequence>
+        <xs:attribute name="source">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="auto"></xs:enumeration>
+                    <xs:enumeration value="as_swapchain"></xs:enumeration>
+                    <xs:enumeration value="exact"></xs:enumeration>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:simpleType name="ImageTilingSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="optimal"></xs:enumeration>
+            <xs:enumeration value="linear"></xs:enumeration>
+            <xs:enumeration value="drm_format_modifier_ext"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="ImageUsageFlagsSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="transfer_src"></xs:enumeration>
+            <xs:enumeration value="transfer_dst"></xs:enumeration>
+            <xs:enumeration value="sampled"></xs:enumeration>
+            <xs:enumeration value="storage"></xs:enumeration>
+            <xs:enumeration value="color_attachment"></xs:enumeration>
+            <xs:enumeration value="depth_stencil_attachment"></xs:enumeration>
+            <xs:enumeration value="transient_attachment"></xs:enumeration>
+            <xs:enumeration value="input_attachment"></xs:enumeration>
+            <xs:enumeration value="video_decode_dst_khr"></xs:enumeration>
+            <xs:enumeration value="video_decode_src_khr"></xs:enumeration>
+            <xs:enumeration value="video_decode_dpb_khr"></xs:enumeration>
+            <xs:enumeration value="fragment_density_map_ext"></xs:enumeration>
+            <xs:enumeration value="fragment_shading_rate_attachment_khr"></xs:enumeration>
+            <xs:enumeration value="host_transfer_ext"></xs:enumeration>
+            <xs:enumeration value="video_encode_dst_khr"></xs:enumeration>
+            <xs:enumeration value="video_encode_src_khr"></xs:enumeration>
+            <xs:enumeration value="video_encode_dpb_khr"></xs:enumeration>
+            <xs:enumeration value="attachment_feedback_loop_ext"></xs:enumeration>
+            <xs:enumeration value="invocation_mask_huawei"></xs:enumeration>
+            <xs:enumeration value="sample_weight_qcom"></xs:enumeration>
+            <xs:enumeration value="sample_block_match_qcom"></xs:enumeration>
+            <xs:enumeration value="shading_rate_image_nv"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="ImageBufferComplexType">
+        <xs:sequence>
+            <xs:element name="Flags" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Flag" type="target:ImageFlagsSimpleType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ImageType" type="target:ImageTypeSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="Format" type="target:ColorFormatSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="Extent" type="target:Extent3DComplexType"></xs:element>
+            <xs:element name="MipLevels" type="target:MipLevelsSimpleType"></xs:element>
+            <xs:element name="ArrayLayers" type="xs:unsignedInt"></xs:element>
+            <xs:element name="Samples" type="target:SampleCountSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="Tiling" type="target:ImageTilingSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="ImageUsageFlags" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Flag" type="target:ImageUsageFlagsSimpleType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="InitialLayout" type="target:ImageLayoutSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ReadImageBufferComplexType">
+        <xs:complexContent>
+            <xs:extension base="target:ImageBufferComplexType">
+                <xs:sequence>
+                    <xs:element name="ReadLayout" type="target:ImageLayoutSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="WriteImageBufferComplexType">
+        <xs:complexContent>
+            <xs:extension base="target:ImageBufferComplexType">
+                <xs:sequence>
+                    <xs:element name="WriteLayout" type="target:ImageLayoutSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:simpleType name="BufferFlagsSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="sparse_binding"></xs:enumeration>
+            <xs:enumeration value="SPARSE_RESIDENCY"></xs:enumeration>
+            <xs:enumeration value="SPARSE_ALIASED"></xs:enumeration>
+            <xs:enumeration value="protected"></xs:enumeration>
+            <xs:enumeration value="device_address_capture_replay"></xs:enumeration>
+            <xs:enumeration value="descriptor_buffer_capture_replay_ext"></xs:enumeration>
+            <xs:enumeration value="video_profile_independent_khr"></xs:enumeration>
+            <xs:enumeration value="device_address_capture_replay_ext"></xs:enumeration>
+            <xs:enumeration value="device_address_capture_replay_khr"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="BufferUsageFlagsSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="transfer_src"></xs:enumeration>
+            <xs:enumeration value="transfer_dst"></xs:enumeration>
+            <xs:enumeration value="uniform_texel_buffer"></xs:enumeration>
+            <xs:enumeration value="storage_texel_buffer"></xs:enumeration>
+            <xs:enumeration value="uniform_buffer"></xs:enumeration>
+            <xs:enumeration value="storage_buffer"></xs:enumeration>
+            <xs:enumeration value="index_buffer"></xs:enumeration>
+            <xs:enumeration value="vertex_buffer"></xs:enumeration>
+            <xs:enumeration value="indirect_buffer"></xs:enumeration>
+            <xs:enumeration value="shader_device_address"></xs:enumeration>
+            <xs:enumeration value="video_decode_src_khr"></xs:enumeration>
+            <xs:enumeration value="video_decode_dst_khr"></xs:enumeration>
+            <xs:enumeration value="transform_feedback_buffer_ext"></xs:enumeration>
+            <xs:enumeration value="transform_feedback_counter_buffer_ext"></xs:enumeration>
+            <xs:enumeration value="conditional_rendering_ext"></xs:enumeration>
+            <xs:enumeration value="acceleration_structure_build_input_read_only_khr"></xs:enumeration>
+            <xs:enumeration value="acceleration_structure_storage_khr"></xs:enumeration>
+            <xs:enumeration value="shader_binding_table_khr"></xs:enumeration>
+            <xs:enumeration value="video_encode_dst_khr"></xs:enumeration>
+            <xs:enumeration value="video_encode_src_khr"></xs:enumeration>
+            <xs:enumeration value="sampler_descriptor_buffer_ext"></xs:enumeration>
+            <xs:enumeration value="resource_descriptor_buffer_ext"></xs:enumeration>
+            <xs:enumeration value="push_descriptors_descriptor_buffer_ext"></xs:enumeration>
+            <xs:enumeration value="micromap_build_input_read_only_ext"></xs:enumeration>
+            <xs:enumeration value="micromap_storage_ext"></xs:enumeration>
+            <xs:enumeration value="ray_tracing_nv"></xs:enumeration>
+            <xs:enumeration value="shader_device_address_ext"></xs:enumeration>
+            <xs:enumeration value="shader_device_address_khr"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="BufferComplexType">
+        <xs:sequence>
+            <xs:element name="Flags" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Flag" type="target:BufferFlagsSimpleType"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="BufferUsageFlags" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Flag" type="target:BufferUsageFlagsSimpleType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
     <xs:complexType name="RenderPassComplexType">
         <xs:sequence>
             <xs:element name="Flags" minOccurs="0" maxOccurs="1">
@@ -1681,6 +1908,32 @@
 
                 <xs:element name="Pipelines" type="target:PipelinesComplexType" minOccurs="1" maxOccurs="1"></xs:element>
 
+                <xs:element name="RenderNode">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="Pipeline" type="xs:string"></xs:element>
+                            <xs:element name="ReadResources" minOccurs="1" maxOccurs="1">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="Resource" minOccurs="1" maxOccurs="unbounded">
+                                            <xs:complexType>
+                                                <xs:choice>
+                                                    <xs:element name="ImageBuffer" type="target:ReadImageBufferComplexType"></xs:element>
+                                                    <xs:element name="Buffer" type="target:BufferComplexType"></xs:element>
+                                                </xs:choice>
+                                                <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="WrittenResources" minOccurs="1" maxOccurs="1">
+
+                            </xs:element>
+                        </xs:sequence>
+                        <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+                    </xs:complexType>
+                </xs:element>
                 
             </xs:sequence>
         </xs:complexType>

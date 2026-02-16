@@ -22,6 +22,7 @@ public:
 	using RenderNodePtr = std::shared_ptr<RenderNode>;
 	using RenderNodeList = std::vector<RenderNodePtr>;
 	using RenderNodeSet = std::unordered_set<RenderNodePtr>;
+	static const size_t NO_ID = -1;
 
 	bool init(std::shared_ptr<VulkanDevice> device);
     void destroy();
@@ -31,7 +32,12 @@ public:
 	void build_dependency_levels();
 
 	const RenderNodeList& getTopologicallySortedNodes();
-	RenderNodePtr getLastWritten(const RenderNodePtr& render_node, RenderNode::GlobalName resuotce_name) const;
+	const RenderNodePtr& getRenderNodeByID(size_t id) const;
+	const RenderNodePtr& getLastWritten(const RenderNodePtr& render_node, RenderNode::GlobalName resuotce_name) const;
+	size_t getLastWrittenIdentity(const RenderNodePtr& render_node, RenderNode::GlobalName resuotce_name) const;
+	const RenderNodePtr& getLastRead(const RenderNodePtr& render_node, RenderNode::GlobalName resuotce_name) const;
+	size_t getLastReadIdentity(const RenderNodePtr& render_node, RenderNode::GlobalName resuotce_name) const;
+	size_t getTopologicalIdentity(const RenderNodePtr& render_node) const;
 
 private:
 

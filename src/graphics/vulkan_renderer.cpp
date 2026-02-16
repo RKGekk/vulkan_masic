@@ -79,10 +79,10 @@ void VulkanRenderer::TransitionResourcesToProperState(const std::shared_ptr<Rend
     const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = pipeline_ptr->getRenderPass();
 
     for(const auto&[gloabal_name, att_slot] : render_node_ptr->getReadResourcesMap()){
-        if(std::shared_ptr<RenderNode> last_written_by_node = m_render_graph->getLastWritten(render_node_ptr, gloabal_name)) {
-
-        }
-        else {
+        size_t last_written_by_node_id = m_render_graph->getLastWrittenIdentity(render_node_ptr, gloabal_name);
+        size_t last_read_by_node_id = m_render_graph->getLastReadIdentity(render_node_ptr, gloabal_name);
+        if(last_read_by_node_id != RenderGraph::NO_ID && last_read_by_node_id > last_written_by_node_id) {
+            const RenderGraph::RenderNodePtr& last_read_by_node = m_render_graph->getRenderNodeByID(last_read_by_node_id);
             
         }
     }
@@ -96,6 +96,9 @@ void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer) {
     VulkanCommandManager::beginCommandBuffer(command_buffer);
 
     uint32_t current_frame = m_swapchain->getCurrentFrame();
+
+    // return all RenderResources to initial state
+
     for(const std::shared_ptr<RenderNode> render_node_ptr : m_render_graph->getTopologicallySortedNodes()) {
         const std::shared_ptr<VulkanPipeline>& pipeline_ptr = render_node_ptr->getPipeline();
         const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = pipeline_ptr->getRenderPass();

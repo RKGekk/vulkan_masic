@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <?xml-model href="masic_schema.xsd" type="application/xml" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <RenderGraph xmlns="http://www.masicengine.ru">
+
     <DescriptorAllocators>
         <DescriptorAllocator name="basic_alloc">
             <PageSize>256</PageSize>
@@ -361,4 +362,38 @@
             </RenderPass>
         </GraphicsPipeline>
     </Pipelines>
+
+    <RenderNode name="mesh_render">
+        <Pipeline>basic_diffuse_pipeline</Pipeline>
+        <ReadResources>
+            <Resource name="image">
+                <ImageBuffer>
+                    <ImageType>2D</ImageType>
+                    <Format>r8g8b8a8_unorm</Format>
+                    <Extent source="auto"></Extent>
+                    <MipLevels>auto</MipLevels>
+                    <ArrayLayers>1</ArrayLayers>
+                    <Samples>as_device</Samples>
+                    <Tiling>optimal</Tiling>
+                    <ImageUsageFlags>
+                        <Flag>transfer_src</Flag>
+                        <Flag>transfer_dst</Flag>
+                        <Flag>sampled</Flag>
+                    </ImageUsageFlags>
+                    <InitialLayout>undefined</InitialLayout>
+                    <ReadLayout>shader_read_only_optimal</ReadLayout>
+                </ImageBuffer>
+            </Resource>
+            <Resource name="uniform">
+                <Buffer>
+                    <BufferUsageFlags>
+                        <Flag>uniform_buffer</Flag>
+                    </BufferUsageFlags>
+                </Buffer>
+            </Resource>
+        </ReadResources>
+        <WrittenResources>
+            
+        </WrittenResources>
+    </RenderNode>
 </RenderGraph>
