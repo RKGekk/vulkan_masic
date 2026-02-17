@@ -21,6 +21,11 @@
                     <ShaderStageFlags>
                         <Flag>vertex</Flag>
                     </ShaderStageFlags>
+                    <UpdateMetadata>
+                        <Buffer>
+                            <BufferResourceType>basic_uniform_resource</BufferResourceType>
+                        </Buffer>
+                    </UpdateMetadata>
                 </LayoutBinding>
                 <LayoutBinding name="image">
                     <Binding>1</Binding>
@@ -29,6 +34,16 @@
                     <ShaderStageFlags>
                         <Flag>fragment</Flag>
                     </ShaderStageFlags>
+                    <UpdateMetadata>
+                        <Image>
+                            <Sampler>
+                                <Type>FromImageBuffer</Type>
+                            </Sampler>
+                            <ImageBufferResourceType>basic_image_resource</ImageBufferResourceType>
+                            <ImageViewResourceType>basic_image_resource_view</ImageViewResourceType>
+                            <ReadImageLayout>shader_read_only_optimal</ReadImageLayout>
+                        </Image>
+                    </UpdateMetadata>
                 </LayoutBinding>
             </Layout>
         </DescriptorSet>
@@ -42,6 +57,11 @@
                     <ShaderStageFlags>
                         <Flag>vertex</Flag>
                     </ShaderStageFlags>
+                    <UpdateMetadata>
+                        <Buffer>
+                            <BufferResourceType>basic_uniform_resource</BufferResourceType>
+                        </Buffer>
+                    </UpdateMetadata>
                 </LayoutBinding>
                 <LayoutBinding name="image">
                     <Binding>1</Binding>
@@ -50,10 +70,119 @@
                     <ShaderStageFlags>
                         <Flag>fragment</Flag>
                     </ShaderStageFlags>
+                    <UpdateMetadata>
+                        <Image>
+                            <Sampler>
+                                <Type>FromImageBuffer</Type>
+                            </Sampler>
+                            <ImageBufferResourceType>basic_image_resource</ImageBufferResourceType>
+                            <ImageViewResourceType>basic_image_resource_view</ImageViewResourceType>
+                            <ReadImageLayout>shader_read_only_optimal</ReadImageLayout>
+                        </Image>
+                    </UpdateMetadata>
                 </LayoutBinding>
             </Layout>
         </DescriptorSet>
     </Descriptors>
+
+    <TypeOfResources>
+        <ResourceType name="basic_image_resource">
+            <ImageBuffer>
+                <ImageType>2D</ImageType>
+                <Format>r8g8b8a8_unorm</Format>
+                <Extent source="auto"></Extent>
+                <MipLevels>auto</MipLevels>
+                <ArrayLayers>1</ArrayLayers>
+                <Samples>as_device</Samples>
+                <Tiling>optimal</Tiling>
+                <ImageUsageFlags>
+                    <Flag>transfer_src</Flag>
+                    <Flag>transfer_dst</Flag>
+                    <Flag>sampled</Flag>
+                </ImageUsageFlags>
+                <InitialLayout>undefined</InitialLayout>
+                <MemoryProperties>
+                    <Property>device_local</Property>
+                </MemoryProperties>
+                <Views>
+                    <View name="basic_image_resource_view">
+                        <ImageType>2D</ImageType>
+                        <Format>r8g8b8a8_unorm</Format>
+                        <Components r="r" g="g" b="b" a="a" />
+                        <SubresourceRange>
+                            <AspectMask>color</AspectMask>
+                            <BaseMipLevel>0</BaseMipLevel>
+                            <LevelCount>auto</LevelCount>
+                            <BaseArrayLayer>0</BaseArrayLayer>
+                            <layerCount>1</layerCount>
+                        </SubresourceRange>
+                    </View>
+                </Views>
+            </ImageBuffer>
+        </ResourceType>
+
+        <ResourceType name="basic_uniform_resource">
+            <Buffer>
+                <BufferUsageFlags>
+                    <Flag>uniform_buffer</Flag>
+                </BufferUsageFlags>
+                <MemoryProperties>
+                    <Property>host_visible</Property>
+                    <Property>host_coherent</Property>
+                </MemoryProperties>
+            </Buffer>
+        </ResourceType>
+
+        <ResourceType name="basic_vertex_resource">
+            <Buffer>
+                <BufferUsageFlags>
+                    <Flag>transfer_dst</Flag>
+                    <Flag>vertex_buffer</Flag>
+                </BufferUsageFlags>
+                <MemoryProperties>
+                    <Property>device_local</Property>
+                </MemoryProperties>
+            </Buffer>
+        </ResourceType>
+
+        <ResourceType name="basic_index_resource">
+            <Buffer>
+                <BufferUsageFlags>
+                    <Flag>transfer_dst</Flag>
+                    <Flag>index_buffer</Flag>
+                </BufferUsageFlags>
+                <MemoryProperties>
+                    <Property>device_local</Property>
+                </MemoryProperties>
+            </Buffer>
+        </ResourceType>
+
+        <ResourceType name="imgui_vertex_resource">
+            <Buffer>
+                <BufferUsageFlags>
+                    <Flag>transfer_dst</Flag>
+                    <Flag>vertex_buffer</Flag>
+                </BufferUsageFlags>
+                <MemoryProperties>
+                    <Property>host_coherent</Property>
+                    <Property>host_visible</Property>
+                </MemoryProperties>
+            </Buffer>
+        </ResourceType>
+
+        <ResourceType name="imgui_index_resource">
+            <Buffer>
+                <BufferUsageFlags>
+                    <Flag>transfer_dst</Flag>
+                    <Flag>index_buffer</Flag>
+                </BufferUsageFlags>
+                <MemoryProperties>
+                    <Property>host_coherent</Property>
+                    <Property>host_visible</Property>
+                </MemoryProperties>
+            </Buffer>
+        </ResourceType>
+    </TypeOfResources>
 
     <Shaders>
         <Shader name="basic_diffuse_vertex_shader">
@@ -61,7 +190,7 @@
             <EntryPointName>main</EntryPointName>
             <Stage>vertex</Stage>
             <InputAttributeDescription>
-                <Binding num="0" input_rate="vertex">
+                <Binding num="0" input_rate="vertex" vertex_buffer_resource_type="basic_vertex_resource" index_buffer_resource_type="basic_index_resource">
                     <Attribute name="inPosition">
                         <Location>0</Location>
                         <Format>vec3</Format>
@@ -98,7 +227,7 @@
             <EntryPointName>main</EntryPointName>
             <Stage>vertex</Stage>
             <InputAttributeDescription>
-                <Binding num="0" input_rate="vertex">
+                <Binding num="0" input_rate="vertex" vertex_buffer_resource_type="imgui_vertex_resource" index_buffer_resource_type="imgui_index_resource">
                     <Attribute name="inPosition">
                         <Location>0</Location>
                         <Format>vec2</Format>
@@ -282,7 +411,7 @@
                 <Dynamic>scissor</Dynamic>
             </DynamicState>
             <RenderPass>
-                <RenderPassName>basic_mulisample_render_target</RenderPassName>
+                <RenderPassName>basic_mulisample_render_pass</RenderPassName>
                 <Subpass>0</Subpass>
             </RenderPass>
         </GraphicsPipeline>
@@ -357,7 +486,7 @@
                 <Dynamic>scissor</Dynamic>
             </DynamicState>
             <RenderPass>
-                <RenderPassName>basic_mulisample_render_target</RenderPassName>
+                <RenderPassName>basic_mulisample_render_pass</RenderPassName>
                 <Subpass>0</Subpass>
             </RenderPass>
         </GraphicsPipeline>

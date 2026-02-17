@@ -18,7 +18,7 @@ bool DescSetLayout::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_n
         
         pugi::xml_node stage_flags_node = layout_binding_node.child("ShaderStageFlags");
         for (pugi::xml_node create_flag = stage_flags_node.first_child(); create_flag; create_flag = create_flag.next_sibling()) {
-	        layout_binding.stageFlags |= getShaderStageFlagBits(create_flag.text().as_string());
+	        layout_binding.stageFlags |= getShaderStageFlag(create_flag.text().as_string());
 	    }
         
         std::vector<VkSamplerCreateInfo> sampler_info_array;
