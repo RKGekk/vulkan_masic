@@ -86,6 +86,37 @@
     </Descriptors>
 
     <TypeOfResources>
+        <ResourceType name="basic_swap_chain">
+            <Swapchain>
+                <SurfaceFormat select="auto"></SurfaceFormat>
+                <RecommendPresentMode>auto</RecommendPresentMode>
+                <MinImageCount auto="true"></MinImageCount>
+                <ImageArrayLayers>1</ImageArrayLayers>
+                <ImageUsageFlags>
+                    <Flag>color_attachment</Flag>
+                </ImageUsageFlags>
+                <PreTransform>auto</PreTransform>
+                <CompositeAlpha>opaque_khr</CompositeAlpha>
+                <Clipped>true</Clipped>
+                <MipLevels>none</MipLevels>
+                <Tiling>optimal</Tiling>
+                <Views>
+                    <View name="basic_swapchain_resource_view">
+                        <ImageType>2D</ImageType>
+                        <Format>as_swapchain</Format>
+                        <Components r="r" g="g" b="b" a="a" />
+                        <SubresourceRange>
+                            <AspectMask>color</AspectMask>
+                            <BaseMipLevel>0</BaseMipLevel>
+                            <LevelCount>auto</LevelCount>
+                            <BaseArrayLayer>0</BaseArrayLayer>
+                            <layerCount>1</layerCount>
+                        </SubresourceRange>
+                    </View>
+                </Views>
+            </Swapchain>
+        </ResourceType>
+
         <ResourceType name="basic_image_resource">
             <ImageBuffer>
                 <ImageType>2D</ImageType>
@@ -575,68 +606,37 @@
                         <AttachmentResourceType>render_target_depth_resource</AttachmentResourceType>
                         <AttachmentResourceTypeView>render_target_depth_resource_view</AttachmentResourceTypeView>
                     </Attachment>
+                    <Attachment>
+                        <AttachmentName>resolve_attachment</AttachmentName>
+                        <AttachmentResourceType>basic_swap_chain</AttachmentResourceType>
+                        <AttachmentResourceTypeView>basic_swapchain_resource_view</AttachmentResourceTypeView>
+                    </Attachment>
                 </Attachments>
             </FrameBuffer>
         </RenderNode>
 
         <RenderNode name="imgui_renderer">
             <Pipeline>imgui_pipeline</Pipeline>
-            <ReadResources>
-                <Resource name="uniform">
-                    <Buffer>
-                        <BufferUsageFlags>
-                            <Flag>uniform_buffer</Flag>
-                        </BufferUsageFlags>
-                        <MemoryProperties>
-                            <Property>host_visible</Property>
-                            <Property>host_coherent</Property>
-                        </MemoryProperties>
-                    </Buffer>
-                </Resource>
-                <Resource name="image">
-                    <ImageBuffer>
-                        <ImageType>2D</ImageType>
-                        <Format>r8g8b8a8_unorm</Format>
-                        <Extent source="auto"></Extent>
-                        <MipLevels>auto</MipLevels>
-                        <ArrayLayers>1</ArrayLayers>
-                        <Samples>as_device</Samples>
-                        <Tiling>optimal</Tiling>
-                        <ImageUsageFlags>
-                            <Flag>transfer_src</Flag>
-                            <Flag>transfer_dst</Flag>
-                            <Flag>sampled</Flag>
-                        </ImageUsageFlags>
-                        <InitialLayout>undefined</InitialLayout>
-                        <ReadLayout>shader_read_only_optimal</ReadLayout>
-                    </ImageBuffer>
-                </Resource>
-                <Resource name="vertex">
-                    <Buffer>
-                        <BufferUsageFlags>
-                            <Flag>transfer_dst</Flag>
-                            <Flag>vertex_buffer</Flag>
-                        </BufferUsageFlags>
-                        <MemoryProperties>
-                            <Property>host_coherent</Property>
-                            <Property>host_visible</Property>
-                        </MemoryProperties>
-                    </Buffer>
-                </Resource>
-                <Resource name="index">
-                    <Buffer>
-                        <BufferUsageFlags>
-                            <Flag>transfer_dst</Flag>
-                            <Flag>index_buffer</Flag>
-                        </BufferUsageFlags>
-                        <MemoryProperties>
-                            <Property>host_coherent</Property>
-                            <Property>host_visible</Property>
-                        </MemoryProperties>
-                    </Buffer>
-                </Resource>
-            </ReadResources>
-            <WrittenResources output_type="AsPipelineRendertarget" />
+            <FrameBuffer>
+                <RenderPassName>basic_mulisample_render_pass</RenderPassName>
+                <Attachments>
+                    <Attachment>
+                        <AttachmentName>color_attachment</AttachmentName>
+                        <AttachmentResourceType>render_target_color_resource</AttachmentResourceType>
+                        <AttachmentResourceTypeView>render_target_color_resource_view</AttachmentResourceTypeView>
+                    </Attachment>
+                    <Attachment>
+                        <AttachmentName>depth_attachment</AttachmentName>
+                        <AttachmentResourceType>render_target_depth_resource</AttachmentResourceType>
+                        <AttachmentResourceTypeView>render_target_depth_resource_view</AttachmentResourceTypeView>
+                    </Attachment>
+                    <Attachment>
+                        <AttachmentName>resolve_attachment</AttachmentName>
+                        <AttachmentResourceType>basic_swap_chain</AttachmentResourceType>
+                        <AttachmentResourceTypeView>basic_swapchain_resource_view</AttachmentResourceTypeView>
+                    </Attachment>
+                </Attachments>
+            </FrameBuffer>
         </RenderNode>
     </RenderNodes>
 </RenderGraph>

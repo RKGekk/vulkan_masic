@@ -1781,6 +1781,8 @@
 
     <xs:simpleType name="PresentModeSimpleType">
         <xs:restriction base="xs:string">
+            <xs:enumeration value="auto"></xs:enumeration>
+
             <xs:enumeration value="immediate_khr"></xs:enumeration>
             <xs:enumeration value="mailbox_khr"></xs:enumeration>
             <xs:enumeration value="fifo_khr"></xs:enumeration>
@@ -2114,6 +2116,20 @@
         <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
     </xs:complexType>
 
+    <xs:simpleType name="UnsignedIntOrEmptySimpleType">
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:unsignedInt"/>
+            </xs:simpleType>
+        
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:length value="0"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+
     <xs:complexType name="SwapChainComplexType">
         <xs:sequence>
             <xs:element name="SurfaceFormat" minOccurs="1" maxOccurs="1">
@@ -2140,7 +2156,15 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="MinImageCount" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="MinImageCount" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="target:UnsignedIntOrEmptySimpleType">
+                            <xs:attribute name="auto" type="xs:boolean"></xs:attribute>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="ImageArrayLayers" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="ImageUsageFlags" minOccurs="1" maxOccurs="1">
                 <xs:complexType>
