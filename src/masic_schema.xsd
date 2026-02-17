@@ -1757,6 +1757,73 @@
         </xs:sequence>
     </xs:complexType>
 
+    <xs:simpleType name="ColorSpaceSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="srgb_nonlinear_khr"></xs:enumeration>
+            <xs:enumeration value="display_p3_nonlinear_ext"></xs:enumeration>
+            <xs:enumeration value="extended_srgb_linear_ext"></xs:enumeration>
+            <xs:enumeration value="display_p3_linear_ext"></xs:enumeration>
+            <xs:enumeration value="dci_p3_nonlinear_ext"></xs:enumeration>
+            <xs:enumeration value="bt709_linear_ext"></xs:enumeration>
+            <xs:enumeration value="bt709_nonlinear_ext"></xs:enumeration>
+            <xs:enumeration value="bt2020_linear_ext"></xs:enumeration>
+            <xs:enumeration value="hdr10_st2084_ext"></xs:enumeration>
+            <xs:enumeration value="dolbyvision_ext"></xs:enumeration>
+            <xs:enumeration value="hdr10_hlg_ext"></xs:enumeration>
+            <xs:enumeration value="adobergb_linear_ext"></xs:enumeration>
+            <xs:enumeration value="adobergb_nonlinear_ext"></xs:enumeration>
+            <xs:enumeration value="pass_through_ext"></xs:enumeration>
+            <xs:enumeration value="extended_srgb_nonlinear_ext"></xs:enumeration>
+            <xs:enumeration value="display_native_amd"></xs:enumeration>
+            <xs:enumeration value="dci_p3_linear_ext"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="PresentModeSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="immediate_khr"></xs:enumeration>
+            <xs:enumeration value="mailbox_khr"></xs:enumeration>
+            <xs:enumeration value="fifo_khr"></xs:enumeration>
+            <xs:enumeration value="fifo_relaxed_khr"></xs:enumeration>
+            <xs:enumeration value="shared_demand_refresh_khr"></xs:enumeration>
+            <xs:enumeration value="shared_continuous_refresh_khr"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="SwapChainFlagsSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="split_instance_bind_regions_khr"></xs:enumeration>
+            <xs:enumeration value="protected_khr"></xs:enumeration>
+            <xs:enumeration value="mutable_format_khr"></xs:enumeration>
+            <xs:enumeration value="deferred_memory_allocation_ext"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="SurfaceTransformFlagSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="auto"></xs:enumeration>
+
+            <xs:enumeration value="identity_khr"></xs:enumeration>
+            <xs:enumeration value="rotate_90_khr"></xs:enumeration>
+            <xs:enumeration value="rotate_180_khr"></xs:enumeration>
+            <xs:enumeration value="rotate_270_khr"></xs:enumeration>
+            <xs:enumeration value="horizontal_mirror_khr"></xs:enumeration>
+            <xs:enumeration value="horizontal_mirror_rotate_90_khr"></xs:enumeration>
+            <xs:enumeration value="horizontal_mirror_rotate_180_khr"></xs:enumeration>
+            <xs:enumeration value="horizontal_mirror_rotate_270_khr"></xs:enumeration>
+            <xs:enumeration value="inherit_khr"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="CompositeAlphaFlagSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="opaque_khr"></xs:enumeration>
+            <xs:enumeration value="pre_multiplied_khr"></xs:enumeration>
+            <xs:enumeration value="post_multiplied_khr"></xs:enumeration>
+            <xs:enumeration value="inherit_khr"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:complexType name="ImageBufferComplexType">
         <xs:sequence>
             <xs:element name="Flags" minOccurs="0" maxOccurs="1">
@@ -1918,6 +1985,16 @@
         </xs:sequence>
     </xs:complexType>
 
+    <xs:complexType name="TextureComplexType">
+        <xs:complexContent>
+            <xs:extension base="target:BufferComplexType">
+                <xs:sequence>
+                    <xs:element name="Sampler" type="target:SamplerComplexType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
     <xs:complexType name="RenderPassComplexType">
         <xs:sequence>
             <xs:element name="Flags" minOccurs="0" maxOccurs="1">
@@ -1998,10 +2075,110 @@
         <xs:sequence>
             <xs:element name="Pipeline" type="xs:string"></xs:element>
             <xs:element name="FrameBuffer" minOccurs="1" maxOccurs="1">
-                
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Flags" minOccurs="0" maxOccurs="1">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Flag" minOccurs="1" maxOccurs="unbounded">
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:string">
+                                                <xs:enumeration value="imageless"></xs:enumeration>
+                                                <xs:enumeration value="imageless_khr"></xs:enumeration>
+                                            </xs:restriction>
+                                        </xs:simpleType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="RenderPassName" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="Attachments" minOccurs="1" maxOccurs="1">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Attachment" minOccurs="1" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="AttachmentName" type="xs:string"></xs:element>
+                                                <xs:element name="AttachmentResourceType" type="xs:string"></xs:element>
+                                                <xs:element name="AttachmentResourceTypeView" type="xs:string"></xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
             </xs:element>
         </xs:sequence>
         <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="SwapChainComplexType">
+        <xs:sequence>
+            <xs:element name="SurfaceFormat" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Format" type="target:ColorFormatSimpleType" minOccurs="0" maxOccurs="1"></xs:element>
+                        <xs:element name="ColorSpace" type="target:ColorSpaceSimpleType" minOccurs="0" maxOccurs="1"></xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="select" use="required">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:enumeration value="auto"></xs:enumeration>
+                                <xs:enumeration value="exact"></xs:enumeration>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:attribute>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="RecommendPresentMode" type="target:PresentModeSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="Flags" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Flag" type="target:SwapChainFlagsSimpleType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="MinImageCount" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="ImageArrayLayers" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="ImageUsageFlags" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Flag" type="target:ImageUsageFlagsSimpleType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="PreTransform" type="target:SurfaceTransformFlagSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="CompositeAlpha" type="target:CompositeAlphaFlagSimpleType"></xs:element>
+            <xs:element name="Clipped" type="xs:boolean"></xs:element>
+            <xs:element name="MipLevels" type="target:MipLevelsSimpleType"></xs:element>
+            <xs:element name="Tiling" type="target:ImageTilingSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="Views" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="View" minOccurs="0" maxOccurs="1">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Flags" minOccurs="0" maxOccurs="1">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="Flag" type="target:ImageViewFlagsSimpleType"></xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                    <xs:element name="ImageType" type="target:ImageViewTypeSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+                                    <xs:element name="Format" type="target:ColorFormatSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+                                    <xs:element name="Components" type="target:ComponentMappingComplexType" minOccurs="1" maxOccurs="1"></xs:element>
+                                    <xs:element name="SubresourceRange" type="target:ImageSubresourceRangeComplexType" minOccurs="1" maxOccurs="1"></xs:element>
+                                </xs:sequence>
+                                <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
     </xs:complexType>
 
     <xs:element name="RenderGraph">
@@ -2067,8 +2244,8 @@
                                     <xs:choice>
                                         <xs:element name="ImageBuffer" type="target:ImageBufferComplexType"></xs:element>
                                         <xs:element name="Buffer" type="target:BufferComplexType"></xs:element>
-                                        <xs:element name="Texture" type="target:BufferComplexType"></xs:element>
-                                        <xs:element name="Swapchain" type="target:BufferComplexType"></xs:element>
+                                        <xs:element name="Texture" type="target:TextureComplexType"></xs:element>
+                                        <xs:element name="Swapchain" type="target:SwapChainComplexType"></xs:element>
                                     </xs:choice>
                                     <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
                                 </xs:complexType>
