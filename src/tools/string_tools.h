@@ -185,3 +185,5 @@ VkImageLayout getImageLayout(const std::string& layout_str);
 VkPipelineStageFlagBits getPipelineStageFlag(const std::string& flag_str);
 VkAccessFlags getAccessFlag(const std::string& flag_str);
 VkDependencyFlagBits getDependencyFlag(const std::string& flag_str);
+
+VkSamplerCreateInfo getSamplerCreateInfo(const pugi::xml_node& sampler_node);

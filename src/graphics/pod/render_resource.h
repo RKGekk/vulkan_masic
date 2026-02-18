@@ -15,11 +15,7 @@ public:
 
     enum class Type : uint32_t {
         BUFFER,
-        IMAGE_BUFFER,
-        VERTEX_BUFFER,
-        TEXTURE_BUFFER,
-        UNIFORM_BUFFER,
-        SWAPCHAIN_BUFFER
+        IMAGE
     };
 
     virtual void destroy() = 0;

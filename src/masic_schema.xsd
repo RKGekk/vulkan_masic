@@ -541,6 +541,7 @@
                                                 <xs:element name="Type">
                                                     <xs:simpleType>
                                                         <xs:restriction base="xs:string">
+                                                            <xs:enumeration value="None"></xs:enumeration>
                                                             <xs:enumeration value="Inline"></xs:enumeration>
                                                             <xs:enumeration value="Default"></xs:enumeration>
                                                             <xs:enumeration value="FromImageBuffer"></xs:enumeration>

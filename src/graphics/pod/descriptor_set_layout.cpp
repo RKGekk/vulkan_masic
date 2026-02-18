@@ -24,28 +24,7 @@ bool DescSetLayout::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_n
         std::vector<VkSamplerCreateInfo> sampler_info_array;
         pugi::xml_node immutable_samplers_node = layout_binding_node.child("ImmutableSamplers");
         for (pugi::xml_node sampler_node = immutable_samplers_node.first_child(); sampler_node; sampler_node = sampler_node.next_sibling()) {
-            VkSamplerCreateInfo sampler_info{};
-            
-            pugi::xml_node create_flags_node = sampler_node.child("CreateFlags");
-            for (pugi::xml_node create_flag = create_flags_node.first_child(); create_flag; create_flag = create_flag.next_sibling()) {
-	     	    sampler_info.flags |= getSamplerCreateFlag(create_flag.text().as_string());
-	        }
-            sampler_info.magFilter = getSamplerFilter(sampler_node.child("MagFilter").text().as_string());
-            sampler_info.minFilter = getSamplerFilter(sampler_node.child("MinFilter").text().as_string());
-            sampler_info.mipmapMode = getSamplerMipmapMode(sampler_node.child("MipmapMode").text().as_string());
-            sampler_info.addressModeU = getSamplerAddressMode(sampler_node.child("AddressModeU").text().as_string());
-            sampler_info.addressModeV = getSamplerAddressMode(sampler_node.child("AddressModeV").text().as_string());
-            sampler_info.addressModeW = getSamplerAddressMode(sampler_node.child("AddressModeW").text().as_string());
-            sampler_info.mipLodBias = sampler_node.child("MipLodBias").text().as_float(0.0f);
-            sampler_info.anisotropyEnable = sampler_node.child("AnisotropyEnable").text().as_bool();
-            sampler_info.maxAnisotropy = sampler_node.child("MaxAnisotropy").text().as_float(0.0f);
-            sampler_info.compareEnable = sampler_node.child("CompareEnable").text().as_bool();
-            sampler_info.compareOp = getCompareOp(sampler_node.child("CompareOp").text().as_string());
-            sampler_info.minLod = sampler_node.child("MinLod").text().as_float(0.0f);
-            sampler_info.maxLod = sampler_node.child("MaxLod").text().as_float(0.0f);
-            sampler_info.borderColor = getSamplerBorderColor(sampler_node.child("BorderColor").text().as_string());
-            sampler_info.unnormalizedCoordinates = sampler_node.child("UnnormalizedCoordinates").text().as_bool();
-            
+            VkSamplerCreateInfo sampler_info = getSamplerCreateInfo(sampler_node);
             std::shared_ptr<VulkanSampler> sampler = std::make_shared<VulkanSampler>();
             sampler->init(device, sampler_info);
             m_immutable_samplers_ptr.push_back(sampler->getSampler());
@@ -55,6 +34,36 @@ bool DescSetLayout::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_n
         layout_binding.pImmutableSamplers = m_immutable_samplers_ptr.data();
         
         m_bindings.push_back(layout_binding);
+
+        UpdateMetadata metadata{};
+
+        pugi::xml_node update_metadata_node = layout_binding_node.child("UpdateMetadata");
+        if(pugi::xml_node buffer_metadata_node = update_metadata_node.child("Buffer")) {
+            metadata.resource_type = RenderResource::Type::BUFFER;
+            metadata.buffer_resource_type_name = buffer_metadata_node.child("BufferResourceType").text().as_string();
+        }
+        else if (pugi::xml_node image_metadata_node = image_metadata_node.child("Image")) {
+            metadata.resource_type = RenderResource::Type::IMAGE;
+            metadata.image_resource_type_name = image_metadata_node.child("ImageBufferResourceType").text().as_string();
+            metadata.image_view_type_name = image_metadata_node.child("ImageViewResourceType").text().as_string();
+            metadata.read_image_layout = getImageLayout(image_metadata_node.child("ReadImageLayout").text().as_string());
+
+            if(pugi::xml_node sampler_node = image_metadata_node.child("Sampler")) {
+                std::string sampler_type_str = sampler_node.child("Type").text().as_string();
+                if(sampler_type_str == "Inline"s) metadata.sampler_type = UpdateMetadata::SamplerType::INLINE;
+                else if(sampler_type_str == "Default"s) metadata.sampler_type = UpdateMetadata::SamplerType::DEFAULT;
+                else if(sampler_type_str == "FromImageBuffer"s) metadata.sampler_type = UpdateMetadata::SamplerType::FROM_IMAGEBUFFER;
+                else metadata.sampler_type = UpdateMetadata::SamplerType::NONE;
+
+                if(metadata.sampler_type == UpdateMetadata::SamplerType::INLINE) {
+                    VkSamplerCreateInfo sampler_info = getSamplerCreateInfo(sampler_node.child("Inline"));
+                    metadata.image_sampler = std::make_shared<VulkanSampler>();
+                    metadata.image_sampler->init(device, sampler_info);
+                }
+            }
+        }
+
+        m_bindings_metadata.push_back(std::move(metadata));
     }
 
     m_desc_layout_info = VkDescriptorSetLayoutCreateInfo{};
@@ -62,7 +71,7 @@ bool DescSetLayout::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_n
     
     pugi::xml_node stage_flags_node = descriptor_sets_node.child("LayoutCreateFlags");
     for (pugi::xml_node create_flag = stage_flags_node.first_child(); create_flag; create_flag = create_flag.next_sibling()) {
-	    m_desc_layout_info.flags |= getDescriptorSetLayoutCreateFlagBit(create_flag.text().as_string());
+	    m_desc_layout_info.flags |= getDescriptorSetLayoutCreateFlag(create_flag.text().as_string());
 	}
     
     m_desc_layout_info.bindingCount = static_cast<uint32_t>(m_bindings.size());

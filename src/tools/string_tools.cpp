@@ -1477,40 +1477,41 @@ VkAccessFlagBits getVkAccessFlag(const std::string& flag_str) {
 	using namespace std::literals;
     VkAccessFlagBits res{};
 
-         if(flag_str == "top_of_pipe"s) {res = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;}
-	else if(flag_str == "draw_indirect"s) {res = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;}
-	else if(flag_str == "vertex_input"s) {res = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;}
-	else if(flag_str == "vertex_shader"s) {res = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;}
-	else if(flag_str == "tessellation_control_shader"s) {res = VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;}
-	else if(flag_str == "tessellation_evaluation_shader"s) {res = VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;}
-	else if(flag_str == "geometry_shader"s) {res = VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;}
-	else if(flag_str == "fragment_shader"s) {res = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;}
-	else if(flag_str == "early_fragment_tests"s) {res = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;}
-	else if(flag_str == "late_fragment_tests"s) {res = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;}
-	else if(flag_str == "color_attachment_output"s) {res = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;}
-	else if(flag_str == "compute_shader"s) {res = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;}
-	else if(flag_str == "transfer"s) {res = VK_PIPELINE_STAGE_TRANSFER_BIT;}
-	else if(flag_str == "bottom_of_pipe"s) {res = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;}
-	else if(flag_str == "host"s) {res = VK_PIPELINE_STAGE_HOST_BIT;}
-	else if(flag_str == "all_graphics"s) {res = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;}
-	else if(flag_str == "all_commands"s) {res = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;}
-	else if(flag_str == "none"s) {res = VK_PIPELINE_STAGE_NONE;}
-	else if(flag_str == "transform_feedback_ext"s) {res = VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT;}
-	else if(flag_str == "conditional_rendering_ext"s) {res = VK_PIPELINE_STAGE_CONDITIONAL_RENDERING_BIT_EXT;}
-	else if(flag_str == "acceleration_structure_build_khr"s) {res = VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;}
-	else if(flag_str == "ray_tracing_shader_khr"s) {res = VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR;}
-	else if(flag_str == "fragment_density_process_ext"s) {res = VK_PIPELINE_STAGE_FRAGMENT_DENSITY_PROCESS_BIT_EXT;}
-	else if(flag_str == "fragment_shading_rate_attachment_khr"s) {res = VK_PIPELINE_STAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;}
-	else if(flag_str == "command_preprocess_nv"s) {res = VK_PIPELINE_STAGE_COMMAND_PREPROCESS_BIT_NV;}
-	else if(flag_str == "task_shader_ext"s) {res = VK_PIPELINE_STAGE_TASK_SHADER_BIT_EXT;}
-	else if(flag_str == "mesh_shader_ext"s) {res = VK_PIPELINE_STAGE_MESH_SHADER_BIT_EXT;}
-	else if(flag_str == "shading_rate_image_nv"s) {res = VK_PIPELINE_STAGE_SHADING_RATE_IMAGE_BIT_NV;}
-	else if(flag_str == "ray_tracing_shader_nv"s) {res = VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_NV;}
-	else if(flag_str == "acceleration_structure_build_nv"s) {res = VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_NV;}
-	else if(flag_str == "task_shader_nv"s) {res = VK_PIPELINE_STAGE_TASK_SHADER_BIT_NV;}
-	else if(flag_str == "mesh_shader_nv"s) {res = VK_PIPELINE_STAGE_MESH_SHADER_BIT_NV;}
-	else if(flag_str == "none_khr"s) {res = VK_PIPELINE_STAGE_NONE_KHR;}
-	else if(flag_str == "command_preprocess_ext"s) {res = VK_PIPELINE_STAGE_COMMAND_PREPROCESS_BIT_EXT;}
+         if(flag_str == "indirect_command_read_bit"s) {res = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;}
+	else if(flag_str == "index_read_bit"s) {res = VK_ACCESS_INDEX_READ_BIT;}
+	else if(flag_str == "vertex_attribute_read_bit"s) {res = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;}
+	else if(flag_str == "uniform_read_bit"s) {res = VK_ACCESS_UNIFORM_READ_BIT;}
+	else if(flag_str == "input_attachment_read_bit"s) {res = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;}
+	else if(flag_str == "shader_read_bit"s) {res = VK_ACCESS_SHADER_READ_BIT;}
+	else if(flag_str == "shader_write_bit"s) {res = VK_ACCESS_SHADER_WRITE_BIT;}
+	else if(flag_str == "color_attachment_read_bit"s) {res = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;}
+	else if(flag_str == "color_attachment_write_bit"s) {res = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;}
+	else if(flag_str == "depth_stencil_attachment_read_bit"s) {res = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;}
+	else if(flag_str == "depth_stencil_attachment_write_bit"s) {res = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;}
+	else if(flag_str == "transfer_read_bit"s) {res = VK_ACCESS_TRANSFER_READ_BIT;}
+	else if(flag_str == "transfer_write_bit"s) {res = VK_ACCESS_TRANSFER_WRITE_BIT;}
+	else if(flag_str == "host_read_bit"s) {res = VK_ACCESS_HOST_READ_BIT;}
+	else if(flag_str == "host_write_bit"s) {res = VK_ACCESS_HOST_WRITE_BIT;}
+	else if(flag_str == "memory_read_bit"s) {res = VK_ACCESS_MEMORY_READ_BIT;}
+	else if(flag_str == "memory_write_bit"s) {res = VK_ACCESS_MEMORY_WRITE_BIT;}
+	else if(flag_str == "none"s) {res = VK_ACCESS_NONE;}
+	else if(flag_str == "transform_feedback_write_bit_ext"s) {res = VK_ACCESS_TRANSFORM_FEEDBACK_WRITE_BIT_EXT;}
+	else if(flag_str == "transform_feedback_counter_read_bit_ext"s) {res = VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_READ_BIT_EXT;}
+	else if(flag_str == "transform_feedback_counter_write_bit_ext"s) {res = VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_WRITE_BIT_EXT;}
+	else if(flag_str == "conditional_rendering_read_bit_ext"s) {res = VK_ACCESS_CONDITIONAL_RENDERING_READ_BIT_EXT;}
+	else if(flag_str == "color_attachment_read_noncoherent_bit_ext"s) {res = VK_ACCESS_COLOR_ATTACHMENT_READ_NONCOHERENT_BIT_EXT;}
+	else if(flag_str == "acceleration_structure_read_bit_khr"s) {res = VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR;}
+	else if(flag_str == "acceleration_structure_write_bit_khr"s) {res = VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_KHR;}
+	else if(flag_str == "fragment_density_map_read_bit_ext"s) {res = VK_ACCESS_FRAGMENT_DENSITY_MAP_READ_BIT_EXT;}
+	else if(flag_str == "fragment_shading_rate_attachment_read_bit_khr"s) {res = VK_ACCESS_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR;}
+	else if(flag_str == "command_preprocess_read_bit_nv"s) {res = VK_ACCESS_COMMAND_PREPROCESS_READ_BIT_NV;}
+	else if(flag_str == "command_preprocess_write_bit_nv"s) {res = VK_ACCESS_COMMAND_PREPROCESS_WRITE_BIT_NV;}
+	else if(flag_str == "shading_rate_image_read_bit_nv"s) {res = VK_ACCESS_SHADING_RATE_IMAGE_READ_BIT_NV;}
+	else if(flag_str == "acceleration_structure_read_bit_nv"s) {res = VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_NV;}
+	else if(flag_str == "acceleration_structure_write_bit_nv"s) {res = VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_NV;}
+	else if(flag_str == "none_khr"s) {res = VK_ACCESS_NONE_KHR;}
+	else if(flag_str == "command_preprocess_read_bit_ext"s) {res = VK_ACCESS_COMMAND_PREPROCESS_READ_BIT_EXT;}
+	else if(flag_str == "command_preprocess_write_bit_ext"s) {res = VK_ACCESS_COMMAND_PREPROCESS_WRITE_BIT_EXT;}
     
     return res;
 }
@@ -1527,4 +1528,30 @@ VkDependencyFlagBits getDependencyFlag(const std::string& flag_str) {
 	else if(flag_str == "device_group_khr"s) {res = VK_DEPENDENCY_DEVICE_GROUP_BIT_KHR;}
     
     return res;
+}
+
+VkSamplerCreateInfo getSamplerCreateInfo(const pugi::xml_node& sampler_node) {
+	VkSamplerCreateInfo sampler_info{};
+            
+    pugi::xml_node create_flags_node = sampler_node.child("CreateFlags");
+    for (pugi::xml_node create_flag = create_flags_node.first_child(); create_flag; create_flag = create_flag.next_sibling()) {
+    	sampler_info.flags |= getSamplerCreateFlag(create_flag.text().as_string());
+	}
+    sampler_info.magFilter = getSamplerFilter(sampler_node.child("MagFilter").text().as_string());
+    sampler_info.minFilter = getSamplerFilter(sampler_node.child("MinFilter").text().as_string());
+    sampler_info.mipmapMode = getSamplerMipmapMode(sampler_node.child("MipmapMode").text().as_string());
+    sampler_info.addressModeU = getSamplerAddressMode(sampler_node.child("AddressModeU").text().as_string());
+    sampler_info.addressModeV = getSamplerAddressMode(sampler_node.child("AddressModeV").text().as_string());
+    sampler_info.addressModeW = getSamplerAddressMode(sampler_node.child("AddressModeW").text().as_string());
+    sampler_info.mipLodBias = sampler_node.child("MipLodBias").text().as_float(0.0f);
+    sampler_info.anisotropyEnable = sampler_node.child("AnisotropyEnable").text().as_bool();
+    sampler_info.maxAnisotropy = sampler_node.child("MaxAnisotropy").text().as_float(0.0f);
+    sampler_info.compareEnable = sampler_node.child("CompareEnable").text().as_bool();
+    sampler_info.compareOp = getCompareOp(sampler_node.child("CompareOp").text().as_string());
+    sampler_info.minLod = sampler_node.child("MinLod").text().as_float(0.0f);
+    sampler_info.maxLod = sampler_node.child("MaxLod").text().as_float(0.0f);
+    sampler_info.borderColor = getSamplerBorderColor(sampler_node.child("BorderColor").text().as_string());
+    sampler_info.unnormalizedCoordinates = sampler_node.child("UnnormalizedCoordinates").text().as_bool();
+
+	return sampler_info;
 }
