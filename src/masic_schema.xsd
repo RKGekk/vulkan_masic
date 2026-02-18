@@ -1853,7 +1853,15 @@
             <xs:element name="MemoryProperties" minOccurs="1" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element name="Property" type="target:MemoryPropertyFlagsSimpleType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                        <xs:element name="Property" type="target:MemoryPropertyFlagsSimpleType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="get_by_memory_requirements" type="xs:boolean" use="required"></xs:attribute>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="Samplers" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Sampler" type="target:SamplerComplexType" minOccurs="0" maxOccurs="unbounded"></xs:element>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1985,16 +1993,6 @@
                 </xs:complexType>
             </xs:element>
         </xs:sequence>
-    </xs:complexType>
-
-    <xs:complexType name="TextureComplexType">
-        <xs:complexContent>
-            <xs:extension base="target:BufferComplexType">
-                <xs:sequence>
-                    <xs:element name="Sampler" type="target:SamplerComplexType" minOccurs="0" maxOccurs="unbounded"></xs:element>
-                </xs:sequence>
-            </xs:extension>
-        </xs:complexContent>
     </xs:complexType>
 
     <xs:complexType name="RenderPassComplexType">
@@ -2132,6 +2130,7 @@
 
     <xs:complexType name="SwapChainComplexType">
         <xs:sequence>
+            <xs:element name="GeneratedResourceType" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="SurfaceFormat" minOccurs="1" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
@@ -2165,43 +2164,9 @@
                     </xs:simpleContent>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="ImageArrayLayers" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
-            <xs:element name="ImageUsageFlags" minOccurs="1" maxOccurs="1">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element name="Flag" type="target:ImageUsageFlagsSimpleType" minOccurs="1" maxOccurs="unbounded"></xs:element>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
             <xs:element name="PreTransform" type="target:SurfaceTransformFlagSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="CompositeAlpha" type="target:CompositeAlphaFlagSimpleType"></xs:element>
             <xs:element name="Clipped" type="xs:boolean"></xs:element>
-            <xs:element name="MipLevels" type="target:MipLevelsSimpleType"></xs:element>
-            <xs:element name="Tiling" type="target:ImageTilingSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
-            <xs:element name="Views" minOccurs="0" maxOccurs="1">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element name="View" minOccurs="0" maxOccurs="1">
-                            <xs:complexType>
-                                <xs:sequence>
-                                    <xs:element name="Flags" minOccurs="0" maxOccurs="1">
-                                        <xs:complexType>
-                                            <xs:sequence>
-                                                <xs:element name="Flag" type="target:ImageViewFlagsSimpleType"></xs:element>
-                                            </xs:sequence>
-                                        </xs:complexType>
-                                    </xs:element>
-                                    <xs:element name="ImageType" type="target:ImageViewTypeSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
-                                    <xs:element name="Format" type="target:ColorFormatSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
-                                    <xs:element name="Components" type="target:ComponentMappingComplexType" minOccurs="1" maxOccurs="1"></xs:element>
-                                    <xs:element name="SubresourceRange" type="target:ImageSubresourceRangeComplexType" minOccurs="1" maxOccurs="1"></xs:element>
-                                </xs:sequence>
-                                <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
-                            </xs:complexType>
-                        </xs:element>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
         </xs:sequence>
     </xs:complexType>
 
@@ -2268,8 +2233,6 @@
                                     <xs:choice>
                                         <xs:element name="ImageBuffer" type="target:ImageBufferComplexType"></xs:element>
                                         <xs:element name="Buffer" type="target:BufferComplexType"></xs:element>
-                                        <xs:element name="Texture" type="target:TextureComplexType"></xs:element>
-                                        <xs:element name="Swapchain" type="target:SwapChainComplexType"></xs:element>
                                     </xs:choice>
                                     <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
                                 </xs:complexType>
@@ -2293,6 +2256,8 @@
                         </xs:sequence>
                     </xs:complexType>
                 </xs:element>
+
+                <xs:element name="Swapchain" type="target:SwapChainComplexType"></xs:element>
 
                 <xs:element name="Pipelines" type="target:PipelinesComplexType" minOccurs="1" maxOccurs="1"></xs:element>
 

@@ -86,20 +86,20 @@
     </Descriptors>
 
     <TypeOfResources>
-        <ResourceType name="basic_swap_chain">
-            <Swapchain>
-                <SurfaceFormat select="auto"></SurfaceFormat>
-                <RecommendPresentMode>auto</RecommendPresentMode>
-                <MinImageCount auto="true"></MinImageCount>
-                <ImageArrayLayers>1</ImageArrayLayers>
+        <ResourceType name="basic_swap_chain_resource">
+            <ImageBuffer>
+                <ImageType>2D</ImageType>
+                <Format>as_swapchain</Format>
+                <Extent source="as_swapchain"></Extent>
+                <MipLevels>none</MipLevels>
+                <ArrayLayers>1</ArrayLayers>
+                <Samples>1_bit</Samples>
+                <Tiling>optimal</Tiling>
                 <ImageUsageFlags>
                     <Flag>color_attachment</Flag>
                 </ImageUsageFlags>
-                <PreTransform>auto</PreTransform>
-                <CompositeAlpha>opaque_khr</CompositeAlpha>
-                <Clipped>true</Clipped>
-                <MipLevels>none</MipLevels>
-                <Tiling>optimal</Tiling>
+                <InitialLayout>undefined</InitialLayout>
+                <MemoryProperties get_by_memory_requirements="true"></MemoryProperties>
                 <Views>
                     <View name="basic_swapchain_resource_view">
                         <ImageType>2D</ImageType>
@@ -114,7 +114,7 @@
                         </SubresourceRange>
                     </View>
                 </Views>
-            </Swapchain>
+            </ImageBuffer>
         </ResourceType>
 
         <ResourceType name="basic_image_resource">
@@ -132,7 +132,7 @@
                     <Flag>sampled</Flag>
                 </ImageUsageFlags>
                 <InitialLayout>undefined</InitialLayout>
-                <MemoryProperties>
+                <MemoryProperties get_by_memory_requirements="false">
                     <Property>device_local</Property>
                 </MemoryProperties>
                 <Views>
@@ -166,7 +166,7 @@
                     <Flag>color_attachment</Flag>
                 </ImageUsageFlags>
                 <InitialLayout>undefined</InitialLayout>
-                <MemoryProperties>
+                <MemoryProperties get_by_memory_requirements="false">
                     <Property>device_local</Property>
                 </MemoryProperties>
                 <Views>
@@ -199,7 +199,7 @@
                     <Flag>depth_stencil_attachment</Flag>
                 </ImageUsageFlags>
                 <InitialLayout>undefined</InitialLayout>
-                <MemoryProperties>
+                <MemoryProperties get_by_memory_requirements="false">
                     <Property>device_local</Property>
                 </MemoryProperties>
                 <Views>
@@ -442,6 +442,16 @@
         </RenderPass>
     </RenderPases>
 
+    <Swapchain>
+        <GeneratedResourceType>basic_swap_chain_resource</GeneratedResourceType>
+        <SurfaceFormat select="auto"></SurfaceFormat>
+        <RecommendPresentMode>auto</RecommendPresentMode>
+        <MinImageCount auto="true"></MinImageCount>
+        <PreTransform>auto</PreTransform>
+        <CompositeAlpha>opaque_khr</CompositeAlpha>
+        <Clipped>true</Clipped>
+    </Swapchain>
+
     <Pipelines>
         <GraphicsPipeline name="basic_diffuse_pipeline">
             <Shaders>
@@ -608,7 +618,7 @@
                     </Attachment>
                     <Attachment>
                         <AttachmentName>resolve_attachment</AttachmentName>
-                        <AttachmentResourceType>basic_swap_chain</AttachmentResourceType>
+                        <AttachmentResourceType>basic_swap_chain_resource</AttachmentResourceType>
                         <AttachmentResourceTypeView>basic_swapchain_resource_view</AttachmentResourceTypeView>
                     </Attachment>
                 </Attachments>
@@ -632,7 +642,7 @@
                     </Attachment>
                     <Attachment>
                         <AttachmentName>resolve_attachment</AttachmentName>
-                        <AttachmentResourceType>basic_swap_chain</AttachmentResourceType>
+                        <AttachmentResourceType>basic_swap_chain_resource</AttachmentResourceType>
                         <AttachmentResourceTypeView>basic_swapchain_resource_view</AttachmentResourceTypeView>
                     </Attachment>
                 </Attachments>
