@@ -4,11 +4,14 @@
 
 #include <stdexcept>
 
-bool VulkanSampler::init(std::shared_ptr<VulkanDevice> device, const VkSamplerCreateInfo& sampler_info) {
-    m_device = device->getDevice();
+VulkanSampler::VulkanSampler(std::shared_ptr<VulkanDevice> device, std::string name) : m_device(std::move(device)), m_name(std::move(name)) {}
+
+VulkanSampler::VulkanSampler(std::shared_ptr<VulkanDevice> device) : m_device(std::move(device)), m_name(std::to_string(rand())) {}
+
+bool VulkanSampler::init(const VkSamplerCreateInfo& sampler_info) {
     m_sampler_info = sampler_info;
 
-    VkResult result = vkCreateSampler(m_device, &sampler_info, nullptr, &m_sampler);
+    VkResult result = vkCreateSampler(m_device->getDevice(), &sampler_info, nullptr, &m_sampler);
     if(result != VK_SUCCESS) {
         throw std::runtime_error("failed to create texture sampler!");
     }
@@ -16,14 +19,13 @@ bool VulkanSampler::init(std::shared_ptr<VulkanDevice> device, const VkSamplerCr
     return true;
 }
 
-bool VulkanSampler::init(std::shared_ptr<VulkanDevice> device, uint32_t mip_levels) {
-    m_device = device->getDevice();
+bool VulkanSampler::init(uint32_t mip_levels) {
 
     VkPhysicalDeviceFeatures supported_features{};
-    vkGetPhysicalDeviceFeatures(device->getDeviceAbilities().physical_device, &supported_features);
+    vkGetPhysicalDeviceFeatures(m_device->getDeviceAbilities().physical_device, &supported_features);
 
     VkPhysicalDeviceProperties device_props{};
-    vkGetPhysicalDeviceProperties(device->getDeviceAbilities().physical_device, &device_props);
+    vkGetPhysicalDeviceProperties(m_device->getDeviceAbilities().physical_device, &device_props);
     
     VkSamplerCreateInfo sampler_info{};
     sampler_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -43,11 +45,11 @@ bool VulkanSampler::init(std::shared_ptr<VulkanDevice> device, uint32_t mip_leve
     sampler_info.minLod = 0.0f;
     sampler_info.maxLod = static_cast<float>(mip_levels);
 
-    init(device, sampler_info);
+    init(sampler_info);
 }
 
 void VulkanSampler::destroy() {
-    vkDestroySampler(m_device, m_sampler, nullptr);
+    vkDestroySampler(m_device->getDevice(), m_sampler, nullptr);
 }
 
 const VkSamplerCreateInfo& VulkanSampler::getSamplerInfo() const {

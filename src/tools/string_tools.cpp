@@ -1530,6 +1530,185 @@ VkDependencyFlagBits getDependencyFlag(const std::string& flag_str) {
     return res;
 }
 
+VkImageCreateFlagBits getVkImageCreateFlag(const std::string& flag_str) {
+	using namespace std::literals;
+    VkImageCreateFlagBits res{};
+
+         if(flag_str == "sparse_binding"s) {res = VK_IMAGE_CREATE_SPARSE_BINDING_BIT;}
+	else if(flag_str == "sparse_residency"s) {res = VK_IMAGE_CREATE_SPARSE_RESIDENCY_BIT;}
+	else if(flag_str == "sparse_aliased"s) {res = VK_IMAGE_CREATE_SPARSE_ALIASED_BIT;}
+	else if(flag_str == "mutable_format"s) {res = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;}
+	else if(flag_str == "cube_compatible"s) {res = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;}
+	else if(flag_str == "alias"s) {res = VK_IMAGE_CREATE_ALIAS_BIT;}
+	else if(flag_str == "split_instance_bind_regions"s) {res = VK_IMAGE_CREATE_SPLIT_INSTANCE_BIND_REGIONS_BIT;}
+	else if(flag_str == "2d_array_compatible"s) {res = VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;}
+	else if(flag_str == "block_texel_view_compatible"s) {res = VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT;}
+	else if(flag_str == "extended_usage"s) {res = VK_IMAGE_CREATE_EXTENDED_USAGE_BIT;}
+	else if(flag_str == "protected"s) {res = VK_IMAGE_CREATE_PROTECTED_BIT;}
+	else if(flag_str == "disjoint"s) {res = VK_IMAGE_CREATE_DISJOINT_BIT;}
+	else if(flag_str == "corner_sampled_nv"s) {res = VK_IMAGE_CREATE_CORNER_SAMPLED_BIT_NV;}
+	else if(flag_str == "sample_locations_compatible_depth_ext"s) {res = VK_IMAGE_CREATE_SAMPLE_LOCATIONS_COMPATIBLE_DEPTH_BIT_EXT;}
+	else if(flag_str == "subsampled_ext"s) {res = VK_IMAGE_CREATE_SUBSAMPLED_BIT_EXT;}
+	else if(flag_str == "descriptor_buffer_capture_replay_ext"s) {res = VK_IMAGE_CREATE_DESCRIPTOR_BUFFER_CAPTURE_REPLAY_BIT_EXT;}
+	else if(flag_str == "multisampled_render_to_single_sampled_ext"s) {res = VK_IMAGE_CREATE_MULTISAMPLED_RENDER_TO_SINGLE_SAMPLED_BIT_EXT;}
+	else if(flag_str == "2d_view_compatible_ext"s) {res = VK_IMAGE_CREATE_2D_VIEW_COMPATIBLE_BIT_EXT;}
+	else if(flag_str == "fragment_density_map_offset_qcom"s) {res = VK_IMAGE_CREATE_FRAGMENT_DENSITY_MAP_OFFSET_BIT_QCOM;}
+	else if(flag_str == "video_profile_independent_khr"s) {res = VK_IMAGE_CREATE_VIDEO_PROFILE_INDEPENDENT_BIT_KHR;}
+	else if(flag_str == "split_instance_bind_regions_khr"s) {res = VK_IMAGE_CREATE_SPLIT_INSTANCE_BIND_REGIONS_BIT_KHR;}
+	else if(flag_str == "2d_array_compatible_khr"s) {res = VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT_KHR;}
+	else if(flag_str == "block_texel_view_compatible_khr"s) {res = VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT_KHR;}
+	else if(flag_str == "extended_usage_khr"s) {res = VK_IMAGE_CREATE_EXTENDED_USAGE_BIT_KHR;}
+	else if(flag_str == "disjoint_khr"s) {res = VK_IMAGE_CREATE_DISJOINT_BIT_KHR;}
+	else if(flag_str == "alias_khr"s) {res = VK_IMAGE_CREATE_ALIAS_BIT_KHR;}
+    
+    return res;
+}
+
+VkImageType getImageType(const std::string& image_type_str) {
+	using namespace std::literals;
+    VkImageType res{};
+
+         if(image_type_str == "1D"s) {res = VK_IMAGE_TYPE_1D;}
+	else if(image_type_str == "2D"s) {res = VK_IMAGE_TYPE_2D;}
+	else if(image_type_str == "3D"s) {res = VK_IMAGE_TYPE_3D;}
+    
+    return res;
+}
+
+VkImageTiling getImageTiling(const std::string& tiling_str) {
+	using namespace std::literals;
+    VkImageTiling res{};
+
+         if(tiling_str == "optimal"s) {res = VK_IMAGE_TILING_OPTIMAL;}
+	else if(tiling_str == "linear"s) {res = VK_IMAGE_TILING_LINEAR;}
+	else if(tiling_str == "drm_format_modifier_ext"s) {res = VK_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT;}
+    
+    return res;
+}
+
+VkImageUsageFlagBits getImageUsageFlag(const std::string& flag_str) {
+	using namespace std::literals;
+    VkImageUsageFlagBits res{};
+
+         if(flag_str == "transfer_src"s) {res = VK_IMAGE_USAGE_TRANSFER_SRC_BIT;}
+	else if(flag_str == "transfer_dst"s) {res = VK_IMAGE_USAGE_TRANSFER_DST_BIT;}
+	else if(flag_str == "sampled"s) {res = VK_IMAGE_USAGE_SAMPLED_BIT;}
+	else if(flag_str == "storage"s) {res = VK_IMAGE_USAGE_STORAGE_BIT;}
+	else if(flag_str == "color_attachment"s) {res = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;}
+	else if(flag_str == "depth_stencil_attachment"s) {res = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;}
+	else if(flag_str == "transient_attachment"s) {res = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;}
+	else if(flag_str == "input_attachment"s) {res = VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;}
+	else if(flag_str == "video_decode_dst_khr"s) {res = VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR;}
+	else if(flag_str == "video_decode_src_khr"s) {res = VK_IMAGE_USAGE_VIDEO_DECODE_SRC_BIT_KHR;}
+	else if(flag_str == "video_decode_dpb_khr"s) {res = VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR;}
+	else if(flag_str == "fragment_density_map_ext"s) {res = VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT;}
+	else if(flag_str == "fragment_shading_rate_attachment_khr"s) {res = VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;}
+	else if(flag_str == "host_transfer_ext"s) {res = VK_IMAGE_USAGE_HOST_TRANSFER_BIT_EXT;}
+	else if(flag_str == "video_encode_dst_khr"s) {res = VK_IMAGE_USAGE_VIDEO_ENCODE_DST_BIT_KHR;}
+	else if(flag_str == "video_encode_src_khr"s) {res = VK_IMAGE_USAGE_VIDEO_ENCODE_SRC_BIT_KHR;}
+	else if(flag_str == "video_encode_dpb_khr"s) {res = VK_IMAGE_USAGE_VIDEO_ENCODE_DPB_BIT_KHR;}
+	else if(flag_str == "attachment_feedback_loop_ext"s) {res = VK_IMAGE_USAGE_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT;}
+	else if(flag_str == "invocation_mask_huawei"s) {res = VK_IMAGE_USAGE_INVOCATION_MASK_BIT_HUAWEI;}
+	else if(flag_str == "sample_weight_qcom"s) {res = VK_IMAGE_USAGE_SAMPLE_WEIGHT_BIT_QCOM;}
+	else if(flag_str == "sample_block_match_qcom"s) {res = VK_IMAGE_USAGE_SAMPLE_BLOCK_MATCH_BIT_QCOM;}
+	else if(flag_str == "shading_rate_image_nv"s) {res = VK_IMAGE_USAGE_SHADING_RATE_IMAGE_BIT_NV;}
+    
+    return res;
+}
+
+VkMemoryPropertyFlagBits getMemoryPropertyFlag(const std::string& flag_str) {
+	using namespace std::literals;
+    VkMemoryPropertyFlagBits res{};
+
+         if(flag_str == "device_local"s) {res = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;}
+	else if(flag_str == "host_visible"s) {res = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;}
+	else if(flag_str == "host_coherent"s) {res = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;}
+	else if(flag_str == "host_cached"s) {res = VK_MEMORY_PROPERTY_HOST_CACHED_BIT;}
+	else if(flag_str == "lazily_allocated"s) {res = VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;}
+	else if(flag_str == "protected"s) {res = VK_MEMORY_PROPERTY_PROTECTED_BIT;}
+	else if(flag_str == "device_coherent_amd"s) {res = VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD;}
+	else if(flag_str == "device_uncached_amd"s) {res = VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD;}
+	else if(flag_str == "rdma_capable_nv"s) {res = VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV;}
+    
+    return res;
+}
+
+VkImageViewCreateFlagBits getImageViewCreateFlag(const std::string& flag_str) {
+	using namespace std::literals;
+    VkImageViewCreateFlagBits res{};
+
+         if(flag_str == "fragment_density_map_dynamic_ext"s) {res = VK_IMAGE_VIEW_CREATE_FRAGMENT_DENSITY_MAP_DYNAMIC_BIT_EXT;}
+	else if(flag_str == "descriptor_buffer_capture_replay_ext"s) {res = VK_IMAGE_VIEW_CREATE_DESCRIPTOR_BUFFER_CAPTURE_REPLAY_BIT_EXT;}
+	else if(flag_str == "fragment_density_map_deferred_ext"s) {res = VK_IMAGE_VIEW_CREATE_FRAGMENT_DENSITY_MAP_DEFERRED_BIT_EXT;}
+    
+    return res;
+}
+
+VkImageViewType getImageViewType(const std::string& view_type_str) {
+	using namespace std::literals;
+    VkImageViewType res{};
+
+         if(view_type_str == "1D"s) {res = VK_IMAGE_VIEW_TYPE_1D;}
+	else if(view_type_str == "2D"s) {res = VK_IMAGE_VIEW_TYPE_2D;}
+	else if(view_type_str == "3D"s) {res = VK_IMAGE_VIEW_TYPE_3D;}
+	else if(view_type_str == "cube"s) {res = VK_IMAGE_VIEW_TYPE_CUBE;}
+	else if(view_type_str == "1D_array"s) {res = VK_IMAGE_VIEW_TYPE_1D_ARRAY;}
+	else if(view_type_str == "2D_array"s) {res = VK_IMAGE_VIEW_TYPE_2D_ARRAY;}
+	else if(view_type_str == "cube_array"s) {res = VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;}
+    
+    return res;
+}
+
+VkComponentSwizzle getComponentSwizzle(const std::string& swizzle_str) {\
+	using namespace std::literals;
+    VkComponentSwizzle res{};
+
+         if(swizzle_str == "identity"s) {res = VK_COMPONENT_SWIZZLE_IDENTITY;}
+	else if(swizzle_str == "zero"s) {res = VK_COMPONENT_SWIZZLE_ZERO;}
+	else if(swizzle_str == "one"s) {res = VK_COMPONENT_SWIZZLE_ONE;}
+	else if(swizzle_str == "r"s) {res = VK_COMPONENT_SWIZZLE_R;}
+	else if(swizzle_str == "g"s) {res = VK_COMPONENT_SWIZZLE_G;}
+	else if(swizzle_str == "b"s) {res = VK_COMPONENT_SWIZZLE_B;}
+	else if(swizzle_str == "a"s) {res = VK_COMPONENT_SWIZZLE_A;}
+    
+    return res;
+}
+
+VkImageAspectFlagBits getImageAspectFlag(const std::string& flag_str) {
+	using namespace std::literals;
+    VkImageAspectFlagBits res{};
+
+         if(flag_str == "color"s) {res = VK_IMAGE_ASPECT_COLOR_BIT;}
+	else if(flag_str == "depth"s) {res = VK_IMAGE_ASPECT_DEPTH_BIT;}
+	else if(flag_str == "stencil"s) {res = VK_IMAGE_ASPECT_STENCIL_BIT;}
+	else if(flag_str == "metadata"s) {res = VK_IMAGE_ASPECT_METADATA_BIT;}
+	else if(flag_str == "plane_0"s) {res = VK_IMAGE_ASPECT_PLANE_0_BIT;}
+	else if(flag_str == "plane_1"s) {res = VK_IMAGE_ASPECT_PLANE_1_BIT;}
+	else if(flag_str == "plane_2"s) {res = VK_IMAGE_ASPECT_PLANE_2_BIT;}
+	else if(flag_str == "none"s) {res = VK_IMAGE_ASPECT_NONE;}
+	else if(flag_str == "plane_0_ext"s) {res = VK_IMAGE_ASPECT_MEMORY_PLANE_0_BIT_EXT;}
+	else if(flag_str == "plane_1_ext"s) {res = VK_IMAGE_ASPECT_MEMORY_PLANE_1_BIT_EXT;}
+	else if(flag_str == "plane_2_ext"s) {res = VK_IMAGE_ASPECT_MEMORY_PLANE_2_BIT_EXT;}
+	else if(flag_str == "plane_3_ext"s) {res = VK_IMAGE_ASPECT_MEMORY_PLANE_3_BIT_EXT;}
+	else if(flag_str == "plane_0_khr"s) {res = VK_IMAGE_ASPECT_PLANE_0_BIT_KHR;}
+	else if(flag_str == "plane_1_khr"s) {res = VK_IMAGE_ASPECT_PLANE_1_BIT_KHR;}
+	else if(flag_str == "plane_2_khr"s) {res = VK_IMAGE_ASPECT_PLANE_2_BIT_KHR;}
+	else if(flag_str == "none_khr"s) {res = VK_IMAGE_ASPECT_NONE_KHR;}
+    
+    return res;
+}
+
+VkComponentMapping getComponentMapping(const pugi::xml_node& mapping_node) {
+	VkComponentMapping mapping{};
+
+	mapping.r = getComponentSwizzle(mapping_node.attribute("r").as_string());
+	mapping.g = getComponentSwizzle(mapping_node.attribute("g").as_string());
+	mapping.b = getComponentSwizzle(mapping_node.attribute("b").as_string());
+	mapping.a = getComponentSwizzle(mapping_node.attribute("a").as_string());
+
+	return mapping;
+}
+
 VkSamplerCreateInfo getSamplerCreateInfo(const pugi::xml_node& sampler_node) {
 	VkSamplerCreateInfo sampler_info{};
             

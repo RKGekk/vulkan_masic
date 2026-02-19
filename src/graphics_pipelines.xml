@@ -102,7 +102,7 @@
                 <MemoryProperties get_by_memory_requirements="true"></MemoryProperties>
                 <Views>
                     <View name="basic_swapchain_resource_view">
-                        <ImageType>2D</ImageType>
+                        <ViewType>2D</ViewType>
                         <Format>as_swapchain</Format>
                         <Components r="r" g="g" b="b" a="a" />
                         <SubresourceRange>
@@ -135,17 +135,38 @@
                 <MemoryProperties get_by_memory_requirements="false">
                     <Property>device_local</Property>
                 </MemoryProperties>
+                <Samplers>
+                    <Sampler name="default_sampler">
+                        <MagFilter>linear</MagFilter>
+                        <MinFilter>linear</MinFilter>
+                        <MipmapMode>linear</MipmapMode>
+                        <AddressModeU>repeat</AddressModeU>
+                        <AddressModeV>repeat</AddressModeV>
+                        <AddressModeW>repeat</AddressModeW>
+                        <MipLodBias>0.0</MipLodBias>
+                        <AnisotropyEnable auto="true">true</AnisotropyEnable>
+                        <MaxAnisotropy auto="true">16.0</MaxAnisotropy>
+                        <CompareEnable>false</CompareEnable>
+                        <CompareOp>always</CompareOp>
+                        <MinLod>0.0</MinLod>
+                        <MaxLod by_mip="true">1.0</MaxLod>
+                        <BorderColor>int_opaque_black</BorderColor>
+                        <UnnormalizedCoordinates>false</UnnormalizedCoordinates>
+                    </Sampler>
+                </Samplers>
                 <Views>
                     <View name="basic_image_resource_view">
-                        <ImageType>2D</ImageType>
+                        <ViewType>2D</ViewType>
                         <Format>r8g8b8a8_unorm</Format>
                         <Components r="r" g="g" b="b" a="a" />
                         <SubresourceRange>
-                            <AspectMask>color</AspectMask>
+                            <AspectFlags>
+                                <AspectMask>color</AspectMask>
+                            </AspectFlags>
                             <BaseMipLevel>0</BaseMipLevel>
                             <LevelCount>auto</LevelCount>
                             <BaseArrayLayer>0</BaseArrayLayer>
-                            <layerCount>1</layerCount>
+                            <LayerCount>1</LayerCount>
                         </SubresourceRange>
                     </View>
                 </Views>
@@ -171,7 +192,7 @@
                 </MemoryProperties>
                 <Views>
                     <View name="render_target_color_resource_view">
-                        <ImageType>2D</ImageType>
+                        <ViewType>2D</ViewType>
                         <Format>as_swapchain</Format>
                         <Components r="r" g="g" b="b" a="a" />
                         <SubresourceRange>
@@ -204,7 +225,7 @@
                 </MemoryProperties>
                 <Views>
                     <View name="render_target_depth_resource_view">
-                        <ImageType>2D</ImageType>
+                        <ViewType>2D</ViewType>
                         <Format>as_swapchain</Format>
                         <Components r="r" g="g" b="b" a="a" />
                         <SubresourceRange>

@@ -21,7 +21,6 @@ bool DescSetLayout::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_n
 	        layout_binding.stageFlags |= getShaderStageFlag(create_flag.text().as_string());
 	    }
         
-        std::vector<VkSamplerCreateInfo> sampler_info_array;
         pugi::xml_node immutable_samplers_node = layout_binding_node.child("ImmutableSamplers");
         for (pugi::xml_node sampler_node = immutable_samplers_node.first_child(); sampler_node; sampler_node = sampler_node.next_sibling()) {
             VkSamplerCreateInfo sampler_info = getSamplerCreateInfo(sampler_node);

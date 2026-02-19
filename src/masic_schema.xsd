@@ -23,6 +23,9 @@
             <xs:enumeration value="g"></xs:enumeration>
             <xs:enumeration value="b"></xs:enumeration>
             <xs:enumeration value="a"></xs:enumeration>
+            <xs:enumeration value="identity"></xs:enumeration>
+            <xs:enumeration value="zero"></xs:enumeration>
+            <xs:enumeration value="one"></xs:enumeration>
         </xs:restriction>
     </xs:simpleType>
 
@@ -426,15 +429,40 @@
             <xs:element name="AddressModeV" type="target:SamplerAddressModeSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="AddressModeW" type="target:SamplerAddressModeSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="MipLodBias" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
-            <xs:element name="AnisotropyEnable" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
-            <xs:element name="MaxAnisotropy" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="AnisotropyEnable" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="xs:boolean">
+                            <xs:attribute name="auto" type="xs:boolean" use="required"></xs:attribute>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="MaxAnisotropy" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="xs:float">
+                            <xs:attribute name="auto" type="xs:boolean" use="required"></xs:attribute>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="CompareEnable" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="CompareOp" type="target:CompareOpSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="MinLod" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
-            <xs:element name="MaxLod" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="MaxLod" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="xs:float">
+                            <xs:attribute name="by_mip" type="xs:boolean" use="required"></xs:attribute>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="BorderColor" type="target:BorderColorSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="UnnormalizedCoordinates" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
         </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
     </xs:complexType>
 
     <xs:complexType name="ShaderStageFlagComplexType">
@@ -1657,11 +1685,11 @@
 
     <xs:complexType name="Extent3DComplexType">
         <xs:sequence>
-            <xs:element name="width" minOccurs="0" maxOccurs="1"></xs:element>
-            <xs:element name="height" minOccurs="0" maxOccurs="1"></xs:element>
-            <xs:element name="depth" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="Width" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="Height" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="Depth" minOccurs="0" maxOccurs="1"></xs:element>
         </xs:sequence>
-        <xs:attribute name="source">
+        <xs:attribute name="source" use="optional">
             <xs:simpleType>
                 <xs:restriction base="xs:string">
                     <xs:enumeration value="auto"></xs:enumeration>
@@ -1720,10 +1748,10 @@
             <xs:enumeration value="1D"></xs:enumeration>
             <xs:enumeration value="2D"></xs:enumeration>
             <xs:enumeration value="3D"></xs:enumeration>
-            <xs:enumeration value="CUBE"></xs:enumeration>
-            <xs:enumeration value="1D_ARRAY"></xs:enumeration>
-            <xs:enumeration value="2D_ARRAY"></xs:enumeration>
-            <xs:enumeration value="CUBE_ARRAY"></xs:enumeration>
+            <xs:enumeration value="cube"></xs:enumeration>
+            <xs:enumeration value="1D_array"></xs:enumeration>
+            <xs:enumeration value="2D_array"></xs:enumeration>
+            <xs:enumeration value="cube_array"></xs:enumeration>
         </xs:restriction>
     </xs:simpleType>
 
@@ -1750,11 +1778,17 @@
 
     <xs:complexType name="ImageSubresourceRangeComplexType">
         <xs:sequence>
-            <xs:element name="AspectMask" type="target:ImageAspectFlagsSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="AspectFlags" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="AspectMask" type="target:ImageAspectFlagsSimpleType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="BaseMipLevel" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="LevelCount" type="target:MipLevelsSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="BaseArrayLayer" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
-            <xs:element name="layerCount" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="LayerCount" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
         </xs:sequence>
     </xs:complexType>
 
@@ -1838,9 +1872,9 @@
             </xs:element>
             <xs:element name="ImageType" type="target:ImageTypeSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="Format" type="target:ColorFormatSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
-            <xs:element name="Extent" type="target:Extent3DComplexType"></xs:element>
-            <xs:element name="MipLevels" type="target:MipLevelsSimpleType"></xs:element>
-            <xs:element name="ArrayLayers" type="xs:unsignedInt"></xs:element>
+            <xs:element name="Extent" type="target:Extent3DComplexType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="MipLevels" type="target:MipLevelsSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="ArrayLayers" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="Samples" type="target:SampleCountSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="Tiling" type="target:ImageTilingSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="ImageUsageFlags" minOccurs="1" maxOccurs="1">
@@ -1879,7 +1913,7 @@
                                             </xs:sequence>
                                         </xs:complexType>
                                     </xs:element>
-                                    <xs:element name="ImageType" type="target:ImageViewTypeSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+                                    <xs:element name="ViewType" type="target:ImageViewTypeSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
                                     <xs:element name="Format" type="target:ColorFormatSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
                                     <xs:element name="Components" type="target:ComponentMappingComplexType" minOccurs="1" maxOccurs="1"></xs:element>
                                     <xs:element name="SubresourceRange" type="target:ImageSubresourceRangeComplexType" minOccurs="1" maxOccurs="1"></xs:element>

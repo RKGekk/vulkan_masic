@@ -183,7 +183,17 @@ VkAttachmentLoadOp getAttachmentLoadOp(const std::string& load_op_str);
 VkAttachmentStoreOp getAttachmentStoreOp(const std::string& store_op_str);
 VkImageLayout getImageLayout(const std::string& layout_str);
 VkPipelineStageFlagBits getPipelineStageFlag(const std::string& flag_str);
-VkAccessFlags getAccessFlag(const std::string& flag_str);
+VkAccessFlagBits getAccessFlag(const std::string& flag_str);
 VkDependencyFlagBits getDependencyFlag(const std::string& flag_str);
+VkImageCreateFlagBits getVkImageCreateFlag(const std::string& flag_str);
+VkImageType getImageType(const std::string& image_type_str);
+VkImageTiling getImageTiling(const std::string& tiling_str);
+VkImageUsageFlagBits getImageUsageFlag(const std::string& flag_str);
+VkMemoryPropertyFlagBits getMemoryPropertyFlag(const std::string& flag_str);
+VkImageViewCreateFlagBits getImageViewCreateFlag(const std::string& flag_str);
+VkImageViewType getImageViewType(const std::string& view_type_str);
+VkComponentSwizzle getComponentSwizzle(const std::string& swizzle_str);
+VkImageAspectFlagBits getImageAspectFlag(const std::string& flag_str);
 
+VkComponentMapping getComponentMapping(const pugi::xml_node& mapping_node);
 VkSamplerCreateInfo getSamplerCreateInfo(const pugi::xml_node& sampler_node);
