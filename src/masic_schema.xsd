@@ -39,9 +39,6 @@
 
     <xs:simpleType name="ColorFormatSimpleType">
         <xs:restriction base="xs:string">
-            <xs:enumeration value="as_swapchain"></xs:enumeration>
-            <xs:enumeration value="find_suitable_depth"></xs:enumeration>
-
             <xs:enumeration value="undefined"></xs:enumeration>
             <xs:enumeration value="r4g4_unorm_pack8"></xs:enumeration>
             <xs:enumeration value="r4g4b4a4_unorm_pack16"></xs:enumeration>
@@ -1448,8 +1445,7 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="Format" type="target:ColorFormatSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
-            <xs:element name="Samples" type="target:SampleCountSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="FormatName" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="LoadOp" type="target:AttachmentLoadOpSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="StoreOp" type="target:AttachmentStoreOpSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="StencilLoadOp" type="target:AttachmentLoadOpSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
@@ -1861,6 +1857,95 @@
         </xs:restriction>
     </xs:simpleType>
 
+    <xs:simpleType name="FormatFeatureFlagSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="sampled_image"></xs:enumeration>
+            <xs:enumeration value="storage_image"></xs:enumeration>
+            <xs:enumeration value="storage_image_atomic"></xs:enumeration>
+            <xs:enumeration value="uniform_texel_buffer"></xs:enumeration>
+            <xs:enumeration value="storage_texel_buffer"></xs:enumeration>
+            <xs:enumeration value="storage_texel_buffer_atomic"></xs:enumeration>
+            <xs:enumeration value="vertex_buffer"></xs:enumeration>
+            <xs:enumeration value="color_attachment"></xs:enumeration>
+            <xs:enumeration value="color_attachment_blend"></xs:enumeration>
+            <xs:enumeration value="depth_stencil_attachment"></xs:enumeration>
+            <xs:enumeration value="blit_src"></xs:enumeration>
+            <xs:enumeration value="blit_dst"></xs:enumeration>
+            <xs:enumeration value="sampled_image_filter_linear"></xs:enumeration>
+            <xs:enumeration value="transfer_src"></xs:enumeration>
+            <xs:enumeration value="transfer_dst"></xs:enumeration>
+            <xs:enumeration value="midpoint_chroma_samples"></xs:enumeration>
+            <xs:enumeration value="sampled_image_ycbcr_conversion_linear_filter"></xs:enumeration>
+            <xs:enumeration value="sampled_image_ycbcr_conversion_separate_reconstruction_filter"></xs:enumeration>
+            <xs:enumeration value="sampled_image_ycbcr_conversion_chroma_reconstruction_explicit"></xs:enumeration>
+            <xs:enumeration value="sampled_image_ycbcr_conversion_chroma_reconstruction_explicit_forceable"></xs:enumeration>
+            <xs:enumeration value="disjoint"></xs:enumeration>
+            <xs:enumeration value="cosited_chroma_samples"></xs:enumeration>
+            <xs:enumeration value="sampled_image_filter_minmax"></xs:enumeration>
+            <xs:enumeration value="video_decode_output_khr"></xs:enumeration>
+            <xs:enumeration value="video_decode_dpb_khr"></xs:enumeration>
+            <xs:enumeration value="acceleration_structure_vertex_buffer_khr"></xs:enumeration>
+            <xs:enumeration value="sampled_image_filter_cubic_ext"></xs:enumeration>
+            <xs:enumeration value="fragment_density_map_ext"></xs:enumeration>
+            <xs:enumeration value="fragment_shading_rate_attachment_khr"></xs:enumeration>
+            <xs:enumeration value="video_encode_input_khr"></xs:enumeration>
+            <xs:enumeration value="video_encode_dpb_khr"></xs:enumeration>
+            <xs:enumeration value="sampled_image_filter_cubic_img"></xs:enumeration>
+            <xs:enumeration value="transfer_src_khr"></xs:enumeration>
+            <xs:enumeration value="transfer_dst_khr"></xs:enumeration>
+            <xs:enumeration value="sampled_image_filter_minmax_ext"></xs:enumeration>
+            <xs:enumeration value="midpoint_chroma_samples_khr"></xs:enumeration>
+            <xs:enumeration value="sampled_image_ycbcr_conversion_linear_filter_khr"></xs:enumeration>
+            <xs:enumeration value="sampled_image_ycbcr_conversion_separate_reconstruction_filter_khr"></xs:enumeration>
+            <xs:enumeration value="sampled_image_ycbcr_conversion_chroma_reconstruction_explicit_khr"></xs:enumeration>
+            <xs:enumeration value="sampled_image_ycbcr_conversion_chroma_reconstruction_explicit_forceable_khr"></xs:enumeration>
+            <xs:enumeration value="disjoint_khr"></xs:enumeration>
+            <xs:enumeration value="cosited_chroma_samples_khr"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="FormatComplexType">
+        <xs:sequence>
+            <xs:element name="ImageType" type="target:ImageTypeSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="Extent" type="target:Extent3DComplexType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="MipLevels" type="target:MipLevelsSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="ArrayLayers" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="Samples" type="target:SampleCountSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="Tiling" type="target:ImageTilingSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="Candidates" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Format" type="target:ColorFormatSimpleType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ColorSpace" type="target:ColorSpaceSimpleType" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="FormatProperties" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="FeatureFlag" type="target:FormatFeatureFlagSimpleType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ImageUsageFlags" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Flag" type="target:ImageUsageFlagsSimpleType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+        <xs:attribute name="select" use="required">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="auto"></xs:enumeration>
+                    <xs:enumeration value="exact"></xs:enumeration>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+
     <xs:complexType name="ImageBufferComplexType">
         <xs:sequence>
             <xs:element name="Flags" minOccurs="0" maxOccurs="1">
@@ -1870,20 +1955,7 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="ImageType" type="target:ImageTypeSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
-            <xs:element name="Format" type="target:ColorFormatSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
-            <xs:element name="Extent" type="target:Extent3DComplexType" minOccurs="1" maxOccurs="1"></xs:element>
-            <xs:element name="MipLevels" type="target:MipLevelsSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
-            <xs:element name="ArrayLayers" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
-            <xs:element name="Samples" type="target:SampleCountSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
-            <xs:element name="Tiling" type="target:ImageTilingSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
-            <xs:element name="ImageUsageFlags" minOccurs="1" maxOccurs="1">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element name="Flag" type="target:ImageUsageFlagsSimpleType" minOccurs="1" maxOccurs="unbounded"></xs:element>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
+            <xs:element name="FormatName" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="InitialLayout" type="target:ImageLayoutSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="MemoryProperties" minOccurs="1" maxOccurs="1">
                 <xs:complexType>
@@ -1914,7 +1986,7 @@
                                         </xs:complexType>
                                     </xs:element>
                                     <xs:element name="ViewType" type="target:ImageViewTypeSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
-                                    <xs:element name="Format" type="target:ColorFormatSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+                                    <xs:element name="FormatName" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
                                     <xs:element name="Components" type="target:ComponentMappingComplexType" minOccurs="1" maxOccurs="1"></xs:element>
                                     <xs:element name="SubresourceRange" type="target:ImageSubresourceRangeComplexType" minOccurs="1" maxOccurs="1"></xs:element>
                                 </xs:sequence>
@@ -2017,7 +2089,7 @@
                         <xs:element name="View" minOccurs="0" maxOccurs="1">
                             <xs:complexType>
                                 <xs:sequence>
-                                    <xs:element name="Format" type="target:ColorFormatSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+                                    <xs:element name="FormatName" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
                                     <xs:element name="Offset" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
                                     <xs:element name="Range" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
                                 </xs:sequence>
@@ -2166,22 +2238,7 @@
     <xs:complexType name="SwapChainComplexType">
         <xs:sequence>
             <xs:element name="GeneratedResourceType" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
-            <xs:element name="SurfaceFormat" minOccurs="1" maxOccurs="1">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element name="Format" type="target:ColorFormatSimpleType" minOccurs="0" maxOccurs="1"></xs:element>
-                        <xs:element name="ColorSpace" type="target:ColorSpaceSimpleType" minOccurs="0" maxOccurs="1"></xs:element>
-                    </xs:sequence>
-                    <xs:attribute name="select" use="required">
-                        <xs:simpleType>
-                            <xs:restriction base="xs:string">
-                                <xs:enumeration value="auto"></xs:enumeration>
-                                <xs:enumeration value="exact"></xs:enumeration>
-                            </xs:restriction>
-                        </xs:simpleType>
-                    </xs:attribute>
-                </xs:complexType>
-            </xs:element>
+            <xs:element name="SurfaceFormatName" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="RecommendPresentMode" type="target:PresentModeSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="Flags" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
@@ -2208,6 +2265,14 @@
     <xs:element name="RenderGraph">
         <xs:complexType>
             <xs:sequence>
+
+                <xs:element name="Formats" minOccurs="1" maxOccurs="1">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="Format" type="target:FormatComplexType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
 
                 <xs:element name="DescriptorAllocators">
                     <xs:complexType>

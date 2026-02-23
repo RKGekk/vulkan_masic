@@ -6,6 +6,60 @@
 VulkanImageBuffer::VulkanImageBuffer(std::shared_ptr<VulkanDevice> device, std::string name) : m_device(std::move(device)), m_name(std::move(name)) {}
 VulkanImageBuffer::VulkanImageBuffer(std::shared_ptr<VulkanDevice> device) : m_device(std::move(device)), m_name(std::to_string(rand())) {}
 
+
+bool VulkanImageBuffer::init(VkImage image, VkExtent2D extent, std::shared_ptr<ImageBufferConfig> image_buffer_config) {
+    m_image = image;
+
+    VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
+    VkFormat image_format = m_device->findSupportedFormat(
+        {
+            format
+        },
+        VK_IMAGE_TILING_OPTIMAL,
+        VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT,
+        usage,
+        extent,
+        mip_levels,
+        samples
+    );
+    
+    static std::vector<uint32_t> families = m_device->getCommandManager()->getQueueFamilyIndices().getIndices();
+    m_image_info = {};
+    m_image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    m_image_info.imageType = VK_IMAGE_TYPE_2D;
+    m_image_info.extent.width = static_cast<uint32_t>(extent.width);
+    m_image_info.extent.height = static_cast<uint32_t>(extent.height);
+    m_image_info.extent.depth = 1u;
+    m_image_info.mipLevels = mip_levels;
+    m_image_info.arrayLayers = 1u;
+    m_image_info.format = image_format;
+    m_image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
+    m_image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    m_image_info.usage = usage;
+    m_image_info.sharingMode = m_device->getCommandManager()->getBufferSharingMode();
+    m_image_info.queueFamilyIndexCount = static_cast<uint32_t>(families.size());
+    m_image_info.pQueueFamilyIndices = families.data();
+    m_image_info.samples = samples;
+    m_image_info.flags = 0u;
+
+    // uint32_t requirements_count{};
+    // vkGetImageSparseMemoryRequirements(m_device->getDevice(), m_image, &requirements_count, nullptr);
+    // std::vector<VkSparseImageMemoryRequirements> pSparse_memory_requirements((size_t)requirements_count);
+    // vkGetImageSparseMemoryRequirements(m_device->getDevice(), m_image, requirements_count, pSparse_memory_requirements.data());
+
+    VkMemoryRequirements mem_req{};
+    vkGetImageMemoryRequirements(m_device->getDevice(), m_image, &mem_req);
+    m_image_size = mem_req.size;
+
+    m_layout = m_image_info.initialLayout;
+
+    m_image_view_info = createImageViewInfo(m_image_info.format, aspect_flags, m_image_info.mipLevels);
+    m_image_view = createImageView(m_image_view_info);
+
+    return true;
+}
+
 bool VulkanImageBuffer::init(VkImage image, VkExtent2D extent, VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) {
     m_image = image;
 

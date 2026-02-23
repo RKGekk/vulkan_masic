@@ -1,4 +1,4 @@
-#pragma once
+ #pragma once
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -6,8 +6,10 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 #include "../pod/render_resource.h"
+#include "../pod/image_buffer_config.h"
 #include "vulkan_command_buffer.h"
 
 class VulkanDevice;
@@ -17,9 +19,8 @@ public:
     VulkanImageBuffer(std::shared_ptr<VulkanDevice> device, std::string name);
     VulkanImageBuffer(std::shared_ptr<VulkanDevice> device);
 
-    bool init(VkImage image, VkExtent2D extent, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM, VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT, uint32_t mip_levels = 1u);
-    bool init(unsigned char* pixels, VkExtent2D extent, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM, VkMemoryPropertyFlags properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT);
-    bool init(unsigned char* pixels, VkImageCreateInfo image_info, VkMemoryPropertyFlags properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT);
+    bool init(VkImage image, VkExtent2D extent, std::shared_ptr<ImageBufferConfig> image_buffer_config);
+    bool init(unsigned char* pixels, VkExtent2D extent, std::shared_ptr<ImageBufferConfig> image_buffer_config);
 
     void destroy() override;
 
@@ -50,12 +51,9 @@ protected:
     std::shared_ptr<VulkanDevice> m_device;
 
     VkImage m_image;
-    VkImageView m_image_view;
     VkDeviceMemory m_memory;
-    
-    VkImageCreateInfo m_image_info;
-    VkImageViewCreateInfo m_image_view_info;
     VkDeviceSize m_image_size;
-    VkImageLayout m_layout;
-    VkMemoryPropertyFlags m_properties;
+    
+    std::unordered_map<std::string, VkImageView> m_image_view_map;
+    std::shared_ptr<ImageBufferConfig> m_image_config;
 };

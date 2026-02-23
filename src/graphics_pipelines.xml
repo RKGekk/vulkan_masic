@@ -2,6 +2,93 @@
 <?xml-model href="masic_schema.xsd" type="application/xml" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <RenderGraph xmlns="http://www.masicengine.ru">
 
+    <Formats>
+        <Format name="swap_chain_format" select="auto">
+            <ImageType>2D</ImageType>
+            <Extent source="as_swapchain"></Extent>
+            <MipLevels>none</MipLevels>
+            <ArrayLayers>1</ArrayLayers>
+            <Samples>1_bit</Samples>
+            <Tiling>optimal</Tiling>
+            <Candidates>
+                <Format>b8g8r8a8_srgb</Format>
+                <Format>r8g8b8a8_srgb</Format>
+            </Candidates>
+            <ColorSpace>srgb_nonlinear_khr</ColorSpace>
+            <FormatProperties>
+                <FeatureFlag>color_attachment</FeatureFlag>
+            </FormatProperties>
+            <ImageUsageFlags>
+                <Flag>color_attachment</Flag>
+            </ImageUsageFlags>
+        </Format>
+        <Format name="basic_image_format" select="auto">
+            <ImageType>2D</ImageType>
+            <Extent source="auto"></Extent>
+            <MipLevels>auto</MipLevels>
+            <ArrayLayers>1</ArrayLayers>
+            <Samples>as_device</Samples>
+            <Tiling>optimal</Tiling>
+            <Candidates>
+                <Format>r8g8b8a8_unorm</Format>
+            </Candidates>
+            <ColorSpace>srgb_nonlinear_khr</ColorSpace>
+            <FormatProperties>
+                <FeatureFlag>sampled_image</FeatureFlag>
+                <FeatureFlag>sampled_image_filter_linear</FeatureFlag>
+                <FeatureFlag>transfer_src</FeatureFlag>
+                <FeatureFlag>transfer_dst</FeatureFlag>
+                <FeatureFlag>blit_src</FeatureFlag>
+                <FeatureFlag>blit_dst</FeatureFlag>
+            </FormatProperties>
+            <ImageUsageFlags>
+                <Flag>transfer_src</Flag>
+                <Flag>transfer_dst</Flag>
+                <Flag>sampled</Flag>
+            </ImageUsageFlags>
+        </Format>
+        <Format name="render_target_color_format" select="auto">
+            <ImageType>2D</ImageType>
+            <Extent source="as_swapchain"></Extent>
+            <MipLevels>none</MipLevels>
+            <ArrayLayers>1</ArrayLayers>
+            <Samples>as_device</Samples>
+            <Tiling>optimal</Tiling>
+            <Candidates>
+                <Format>b8g8r8a8_srgb</Format>
+                <Format>r8g8b8a8_srgb</Format>
+            </Candidates>
+            <ColorSpace>srgb_nonlinear_khr</ColorSpace>
+            <FormatProperties>
+                <FeatureFlag>color_attachment</FeatureFlag>
+            </FormatProperties>
+            <ImageUsageFlags>
+                <Flag>transient_attachment</Flag>
+                <Flag>color_attachment</Flag>
+            </ImageUsageFlags>
+        </Format>
+        <Format name="render_target_depth_format" select="auto">
+            <ImageType>2D</ImageType>
+            <Extent source="as_swapchain"></Extent>
+            <MipLevels>none</MipLevels>
+            <ArrayLayers>1</ArrayLayers>
+            <Samples>as_device</Samples>
+            <Tiling>optimal</Tiling>
+            <Candidates>
+                <Format>d32_sfloat_s8_uint</Format>
+                <Format>d24_unorm_s8_uint</Format>
+                <Format>d32_sfloat</Format>
+            </Candidates>
+            <ColorSpace>srgb_nonlinear_khr</ColorSpace>
+            <FormatProperties>
+                <FeatureFlag>depth_stencil_attachment</FeatureFlag>
+            </FormatProperties>
+            <ImageUsageFlags>
+                <Flag>depth_stencil_attachment</Flag>
+            </ImageUsageFlags>
+        </Format>
+    </Formats>
+
     <DescriptorAllocators>
         <DescriptorAllocator name="basic_alloc">
             <PageSize>256</PageSize>
@@ -88,29 +175,22 @@
     <TypeOfResources>
         <ResourceType name="basic_swap_chain_resource">
             <ImageBuffer>
-                <ImageType>2D</ImageType>
-                <Format>as_swapchain</Format>
-                <Extent source="as_swapchain"></Extent>
-                <MipLevels>none</MipLevels>
-                <ArrayLayers>1</ArrayLayers>
-                <Samples>1_bit</Samples>
-                <Tiling>optimal</Tiling>
-                <ImageUsageFlags>
-                    <Flag>color_attachment</Flag>
-                </ImageUsageFlags>
+                <FormatName>swap_chain_format</FormatName>
                 <InitialLayout>undefined</InitialLayout>
                 <MemoryProperties get_by_memory_requirements="true"></MemoryProperties>
                 <Views>
                     <View name="basic_swapchain_resource_view">
                         <ViewType>2D</ViewType>
-                        <Format>as_swapchain</Format>
+                        <FormatName>swap_chain_format</FormatName>
                         <Components r="r" g="g" b="b" a="a" />
                         <SubresourceRange>
-                            <AspectMask>color</AspectMask>
+                            <AspectFlags>
+                                <AspectMask>color</AspectMask>
+                            </AspectFlags>
                             <BaseMipLevel>0</BaseMipLevel>
                             <LevelCount>auto</LevelCount>
                             <BaseArrayLayer>0</BaseArrayLayer>
-                            <layerCount>1</layerCount>
+                            <LayerCount>1</LayerCount>
                         </SubresourceRange>
                     </View>
                 </Views>
@@ -119,18 +199,7 @@
 
         <ResourceType name="basic_image_resource">
             <ImageBuffer>
-                <ImageType>2D</ImageType>
-                <Format>r8g8b8a8_unorm</Format>
-                <Extent source="auto"></Extent>
-                <MipLevels>auto</MipLevels>
-                <ArrayLayers>1</ArrayLayers>
-                <Samples>as_device</Samples>
-                <Tiling>optimal</Tiling>
-                <ImageUsageFlags>
-                    <Flag>transfer_src</Flag>
-                    <Flag>transfer_dst</Flag>
-                    <Flag>sampled</Flag>
-                </ImageUsageFlags>
+                <FormatName>basic_image_format</FormatName>
                 <InitialLayout>undefined</InitialLayout>
                 <MemoryProperties get_by_memory_requirements="false">
                     <Property>device_local</Property>
@@ -157,7 +226,7 @@
                 <Views>
                     <View name="basic_image_resource_view">
                         <ViewType>2D</ViewType>
-                        <Format>r8g8b8a8_unorm</Format>
+                        <FormatName>basic_image_format</FormatName>
                         <Components r="r" g="g" b="b" a="a" />
                         <SubresourceRange>
                             <AspectFlags>
@@ -175,17 +244,7 @@
 
         <ResourceType name="render_target_color_resource">
             <ImageBuffer>
-                <ImageType>2D</ImageType>
-                <Format>as_swapchain</Format>
-                <Extent source="as_swapchain"></Extent>
-                <MipLevels>none</MipLevels>
-                <ArrayLayers>1</ArrayLayers>
-                <Samples>as_device</Samples>
-                <Tiling>optimal</Tiling>
-                <ImageUsageFlags>
-                    <Flag>transient_attachment</Flag>
-                    <Flag>color_attachment</Flag>
-                </ImageUsageFlags>
+                <FormatName>render_target_color_format</FormatName>
                 <InitialLayout>undefined</InitialLayout>
                 <MemoryProperties get_by_memory_requirements="false">
                     <Property>device_local</Property>
@@ -193,14 +252,16 @@
                 <Views>
                     <View name="render_target_color_resource_view">
                         <ViewType>2D</ViewType>
-                        <Format>as_swapchain</Format>
+                        <FormatName>render_target_color_format</FormatName>
                         <Components r="r" g="g" b="b" a="a" />
                         <SubresourceRange>
-                            <AspectMask>color</AspectMask>
+                            <AspectFlags>
+                                <AspectMask>color</AspectMask>
+                            </AspectFlags>
                             <BaseMipLevel>0</BaseMipLevel>
                             <LevelCount>auto</LevelCount>
                             <BaseArrayLayer>0</BaseArrayLayer>
-                            <layerCount>1</layerCount>
+                            <LayerCount>1</LayerCount>
                         </SubresourceRange>
                     </View>
                 </Views>
@@ -209,16 +270,7 @@
 
         <ResourceType name="render_target_depth_resource">
             <ImageBuffer>
-                <ImageType>2D</ImageType>
-                <Format>find_suitable_depth</Format>
-                <Extent source="as_swapchain"></Extent>
-                <MipLevels>none</MipLevels>
-                <ArrayLayers>1</ArrayLayers>
-                <Samples>as_device</Samples>
-                <Tiling>optimal</Tiling>
-                <ImageUsageFlags>
-                    <Flag>depth_stencil_attachment</Flag>
-                </ImageUsageFlags>
+                <FormatName>render_target_depth_format</FormatName>
                 <InitialLayout>undefined</InitialLayout>
                 <MemoryProperties get_by_memory_requirements="false">
                     <Property>device_local</Property>
@@ -226,14 +278,16 @@
                 <Views>
                     <View name="render_target_depth_resource_view">
                         <ViewType>2D</ViewType>
-                        <Format>as_swapchain</Format>
+                        <FormatName>render_target_depth_format</FormatName>
                         <Components r="r" g="g" b="b" a="a" />
                         <SubresourceRange>
-                            <AspectMask>depth</AspectMask>
+                            <AspectFlags>
+                                <AspectMask>depth</AspectMask>
+                            </AspectFlags>
                             <BaseMipLevel>0</BaseMipLevel>
                             <LevelCount>auto</LevelCount>
                             <BaseArrayLayer>0</BaseArrayLayer>
-                            <layerCount>1</layerCount>
+                            <LayerCount>1</LayerCount>
                         </SubresourceRange>
                     </View>
                 </Views>
@@ -384,8 +438,7 @@
         <RenderPass name="basic_mulisample_render_pass">
             <AttachmentDescriptions>
                 <AttachmentDescription name="color_attachment">
-                    <Format>as_swapchain</Format>
-                    <Samples>as_device</Samples>
+                    <FormatName>render_target_color_format</FormatName>
                     <LoadOp>load</LoadOp>
                     <StoreOp>store</StoreOp>
                     <StencilLoadOp>load</StencilLoadOp>
@@ -394,8 +447,7 @@
                     <FinalLayout>color_attachment_optimal</FinalLayout>
                 </AttachmentDescription>
                 <AttachmentDescription name="depth_attachment">
-                    <Format>find_suitable_depth</Format>
-                    <Samples>as_device</Samples>
+                    <FormatName>render_target_depth_format</FormatName>
                     <LoadOp>load</LoadOp>
                     <StoreOp>store</StoreOp>
                     <StencilLoadOp>load</StencilLoadOp>
@@ -404,8 +456,7 @@
                     <FinalLayout>auto_depth_stencil_attachment_optimal</FinalLayout>
                 </AttachmentDescription>
                 <AttachmentDescription name="resolve_attachment">
-                    <Format>as_swapchain</Format>
-                    <Samples>1_bit</Samples>
+                    <FormatName>swap_chain_format</FormatName>
                     <LoadOp>dont_care</LoadOp>
                     <StoreOp>store</StoreOp>
                     <StencilLoadOp>load</StencilLoadOp>
@@ -465,7 +516,7 @@
 
     <Swapchain>
         <GeneratedResourceType>basic_swap_chain_resource</GeneratedResourceType>
-        <SurfaceFormat select="auto"></SurfaceFormat>
+        <SurfaceFormatName>swap_chain_format</SurfaceFormatName>
         <RecommendPresentMode>auto</RecommendPresentMode>
         <MinImageCount auto="true"></MinImageCount>
         <PreTransform>auto</PreTransform>
