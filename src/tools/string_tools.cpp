@@ -1698,6 +1698,82 @@ VkImageAspectFlagBits getImageAspectFlag(const std::string& flag_str) {
     return res;
 }
 
+VkFormatFeatureFlagBits getFormatFeatureFlag(const std::string& flag_str) {
+	using namespace std::literals;
+    VkFormatFeatureFlagBits res{};
+
+	     if(flag_str == "sampled_image"s) {res = VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT;}
+	else if(flag_str == "storage_image"s) {res = VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT;}
+	else if(flag_str == "storage_image_atomic"s) {res = VK_FORMAT_FEATURE_STORAGE_IMAGE_ATOMIC_BIT;}
+	else if(flag_str == "uniform_texel_buffer"s) {res = VK_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT;}
+	else if(flag_str == "storage_texel_buffer"s) {res = VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_BIT;}
+	else if(flag_str == "storage_texel_buffer_atomic"s) {res = VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_ATOMIC_BIT;}
+	else if(flag_str == "vertex_buffer"s) {res = VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT;}
+	else if(flag_str == "color_attachment"s) {res = VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT;}
+	else if(flag_str == "color_attachment_blend"s) {res = VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT;}
+	else if(flag_str == "depth_stencil_attachment"s) {res = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;}
+	else if(flag_str == "blit_src"s) {res = VK_FORMAT_FEATURE_BLIT_SRC_BIT;}
+	else if(flag_str == "blit_dst"s) {res = VK_FORMAT_FEATURE_BLIT_DST_BIT;}
+	else if(flag_str == "sampled_image_filter_linear"s) {res = VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT;}
+	else if(flag_str == "transfer_src"s) {res = VK_FORMAT_FEATURE_TRANSFER_SRC_BIT;}
+	else if(flag_str == "transfer_dst"s) {res = VK_FORMAT_FEATURE_TRANSFER_DST_BIT;}
+	else if(flag_str == "midpoint_chroma_samples"s) {res = VK_FORMAT_FEATURE_MIDPOINT_CHROMA_SAMPLES_BIT;}
+	else if(flag_str == "sampled_image_ycbcr_conversion_linear_filter"s) {res = VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_LINEAR_FILTER_BIT;}
+	else if(flag_str == "sampled_image_ycbcr_conversion_separate_reconstruction_filter"s) {res = VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_SEPARATE_RECONSTRUCTION_FILTER_BIT;}
+	else if(flag_str == "sampled_image_ycbcr_conversion_chroma_reconstruction_explicit"s) {res = VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_CHROMA_RECONSTRUCTION_EXPLICIT_BIT;}
+	else if(flag_str == "sampled_image_ycbcr_conversion_chroma_reconstruction_explicit_forceable"s) {res = VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_CHROMA_RECONSTRUCTION_EXPLICIT_FORCEABLE_BIT;}
+	else if(flag_str == "disjoint"s) {res = VK_FORMAT_FEATURE_DISJOINT_BIT;}
+	else if(flag_str == "cosited_chroma_samples"s) {res = VK_FORMAT_FEATURE_COSITED_CHROMA_SAMPLES_BIT;}
+	else if(flag_str == "sampled_image_filter_minmax"s) {res = VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_MINMAX_BIT;}
+	else if(flag_str == "video_decode_output_khr"s) {res = VK_FORMAT_FEATURE_VIDEO_DECODE_OUTPUT_BIT_KHR;}
+	else if(flag_str == "video_decode_dpb_khr"s) {res = VK_FORMAT_FEATURE_VIDEO_DECODE_DPB_BIT_KHR;}
+	else if(flag_str == "acceleration_structure_vertex_buffer_khr"s) {res = VK_FORMAT_FEATURE_ACCELERATION_STRUCTURE_VERTEX_BUFFER_BIT_KHR;}
+	else if(flag_str == "sampled_image_filter_cubic_ext"s) {res = VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_CUBIC_BIT_EXT;}
+	else if(flag_str == "fragment_density_map_ext"s) {res = VK_FORMAT_FEATURE_FRAGMENT_DENSITY_MAP_BIT_EXT;}
+	else if(flag_str == "fragment_shading_rate_attachment_khr"s) {res = VK_FORMAT_FEATURE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;}
+	else if(flag_str == "video_encode_input_khr"s) {res = VK_FORMAT_FEATURE_VIDEO_ENCODE_INPUT_BIT_KHR;}
+	else if(flag_str == "video_encode_dpb_khr"s) {res = VK_FORMAT_FEATURE_VIDEO_ENCODE_DPB_BIT_KHR;}
+	else if(flag_str == "sampled_image_filter_cubic_img"s) {res = VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_CUBIC_BIT_IMG;}
+	else if(flag_str == "transfer_src_khr"s) {res = VK_FORMAT_FEATURE_TRANSFER_SRC_BIT_KHR;}
+	else if(flag_str == "transfer_dst_khr"s) {res = VK_FORMAT_FEATURE_TRANSFER_DST_BIT_KHR;}
+	else if(flag_str == "sampled_image_filter_minmax_ext"s) {res = VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_MINMAX_BIT_EXT;}
+	else if(flag_str == "midpoint_chroma_samples_khr"s) {res = VK_FORMAT_FEATURE_MIDPOINT_CHROMA_SAMPLES_BIT_KHR;}
+	else if(flag_str == "sampled_image_ycbcr_conversion_linear_filter_khr"s) {res = VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_LINEAR_FILTER_BIT_KHR;}
+	else if(flag_str == "sampled_image_ycbcr_conversion_separate_reconstruction_filter_khr"s) {res = VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_SEPARATE_RECONSTRUCTION_FILTER_BIT_KHR;}
+	else if(flag_str == "sampled_image_ycbcr_conversion_chroma_reconstruction_explicit_khr"s) {res = VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_CHROMA_RECONSTRUCTION_EXPLICIT_BIT_KHR;}
+	else if(flag_str == "sampled_image_ycbcr_conversion_chroma_reconstruction_explicit_forceable_khr"s) {res = VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_CHROMA_RECONSTRUCTION_EXPLICIT_FORCEABLE_BIT_KHR;}
+	else if(flag_str == "disjoint_khr"s) {res = VK_FORMAT_FEATURE_DISJOINT_BIT_KHR;}
+	else if(flag_str == "cosited_chroma_samples_khr"s) {res = VK_FORMAT_FEATURE_COSITED_CHROMA_SAMPLES_BIT_KHR;}
+    
+    return res;
+}
+
+VkColorSpaceKHR getColorSpace(const std::string& color_space_str) {
+	using namespace std::literals;
+    VkColorSpaceKHR res{};
+
+	     if(color_space_str == "srgb_nonlinear_khr"s) {res = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;}
+	else if(color_space_str == "display_p3_nonlinear_ext"s) {res = VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT;}
+	else if(color_space_str == "extended_srgb_linear_ext"s) {res = VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT;}
+	else if(color_space_str == "display_p3_linear_ext"s) {res = VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT;}
+	else if(color_space_str == "dci_p3_nonlinear_ext"s) {res = VK_COLOR_SPACE_DCI_P3_NONLINEAR_EXT;}
+	else if(color_space_str == "bt709_linear_ext"s) {res = VK_COLOR_SPACE_BT709_LINEAR_EXT;}
+	else if(color_space_str == "bt709_nonlinear_ext"s) {res = VK_COLOR_SPACE_BT709_NONLINEAR_EXT;}
+	else if(color_space_str == "bt2020_linear_ext"s) {res = VK_COLOR_SPACE_BT2020_LINEAR_EXT;}
+	else if(color_space_str == "hdr10_st2084_ext"s) {res = VK_COLOR_SPACE_HDR10_ST2084_EXT;}
+	else if(color_space_str == "dolbyvision_ext"s) {res = VK_COLOR_SPACE_DOLBYVISION_EXT;}
+	else if(color_space_str == "hdr10_hlg_ext"s) {res = VK_COLOR_SPACE_HDR10_HLG_EXT;}
+	else if(color_space_str == "adobergb_linear_ext"s) {res = VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT;}
+	else if(color_space_str == "adobergb_nonlinear_ext"s) {res = VK_COLOR_SPACE_ADOBERGB_NONLINEAR_EXT;}
+	else if(color_space_str == "pass_through_ext"s) {res = VK_COLOR_SPACE_PASS_THROUGH_EXT;}
+	else if(color_space_str == "extended_srgb_nonlinear_ext"s) {res = VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT;}
+	else if(color_space_str == "display_native_amd"s) {res = VK_COLOR_SPACE_DISPLAY_NATIVE_AMD;}
+	else if(color_space_str == "vk_colorspace_srgb_nonlinear_khr"s) {res = VK_COLORSPACE_SRGB_NONLINEAR_KHR;}
+	else if(color_space_str == "dci_p3_linear_ext"s) {res = VK_COLOR_SPACE_DCI_P3_LINEAR_EXT;}
+    
+    return res;
+}
+
 VkComponentMapping getComponentMapping(const pugi::xml_node& mapping_node) {
 	VkComponentMapping mapping{};
 
@@ -1733,4 +1809,14 @@ VkSamplerCreateInfo getSamplerCreateInfo(const pugi::xml_node& sampler_node) {
     sampler_info.unnormalizedCoordinates = sampler_node.child("UnnormalizedCoordinates").text().as_bool();
 
 	return sampler_info;
+}
+
+std::vector<VkFormat> getFormatCandidates(const pugi::xml_node& candidates_node) {
+	std::vector<VkFormat> candidates;
+
+    for (pugi::xml_node format = candidates_node.first_child(); format; format = format.next_sibling()) {
+		candidates.push_back(getFormat(format.text().as_string()));
+	}
+
+	return candidates;
 }

@@ -55,6 +55,7 @@ public:
 
     static VkSurfaceKHR createSurface(VkInstance vk_instance, GLFWwindow* glfw_window_ptr);
     static SwapchainSupportDetails querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
+    static VkExtent2D chooseSwapExtent(GLFWwindow* m_window, const VkSurfaceCapabilitiesKHR& capabilities);
 
     const ResourceName& getName() const override;
     Type getType() const override;
@@ -67,8 +68,6 @@ private:
     VkSwapchainKHR createSwapchain(VkSurfaceKHR surface, const SwapchainParams& swapchain_params, const SwapchainSupportDetails& swapchain_support_details, const QueueFamilyIndices& queue_family_indices) const;
     std::vector<VkImage> retriveSwapchainImages() const;
     std::vector<VulkanImageBuffer> retriveSwapchainBuffers(VkFormat format) const;
-
-    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
     SwapchainSupportDetails m_swapchain_support_details;
     SwapchainParams m_swapchain_params;

@@ -194,6 +194,9 @@ VkImageViewCreateFlagBits getImageViewCreateFlag(const std::string& flag_str);
 VkImageViewType getImageViewType(const std::string& view_type_str);
 VkComponentSwizzle getComponentSwizzle(const std::string& swizzle_str);
 VkImageAspectFlagBits getImageAspectFlag(const std::string& flag_str);
+VkFormatFeatureFlagBits getFormatFeatureFlag(const std::string& flag_str);
+VkColorSpaceKHR getColorSpace(const std::string& color_space_str);
 
 VkComponentMapping getComponentMapping(const pugi::xml_node& mapping_node);
 VkSamplerCreateInfo getSamplerCreateInfo(const pugi::xml_node& sampler_node);
+std::vector<VkFormat> getFormatCandidates(const pugi::xml_node& candidates_node);

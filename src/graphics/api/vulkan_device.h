@@ -102,6 +102,7 @@ public:
     VkImageFormatProperties findFormatAbilities(VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkImageCreateFlags flags) const;
     bool checkFormatSupported(VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkExtent2D extent, uint32_t mip_levels, VkSampleCountFlags sample_count, VkImageCreateFlags flags = 0u) const;
     VkFormat findDepthFormat(VkImageUsageFlags usage, VkExtent2D extent, uint32_t mip_levels, VkSampleCountFlags sample_count, VkImageCreateFlags flags = 0u) const;
+    VkSurfaceKHR getSurface() const;
 
     static bool hasStencilComponent(VkFormat format);
     static VkAccessFlags getDstAccessMask(VkBufferUsageFlags usage);
@@ -134,6 +135,7 @@ private:
 
     VulkanDeviceExtensions m_extensions;
     VkDevice m_device;
+    VkSurfaceKHR m_surface;
     DeviceAbilities m_device_abilities;
     std::shared_ptr<VulkanCommandManager> m_command_manager;
     std::shared_ptr<ThreadPool> m_thread_pool;

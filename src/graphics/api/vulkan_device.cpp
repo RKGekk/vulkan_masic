@@ -6,6 +6,7 @@
 #include <cstring>
 
 bool VulkanDevice::init(const VulkanInstance& instance, VkSurfaceKHR surface, std::shared_ptr<ThreadPool> thread_pool) {
+    m_surface = surface;
     m_thread_pool = std::move(thread_pool);
     m_device_abilities = pickPhysicalDevice(instance.getInstance(), surface);
     bool all_device_ext_supported = m_extensions.init(m_device_abilities.physical_device, getRequiredDeviceExtensions<std::unordered_set<std::string>>());
@@ -150,6 +151,10 @@ VkFormat VulkanDevice::findDepthFormat(VkImageUsageFlags usage, VkExtent2D exten
         sample_count,
         flags
     );
+}
+
+VkSurfaceKHR VulkanDevice::getSurface() const {
+    return m_surface;
 }
 
 bool VulkanDevice::hasStencilComponent(VkFormat format) {

@@ -1906,6 +1906,13 @@
 
     <xs:complexType name="FormatComplexType">
         <xs:sequence>
+            <xs:element name="Flags" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Flag" type="target:ImageFlagsSimpleType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="ImageType" type="target:ImageTypeSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="Extent" type="target:Extent3DComplexType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="MipLevels" type="target:MipLevelsSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
@@ -1948,13 +1955,6 @@
 
     <xs:complexType name="ImageBufferComplexType">
         <xs:sequence>
-            <xs:element name="Flags" minOccurs="0" maxOccurs="1">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element name="Flag" type="target:ImageFlagsSimpleType" minOccurs="0" maxOccurs="unbounded"></xs:element>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
             <xs:element name="FormatName" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="InitialLayout" type="target:ImageLayoutSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="MemoryProperties" minOccurs="1" maxOccurs="1">

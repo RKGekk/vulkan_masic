@@ -10,7 +10,7 @@ bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR su
 
     m_swapchain_params.surface_format = chooseSwapSurfaceFormat(m_swapchain_support_details);
     m_swapchain_params.present_mode = chooseSwapPresentMode(m_swapchain_support_details.present_modes);
-    m_swapchain_params.extent = chooseSwapExtent(m_swapchain_support_details.capabilities);
+    m_swapchain_params.extent = chooseSwapExtent(m_window, m_swapchain_support_details.capabilities);
 
     m_swapchain_params.images_sharing_mode = m_device->getCommandManager().getBufferSharingMode();
 
@@ -64,7 +64,7 @@ void VulkanSwapChain::recreate() {
 
     m_swapchain_params.surface_format = chooseSwapSurfaceFormat(m_swapchain_support_details);
     m_swapchain_params.present_mode = chooseSwapPresentMode(m_swapchain_support_details.present_modes);
-    m_swapchain_params.extent = chooseSwapExtent(m_swapchain_support_details.capabilities);
+    m_swapchain_params.extent = chooseSwapExtent(m_window, m_swapchain_support_details.capabilities);
 
     m_swapchain_params.images_sharing_mode = m_device->getCommandManager().getBufferSharingMode();
 
@@ -308,7 +308,7 @@ std::vector<VulkanImageBuffer> VulkanSwapChain::retriveSwapchainBuffers(VkFormat
     return swapchain_buffers;
 }
 
-VkExtent2D VulkanSwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
+VkExtent2D VulkanSwapChain::chooseSwapExtent(GLFWwindow* m_window, const VkSurfaceCapabilitiesKHR& capabilities) {
     if(capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
         return capabilities.currentExtent;
     }
