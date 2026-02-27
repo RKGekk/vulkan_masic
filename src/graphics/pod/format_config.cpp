@@ -100,3 +100,131 @@ bool FormatConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::
 
     m_color_space = getColorSpace(format_data.child("ColorSpace").text().as_string());
 }
+
+const std::string& FormatConfig::getName() const {
+    return m_name;
+}
+
+VkImageCreateFlags FormatConfig::getImageFlags() const {
+    return m_image_flags;
+}
+
+bool FormatConfig::hasImageFlags(VkImageCreateFlags flags) const {
+    return (m_image_flags && flags) == flags;
+}
+
+void FormatConfig::setImageFlags(VkImageCreateFlags flags) {
+    m_image_flags = flags;
+}
+
+void FormatConfig::addImageFlags(VkImageCreateFlags flags) {
+    m_image_flags |= flags;
+}
+
+VkImageType FormatConfig::getVkImageType() const {
+    return m_image_type;
+}
+
+void FormatConfig::setVkImageType(VkImageType type) {
+    m_image_type = type;
+}
+
+VkExtent2D FormatConfig::getExtent2D() const {
+    return m_extent_2D;
+}
+
+void FormatConfig::setExtent2D(VkExtent2D extent) {
+    m_extent_2D = extent;
+    m_extent_3D.width = m_extent_2D.width;
+    m_extent_3D.height = m_extent_2D.height;
+}
+
+VkExtent3D FormatConfig::getExtent3D() const {
+    return m_extent_3D;
+}
+
+void FormatConfig::setExtent3D(VkExtent3D extent) {
+    m_extent_3D = extent;
+    m_extent_2D.width = m_extent_3D.width;
+    m_extent_2D.height = m_extent_3D.height;
+}
+
+uint32_t FormatConfig::getMipLevels() const {
+    return m_mip_levels;
+}
+
+void FormatConfig::setMipLevels(uint32_t lvl) {
+    m_mip_levels = lvl;
+}
+
+uint32_t FormatConfig::getArrayLayers() const {
+    return m_array_layers;
+}
+
+void FormatConfig::setArrayLayers(uint32_t layers) {
+    m_array_layers = layers;
+}
+
+VkSampleCountFlagBits FormatConfig::getSamplesCount() const {
+    return m_samples;
+}
+
+void FormatConfig::setSamplesCount(VkSampleCountFlagBits samples) {
+    m_samples = samples;
+}
+
+VkImageTiling FormatConfig::getTiling() const {
+    return m_tiling;
+}
+
+void FormatConfig::setTiling(VkImageTiling tiling) {
+    m_tiling = tiling;
+}
+
+VkImageUsageFlags FormatConfig::getImageUsage() const {
+    return m_usage;
+}
+
+bool FormatConfig::hasImageUsage(VkImageUsageFlags usage) const {
+    return (m_usage && usage) == usage;
+}
+
+void FormatConfig::setImageUsage(VkImageUsageFlags usage) {
+    m_usage = usage;
+}
+
+void FormatConfig::addImageUsage(VkImageUsageFlags usage) {
+    m_usage |= usage;
+}
+
+VkFormatFeatureFlags FormatConfig::getFeatureFlags() const {
+    return m_feature_flags;
+}
+
+bool FormatConfig::hasFeatureFlags(VkFormatFeatureFlags flags) const {
+    return (m_feature_flags && flags) == flags;
+}
+
+void FormatConfig::setFeatureFlags(VkFormatFeatureFlags flags) {
+    m_feature_flags = flags;
+}
+
+void FormatConfig::addFeatureFlags(VkFormatFeatureFlags flags) {
+    m_feature_flags |= flags;
+}
+
+VkFormat FormatConfig::getVkFormat() const {
+    return m_format;
+}
+
+void FormatConfig::setVkFormat(VkFormat format) {
+    m_format = format;
+}
+
+VkColorSpaceKHR FormatConfig::getVkColorSpace() const {
+    return m_color_space;
+}
+
+void FormatConfig::setVkColorSpace(VkColorSpaceKHR color_space) {
+    m_color_space = color_space;
+}
