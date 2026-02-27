@@ -1,16 +1,17 @@
 #include "vulkan_swapchain.h"
 #include "../vulkan_renderer.h"
+#include "../../window_surface.h"
 
-bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR surface, GLFWwindow* window) {
-    m_window = window;
+bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<WindowSurface> window) {
+    m_window = std::move(window);
     m_device = std::move(device);
     
-    m_surface = surface;
+    m_surface = m_device->getSurface();
     m_swapchain_support_details = querySwapChainSupport(m_device->getDeviceAbilities().physical_device, m_surface);
 
     m_swapchain_params.surface_format = chooseSwapSurfaceFormat(m_swapchain_support_details);
     m_swapchain_params.present_mode = chooseSwapPresentMode(m_swapchain_support_details.present_modes);
-    m_swapchain_params.extent = chooseSwapExtent(m_window, m_swapchain_support_details.capabilities);
+    m_swapchain_params.extent = chooseSwapExtent(m_window->GetWindow(), m_swapchain_support_details.capabilities);
 
     m_swapchain_params.images_sharing_mode = m_device->getCommandManager().getBufferSharingMode();
 
@@ -64,7 +65,7 @@ void VulkanSwapChain::recreate() {
 
     m_swapchain_params.surface_format = chooseSwapSurfaceFormat(m_swapchain_support_details);
     m_swapchain_params.present_mode = chooseSwapPresentMode(m_swapchain_support_details.present_modes);
-    m_swapchain_params.extent = chooseSwapExtent(m_window, m_swapchain_support_details.capabilities);
+    m_swapchain_params.extent = chooseSwapExtent(m_window->GetWindow(), m_swapchain_support_details.capabilities);
 
     m_swapchain_params.images_sharing_mode = m_device->getCommandManager().getBufferSharingMode();
 
@@ -159,7 +160,7 @@ VkSurfaceKHR VulkanSwapChain::getSurface() const {
     return m_surface;
 }
 
-GLFWwindow* VulkanSwapChain::getWindow() const {
+const std::shared_ptr<WindowSurface>& VulkanSwapChain::getWindow() const {
     return m_window;
 }
 

@@ -13,6 +13,8 @@
 #include "vulkan_image_buffer.h"
 #include "../pod/render_resource.h"
 
+class WindowSurface;
+
 struct SwapchainSupportDetails {
     VkSurfaceCapabilitiesKHR capabilities;
     std::vector<VkSurfaceFormatKHR> formats;
@@ -31,7 +33,7 @@ class VulkanSwapChain : public RenderResource {
 public:
     static const uint32_t CURRENT_SYNC = -1;
 
-    bool init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR surface, GLFWwindow* window);
+    bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<WindowSurface> window);
     void destroy() override;
     void recreate();
 
@@ -48,7 +50,7 @@ public:
     VkFence getImageAvailableFence(uint32_t image_index = CURRENT_SYNC); // signaled when the presentation engine is finished using the image.
     VkFence* getImageAvailableFencePtr(uint32_t image_index = CURRENT_SYNC); // signaled when the presentation engine is finished using the image.
     VkSurfaceKHR getSurface() const;
-    GLFWwindow* getWindow() const;
+    const std::shared_ptr<WindowSurface>& getWindow() const;
     VkSwapchainKHR getSwapchain() const;
 
     const std::vector<VulkanImageBuffer>& getSwapchainImages() const;
@@ -73,7 +75,7 @@ private:
     SwapchainParams m_swapchain_params;
     std::shared_ptr<VulkanDevice> m_device;
     VkSurfaceKHR m_surface = VK_NULL_HANDLE;
-    GLFWwindow* m_window = nullptr;
+    std::shared_ptr<WindowSurface> m_window = nullptr;
     VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;
 
     std::vector<VulkanImageBuffer> m_swapchain_images;

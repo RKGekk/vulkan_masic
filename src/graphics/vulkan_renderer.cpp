@@ -2,13 +2,17 @@
 
 #include <algorithm>
 
-bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR surface, GLFWwindow* window, std::shared_ptr<ThreadPool> thread_pool) {
+bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<WindowSurface> window, std::shared_ptr<ThreadPool> thread_pool) {
     using namespace std::literals;
 
     m_device = std::move(device);
     m_thread_pool = std::move(thread_pool);
+
+    m_managers->format_manager = std::make_shared<VulkanFormatManager>();
+    m_managers->format_manager->init(m_device, window, "graphics_pipelines.xml"s);
+
     m_swapchain = std::make_shared<VulkanSwapChain>();
-    m_swapchain->init(m_device, surface, window);
+    m_swapchain->init(m_device, std::move(window));
 
     int max_frames = m_swapchain->getMaxFrames();
 

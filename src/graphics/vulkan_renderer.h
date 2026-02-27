@@ -28,6 +28,7 @@
 #include "api/vulkan_render_passes_manager.h"
 #include "api/vulkan_semaphores_manager.h"
 #include "api/vulkan_fence_manager.h"
+#include "api/vulkan_format_manager.h"
 #include "../engine/views/iengine_view.h"
 #include "pod/render_graph.h"
 #include "pod/render_node.h"
@@ -40,6 +41,7 @@ struct Managers {
 	std::shared_ptr<VulkanSemaphoresManager> semaphore_manager;
     std::shared_ptr<VulkanCommandManager> command_manager;
     std::shared_ptr<VulkanRenderPassesManager> render_passes_manager;
+    std::shared_ptr<VulkanFormatManager> format_manager;
 };
 
 struct PerFrame {
@@ -65,7 +67,7 @@ struct PerFrame {
 
 class VulkanRenderer {
 public:
-    bool init(std::shared_ptr<VulkanDevice> device, VkSurfaceKHR surface, GLFWwindow* window, std::shared_ptr<ThreadPool> thread_pool);
+    bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<WindowSurface> window, std::shared_ptr<ThreadPool> thread_pool);
     void destroy();
 
     const std::shared_ptr<VulkanSwapChain>& getSwapchain() const;
