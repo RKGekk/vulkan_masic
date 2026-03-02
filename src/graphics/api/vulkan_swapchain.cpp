@@ -2,7 +2,7 @@
 #include "../vulkan_renderer.h"
 #include "../../window_surface.h"
 
-bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<WindowSurface> window) {
+bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<WindowSurface> window, const std::shared_ptr<VulkanFormatManager>& format_manager, const std::string& rg_file_path) {
     m_window = std::move(window);
     m_device = std::move(device);
     

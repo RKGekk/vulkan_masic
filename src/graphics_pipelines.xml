@@ -146,7 +146,7 @@
                     </ShaderStageFlags>
                     <UpdateMetadata>
                         <Buffer>
-                            <BufferResourceType>basic_uniform_resource</BufferResourceType>
+                            <BufferResourceType>imgui_uniform_resource</BufferResourceType>
                         </Buffer>
                     </UpdateMetadata>
                 </LayoutBinding>
@@ -299,6 +299,20 @@
                 <BufferUsageFlags>
                     <Flag>uniform_buffer</Flag>
                 </BufferUsageFlags>
+                <Size>192</Size>
+                <MemoryProperties>
+                    <Property>host_visible</Property>
+                    <Property>host_coherent</Property>
+                </MemoryProperties>
+            </Buffer>
+        </ResourceType>
+
+        <ResourceType name="imgui_uniform_resource">
+            <Buffer>
+                <BufferUsageFlags>
+                    <Flag>uniform_buffer</Flag>
+                </BufferUsageFlags>
+                <Size>16</Size>
                 <MemoryProperties>
                     <Property>host_visible</Property>
                     <Property>host_coherent</Property>

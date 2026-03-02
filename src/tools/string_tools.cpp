@@ -1774,6 +1774,59 @@ VkColorSpaceKHR getColorSpace(const std::string& color_space_str) {
     return res;
 }
 
+VkBufferCreateFlagBits getBufferCreateFlag(const std::string& flag_str) {
+	using namespace std::literals;
+    VkBufferCreateFlagBits res{};
+
+	     if(flag_str == "sparse_binding"s) {res = VK_BUFFER_CREATE_SPARSE_BINDING_BIT;}
+	else if(flag_str == "sparse_residency"s) {res = VK_BUFFER_CREATE_SPARSE_RESIDENCY_BIT;}
+	else if(flag_str == "sparse_aliased"s) {res = VK_BUFFER_CREATE_SPARSE_ALIASED_BIT;}
+	else if(flag_str == "protected"s) {res = VK_BUFFER_CREATE_PROTECTED_BIT;}
+	else if(flag_str == "device_address_capture_replay"s) {res = VK_BUFFER_CREATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT;}
+	else if(flag_str == "descriptor_buffer_capture_replay_ext"s) {res = VK_BUFFER_CREATE_DESCRIPTOR_BUFFER_CAPTURE_REPLAY_BIT_EXT;}
+	else if(flag_str == "video_profile_independent_khr"s) {res = VK_BUFFER_CREATE_VIDEO_PROFILE_INDEPENDENT_BIT_KHR;}
+	else if(flag_str == "device_address_capture_replay_ext"s) {res = VK_BUFFER_CREATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT_EXT;}
+	else if(flag_str == "address_capture_replay_khr"s) {res = VK_BUFFER_CREATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT_KHR;}
+    
+    return res;
+}
+
+VkBufferUsageFlagBits getBufferUsageFlag(const std::string& flag_str) {
+	using namespace std::literals;
+    VkBufferUsageFlagBits res{};
+
+	     if(flag_str == "transfer_src"s) {res = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;}
+	else if(flag_str == "transfer_dst"s) {res = VK_BUFFER_USAGE_TRANSFER_DST_BIT;}
+	else if(flag_str == "uniform_texel_buffer"s) {res = VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;}
+	else if(flag_str == "storage_texel_buffer"s) {res = VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;}
+	else if(flag_str == "uniform_buffer"s) {res = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;}
+	else if(flag_str == "storage_buffer"s) {res = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;}
+	else if(flag_str == "index_buffer"s) {res = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;}
+	else if(flag_str == "vertex_buffer"s) {res = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;}
+	else if(flag_str == "indirect_buffer"s) {res = VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;}
+	else if(flag_str == "shader_device_address"s) {res = VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;}
+	else if(flag_str == "video_decode_src_khr"s) {res = VK_BUFFER_USAGE_VIDEO_DECODE_SRC_BIT_KHR;}
+	else if(flag_str == "video_decode_dst_khr"s) {res = VK_BUFFER_USAGE_VIDEO_DECODE_DST_BIT_KHR;}
+	else if(flag_str == "transform_feedback_buffer_ext"s) {res = VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT;}
+	else if(flag_str == "transform_feedback_counter_buffer_ext"s) {res = VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT;}
+	else if(flag_str == "conditional_rendering_ext"s) {res = VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT;}
+	else if(flag_str == "acceleration_structure_build_input_read_only_khr"s) {res = VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;}
+	else if(flag_str == "acceleration_structure_storage_khr"s) {res = VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR;}
+	else if(flag_str == "shader_binding_table_khr"s) {res = VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR;}
+	else if(flag_str == "video_encode_dst_khr"s) {res = VK_BUFFER_USAGE_VIDEO_ENCODE_DST_BIT_KHR;}
+	else if(flag_str == "video_encode_src_khr"s) {res = VK_BUFFER_USAGE_VIDEO_ENCODE_SRC_BIT_KHR;}
+	else if(flag_str == "sampler_descriptor_buffer_ext"s) {res = VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT;}
+	else if(flag_str == "resource_descriptor_buffer_ext"s) {res = VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT;}
+	else if(flag_str == "push_descriptors_descriptor_buffer_ext"s) {res = VK_BUFFER_USAGE_PUSH_DESCRIPTORS_DESCRIPTOR_BUFFER_BIT_EXT;}
+	else if(flag_str == "micromap_build_input_read_only_ext"s) {res = VK_BUFFER_USAGE_MICROMAP_BUILD_INPUT_READ_ONLY_BIT_EXT;}
+	else if(flag_str == "micromap_storage_ext"s) {res = VK_BUFFER_USAGE_MICROMAP_STORAGE_BIT_EXT;}
+	else if(flag_str == "ray_tracing_nv"s) {res = VK_BUFFER_USAGE_RAY_TRACING_BIT_NV;}
+	else if(flag_str == "shader_device_address_ext"s) {res = VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_EXT;}
+	else if(flag_str == "shader_device_address_khr"s) {res = VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_KHR;}
+    
+    return res;
+}
+
 VkComponentMapping getComponentMapping(const pugi::xml_node& mapping_node) {
 	VkComponentMapping mapping{};
 

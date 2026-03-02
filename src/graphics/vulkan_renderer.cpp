@@ -8,6 +8,8 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
     m_device = std::move(device);
     m_thread_pool = std::move(thread_pool);
 
+    m_managers = std::make_shared<Managers>();
+
     m_managers->format_manager = std::make_shared<VulkanFormatManager>();
     m_managers->format_manager->init(m_device, window, "graphics_pipelines.xml"s);
 
@@ -15,8 +17,6 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
     m_swapchain->init(m_device, std::move(window));
 
     int max_frames = m_swapchain->getMaxFrames();
-
-    m_managers = std::make_shared<Managers>();
 
     m_managers->command_manager = m_device->getCommandManager();
 

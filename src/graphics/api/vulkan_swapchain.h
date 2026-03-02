@@ -14,6 +14,7 @@
 #include "../pod/render_resource.h"
 
 class WindowSurface;
+class VulkanFormatManager;
 
 struct SwapchainSupportDetails {
     VkSurfaceCapabilitiesKHR capabilities;
@@ -33,7 +34,7 @@ class VulkanSwapChain : public RenderResource {
 public:
     static const uint32_t CURRENT_SYNC = -1;
 
-    bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<WindowSurface> window);
+    bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<WindowSurface> window, const std::shared_ptr<VulkanFormatManager>& format_manager, const std::string& rg_file_path);
     void destroy() override;
     void recreate();
 

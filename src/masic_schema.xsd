@@ -2076,6 +2076,7 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="Size" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="MemoryProperties" minOccurs="1" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
