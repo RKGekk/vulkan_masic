@@ -7,7 +7,7 @@
 #include "vulkan_shaders_manager.h"
 #include "vulkan_render_passes_manager.h"
 
-bool VulkanPipelinesManager::init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_path, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shaders_manager, std::shared_ptr<VulkanRenderPassesManager> render_passes_manager) {
+bool VulkanPipelinesManager::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<Managers> managers, const std::string& rg_file_path) {
     pugi::xml_document xml_doc;
 	pugi::xml_parse_result parse_res = xml_doc.load_file(rg_file_path.c_str());
 	if (!parse_res) { return false;	}
@@ -21,9 +21,9 @@ bool VulkanPipelinesManager::init(std::shared_ptr<VulkanDevice> device, const st
         VkExtent2D viewport_extent = Application::Get().GetRenderer().getSwapchain()->getSwapchainParams().extent;
 
 		for (pugi::xml_node pipeline_node = pipelines_node.first_child(); pipeline_node; pipeline_node = pipeline_node.next_sibling()) {
-            std::shared_ptr<VulkanRenderPass> render_pass_ptr = render_passes_manager->getRenderPass(pipeline_node.child("RenderPass").child("RenderPassName").text().as_string());
+            std::shared_ptr<VulkanRenderPass> render_pass_ptr = managers->render_passes_manager->getRenderPass(pipeline_node.child("RenderPass").child("RenderPassName").text().as_string());
             std::shared_ptr<VulkanPipeline> pipeline = std::make_shared<VulkanPipeline>();
-			pipeline->init(device, pipeline_node, viewport_extent, render_pass_ptr, desc_manager, shaders_manager);
+			pipeline->init(device, pipeline_node, viewport_extent, render_pass_ptr, managers->descriptors_manager, managers->shaders_manager);
             m_pipeline_name_map.insert({pipeline_node.attribute("name").as_string(), std::move(pipeline)});
 		}
 	}

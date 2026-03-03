@@ -12,13 +12,11 @@
 #include <vector>
 
 class VulkanDevice;
-class VulkanShadersManager;
-class VulkanDescriptorsManager;
-class VulkanRenderPassesManager;
+class Managers;
 
 class VulkanPipelinesManager {
 public:
-    bool init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_path, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shaders_manager, std::shared_ptr<VulkanRenderPassesManager> render_passes_manager);
+    bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<Managers> managers, const std::string& rg_file_path);
     void destroy();
 
     std::shared_ptr<VulkanPipeline> getPipeline(std::string pipeline_name);
