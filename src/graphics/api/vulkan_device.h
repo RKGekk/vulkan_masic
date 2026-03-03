@@ -97,7 +97,7 @@ public:
     std::shared_ptr<VulkanCommandManager>& getCommandManager();
 
     uint32_t findMemoryType(uint32_t type_filter, VkMemoryPropertyFlags properties) const;
-    VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features, VkImageUsageFlags usage, VkExtent2D extent, uint32_t mip_levels, VkSampleCountFlags sample_count, VkImageCreateFlags flags = 0u) const;
+    VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features, VkImageUsageFlags usage, VkExtent2D extent, uint32_t mip_levels, VkSampleCountFlags sample_count, VkImageCreateFlags flags = 0u, bool bgr_native = false) const;
     std::vector<VkSparseImageFormatProperties> findSparseFormatAbilities(VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkImageCreateFlags flags, VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT) const;
     VkImageFormatProperties findFormatAbilities(VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkImageCreateFlags flags) const;
     bool checkFormatSupported(VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkExtent2D extent, uint32_t mip_levels, VkSampleCountFlags sample_count, VkImageCreateFlags flags = 0u) const;
@@ -105,6 +105,7 @@ public:
     VkSurfaceKHR getSurface() const;
 
     static bool hasStencilComponent(VkFormat format);
+    static bool isBGR(VkFormat format);
     static VkAccessFlags getDstAccessMask(VkBufferUsageFlags usage);
     static size_t getBytesCount(VkFormat format);
 

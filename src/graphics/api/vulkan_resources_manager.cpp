@@ -3,6 +3,8 @@
 #include "vulkan_device.h"
 #include "vulkan_image_buffer.h"
 #include "vulkan_buffer.h"
+#include "vulkan_format_manager.h"
+#include "vulkan_sampler.h"
 #include "../pod/image_buffer_config.h"
 #include "../pod/buffer_config.h"
 

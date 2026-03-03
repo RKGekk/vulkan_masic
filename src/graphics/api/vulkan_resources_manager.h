@@ -17,7 +17,7 @@ class BufferConfig;
 class VulkanImageBuffer;
 class VulkanBuffer;
 class VulkanSampler;
-
+class VulkanFormatManager;
 
 class VulkanResourcesManager {
 public:
@@ -27,7 +27,7 @@ public:
     void destroy();
 
     std::shared_ptr<VulkanImageBuffer> create_image(const std::string& path_to_file, std::shared_ptr<VulkanSampler> sampler);
-    
+    std::shared_ptr<VulkanImageBuffer> create_image(VkImage image, std::string image_name, std::string resource_type_name);
 
 protected:
     std::shared_ptr<VulkanDevice> m_device;

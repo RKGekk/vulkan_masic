@@ -1,26 +1,95 @@
 #include "vulkan_swapchain.h"
+
+#include "vulkan_resources_manager.h"
 #include "../vulkan_renderer.h"
 #include "../../window_surface.h"
+#include "vulkan_format_manager.h"
+#include "../pod/format_config.h"
+#include "../../tools/string_tools.h"
 
-bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<WindowSurface> window, const std::shared_ptr<VulkanFormatManager>& format_manager, const std::string& rg_file_path) {
+bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<WindowSurface> window, std::shared_ptr<Managers> managers, const std::string& rg_file_path) {
+    using namespace std::literals;
+
     m_window = std::move(window);
     m_device = std::move(device);
+
+    pugi::xml_document xml_doc;
+	pugi::xml_parse_result parse_res = xml_doc.load_file(rg_file_path.c_str());
+	if (!parse_res) { return false;	}
+
+	pugi::xml_node root_node = xml_doc.root();
+	if (!root_node) { return false; }
+	root_node = root_node.child("RenderGraph");
+
+    pugi::xml_node swapchain_node = root_node.child("Swapchain");
+	if (!swapchain_node) return false;
+
+    std::string surface_format_name = swapchain_node.child("SurfaceFormatName").text().as_string();
+    m_format_config = managers->format_manager->getFormat(surface_format_name);
     
-    m_surface = m_device->getSurface();
-    m_swapchain_support_details = querySwapChainSupport(m_device->getDeviceAbilities().physical_device, m_surface);
+    m_swapchain_create_info = VkSwapchainCreateInfoKHR{};
+    m_swapchain_create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    m_swapchain_create_info.surface = m_device->getSurface();
 
-    m_swapchain_params.surface_format = chooseSwapSurfaceFormat(m_swapchain_support_details);
-    m_swapchain_params.present_mode = chooseSwapPresentMode(m_swapchain_support_details.present_modes);
-    m_swapchain_params.extent = chooseSwapExtent(m_window->GetWindow(), m_swapchain_support_details.capabilities);
+    m_swapchain_support_details = querySwapChainSupport(m_device->getDeviceAbilities().physical_device, m_swapchain_create_info.surface);
 
-    m_swapchain_params.images_sharing_mode = m_device->getCommandManager().getBufferSharingMode();
+    pugi::xml_node min_images_count_node = swapchain_node.child("MinImageCount");
+    bool auto_min_images = min_images_count_node.attribute("auto").as_bool();
+    uint32_t min_images = min_images_count_node.text().as_uint(0);
+    uint32_t image_count = m_swapchain_support_details.capabilities.minImageCount + 1u;
+    if(!auto_min_images) {
+        image_count = min_images;
+    }
+    if(m_swapchain_support_details.capabilities.maxImageCount > 0u && image_count > m_swapchain_support_details.capabilities.maxImageCount){
+        image_count = m_swapchain_support_details.capabilities.maxImageCount;
+    }
+    m_swapchain_create_info.minImageCount = image_count;
 
-    m_swapchain = createSwapchain(m_surface, m_swapchain_params, m_swapchain_support_details, m_device->getCommandManager().getQueueFamilyIndices());
+    m_swapchain_create_info.imageFormat = m_format_config->getVkFormat();
+    m_swapchain_create_info.imageColorSpace = m_format_config->getVkColorSpace();
+    m_swapchain_create_info.imageExtent = m_format_config->getExtent2D();
+    m_swapchain_create_info.imageArrayLayers = m_format_config->getArrayLayers();
+    m_swapchain_create_info.imageUsage = m_format_config->getImageUsage();
+    m_swapchain_create_info.imageSharingMode = m_format_config->getImagesSharingMode();
+    m_swapchain_create_info.queueFamilyIndexCount = m_format_config->getQueueFamilyIndexCount();
+    m_swapchain_create_info.pQueueFamilyIndices = m_format_config->getQueueFamilyIndicesPtr();
+    m_swapchain_create_info.preTransform = getSurfaceTransformFlag(swapchain_node.child("PreTransform").text().as_string());
+    m_swapchain_create_info.compositeAlpha = getCompositeAlphaFlag(swapchain_node.child("CompositeAlpha").text().as_string());
+
+    std::string present_mode_str = swapchain_node.child("RecommendPresentMode").text().as_string();
+    if(present_mode_str != "auto"s) {
+        m_swapchain_create_info.presentMode = getPresentMode(present_mode_str);
+    }
+    else {
+        m_swapchain_create_info.presentMode = chooseSwapPresentMode(m_swapchain_support_details.present_modes);
+    }
+
+    m_swapchain_create_info.clipped = swapchain_node.child("Clipped").text().as_bool();
+    m_swapchain_create_info.oldSwapchain = VK_NULL_HANDLE;
+    
+    VkResult result = vkCreateSwapchainKHR(m_device->getDevice(), &m_swapchain_create_info, nullptr, &m_swapchain);
+    if(result != VK_SUCCESS) {
+        throw std::runtime_error("failed to create swap chain!");
+    }
+
     VkResult result = vkGetSwapchainImagesKHR(m_device->getDevice(), m_swapchain, &m_max_frames, nullptr);
     if (result != VK_SUCCESS) {
-        throw std::runtime_error("failed to get swapchain images count!");
+        throw std::runtime_error("failed to get swapchain images!");
     }
-    m_swapchain_images = retriveSwapchainBuffers(m_swapchain_params.surface_format.format);
+    
+    std::vector<VkImage> swapchain_images(m_max_frames);
+    result = vkGetSwapchainImagesKHR(m_device->getDevice(), m_swapchain, &m_max_frames, swapchain_images.data());
+    if (result != VK_SUCCESS) {
+        throw std::runtime_error("failed to get swapchain images!");
+    }
+
+    std::string resource_type_name = swapchain_node.child("GeneratedResourceType").text().as_string();
+    
+    size_t sz = swapchain_images.size();
+    m_swapchain_images.resize(sz);
+    for(size_t i = 0u; i < sz; ++i) {
+        m_swapchain_images[i] = managers->resources_manager->create_image(swapchain_images[i], "swap_chain_"s + std::to_string(i), resource_type_name);
+    }
 
     m_image_available_sem.resize(m_max_frames);
     m_image_available_fen.resize(m_max_frames);
@@ -33,52 +102,25 @@ bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr
     in_flight_fen_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     for(size_t i = 0u; i < m_max_frames; ++i) {
-        VkResult result = vkCreateSemaphore(m_device->getDevice(), &image_available_sema_info, nullptr, &m_image_available_sem[i]);
-        if(result != VK_SUCCESS) {
-            throw std::runtime_error("failed to create semaphore!");
-        }
-        
-        result = vkCreateFence(m_device->getDevice(), &in_flight_fen_info, nullptr, &m_image_available_fen[i]);
-        if(result != VK_SUCCESS) {
-            throw std::runtime_error("failed to create fence!");
-        }
+        m_image_available_sem[i] = managers->semaphore_manager->getSemaphore();
+        m_image_available_fen[i] = managers->fence_manager->getFence();
     }
 
     return true;
 }
 
-void VulkanSwapChain::destroy() {
-    size_t sz = m_swapchain_images.size();
-    for(size_t i = 0u; i < sz; ++i) {
-        vkDestroyImageView(m_device->getDevice(), m_swapchain_images[i].getImageBufferView(), nullptr);
-        vkDestroySemaphore(m_device->getDevice(), m_image_available_sem[i], nullptr);
-        vkDestroyFence(m_device->getDevice(), m_image_available_fen[i], nullptr);
-    }
-    vkDestroySwapchainKHR(m_device->getDevice(), m_swapchain, nullptr);
-
-}
+void VulkanSwapChain::destroy() {}
 
 void VulkanSwapChain::recreate() {
     destroy();
-
-    m_swapchain_support_details = querySwapChainSupport(m_device->getDeviceAbilities().physical_device, m_surface);
-
-    m_swapchain_params.surface_format = chooseSwapSurfaceFormat(m_swapchain_support_details);
-    m_swapchain_params.present_mode = chooseSwapPresentMode(m_swapchain_support_details.present_modes);
-    m_swapchain_params.extent = chooseSwapExtent(m_window->GetWindow(), m_swapchain_support_details.capabilities);
-
-    m_swapchain_params.images_sharing_mode = m_device->getCommandManager().getBufferSharingMode();
-
-    m_swapchain = createSwapchain(m_surface, m_swapchain_params, m_swapchain_support_details, m_device->getCommandManager().getQueueFamilyIndices());
-    m_swapchain_images = retriveSwapchainBuffers(m_swapchain_params.surface_format.format);
 }
 
 const SwapchainSupportDetails& VulkanSwapChain::getSwapchainSupportDetails() const {
     return m_swapchain_support_details;
 }
 
-const SwapchainParams& VulkanSwapChain::getSwapchainParams() const {
-    return m_swapchain_params;
+const VkSwapchainCreateInfoKHR& VulkanSwapChain::getSwapchainParams() const {
+    return m_swapchain_create_info;
 }
 
 int VulkanSwapChain::getMaxFrames() const {
@@ -109,8 +151,6 @@ bool VulkanSwapChain::setNextFrame(VkFence wait_to) {
     vkWaitForFences(m_device->getDevice(), 1u, getImageAvailableFencePtr(), VK_TRUE, UINT64_MAX);
     vkResetFences(m_device->getDevice(), 1u, getImageAvailableFencePtr());
     VkResult result = vkAcquireNextImageKHR(m_device->getDevice(), m_swapchain, UINT64_MAX, getImageAvailableSemaphore(), getImageAvailableFence(), &m_current_frame);
-    //VkResult result = vkAcquireNextImageKHR(m_device->getDevice(), m_swapchain, UINT64_MAX, m_image_available_sem[m_current_sync], getImageAvailableFence(), &m_current_frame);
-    //VkResult result = vkAcquireNextImageKHR(m_device->getDevice(), m_swapchain, UINT64_MAX, getImageAvailableSemaphore(), VK_NULL_HANDLE, &m_current_frame);
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
         return false;
     }
@@ -156,10 +196,6 @@ VkFence* VulkanSwapChain::getImageAvailableFencePtr(uint32_t image_index) {
     }
 }
 
-VkSurfaceKHR VulkanSwapChain::getSurface() const {
-    return m_surface;
-}
-
 const std::shared_ptr<WindowSurface>& VulkanSwapChain::getWindow() const {
     return m_window;
 }
@@ -168,7 +204,7 @@ VkSwapchainKHR VulkanSwapChain::getSwapchain() const {
     return m_swapchain;
 }
 
-const std::vector<VulkanImageBuffer>& VulkanSwapChain::getSwapchainImages() const {
+const std::vector<std::shared_ptr<VulkanImageBuffer>>& VulkanSwapChain::getSwapchainImages() const {
     return m_swapchain_images;
 }
 
@@ -204,18 +240,6 @@ SwapchainSupportDetails VulkanSwapChain::querySwapChainSupport(VkPhysicalDevice 
     return details;
 }
 
-VkSurfaceFormatKHR VulkanSwapChain::chooseSwapSurfaceFormat(const SwapchainSupportDetails& available_formats) {
-    for(const auto& available_format : available_formats.formats) {
-        if(available_format.format == VK_FORMAT_B8G8R8A8_SRGB && available_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR && available_formats.is_native_swapchain_BGR) {
-            return available_format;
-        }
-        if(available_format.format == VK_FORMAT_R8G8B8A8_SRGB && available_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR && !available_formats.is_native_swapchain_BGR) {
-            return available_format;
-        }
-    }
-    return available_formats.formats[0];
-}
-
 VkPresentModeKHR VulkanSwapChain::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& available_present_modes){
     for (const auto& available_present_mode : available_present_modes) {
         if(available_present_mode == VK_PRESENT_MODE_MAILBOX_KHR) {
@@ -239,75 +263,6 @@ bool VulkanSwapChain::isNativeSwapChainBGR(const std::vector<VkSurfaceFormatKHR>
     }
     return false;
 };
-
-VkSwapchainKHR VulkanSwapChain::createSwapchain(VkSurfaceKHR surface, const SwapchainParams& swapchain_params, const SwapchainSupportDetails& swapchain_support_details, const QueueFamilyIndices& queue_family_indices) const {
-    uint32_t image_count = swapchain_support_details.capabilities.minImageCount + 1u;
-    if(swapchain_support_details.capabilities.maxImageCount > 0u && image_count > swapchain_support_details.capabilities.maxImageCount){
-        image_count = swapchain_support_details.capabilities.maxImageCount;
-    }
-
-    VkSwapchainCreateInfoKHR swapchain_create_info{};
-    swapchain_create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    swapchain_create_info.surface = surface;
-    swapchain_create_info.minImageCount = image_count;
-    swapchain_create_info.imageFormat = swapchain_params.surface_format.format;
-    swapchain_create_info.imageColorSpace = swapchain_params.surface_format.colorSpace;
-    swapchain_create_info.imageExtent = swapchain_params.extent;
-    swapchain_create_info.imageArrayLayers = 1u;
-    swapchain_create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    
-    std::vector<uint32_t> family_indices = queue_family_indices.getIndices();
-    if(swapchain_params.images_sharing_mode == VK_SHARING_MODE_CONCURRENT) {
-        swapchain_create_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-        swapchain_create_info.queueFamilyIndexCount = static_cast<uint32_t>(family_indices.size());
-        swapchain_create_info.pQueueFamilyIndices = family_indices.data();
-    }
-    else {
-        swapchain_create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        swapchain_create_info.queueFamilyIndexCount = 0u;
-        swapchain_create_info.pQueueFamilyIndices = nullptr;
-    }
-    
-    swapchain_create_info.preTransform = swapchain_support_details.capabilities.currentTransform;
-    swapchain_create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    swapchain_create_info.presentMode = swapchain_params.present_mode;
-    swapchain_create_info.clipped = VK_TRUE;
-    swapchain_create_info.oldSwapchain = VK_NULL_HANDLE;
-    
-    VkSwapchainKHR swap_chain = VK_NULL_HANDLE;
-    VkResult result = vkCreateSwapchainKHR(m_device->getDevice(), &swapchain_create_info, nullptr, &swap_chain);
-    if(result != VK_SUCCESS) {
-        throw std::runtime_error("failed to create swap chain!");
-    }
-    
-    return swap_chain;
-}
-
-std::vector<VkImage> VulkanSwapChain::retriveSwapchainImages() const {
-    uint32_t swapchain_image_count = 0u;
-    VkResult result = vkGetSwapchainImagesKHR(m_device->getDevice(), m_swapchain, &swapchain_image_count, nullptr);
-    if (result != VK_SUCCESS) {
-        throw std::runtime_error("failed to get swapchain images!");
-    }
-    std::vector<VkImage> swapchain_images(swapchain_image_count);
-    result = vkGetSwapchainImagesKHR(m_device->getDevice(), m_swapchain, &swapchain_image_count, swapchain_images.data());
-    if (result != VK_SUCCESS) {
-        throw std::runtime_error("failed to get swapchain images!");
-    }
-    
-    return swapchain_images; 
-}
-
-std::vector<VulkanImageBuffer> VulkanSwapChain::retriveSwapchainBuffers(VkFormat format) const {
-    std::vector<VkImage> swapchain_images = retriveSwapchainImages();
-    size_t sz = swapchain_images.size();
-    std::vector<VulkanImageBuffer> swapchain_buffers(sz);
-    for(size_t i = 0u; i < sz; ++i) {
-        swapchain_buffers[i].init(m_device, swapchain_images[i], m_swapchain_params.extent, format);
-    }
-
-    return swapchain_buffers;
-}
 
 VkExtent2D VulkanSwapChain::chooseSwapExtent(GLFWwindow* m_window, const VkSurfaceCapabilitiesKHR& capabilities) {
     if(capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {

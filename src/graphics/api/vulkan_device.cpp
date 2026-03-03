@@ -79,14 +79,14 @@ uint32_t VulkanDevice::findMemoryType(uint32_t type_filter, VkMemoryPropertyFlag
     throw std::runtime_error("failed to find suitable memory type!");
 }
 
-VkFormat VulkanDevice::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features, VkImageUsageFlags usage, VkExtent2D extent, uint32_t mip_levels, VkSampleCountFlags sample_count, VkImageCreateFlags flags) const {
+VkFormat VulkanDevice::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features, VkImageUsageFlags usage, VkExtent2D extent, uint32_t mip_levels, VkSampleCountFlags sample_count, VkImageCreateFlags flags, bool bgr_native = false) const {
     for (VkFormat format : candidates) {
         VkFormatProperties props;
         vkGetPhysicalDeviceFormatProperties(m_device_abilities.physical_device, format, &props);
-        if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features && checkFormatSupported(format, tiling, usage, extent, mip_levels, sample_count, flags)) {
+        if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features && checkFormatSupported(format, tiling, usage, extent, mip_levels, sample_count, flags) && bgr_native == isBGR(format)) {
             return format;
         }
-        else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features && checkFormatSupported(format, tiling, usage, extent, mip_levels, sample_count, flags)) {
+        else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features && checkFormatSupported(format, tiling, usage, extent, mip_levels, sample_count, flags) && bgr_native == isBGR(format)) {
             return format;
         }
     }
@@ -159,6 +159,37 @@ VkSurfaceKHR VulkanDevice::getSurface() const {
 
 bool VulkanDevice::hasStencilComponent(VkFormat format) {
     return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
+}
+
+bool VulkanDevice::isBGR(VkFormat format) {
+         if (format == VK_FORMAT_B10G11R11_UFLOAT_PACK32) return true;
+    else if (format == VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16) return true;
+    else if (format == VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16_KHR) return true;
+    else if (format == VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16) return true;
+    else if (format == VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16_KHR) return true;
+    else if (format == VK_FORMAT_B16G16R16G16_422_UNORM) return true;
+    else if (format == VK_FORMAT_B16G16R16G16_422_UNORM_KHR) return true;
+    else if (format == VK_FORMAT_B4G4R4A4_UNORM_PACK16) return true;
+    else if (format == VK_FORMAT_B5G5R5A1_UNORM_PACK16) return true;
+    else if (format == VK_FORMAT_B5G6R5_UNORM_PACK16) return true;
+    else if (format == VK_FORMAT_B8G8R8_SINT) return true;
+    else if (format == VK_FORMAT_B8G8R8_SNORM) return true;
+    else if (format == VK_FORMAT_B8G8R8_SRGB) return true;
+    else if (format == VK_FORMAT_B8G8R8_SSCALED) return true;
+    else if (format == VK_FORMAT_B8G8R8_UINT) return true;
+    else if (format == VK_FORMAT_B8G8R8_UNORM) return true;
+    else if (format == VK_FORMAT_B8G8R8_USCALED) return true;
+    else if (format == VK_FORMAT_B8G8R8A8_SINT) return true;
+    else if (format == VK_FORMAT_B8G8R8A8_SNORM) return true;
+    else if (format == VK_FORMAT_B8G8R8A8_SRGB) return true;
+    else if (format == VK_FORMAT_B8G8R8A8_SSCALED) return true;
+    else if (format == VK_FORMAT_B8G8R8A8_UINT) return true;
+    else if (format == VK_FORMAT_B8G8R8A8_UNORM) return true;
+    else if (format == VK_FORMAT_B8G8R8A8_USCALED) return true;
+    else if (format == VK_FORMAT_B8G8R8G8_422_UNORM) return true;
+    else if (format == VK_FORMAT_B8G8R8G8_422_UNORM_KHR) return true;
+
+    return false;
 }
 
 VkAccessFlags VulkanDevice::getDstAccessMask(VkBufferUsageFlags usage) {

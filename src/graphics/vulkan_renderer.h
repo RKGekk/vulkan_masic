@@ -29,6 +29,7 @@
 #include "api/vulkan_semaphores_manager.h"
 #include "api/vulkan_fence_manager.h"
 #include "api/vulkan_format_manager.h"
+#include "api/vulkan_resources_manager.h"
 #include "../engine/views/iengine_view.h"
 #include "pod/render_graph.h"
 #include "pod/render_node.h"
@@ -42,6 +43,7 @@ struct Managers {
     std::shared_ptr<VulkanCommandManager> command_manager;
     std::shared_ptr<VulkanRenderPassesManager> render_passes_manager;
     std::shared_ptr<VulkanFormatManager> format_manager;
+    std::shared_ptr<VulkanResourcesManager> resources_manager;
 };
 
 struct PerFrame {

@@ -64,6 +64,12 @@ public:
     VkColorSpaceKHR getVkColorSpace() const;
     void setVkColorSpace(VkColorSpaceKHR color_space);
 
+    VkSurfaceFormatKHR getVkSurfaceFormat() const;
+
+    VkSharingMode getImagesSharingMode() const;
+    uint32_t getQueueFamilyIndexCount() const;
+    const uint32_t* getQueueFamilyIndicesPtr() const;
+
 private:
 
     std::string m_name;
@@ -77,6 +83,9 @@ private:
     VkImageTiling m_tiling;
     VkImageUsageFlags m_usage;
     VkFormatFeatureFlags m_feature_flags;
+    VkSharingMode m_images_sharing_mode;
+    uint32_t m_queue_family_index_count;
+    const uint32_t* m_pQueue_family_indices;
 
     VkFormat m_format;
     VkColorSpaceKHR m_color_space;

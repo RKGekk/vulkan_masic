@@ -19,8 +19,8 @@ public:
     VulkanImageBuffer(std::shared_ptr<VulkanDevice> device, std::string name);
     VulkanImageBuffer(std::shared_ptr<VulkanDevice> device);
 
-    bool init(VkImage image, VkExtent2D extent, std::shared_ptr<ImageBufferConfig> image_buffer_config);
-    bool init(unsigned char* pixels, VkExtent2D extent, std::shared_ptr<ImageBufferConfig> image_buffer_config);
+    bool init(VkImage image, std::shared_ptr<ImageBufferConfig> image_buffer_config);
+    bool init(unsigned char* pixels, std::shared_ptr<ImageBufferConfig> image_buffer_config);
 
     void destroy() override;
 

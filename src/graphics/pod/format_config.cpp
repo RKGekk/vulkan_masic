@@ -92,13 +92,18 @@ bool FormatConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::
     }
 
     if(auto_config) {
-        m_format = device->findSupportedFormat(getFormatCandidates(format_data.child("Candidates")), m_tiling, m_feature_flags, m_usage, m_extent_2D, m_mip_levels, m_samples, m_image_flags);
+        m_format = device->findSupportedFormat(getFormatCandidates(format_data.child("Candidates")), m_tiling, m_feature_flags, m_usage, m_extent_2D, m_mip_levels, m_samples, m_image_flags, swapchain_support_details.is_native_swapchain_BGR);
     }
     else {
         m_format = getFormat(format_data.child("Candidates").first_child().text().as_string());
     }
 
     m_color_space = getColorSpace(format_data.child("ColorSpace").text().as_string());
+
+    static std::vector<uint32_t> families = device->getCommandManager()->getQueueFamilyIndices().getIndices();
+    m_images_sharing_mode = device->getCommandManager()->getBufferSharingMode();
+    m_queue_family_index_count = static_cast<uint32_t>(families.size());
+    m_pQueue_family_indices = families.data();
 }
 
 const std::string& FormatConfig::getName() const {
@@ -227,4 +232,20 @@ VkColorSpaceKHR FormatConfig::getVkColorSpace() const {
 
 void FormatConfig::setVkColorSpace(VkColorSpaceKHR color_space) {
     m_color_space = color_space;
+}
+
+VkSurfaceFormatKHR FormatConfig::getVkSurfaceFormat() const {
+    return {m_format, m_color_space};
+}
+
+VkSharingMode FormatConfig::getImagesSharingMode() const {
+    return m_images_sharing_mode;
+}
+
+uint32_t FormatConfig::getQueueFamilyIndexCount() const {
+    return m_queue_family_index_count;
+}
+
+const uint32_t* FormatConfig::getQueueFamilyIndicesPtr() const {
+    return m_pQueue_family_indices;
 }

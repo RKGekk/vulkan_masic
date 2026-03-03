@@ -1827,6 +1827,49 @@ VkBufferUsageFlagBits getBufferUsageFlag(const std::string& flag_str) {
     return res;
 }
 
+VkPresentModeKHR getPresentMode(const std::string& mode_str) {
+	using namespace std::literals;
+    VkPresentModeKHR res{};
+
+	     if(mode_str == "immediate_khr"s) {res = VK_PRESENT_MODE_IMMEDIATE_KHR;}
+	else if(mode_str == "mode_mailbox_khr"s) {res = VK_PRESENT_MODE_MAILBOX_KHR;}
+	else if(mode_str == "fifo_khr"s) {res = VK_PRESENT_MODE_FIFO_KHR;}
+	else if(mode_str == "fifo_relaxed_khr"s) {res = VK_PRESENT_MODE_FIFO_RELAXED_KHR;}
+	else if(mode_str == "shared_demand_refresh_khr"s) {res = VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR;}
+	else if(mode_str == "continuous_refresh_khr"s) {res = VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR;}
+    
+    return res;
+}
+
+VkSurfaceTransformFlagBitsKHR getSurfaceTransformFlag(const std::string& flag_str) {
+	using namespace std::literals;
+    VkSurfaceTransformFlagBitsKHR res{};
+
+	     if(flag_str == "identity_khr"s) {res = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;}
+	else if(flag_str == "rotate_90_khr"s) {res = VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR;}
+	else if(flag_str == "rotate_180_khr"s) {res = VK_SURFACE_TRANSFORM_ROTATE_180_BIT_KHR;}
+	else if(flag_str == "rotate_270_khr"s) {res = VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR;}
+	else if(flag_str == "horizontal_mirror_khr"s) {res = VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_BIT_KHR;}
+	else if(flag_str == "mirror_rotate_90_khr"s) {res = VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_90_BIT_KHR;}
+	else if(flag_str == "mirror_rotate_180_khr"s) {res = VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_180_BIT_KHR;}
+	else if(flag_str == "mirror_rotate_270_khr"s) {res = VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_270_BIT_KHR;}
+	else if(flag_str == "inherit_khr"s) {res = VK_SURFACE_TRANSFORM_INHERIT_BIT_KHR;}
+    
+    return res;
+}
+
+VkCompositeAlphaFlagBitsKHR getCompositeAlphaFlag(const std::string& flag_str) {
+	using namespace std::literals;
+    VkCompositeAlphaFlagBitsKHR res{};
+
+	     if(flag_str == "alpha_opaque_khr"s) {res = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;}
+	else if(flag_str == "alpha_pre_multiplied_khr"s) {res = VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR;}
+	else if(flag_str == "alpha_post_multiplied_khr"s) {res = VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR;}
+	else if(flag_str == "alpha_inherit_khr"s) {res = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;}
+    
+    return res;
+}
+
 VkComponentMapping getComponentMapping(const pugi::xml_node& mapping_node) {
 	VkComponentMapping mapping{};
 

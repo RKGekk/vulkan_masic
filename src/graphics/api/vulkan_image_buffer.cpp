@@ -7,7 +7,7 @@ VulkanImageBuffer::VulkanImageBuffer(std::shared_ptr<VulkanDevice> device, std::
 VulkanImageBuffer::VulkanImageBuffer(std::shared_ptr<VulkanDevice> device) : m_device(std::move(device)), m_name(std::to_string(rand())) {}
 
 
-bool VulkanImageBuffer::init(VkImage image, VkExtent2D extent, std::shared_ptr<ImageBufferConfig> image_buffer_config) {
+bool VulkanImageBuffer::init(VkImage image, std::shared_ptr<ImageBufferConfig> image_buffer_config) {
     m_image = image;
 
     VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
