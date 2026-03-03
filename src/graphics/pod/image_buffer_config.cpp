@@ -111,3 +111,6 @@ bool ImageBufferConfig::init(const std::shared_ptr<VulkanDevice>& device, const 
     }
 }
     
+const VkImageCreateInfo& ImageBufferConfig::getImageInfo() const {
+    return m_image_info;
+}

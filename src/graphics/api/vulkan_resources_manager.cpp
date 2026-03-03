@@ -7,6 +7,8 @@
 #include "vulkan_sampler.h"
 #include "../pod/image_buffer_config.h"
 #include "../pod/buffer_config.h"
+#include "vulkan_buffer.h"
+#include "vulkan_image_buffer.h"
 
 #include "../../tools/string_tools.h"
 
@@ -60,9 +62,19 @@ std::shared_ptr<VulkanImageBuffer> VulkanResourcesManager::create_image(const st
     }
 
 	std::shared_ptr<VulkanImageBuffer> image = std::make_shared<VulkanImageBuffer>(m_device, path_to_file);
-	image->init(pixels, VkExtent2D{static_cast<uint32_t>(tex_width), static_cast<uint32_t>(tex_height)}, std::move(basic_image_config));
+	image->init(pixels, std::move(basic_image_config));
 
 	stbi_image_free(pixels);
+
+	return image;
+}
+
+std::shared_ptr<VulkanImageBuffer> VulkanResourcesManager::create_image(VkImage vk_image, std::string image_name, std::string resource_type_name) {
+	if(m_image_map.contains(image_name)) return m_image_map[image_name];
+
+	std::shared_ptr<ImageBufferConfig> basic_image_config = m_image_buffer_config_map.at(resource_type_name);
+	std::shared_ptr<VulkanImageBuffer> image = std::make_shared<VulkanImageBuffer>(m_device, image_name);
+	image->init(vk_image, std::move(basic_image_config));
 
 	return image;
 }
