@@ -43,8 +43,11 @@ bool FormatConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::
 
     pugi::xml_node extent_node = format_data.child("Extent");
     std::string extent_source = extent_node.attribute("source").as_string();
+    if(extent_source == "auto") m_extent_source = ExtentSource::AUTO;
+    else if(extent_source == "as_swapchain") m_extent_source = ExtentSource::AS_SWAPCHAIN;
+    else if(extent_source == "exact") m_extent_source = ExtentSource::EXACT;
     pugi::xml_node width_node = extent_node.child("Width");
-    if(width_node && extent_source == "exact") {
+    if(width_node && m_extent_source == ExtentSource::EXACT) {
         std::string extent_width_str = width_node.text().as_string();
         m_extent_2D.width = static_cast<uint32_t>(std::stoi(extent_width_str));
         m_extent_3D.width = m_extent_2D.width;
@@ -56,7 +59,7 @@ bool FormatConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::
             m_extent_3D.depth = static_cast<uint32_t>(std::stoi(depth_node.text().as_string()));
         }
     }
-    else if(extent_source == "as_swapchain") {
+    else if(m_extent_source == ExtentSource::AS_SWAPCHAIN) {
         VkExtent2D swapchain_extent = VulkanSwapChain::chooseSwapExtent(window->GetWindow(), swapchain_support_details.capabilities);
         m_extent_2D.width = swapchain_extent.width;
         m_extent_3D.width = m_extent_2D.width;
@@ -248,4 +251,16 @@ uint32_t FormatConfig::getQueueFamilyIndexCount() const {
 
 const uint32_t* FormatConfig::getQueueFamilyIndicesPtr() const {
     return m_pQueue_family_indices;
+}
+
+std::shared_ptr<FormatConfig> FormatConfig::makeInstance(std::string name, VkExtent2D extent) const {
+    std::shared_ptr<FormatConfig> instance_ptr = std::make_shared<FormatConfig>();
+    *instance_ptr = *this;
+
+    instance_ptr->m_name = name;
+    if(m_extent_source == ExtentSource::AUTO) {
+        instance_ptr->m_extent_2D = extent;
+    }
+
+    return instance_ptr;
 }

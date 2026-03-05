@@ -16,7 +16,7 @@ class VulkanFormatManager;
 class FormatConfig;
 
 struct ImageBufferViewConfig {
-    VkImageViewCreateInfo image_viwe_info;
+    VkImageViewCreateInfo image_view_info;
     std::shared_ptr<FormatConfig> format;
 };
 
@@ -27,10 +27,19 @@ public:
     void destroy();
 
     const VkImageCreateInfo& getImageInfo() const;
+    VkImageLayout getAfterInitLayout() const;
+    const std::vector<std::shared_ptr<VulkanSampler>>& getSamplers() const;
+    const std::shared_ptr<VulkanSampler>& getSampler() const;
+    const std::shared_ptr<FormatConfig>& getFormat() const;
+    const std::unordered_map<std::string, std::shared_ptr<ImageBufferViewConfig>>& getViewInfoMap() const;
+    VkMemoryPropertyFlags getMemoryProperties() const;
+
+    std::shared_ptr<ImageBufferConfig> makeInstance(std::string name, VkExtent2D extent = {0, 0}) const;
 
 private:
     std::string m_name;
     VkImageCreateInfo m_image_info;
+    VkImageLayout m_after_init_layout;
     std::shared_ptr<FormatConfig> m_format;
     std::unordered_map<std::string, std::shared_ptr<ImageBufferViewConfig>> m_image_view_info_map;
     VkMemoryPropertyFlags m_memory_properties;

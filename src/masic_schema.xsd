@@ -1685,7 +1685,7 @@
             <xs:element name="Height" minOccurs="0" maxOccurs="1"></xs:element>
             <xs:element name="Depth" minOccurs="0" maxOccurs="1"></xs:element>
         </xs:sequence>
-        <xs:attribute name="source" use="optional">
+        <xs:attribute name="source" use="required">
             <xs:simpleType>
                 <xs:restriction base="xs:string">
                     <xs:enumeration value="auto"></xs:enumeration>
@@ -1956,7 +1956,8 @@
     <xs:complexType name="ImageBufferComplexType">
         <xs:sequence>
             <xs:element name="FormatName" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
-            <xs:element name="InitialLayout" type="target:ImageLayoutSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="CreationLayout" type="target:ImageLayoutSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="AfterInitLayout" type="target:ImageLayoutSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="MemoryProperties" minOccurs="1" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
@@ -2076,7 +2077,16 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="Size" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="Size" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="xs:unsignedInt">
+                            <xs:attribute name="dynamic" type="xs:boolean" use="required"></xs:attribute>
+                            <xs:attribute name="deffered" type="xs:boolean" use="required"></xs:attribute>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="MemoryProperties" minOccurs="1" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>

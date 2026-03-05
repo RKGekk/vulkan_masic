@@ -26,29 +26,25 @@ public:
 
     VkImage getImageBuffer() const;
     VkImageView getImageBufferView() const;
+    const std::unordered_map<std::string, VkImageView>& getImageViewMap() const;
     VkDeviceMemory getMemory() const;
     VkDeviceSize getSize() const;
-    VkImageLayout getLayout() const;
-    const VkImageCreateInfo& getImageInfo() const;
+    
     VkSubresourceLayout getSubresourceSizes(uint32_t mip_level, uint32_t array_layer) const;
     VkSubresourceLayout getSubresourceSizes(VkImageAspectFlags aspect, uint32_t mip_level, uint32_t array_layer) const;
 
+    const std::shared_ptr<ImageBufferConfig>& getImageConfig() const;
+
     void changeLayout(VkImageLayout new_layout);
     void changeLayout(CommandBatch& command_buffer, VkImageLayout new_layout);
-
-    VkImageView createImageView(VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const;
 
     const ResourceName& getName() const override;
     Type getType() const override;
 
 protected:
+
     std::shared_ptr<VulkanDevice> m_device;
     ResourceName m_name;
-
-    VkImageView createImageView(VkImageViewCreateInfo view_create_info) const;
-    VkImageViewCreateInfo createImageViewInfo(VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const;
-
-    std::shared_ptr<VulkanDevice> m_device;
 
     VkImage m_image;
     VkDeviceMemory m_memory;

@@ -2,30 +2,6 @@
 
 #include <filesystem>
 
-std::shared_ptr<VulkanSampler> createFontTextureSampler(std::shared_ptr<VulkanDevice> device) {
-    VkSamplerCreateInfo sampler_info{};
-    sampler_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    sampler_info.magFilter = VK_FILTER_LINEAR;
-    sampler_info.minFilter = VK_FILTER_LINEAR;
-    sampler_info.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    sampler_info.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    sampler_info.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    sampler_info.anisotropyEnable = VK_FALSE;
-    sampler_info.maxAnisotropy = 1.0f;
-    sampler_info.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-    sampler_info.unnormalizedCoordinates = VK_FALSE;
-    sampler_info.compareEnable = VK_FALSE;
-    sampler_info.compareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
-    sampler_info.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
-    sampler_info.mipLodBias = 0.0f;
-    sampler_info.minLod = 0.0f;
-    sampler_info.maxLod = 15;
-    
-    std::shared_ptr<VulkanSampler> texture_sampler = std::make_shared<VulkanSampler>();
-    texture_sampler->init(std::move(device), sampler_info);
-    return texture_sampler;
-}
-
 std::shared_ptr<VulkanTexture> makeFontTexture(std::shared_ptr<VulkanDevice> device, const char* TTF_font_file_name, float fontSizePixels) {
     ImGuiIO& io = ImGui::GetIO();
 

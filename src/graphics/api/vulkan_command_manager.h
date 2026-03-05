@@ -37,8 +37,8 @@ public:
     void wait(PoolTypeEnum pool_type);
 
     void transitionImageLayout(VkCommandBuffer command_buffer, VkImage image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout, uint32_t mip_levels);
-    void copyBufferToImage(VkCommandBuffer command_buffer, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
-    void generateMipmaps(VkCommandBuffer command_buffer, VkImage image, VkFormat image_format, int32_t tex_width, uint32_t tex_height, uint32_t mip_levels);
+    void copyBufferToImage(VkCommandBuffer command_buffer, VkBuffer buffer, VkImage image, VkExtent3D extent, VkImageLayout image_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    void generateMipmaps(VkCommandBuffer command_buffer, VkImage image, VkFormat format, VkExtent2D extent, uint32_t mip_levels, VkImageLayout initial_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VkImageLayout post_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     void copyBuffer(VkCommandBuffer command_buffer, VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size);
 
 private:

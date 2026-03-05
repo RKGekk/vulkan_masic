@@ -9,120 +9,26 @@ VulkanImageBuffer::VulkanImageBuffer(std::shared_ptr<VulkanDevice> device) : m_d
 
 bool VulkanImageBuffer::init(VkImage image, std::shared_ptr<ImageBufferConfig> image_buffer_config) {
     m_image = image;
-
-    VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-    VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
-    VkFormat image_format = m_device->findSupportedFormat(
-        {
-            format
-        },
-        VK_IMAGE_TILING_OPTIMAL,
-        VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT,
-        usage,
-        extent,
-        mip_levels,
-        samples
-    );
-    
-    static std::vector<uint32_t> families = m_device->getCommandManager()->getQueueFamilyIndices().getIndices();
-    m_image_info = {};
-    m_image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-    m_image_info.imageType = VK_IMAGE_TYPE_2D;
-    m_image_info.extent.width = static_cast<uint32_t>(extent.width);
-    m_image_info.extent.height = static_cast<uint32_t>(extent.height);
-    m_image_info.extent.depth = 1u;
-    m_image_info.mipLevels = mip_levels;
-    m_image_info.arrayLayers = 1u;
-    m_image_info.format = image_format;
-    m_image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
-    m_image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    m_image_info.usage = usage;
-    m_image_info.sharingMode = m_device->getCommandManager()->getBufferSharingMode();
-    m_image_info.queueFamilyIndexCount = static_cast<uint32_t>(families.size());
-    m_image_info.pQueueFamilyIndices = families.data();
-    m_image_info.samples = samples;
-    m_image_info.flags = 0u;
-
-    // uint32_t requirements_count{};
-    // vkGetImageSparseMemoryRequirements(m_device->getDevice(), m_image, &requirements_count, nullptr);
-    // std::vector<VkSparseImageMemoryRequirements> pSparse_memory_requirements((size_t)requirements_count);
-    // vkGetImageSparseMemoryRequirements(m_device->getDevice(), m_image, requirements_count, pSparse_memory_requirements.data());
+    m_image_config = std::move(image_buffer_config);
 
     VkMemoryRequirements mem_req{};
     vkGetImageMemoryRequirements(m_device->getDevice(), m_image, &mem_req);
     m_image_size = mem_req.size;
 
-    m_layout = m_image_info.initialLayout;
-
-    m_image_view_info = createImageViewInfo(m_image_info.format, aspect_flags, m_image_info.mipLevels);
-    m_image_view = createImageView(m_image_view_info);
-
-    return true;
-}
-
-bool VulkanImageBuffer::init(VkImage image, VkExtent2D extent, VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) {
-    m_image = image;
-
-    VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-    VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
-    VkFormat image_format = m_device->findSupportedFormat(
-        {
-            format
-        },
-        VK_IMAGE_TILING_OPTIMAL,
-        VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT,
-        usage,
-        extent,
-        mip_levels,
-        samples
-    );
-    
-    static std::vector<uint32_t> families = m_device->getCommandManager()->getQueueFamilyIndices().getIndices();
-    m_image_info = {};
-    m_image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-    m_image_info.imageType = VK_IMAGE_TYPE_2D;
-    m_image_info.extent.width = static_cast<uint32_t>(extent.width);
-    m_image_info.extent.height = static_cast<uint32_t>(extent.height);
-    m_image_info.extent.depth = 1u;
-    m_image_info.mipLevels = mip_levels;
-    m_image_info.arrayLayers = 1u;
-    m_image_info.format = image_format;
-    m_image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
-    m_image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    m_image_info.usage = usage;
-    m_image_info.sharingMode = m_device->getCommandManager()->getBufferSharingMode();
-    m_image_info.queueFamilyIndexCount = static_cast<uint32_t>(families.size());
-    m_image_info.pQueueFamilyIndices = families.data();
-    m_image_info.samples = samples;
-    m_image_info.flags = 0u;
-
-    // uint32_t requirements_count{};
-    // vkGetImageSparseMemoryRequirements(m_device->getDevice(), m_image, &requirements_count, nullptr);
-    // std::vector<VkSparseImageMemoryRequirements> pSparse_memory_requirements((size_t)requirements_count);
-    // vkGetImageSparseMemoryRequirements(m_device->getDevice(), m_image, requirements_count, pSparse_memory_requirements.data());
-
-    VkMemoryRequirements mem_req{};
-    vkGetImageMemoryRequirements(m_device->getDevice(), m_image, &mem_req);
-    m_image_size = mem_req.size;
-
-    m_layout = m_image_info.initialLayout;
-
-    m_image_view_info = createImageViewInfo(m_image_info.format, aspect_flags, m_image_info.mipLevels);
-    m_image_view = createImageView(m_image_view_info);
+    for(const auto&[view_type_name, view_cfg_ptr] : m_image_config->getViewInfoMap()) {
+        VkResult result = vkCreateImageView(m_device->getDevice(), &view_cfg_ptr->image_view_info, nullptr, &m_image_view_map[view_type_name]);
+        if(result != VK_SUCCESS) {
+            throw std::runtime_error("failed to create texture image view!");
+        }
+    }
 
     return true;
 }
 
-bool VulkanImageBuffer::init(unsigned char* pixels, VkImageCreateInfo image_info, VkMemoryPropertyFlags properties, VkImageAspectFlags aspect_flags) {
-    size_t bytes_count = VulkanDevice::getBytesCount(image_info.format);
-    size_t initial_image_size = image_info.extent.width * image_info.extent.height * bytes_count;
-    uint32_t mip_levels = image_info.mipLevels;
-
-    m_image_info = image_info;
-    m_layout = image_info.initialLayout;
-    m_properties = properties;
+bool VulkanImageBuffer::init(unsigned char* pixels, std::shared_ptr<ImageBufferConfig> image_buffer_config) {
+    m_image_config = std::move(image_buffer_config);
     
-    VkResult result = vkCreateImage(m_device->getDevice(), &image_info, nullptr, &m_image);
+    VkResult result = vkCreateImage(m_device->getDevice(), &m_image_config->getImageInfo(), nullptr, &m_image);
     if(result != VK_SUCCESS) {
         throw std::runtime_error("failed to create image!");
     }
@@ -131,7 +37,7 @@ bool VulkanImageBuffer::init(unsigned char* pixels, VkImageCreateInfo image_info
     vkGetImageMemoryRequirements(m_device->getDevice(), m_image, &mem_req);
     m_image_size = mem_req.size;
     
-    uint32_t mem_type_idx = m_device->findMemoryType(mem_req.memoryTypeBits, properties);
+    uint32_t mem_type_idx = m_device->findMemoryType(mem_req.memoryTypeBits, m_image_config->getMemoryProperties());
     VkMemoryAllocateInfo alloc_info{};
     alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     alloc_info.allocationSize = mem_req.size;
@@ -145,27 +51,38 @@ bool VulkanImageBuffer::init(unsigned char* pixels, VkImageCreateInfo image_info
     VkDeviceSize offset = 0u;
     vkBindImageMemory(m_device->getDevice(), m_image, m_memory, offset);
 
-    m_image_view_info = createImageViewInfo(m_image_info.format, aspect_flags, m_image_info.mipLevels);
-    m_image_view = createImageView(m_image_view_info);
+    for(const auto&[view_type_name, view_cfg_ptr] : m_image_config->getViewInfoMap()) {
+        VkResult result = vkCreateImageView(m_device->getDevice(), &view_cfg_ptr->image_view_info, nullptr, &m_image_view_map[view_type_name]);
+        if(result != VK_SUCCESS) {
+            throw std::runtime_error("failed to create texture image view!");
+        }
+    }
 
     if(!pixels) {
         return true;
     }
 
     std::shared_ptr<VulkanBuffer> staging_buffer = std::make_shared<VulkanBuffer>(m_device);
-    staging_buffer->init(pixels, initial_image_size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-    //staging_buffer->update(pixels, initial_image_size);
+    staging_buffer->init(pixels, m_image_size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
     
     CommandBatch command_buffer = m_device->getCommandManager()->allocCommandBuffer(PoolTypeEnum::TRANSFER);
     command_buffer.addResource(staging_buffer);
-    m_device->getCommandManager()->transitionImageLayout(command_buffer.getCommandBufer(), m_image, image_info.format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mip_levels);
-    m_device->getCommandManager()->copyBufferToImage(command_buffer.getCommandBufer(), staging_buffer->getBuffer(), m_image, static_cast<uint32_t>(image_info.extent.width), static_cast<uint32_t>(image_info.extent.height));
-    m_device->getCommandManager()->generateMipmaps(command_buffer.getCommandBufer(), m_image, image_info.format, image_info.extent.width, image_info.extent.height, mip_levels);
-    //m_device->getCommandManager().transitionImageLayout(m_image, image_info.format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mip_levels);
+
+    m_device->getCommandManager()->copyBufferToImage(command_buffer.getCommandBufer(), staging_buffer->getBuffer(), m_image, m_image_config->getImageInfo().extent, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+    if(m_image_config->getImageInfo().mipLevels != 1u) {
+        m_device->getCommandManager()->generateMipmaps(
+            command_buffer.getCommandBufer(),
+            m_image,
+            m_image_config->getImageInfo().format,
+            m_image_config->getFormat()->getExtent2D(),
+            m_image_config->getImageInfo().mipLevels,
+            m_image_config->getImageInfo().initialLayout,
+            m_image_config->getAfterInitLayout()
+        );
+    }
     m_device->getCommandManager()->submitCommandBuffer(command_buffer);
     m_device->getCommandManager()->wait(PoolTypeEnum::TRANSFER);
-
-    m_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
     return true;
 }
@@ -209,9 +126,6 @@ bool VulkanImageBuffer::init(unsigned char* pixels, VkExtent2D extent, VkFormat 
 }
 
 void VulkanImageBuffer::destroy() {
-    vkDestroyImageView(m_device->getDevice(), m_image_view, nullptr);
-    vkDestroyImage(m_device->getDevice(), m_image, nullptr);
-    vkFreeMemory(m_device->getDevice(), m_memory, nullptr);
 }
 
 VkImage VulkanImageBuffer::getImageBuffer() const {
@@ -219,8 +133,13 @@ VkImage VulkanImageBuffer::getImageBuffer() const {
 }
     
 VkImageView VulkanImageBuffer::getImageBufferView() const {
-    return m_image_view;
+    return (*m_image_view_map.begin()).second;
 };
+
+const std::unordered_map<std::string, VkImageView>& VulkanImageBuffer::getImageViewMap() const {
+    return m_image_view_map;
+}
+
 
 VkDeviceMemory VulkanImageBuffer::getMemory() const {
     return m_memory;
@@ -230,16 +149,8 @@ VkDeviceSize VulkanImageBuffer::getSize() const {
     return m_image_size;
 }
 
-VkImageLayout VulkanImageBuffer::getLayout() const {
-    return m_layout;
-}
-
-const VkImageCreateInfo& VulkanImageBuffer::getImageInfo() const {
-    return m_image_info;
-}
-
 VkSubresourceLayout VulkanImageBuffer::getSubresourceSizes(uint32_t mip_level, uint32_t array_layer) const {
-    return getSubresourceSizes(m_image_view_info.subresourceRange.aspectMask, mip_level, array_layer);
+    return getSubresourceSizes( (*m_image_config->getViewInfoMap().begin()).second->image_view_info.subresourceRange.aspectMask, mip_level, array_layer);
 }
 
 VkSubresourceLayout VulkanImageBuffer::getSubresourceSizes(VkImageAspectFlags aspect, uint32_t mip_level, uint32_t array_layer) const {
@@ -252,6 +163,10 @@ VkSubresourceLayout VulkanImageBuffer::getSubresourceSizes(VkImageAspectFlags as
     vkGetImageSubresourceLayout(m_device->getDevice(), m_image, &subresource, &result);
 
     return result;
+}
+
+const std::shared_ptr<ImageBufferConfig>& VulkanImageBuffer::getImageConfig() const {
+    return m_image_config;
 }
 
 void VulkanImageBuffer::changeLayout(VkImageLayout new_layout) {
@@ -267,17 +182,12 @@ void VulkanImageBuffer::changeLayout(CommandBatch& command_buffer, VkImageLayout
     m_layout = new_layout;
 }
 
-VkImageView VulkanImageBuffer::createImageView(VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const {
-    VkImageViewCreateInfo view_info = createImageViewInfo(format, aspect_flags, mip_levels);
-    return createImageView(view_info);
-}
-
 const RenderResource::ResourceName& VulkanImageBuffer::getName() const {
     return m_name;
 }
 
 RenderResource::Type VulkanImageBuffer::getType() const {
-    return RenderResource::Type::TEXTURE_BUFFER;
+    return RenderResource::Type::IMAGE;
 }
 
 VkImageView VulkanImageBuffer::createImageView(VkImageViewCreateInfo view_create_info) const {
@@ -288,23 +198,4 @@ VkImageView VulkanImageBuffer::createImageView(VkImageViewCreateInfo view_create
     }
     
     return image_view;
-}
-
-VkImageViewCreateInfo VulkanImageBuffer::createImageViewInfo(VkFormat format, VkImageAspectFlags aspect_flags, uint32_t mip_levels) const {
-    VkImageViewCreateInfo view_info{};
-    view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    view_info.image = m_image;
-    view_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    view_info.format = format;
-    view_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-    view_info.subresourceRange.aspectMask = aspect_flags;
-    view_info.subresourceRange.baseMipLevel = 0u;
-    view_info.subresourceRange.levelCount = mip_levels;
-    view_info.subresourceRange.baseMipLevel = 0u;
-    view_info.subresourceRange.layerCount = 1u;
-
-    return view_info;
 }

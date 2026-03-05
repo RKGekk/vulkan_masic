@@ -22,6 +22,7 @@
                 <Flag>color_attachment</Flag>
             </ImageUsageFlags>
         </Format>
+
         <Format name="basic_image_format" select="auto">
             <ImageType>2D</ImageType>
             <Extent source="auto"></Extent>
@@ -176,7 +177,8 @@
         <ResourceType name="basic_swap_chain_resource">
             <ImageBuffer>
                 <FormatName>swap_chain_format</FormatName>
-                <InitialLayout>undefined</InitialLayout>
+                <CreationLayout>undefined</CreationLayout>
+                <AfterInitLayout>undefined</AfterInitLayout>
                 <MemoryProperties get_by_memory_requirements="true"></MemoryProperties>
                 <Views>
                     <View name="basic_swapchain_resource_view">
@@ -200,7 +202,8 @@
         <ResourceType name="basic_image_resource">
             <ImageBuffer>
                 <FormatName>basic_image_format</FormatName>
-                <InitialLayout>undefined</InitialLayout>
+                <CreationLayout>undefined</CreationLayout>
+                <AfterInitLayout>shader_read_only_optimal</AfterInitLayout>
                 <MemoryProperties get_by_memory_requirements="false">
                     <Property>device_local</Property>
                 </MemoryProperties>
@@ -242,10 +245,57 @@
             </ImageBuffer>
         </ResourceType>
 
+        <ResourceType name="imgui_font_resource">
+            <ImageBuffer>
+                <FormatName>basic_image_format</FormatName>
+                <CreationLayout>undefined</CreationLayout>
+                <AfterInitLayout>shader_read_only_optimal</AfterInitLayout>
+                <MemoryProperties get_by_memory_requirements="false">
+                    <Property>device_local</Property>
+                </MemoryProperties>
+                <Samplers>
+                    <Sampler name="default_sampler">
+                        <MagFilter>linear</MagFilter>
+                        <MinFilter>linear</MinFilter>
+                        <MipmapMode>nearest</MipmapMode>
+                        <AddressModeU>clamp_to_edge</AddressModeU>
+                        <AddressModeV>clamp_to_edge</AddressModeV>
+                        <AddressModeW>clamp_to_edge</AddressModeW>
+                        <MipLodBias>0.0</MipLodBias>
+                        <AnisotropyEnable auto="false">false</AnisotropyEnable>
+                        <MaxAnisotropy auto="false">1.0</MaxAnisotropy>
+                        <CompareEnable>false</CompareEnable>
+                        <CompareOp>less_or_equal</CompareOp>
+                        <MinLod>0.0</MinLod>
+                        <MaxLod by_mip="false">15.0</MaxLod>
+                        <BorderColor>int_opaque_black</BorderColor>
+                        <UnnormalizedCoordinates>false</UnnormalizedCoordinates>
+                    </Sampler>
+                </Samplers>
+                <Views>
+                    <View name="basic_image_resource_view">
+                        <ViewType>2D</ViewType>
+                        <FormatName>basic_image_format</FormatName>
+                        <Components r="r" g="g" b="b" a="a" />
+                        <SubresourceRange>
+                            <AspectFlags>
+                                <AspectMask>color</AspectMask>
+                            </AspectFlags>
+                            <BaseMipLevel>0</BaseMipLevel>
+                            <LevelCount>auto</LevelCount>
+                            <BaseArrayLayer>0</BaseArrayLayer>
+                            <LayerCount>1</LayerCount>
+                        </SubresourceRange>
+                    </View>
+                </Views>
+            </ImageBuffer>
+        </ResourceType>
+
         <ResourceType name="render_target_color_resource">
             <ImageBuffer>
                 <FormatName>render_target_color_format</FormatName>
-                <InitialLayout>undefined</InitialLayout>
+                <CreationLayout>undefined</CreationLayout>
+                <AfterInitLayout>undefined</AfterInitLayout>
                 <MemoryProperties get_by_memory_requirements="false">
                     <Property>device_local</Property>
                 </MemoryProperties>
@@ -271,7 +321,8 @@
         <ResourceType name="render_target_depth_resource">
             <ImageBuffer>
                 <FormatName>render_target_depth_format</FormatName>
-                <InitialLayout>undefined</InitialLayout>
+                <CreationLayout>undefined</CreationLayout>
+                <AfterInitLayout>undefined</AfterInitLayout>
                 <MemoryProperties get_by_memory_requirements="false">
                     <Property>device_local</Property>
                 </MemoryProperties>
@@ -299,7 +350,7 @@
                 <BufferUsageFlags>
                     <Flag>uniform_buffer</Flag>
                 </BufferUsageFlags>
-                <Size>192</Size>
+                <Size dynamic="false" deffered="false">192</Size>
                 <MemoryProperties>
                     <Property>host_visible</Property>
                     <Property>host_coherent</Property>
@@ -312,7 +363,7 @@
                 <BufferUsageFlags>
                     <Flag>uniform_buffer</Flag>
                 </BufferUsageFlags>
-                <Size>16</Size>
+                <Size dynamic="false" deffered="false">16</Size>
                 <MemoryProperties>
                     <Property>host_visible</Property>
                     <Property>host_coherent</Property>
@@ -326,6 +377,7 @@
                     <Flag>transfer_dst</Flag>
                     <Flag>vertex_buffer</Flag>
                 </BufferUsageFlags>
+                <Size dynamic="false" deffered="true">0</Size>
                 <MemoryProperties>
                     <Property>device_local</Property>
                 </MemoryProperties>
@@ -338,6 +390,7 @@
                     <Flag>transfer_dst</Flag>
                     <Flag>index_buffer</Flag>
                 </BufferUsageFlags>
+                <Size dynamic="false" deffered="true">0</Size>
                 <MemoryProperties>
                     <Property>device_local</Property>
                 </MemoryProperties>
@@ -350,6 +403,7 @@
                     <Flag>transfer_dst</Flag>
                     <Flag>vertex_buffer</Flag>
                 </BufferUsageFlags>
+                <Size dynamic="true" deffered="true">0</Size>
                 <MemoryProperties>
                     <Property>host_coherent</Property>
                     <Property>host_visible</Property>
@@ -363,6 +417,7 @@
                     <Flag>transfer_dst</Flag>
                     <Flag>index_buffer</Flag>
                 </BufferUsageFlags>
+                <Size dynamic="true" deffered="true">0</Size>
                 <MemoryProperties>
                     <Property>host_coherent</Property>
                     <Property>host_visible</Property>

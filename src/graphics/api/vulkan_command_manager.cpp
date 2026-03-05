@@ -424,7 +424,7 @@ void VulkanCommandManager::transitionImageLayout(VkCommandBuffer command_buffer,
     vkCmdPipelineBarrier(command_buffer, source_stage, destination_stage, 0u, 0u, nullptr, 0u, nullptr, 1u, &barrier);
 }
 
-void VulkanCommandManager::copyBufferToImage(VkCommandBuffer command_buffer, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
+void VulkanCommandManager::copyBufferToImage(VkCommandBuffer command_buffer, VkBuffer buffer, VkImage image, VkExtent3D extent, VkImageLayout image_layout) {
     VkBufferImageCopy region{};
     region.bufferOffset = 0u;
     region.bufferRowLength = 0u;
@@ -434,11 +434,11 @@ void VulkanCommandManager::copyBufferToImage(VkCommandBuffer command_buffer, VkB
     region.imageSubresource.baseArrayLayer = 0u;
     region.imageSubresource.layerCount = 1u;
     region.imageOffset = {0, 0, 0};
-    region.imageExtent = {width, height, 1};
-    vkCmdCopyBufferToImage(command_buffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1u, &region);
+    region.imageExtent = extent;
+    vkCmdCopyBufferToImage(command_buffer, buffer, image, image_layout, 1u, &region);
 }
 
-void VulkanCommandManager::generateMipmaps(VkCommandBuffer command_buffer, VkImage image, VkFormat image_format, int32_t tex_width, uint32_t tex_height, uint32_t mip_levels) {
+void VulkanCommandManager::generateMipmaps(VkCommandBuffer command_buffer, VkImage image, VkFormat format, VkExtent2D extent, uint32_t mip_levels, VkImageLayout initial_layout, VkImageLayout post_layout) {
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     barrier.image = image;
@@ -448,9 +448,13 @@ void VulkanCommandManager::generateMipmaps(VkCommandBuffer command_buffer, VkIma
     barrier.subresourceRange.baseArrayLayer = 0u;
     barrier.subresourceRange.layerCount = 1u;
     barrier.subresourceRange.levelCount = 1u;
+
+    if(initial_layout != VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+        transitionImageLayout(command_buffer, image, format, initial_layout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mip_levels);
+    }
     
-    int32_t mip_width = tex_width;
-    int32_t mip_height = tex_height;
+    int32_t mip_width = extent.width;
+    int32_t mip_height = extent.height;
     for (uint32_t i = 1u; i < mip_levels; ++i) {
         barrier.subresourceRange.baseMipLevel = i - 1u;
         barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -477,7 +481,7 @@ void VulkanCommandManager::generateMipmaps(VkCommandBuffer command_buffer, VkIma
         vkCmdBlitImage(command_buffer, image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1u, &blit, VK_FILTER_LINEAR);
         
         barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-        barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        barrier.newLayout = post_layout;
         barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
         barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
         vkCmdPipelineBarrier(command_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0u, 0u, nullptr, 0u, nullptr, 1u, &barrier);
@@ -492,7 +496,7 @@ void VulkanCommandManager::generateMipmaps(VkCommandBuffer command_buffer, VkIma
     
     barrier.subresourceRange.baseMipLevel = mip_levels - 1u;
     barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-    barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    barrier.newLayout = post_layout;
     barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 

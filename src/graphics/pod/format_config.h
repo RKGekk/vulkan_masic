@@ -17,6 +17,8 @@ class SwapchainSupportDetails;
 
 class FormatConfig {
 public:
+    enum class ExtentSource { AUTO, AS_SWAPCHAIN, EXACT };
+
     bool init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<WindowSurface>& window, const SwapchainSupportDetails& swapchain_support_details, const std::string& rg_file_path);
     bool init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<WindowSurface>& window, const SwapchainSupportDetails& swapchain_support_details, const pugi::xml_node& format_data);
 
@@ -70,11 +72,14 @@ public:
     uint32_t getQueueFamilyIndexCount() const;
     const uint32_t* getQueueFamilyIndicesPtr() const;
 
+    std::shared_ptr<FormatConfig> makeInstance(std::string name, VkExtent2D extent = {0, 0}) const;
+
 private:
 
     std::string m_name;
     VkImageCreateFlags m_image_flags;
     VkImageType m_image_type;
+    ExtentSource m_extent_source;
     VkExtent2D m_extent_2D;
     VkExtent3D m_extent_3D;
     uint32_t m_mip_levels;
