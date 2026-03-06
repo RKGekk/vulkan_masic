@@ -1,8 +1,12 @@
 #include "imgui_drawable.h"
 
+#include "../vulkan_renderer.h"
+#include "../pod/image_buffer_config.h"
+#include "../pod/format_config.h"
+
 #include <filesystem>
 
-std::shared_ptr<VulkanTexture> makeFontTexture(std::shared_ptr<VulkanDevice> device, const char* TTF_font_file_name, float fontSizePixels) {
+std::shared_ptr<VulkanImageBuffer> makeFontTexture(std::shared_ptr<VulkanDevice> device, std::shared_ptr<Managers>& managers, const char* TTF_font_file_name, float fontSizePixels) {
     ImGuiIO& io = ImGui::GetIO();
 
     ImFontConfig cfg = ImFontConfig();
@@ -28,9 +32,7 @@ std::shared_ptr<VulkanTexture> makeFontTexture(std::shared_ptr<VulkanDevice> dev
     int width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-    std::shared_ptr<VulkanTexture> font_texture = std::make_shared<VulkanTexture>();
-    std::shared_ptr<VulkanSampler> fonts_sampler = createFontTextureSampler(device);
-    font_texture->init(device, pixels, width, height, std::move(fonts_sampler), VK_FORMAT_R8G8B8A8_UNORM);
+    std::shared_ptr<VulkanImageBuffer> font_texture = managers->resources_manager->create_image(TTF_font_file_name);
 
     io.Fonts->TexID = 0u;
     io.FontDefault = font;
@@ -38,96 +40,7 @@ std::shared_ptr<VulkanTexture> makeFontTexture(std::shared_ptr<VulkanDevice> dev
     return font_texture;
 }
 
-VkPipelineVertexInputStateCreateInfo getImVertextInputInfo() {
-    static std::vector<VkVertexInputBindingDescription> binding_desc(1);
-    static std::once_flag binding_exe_flag;
-    std::call_once(binding_exe_flag, [](){
-        binding_desc[0].binding = 0u;
-        binding_desc[0].stride = 20u;
-        binding_desc[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-    });
-
-    static std::vector<VkVertexInputAttributeDescription> attribute_desc(3);
-    static std::once_flag attribute_exe_flag;
-    std::call_once(attribute_exe_flag, [](){
-        attribute_desc[0].binding = 0u;
-        attribute_desc[0].location = 0u;
-        attribute_desc[0].format = VK_FORMAT_R32G32_SFLOAT;
-        attribute_desc[0].offset = offsetof(ImDrawVert, pos);
-        
-        attribute_desc[1].binding = 0u;
-        attribute_desc[1].location = 1u;
-        attribute_desc[1].format = VK_FORMAT_R32G32_SFLOAT;
-        attribute_desc[1].offset = offsetof(ImDrawVert, uv);
-        
-        attribute_desc[2].binding = 0u;
-        attribute_desc[2].location = 2u;
-        attribute_desc[2].format = VK_FORMAT_R8G8B8A8_UNORM;
-        attribute_desc[2].offset = offsetof(ImDrawVert, col);
-    });
-
-    VkPipelineVertexInputStateCreateInfo vertex_input_info{};
-    vertex_input_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertex_input_info.vertexBindingDescriptionCount = static_cast<uint32_t>(binding_desc.size());
-    vertex_input_info.pVertexBindingDescriptions = binding_desc.data();
-    vertex_input_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribute_desc.size());
-    vertex_input_info.pVertexAttributeDescriptions = attribute_desc.data();
-
-    return vertex_input_info;
-}
-
-VulkanPipeline::PipelineCfg ImGUIDrawable::createPipelineCfg(const std::vector<VkDescriptorSetLayout>& desc_set_layouts, VkRenderPass render_pass, VkExtent2D viewport_extent, std::vector<VkPipelineShaderStageCreateInfo> shaders_info, const VkPipelineVertexInputStateCreateInfo& vertex_input_info, VkSampleCountFlagBits msaa_samples) {
-    VulkanPipeline::PipelineCfg pipeline_cfg = {};
-
-    pipeline_cfg.dynamic_states = {
-        VK_DYNAMIC_STATE_VIEWPORT,
-        VK_DYNAMIC_STATE_SCISSOR
-    };
-
-    pipeline_cfg.desc_set_layouts = desc_set_layouts;
-    pipeline_cfg.render_pass = render_pass;
-    pipeline_cfg.viewport_extent = viewport_extent;
-    pipeline_cfg.shaders_info = std::move(shaders_info);
-    pipeline_cfg.vertex_input_info = vertex_input_info;
-    pipeline_cfg.msaa_samples = msaa_samples;
-
-    pipeline_cfg.depth_stencil_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-    pipeline_cfg.depth_stencil_info.depthTestEnable = VK_FALSE;
-    pipeline_cfg.depth_stencil_info.depthWriteEnable = VK_FALSE;
-    pipeline_cfg.depth_stencil_info.depthCompareOp = VK_COMPARE_OP_LESS;
-    pipeline_cfg.depth_stencil_info.depthBoundsTestEnable = VK_FALSE;
-    pipeline_cfg.depth_stencil_info.minDepthBounds = 0.0f;
-    pipeline_cfg.depth_stencil_info.maxDepthBounds = 1.0f;
-    pipeline_cfg.depth_stencil_info.stencilTestEnable = VK_FALSE;
-    pipeline_cfg.depth_stencil_info.front = {};
-    pipeline_cfg.depth_stencil_info.back = {};
-
-    pipeline_cfg.rasterizer_info.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-    pipeline_cfg.rasterizer_info.depthBiasClamp = VK_FALSE;
-    pipeline_cfg.rasterizer_info.rasterizerDiscardEnable = VK_FALSE;
-    pipeline_cfg.rasterizer_info.polygonMode = VK_POLYGON_MODE_FILL;
-    pipeline_cfg.rasterizer_info.cullMode = VK_CULL_MODE_NONE;
-    //m_pipeline_cfg.rasterizer_info.frontFace = VK_FRONT_FACE_CLOCKWISE;
-    pipeline_cfg.rasterizer_info.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-    pipeline_cfg.rasterizer_info.depthBiasEnable = VK_FALSE;
-    pipeline_cfg.rasterizer_info.depthBiasConstantFactor = 0.0f;
-    pipeline_cfg.rasterizer_info.depthBiasClamp = 0.0f;
-    pipeline_cfg.rasterizer_info.depthBiasSlopeFactor = 0.0f;
-    pipeline_cfg.rasterizer_info.lineWidth = 1.0f;
-
-    pipeline_cfg.color_blend_state.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-    pipeline_cfg.color_blend_state.blendEnable = VK_TRUE;
-    pipeline_cfg.color_blend_state.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-    pipeline_cfg.color_blend_state.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    pipeline_cfg.color_blend_state.colorBlendOp = VK_BLEND_OP_ADD;
-    pipeline_cfg.color_blend_state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    pipeline_cfg.color_blend_state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-    pipeline_cfg.color_blend_state.alphaBlendOp = VK_BLEND_OP_ADD;
-
-    return pipeline_cfg;
-}
-
-bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, const RenderTarget& rt, int max_frames) {
+bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<Managers>& managers, int max_frames) {
     using namespace std::literals;
 
     m_device = std::move(device);

@@ -15,7 +15,7 @@
 #include <glm/ext.hpp>
 
 #include "../api/vulkan_buffer.h"
-#include "../api/vulkan_texture.h"
+#include "../api/vulkan_image_buffer.h"
 
 struct alignas(16) MaterialProperties {
 
@@ -106,7 +106,7 @@ public:
 		NumTypes,
 	};
 
-	using TextureMap = std::unordered_map<TextureType, std::shared_ptr<VulkanTexture>>;
+	using TextureMap = std::unordered_map<TextureType, std::shared_ptr<VulkanImageBuffer>>;
 
 	Material(std::string name, const MaterialProperties& material_properties = MaterialProperties());
 	Material(const Material& copy);
@@ -148,9 +148,9 @@ public:
 	float GetBumpIntensity() const;
 	void  SetBumpIntensity(float bump_intensity);
 
-	std::shared_ptr<VulkanTexture> GetTexture(TextureType ID = TextureType::Diffuse) const;
+	std::shared_ptr<VulkanImageBuffer> GetTexture(TextureType ID = TextureType::Diffuse) const;
 	TextureMap& GetTextureMap();
-	void SetTexture(TextureType type, std::shared_ptr<VulkanTexture> texture);
+	void SetTexture(TextureType type, std::shared_ptr<VulkanImageBuffer> texture);
 	void SetInvYNormalTextureFlag(bool is_inv_y_texture);
 
 	bool IsTransparent() const;

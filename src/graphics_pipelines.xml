@@ -424,6 +424,20 @@
                 </MemoryProperties>
             </Buffer>
         </ResourceType>
+
+        <ResourceType name="basic_staging_buffer">
+            <Buffer>
+                <BufferUsageFlags>
+                    <Flag>transfer_src</Flag>
+                    <Flag>transfer_dst</Flag>
+                </BufferUsageFlags>
+                <Size dynamic="false" deffered="true">0</Size>
+                <MemoryProperties>
+                    <Property>host_visible</Property>
+                    <Property>host_coherent</Property>
+                </MemoryProperties>
+            </Buffer>
+        </ResourceType>
     </TypeOfResources>
 
     <Shaders>

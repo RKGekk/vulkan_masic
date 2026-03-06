@@ -326,8 +326,6 @@ set(APP_SOURCES
     "${SRC_DIR}/graphics/pod/format_config.cpp"
     "${SRC_DIR}/graphics/api/vulkan_vertex_buffer.h"
     "${SRC_DIR}/graphics/api/vulkan_vertex_buffer.cpp"
-    "${SRC_DIR}/graphics/api/vulkan_texture.h"
-    "${SRC_DIR}/graphics/api/vulkan_texture.cpp"
     "${SRC_DIR}/graphics/api/vulkan_descriptor.h"
     "${SRC_DIR}/graphics/api/vulkan_descriptor.cpp"
     "${SRC_DIR}/graphics/api/vulkan_uniform_buffer.h"

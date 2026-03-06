@@ -11,14 +11,15 @@
 #include "vulkan_command_buffer.h"
 
 class VulkanDevice;
+class BufferConfig;
 
 class VulkanBuffer : public RenderResource {
 public:
     VulkanBuffer(std::shared_ptr<VulkanDevice> device, std::string name);
     VulkanBuffer(std::shared_ptr<VulkanDevice> device);
 
-    bool init(const void* data, VkDeviceSize buffer_size, VkMemoryPropertyFlags properties, VkBufferUsageFlags usage);
-    bool init(CommandBatch& command_buffer, const void* data, VkDeviceSize buffer_size, VkMemoryPropertyFlags properties, VkBufferUsageFlags usage);
+    bool init(const void* data, std::shared_ptr<BufferConfig> buffer_config);
+    bool init(CommandBatch& command_buffer, const void* data, std::shared_ptr<BufferConfig> buffer_config);
 
     void destroy() override;
 
@@ -29,8 +30,6 @@ public:
 
     VkMemoryPropertyFlags getProperties() const;
     VkBufferUsageFlags getUsage() const;
-
-    VkBufferView createBufferView(VkFormat format, VkDeviceSize range, VkDeviceSize offset = 0u) const;
 
     void update(CommandBatch& command_buffer, const void* src_data, VkDeviceSize buffer_size, VkAccessFlags dstAccessMask);
     void update(CommandBatch& command_buffer, const void* src_data, VkDeviceSize buffer_size);
@@ -49,8 +48,6 @@ protected:
     VkBuffer m_buffer;
     VkDeviceMemory m_memory;
     void* m_mapped;
-    VkDeviceSize m_size;
 
-    VkMemoryPropertyFlags m_properties;
-    VkBufferUsageFlags m_usage;
+    std::shared_ptr<BufferConfig> m_buffer_config;
 };

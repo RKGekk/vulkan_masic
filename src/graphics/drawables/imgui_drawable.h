@@ -22,7 +22,7 @@
 #include "../api/vulkan_pipeline.h"
 #include "../api/vulkan_shader.h"
 #include "../api/vulkan_descriptor.h"
-#include "../api/vulkan_texture.h"
+#include "../api/vulkan_image_buffer.h"
 
 #include <array>
 #include <memory>
@@ -30,13 +30,14 @@
 #include <type_traits>
 #include <vector>
 
+struct Managers;
+
 class ImGUIDrawable : public IVulkanDrawable {
 public:
-    bool init(std::shared_ptr<VulkanDevice> device, const RenderTarget& rt, int max_frames);
+    bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<Managers>& managers, int max_frames);
 
     void reset(const RenderTarget& rt) override;
     void destroy() override;
-    void recordCommandBuffer(CommandBatch& command_buffer, const RenderTarget& rt, uint32_t frame_index) override;
     void update(const GameTimerDelta& delta, uint32_t image_index) override;
 
     virtual int order() override;
@@ -45,13 +46,8 @@ public:
     void endFrame();
 
 private:
-    VulkanPipeline::PipelineCfg createPipelineCfg(const std::vector<VkDescriptorSetLayout>& desc_set_layouts, VkRenderPass render_pass, VkExtent2D viewport_extent, std::vector<VkPipelineShaderStageCreateInfo> shaders_info, const VkPipelineVertexInputStateCreateInfo& vertex_input_info, VkSampleCountFlagBits msaa_samples);
     std::shared_ptr<VulkanDevice> m_device;
 
-    struct GraphicsPipeline {
-        VulkanPipeline pipeline;
-        VulkanPipeline::PipelineCfg pipeline_cfg;
-    };
     std::vector<GraphicsPipeline> m_pipelines;
 
     VulkanDescriptor m_descriptor;
@@ -61,7 +57,7 @@ private:
     VulkanShader m_vert_shader;
     VulkanShader m_frag_shader;
 
-    std::shared_ptr<VulkanTexture> m_font_texture;
+    std::shared_ptr<VulkanImageBuffer> m_font_texture;
     std::vector<std::shared_ptr<VulkanUniformBuffer>> m_uniform_buffers;
 
     std::vector<std::shared_ptr<VertexBuffer>> m_vertex_buffers;

@@ -47,6 +47,8 @@ bool BufferConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::
     }
 
     m_buffer_info.size = buffer_data.child("Size").text().as_uint();
+    m_dynamic_size = buffer_data.child("Size").attribute("dynamic").as_bool();
+    m_deffered_size = buffer_data.child("Size").attribute("deffered").as_bool();
 
     for (pugi::xml_node flag_node = buffer_data.child("BufferUsageFlags").first_child(); flag_node; flag_node = flag_node.next_sibling()) {
         m_buffer_info.usage |= getBufferUsageFlag(flag_node.text().as_string());
@@ -80,3 +82,38 @@ bool BufferConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::
     }
 }
     
+const std::string& BufferConfig::getName() const {
+    return m_name;
+}
+
+bool BufferConfig::isSizeDynamic() const {
+    return m_dynamic_size;
+}
+    
+bool BufferConfig::isSizeDeffered() const {
+    return m_deffered_size;
+}
+
+void setSize(VkDeviceSize sz) {
+    m_buffer_info.size = sz;
+}
+
+const VkBufferCreateInfo& BufferConfig::getBufferInfo() const {
+    return m_buffer_info;
+}
+
+VkMemoryPropertyFlags BufferConfig::getMemoryProperties() const {
+    return m_memory_properties;
+}
+
+const std::unordered_map<std::string, std::shared_ptr<BufferViewConfig>>& BufferConfig::getViewMap() const {
+    return m_view_info_map;
+}
+
+const std::shared_ptr<BufferViewConfig>& BufferConfig::getView() const {
+    return (*m_view_info_map.begin()).second;
+}
+
+const std::shared_ptr<BufferViewConfig>& BufferConfig::getView(const std::string& view_name) const {
+    return m_view_info_map.at(view_name);
+}

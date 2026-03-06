@@ -9,10 +9,10 @@
 #include <unordered_map>
 
 #include "../pod/render_resource.h"
-#include "../pod/image_buffer_config.h"
 #include "vulkan_command_buffer.h"
 
 class VulkanDevice;
+class ImageBufferConfig;
 
 class VulkanImageBuffer : public RenderResource {
 public:
@@ -21,6 +21,9 @@ public:
 
     bool init(VkImage image, std::shared_ptr<ImageBufferConfig> image_buffer_config);
     bool init(unsigned char* pixels, std::shared_ptr<ImageBufferConfig> image_buffer_config);
+    bool init(std::shared_ptr<ImageBufferConfig> image_buffer_config, const std::string& path_to_file);
+    bool init(CommandBatch& command_buffer, unsigned char* pixels, std::shared_ptr<ImageBufferConfig> image_buffer_config);
+    bool init(CommandBatch& command_buffer, std::shared_ptr<ImageBufferConfig> image_buffer_config, const std::string& path_to_file);
 
     void destroy() override;
 
@@ -35,8 +38,8 @@ public:
 
     const std::shared_ptr<ImageBufferConfig>& getImageConfig() const;
 
-    void changeLayout(VkImageLayout new_layout);
-    void changeLayout(CommandBatch& command_buffer, VkImageLayout new_layout);
+    void changeLayout(VkImageLayout old_layout, VkImageLayout new_layout);
+    void changeLayout(CommandBatch& command_buffer, VkImageLayout old_layout, VkImageLayout new_layout);
 
     const ResourceName& getName() const override;
     Type getType() const override;

@@ -18,7 +18,6 @@ class IVulkanDrawable {
 public:
     virtual void reset(const RenderTarget& rt) = 0;
     virtual void destroy() = 0;
-    virtual void recordCommandBuffer(CommandBatch& command_buffer, const RenderTarget& rt, uint32_t frame_index) = 0;
     virtual void update(const GameTimerDelta& delta, uint32_t image_index) = 0;
     virtual int order() = 0;
 };

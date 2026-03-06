@@ -48,23 +48,13 @@ bool VulkanResourcesManager::init(const std::string& rg_file_path) {
     return true;
 }
 
-std::shared_ptr<VulkanImageBuffer> VulkanResourcesManager::create_image(const std::string& path_to_file, std::shared_ptr<VulkanSampler> sampler) {
+std::shared_ptr<VulkanImageBuffer> VulkanResourcesManager::create_image(const std::string& path_to_file) {
 	if(m_image_map.contains(path_to_file)) return m_image_map[path_to_file];
 
-	std::shared_ptr<ImageBufferConfig> basic_image_config = m_image_buffer_config_map.at("basic_image_resource");
-
-	int tex_width;
-    int tex_height;
-    int tex_channels;
-    stbi_uc* pixels = stbi_load(path_to_file.c_str(), &tex_width, &tex_height, &tex_channels, STBI_rgb_alpha);
-    if (!pixels) {
-        throw std::runtime_error("failed to load texture image!");
-    }
+	std::shared_ptr<ImageBufferConfig> basic_image_config_template = m_image_buffer_config_map.at("basic_image_resource");
 
 	std::shared_ptr<VulkanImageBuffer> image = std::make_shared<VulkanImageBuffer>(m_device, path_to_file);
-	image->init(pixels, std::move(basic_image_config));
-
-	stbi_image_free(pixels);
+	image->init(std::move(basic_image_config), path_to_file);
 
 	return image;
 }
@@ -75,6 +65,15 @@ std::shared_ptr<VulkanImageBuffer> VulkanResourcesManager::create_image(VkImage 
 	std::shared_ptr<ImageBufferConfig> basic_image_config = m_image_buffer_config_map.at(resource_type_name);
 	std::shared_ptr<VulkanImageBuffer> image = std::make_shared<VulkanImageBuffer>(m_device, image_name);
 	image->init(vk_image, std::move(basic_image_config));
+
+	return image;
+}
+
+std::shared_ptr<VulkanBuffer> VulkanResourcesManager::create_buffer(std::string resource_type_name) {
+	std::shared_ptr<BufferConfig> buffer_config = m_buffer_config_map.at(resource_type_name);
+
+	std::shared_ptr<VulkanImageBuffer> image = std::make_shared<VulkanImageBuffer>(m_device, path_to_file);
+	image->init(std::move(basic_image_config), path_to_file);
 
 	return image;
 }
