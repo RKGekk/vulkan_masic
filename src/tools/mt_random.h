@@ -14,10 +14,11 @@ private:
 
 public:
 	MTRandom();
+	MTRandom(unsigned int seed);
 
 	unsigned int Random(unsigned int n);
 	float Random();
-	void SetRandomSeed(unsigned int n);
+	void SetRandomSeed(unsigned int seed);
 	unsigned int GetRandomSeed();
 	void Randomize();
 };

@@ -89,6 +89,8 @@ Container splitR(const std::string& input, const std::string& delims) {
 void stoupper(std::string& s);
 std::string stoupper(const std::string& s);
 
+std::string get_uuid();
+
 bool stobool(const std::string& s);
 bool ntobool(const pugi::xml_node node_with_bool);
 bool ntobool(const pugi::xml_node node_with_bool, bool def);

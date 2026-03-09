@@ -94,7 +94,7 @@ bool BufferConfig::isSizeDeffered() const {
     return m_deffered_size;
 }
 
-void setSize(VkDeviceSize sz) {
+void BufferConfig::setSize(VkDeviceSize sz) {
     m_buffer_info.size = sz;
 }
 
@@ -116,4 +116,24 @@ const std::shared_ptr<BufferViewConfig>& BufferConfig::getView() const {
 
 const std::shared_ptr<BufferViewConfig>& BufferConfig::getView(const std::string& view_name) const {
     return m_view_info_map.at(view_name);
+}
+
+std::shared_ptr<BufferConfig> BufferConfig::makeInstance(std::string name, VkDeviceSize buffer_size) const {
+    using namespace std::literals;
+
+    std::shared_ptr<BufferConfig> instance_ptr = std::make_shared<BufferConfig>();
+    instance_ptr->m_name = name;
+    instance_ptr->m_buffer_info = m_buffer_info;
+    instance_ptr->m_buffer_info.size = buffer_size;
+    instance_ptr->m_dynamic_size = m_dynamic_size;
+    instance_ptr->m_deffered_size = false;
+    instance_ptr->m_memory_properties = m_memory_properties;
+
+    for(const auto&[view_type_name, view_cfg_ptr] : m_view_info_map) {
+        instance_ptr->m_view_info_map[view_type_name] = std::make_shared<BufferViewConfig>();
+        instance_ptr->m_view_info_map[view_type_name]->view_info = view_cfg_ptr->view_info;
+        instance_ptr->m_view_info_map[view_type_name]->format = view_cfg_ptr->format->makeInstance(view_type_name + "_view_format");
+    }
+
+    return instance_ptr;
 }

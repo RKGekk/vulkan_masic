@@ -36,6 +36,8 @@ public:
     const std::shared_ptr<BufferViewConfig>& getView() const;
     const std::shared_ptr<BufferViewConfig>& getView(const std::string& view_name) const;
 
+    std::shared_ptr<BufferConfig> makeInstance(std::string name, VkDeviceSize buffer_size) const;
+
 private:
     std::string m_name;
     VkBufferCreateInfo m_buffer_info;

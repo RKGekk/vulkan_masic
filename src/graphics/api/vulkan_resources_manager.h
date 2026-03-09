@@ -29,7 +29,7 @@ public:
     std::shared_ptr<VulkanImageBuffer> create_image(const std::string& path_to_file);
     std::shared_ptr<VulkanImageBuffer> create_image(VkImage image, std::string image_name, std::string resource_type_name);
 
-    std::shared_ptr<VulkanBuffer> create_buffer(std::string resource_type_name);
+    std::shared_ptr<VulkanBuffer> create_buffer(const void* data, VkDeviceSize buffer_size, std::string resource_type_name);
 
 protected:
     std::shared_ptr<VulkanDevice> m_device;

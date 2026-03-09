@@ -4,6 +4,8 @@
 #include "vulkan_buffer.h"
 #include "../pod/format_config.h"
 #include "../pod/image_buffer_config.h"
+#include "vulkan_resources_manager.h"
+#include "../../application.h"
 
 #include <stb_image.h>
 
@@ -30,6 +32,8 @@ bool VulkanImageBuffer::init(VkImage image, std::shared_ptr<ImageBufferConfig> i
 }
 
 bool VulkanImageBuffer::init(unsigned char* pixels, std::shared_ptr<ImageBufferConfig> image_buffer_config) {
+    using namespace std::literals;
+
     m_image_config = std::move(image_buffer_config);
     
     VkResult result = vkCreateImage(m_device->getDevice(), &m_image_config->getImageInfo(), nullptr, &m_image);
@@ -66,9 +70,7 @@ bool VulkanImageBuffer::init(unsigned char* pixels, std::shared_ptr<ImageBufferC
         return true;
     }
 
-    std::shared_ptr<VulkanBuffer> staging_buffer = std::make_shared<VulkanBuffer>(m_device);
-    staging_buffer->init(pixels, m_image_size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-    
+    std::shared_ptr<VulkanBuffer> staging_buffer = Application::Get().GetRenderer().getManagers()->resources_manager->create_buffer(pixels, m_image_size, "basic_staging_buffer"s);
     CommandBatch command_buffer = m_device->getCommandManager()->allocCommandBuffer(PoolTypeEnum::TRANSFER);
     command_buffer.addResource(staging_buffer);
 
@@ -107,7 +109,9 @@ bool VulkanImageBuffer::init(unsigned char* pixels, std::shared_ptr<ImageBufferC
     return true;
 }
 
-bool VulkanImageBuffer::init(std::shared_ptr<ImageBufferConfig> image_buffer_config, const std::string& path_to_file) {
+bool VulkanImageBuffer::init(const std::shared_ptr<ImageBufferConfig>& image_buffer_config_template, const std::string& path_to_file) {
+    using namespace std::literals;
+
     int tex_width;
     int tex_height;
     int tex_channels;
@@ -116,6 +120,7 @@ bool VulkanImageBuffer::init(std::shared_ptr<ImageBufferConfig> image_buffer_con
         throw std::runtime_error("failed to load texture image!");
     }
 
+    std::shared_ptr<ImageBufferConfig> image_buffer_config = image_buffer_config_template->makeInstance(path_to_file + "_cfg"s, {(uint32_t)tex_width, (uint32_t)tex_height});
     bool result = init(pixels, std::move(image_buffer_config));
 
     stbi_image_free(pixels);
@@ -160,9 +165,7 @@ bool VulkanImageBuffer::init(CommandBatch& command_buffer, unsigned char* pixels
         return true;
     }
 
-    std::shared_ptr<VulkanBuffer> staging_buffer = std::make_shared<VulkanBuffer>(m_device);
-    staging_buffer->init(pixels, m_image_size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-    
+    std::shared_ptr<VulkanBuffer> staging_buffer = Application::Get().GetRenderer().getManagers()->resources_manager->create_buffer(pixels, m_image_size, "basic_staging_buffer"s);
     command_buffer.addResource(staging_buffer);
 
     if(m_image_config->getImageInfo().initialLayout != VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
@@ -200,7 +203,9 @@ bool VulkanImageBuffer::init(CommandBatch& command_buffer, unsigned char* pixels
     return true;
 }
 
-bool VulkanImageBuffer::init(CommandBatch& command_buffer, std::shared_ptr<ImageBufferConfig> image_buffer_config, const std::string& path_to_file) {
+bool VulkanImageBuffer::init(CommandBatch& command_buffer, const std::shared_ptr<ImageBufferConfig>& image_buffer_config_template, const std::string& path_to_file) {
+    using namespace std::literals;
+
     int tex_width;
     int tex_height;
     int tex_channels;
@@ -209,6 +214,7 @@ bool VulkanImageBuffer::init(CommandBatch& command_buffer, std::shared_ptr<Image
         throw std::runtime_error("failed to load texture image!");
     }
 
+    std::shared_ptr<ImageBufferConfig> image_buffer_config = image_buffer_config_template->makeInstance(path_to_file + "_cfg"s, {(uint32_t)tex_width, (uint32_t)tex_height});
     bool result = init(command_buffer, pixels, std::move(image_buffer_config));
 
     stbi_image_free(pixels);

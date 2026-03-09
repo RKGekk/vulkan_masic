@@ -51,10 +51,10 @@ bool VulkanResourcesManager::init(const std::string& rg_file_path) {
 std::shared_ptr<VulkanImageBuffer> VulkanResourcesManager::create_image(const std::string& path_to_file) {
 	if(m_image_map.contains(path_to_file)) return m_image_map[path_to_file];
 
-	std::shared_ptr<ImageBufferConfig> basic_image_config_template = m_image_buffer_config_map.at("basic_image_resource");
+	const std::shared_ptr<ImageBufferConfig>& basic_image_config_template = m_image_buffer_config_map.at("basic_image_resource");
 
 	std::shared_ptr<VulkanImageBuffer> image = std::make_shared<VulkanImageBuffer>(m_device, path_to_file);
-	image->init(std::move(basic_image_config), path_to_file);
+	image->init(basic_image_config_template, path_to_file);
 
 	return image;
 }
@@ -69,11 +69,14 @@ std::shared_ptr<VulkanImageBuffer> VulkanResourcesManager::create_image(VkImage 
 	return image;
 }
 
-std::shared_ptr<VulkanBuffer> VulkanResourcesManager::create_buffer(std::string resource_type_name) {
-	std::shared_ptr<BufferConfig> buffer_config = m_buffer_config_map.at(resource_type_name);
+std::shared_ptr<VulkanBuffer> VulkanResourcesManager::create_buffer(const void* data, VkDeviceSize buffer_size, std::string resource_type_name) {
+	using namespace std::literals;
 
-	std::shared_ptr<VulkanImageBuffer> image = std::make_shared<VulkanImageBuffer>(m_device, path_to_file);
-	image->init(std::move(basic_image_config), path_to_file);
+	const std::shared_ptr<BufferConfig>& buffer_config_template = m_buffer_config_map.at(resource_type_name);
+	std::shared_ptr<BufferConfig> buffer_config = buffer_config_template->makeInstance(resource_type_name + "_"s + get_uuid(), buffer_size);
 
-	return image;
+	std::shared_ptr<VulkanBuffer> buffer = std::make_shared<VulkanBuffer>(m_device);
+	buffer->init(data, std::move(buffer_config));
+
+	return buffer;
 }

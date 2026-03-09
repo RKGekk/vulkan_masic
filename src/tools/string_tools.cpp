@@ -1,6 +1,8 @@
 #pragma warning(disable : 4996)
 
 #include "string_tools.h"
+#include "mt_random.h"
+#include "chrono"
 
 std::wstring ConvertString(const std::string& string) {
     static std::locale loc("");
@@ -94,6 +96,20 @@ std::string stoupper(const std::string& s) {
 	std::string res = s;
 	std::for_each(res.begin(), res.end(), [](char& c) { c = ::toupper(c); });
 	return res;
+}
+
+std::string get_uuid() {
+    static MTRandom rnd = MTRandom(static_cast<unsigned int>(std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count()));
+    static const char *v = "0123456789abcdef";
+    static const bool dash[] = { 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0 };
+
+    std::string res;
+    for (int i = 0; i < 16; ++i) {
+        if (dash[i]) res += "-";
+        res += v[rnd.Random(16)];
+        res += v[rnd.Random(16)];
+    }
+    return res;
 }
 
 bool stobool(const std::string& s) {
