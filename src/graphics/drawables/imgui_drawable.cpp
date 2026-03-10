@@ -3,6 +3,8 @@
 #include "../vulkan_renderer.h"
 #include "../pod/image_buffer_config.h"
 #include "../pod/format_config.h"
+#include "../pod/render_node.h"
+#include "../api/vulkan_pipelines_manager.h"
 
 #include <filesystem>
 
@@ -64,65 +66,68 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<M
     io.KeyRepeatRate = 0.2f;
     ImGui::StyleColorsClassic();
 
-    m_font_texture = makeFontTexture(m_device, TTF_font_file_name.c_str(), font_size_pixels);
+    m_font_texture = makeFontTexture(m_device, managers, TTF_font_file_name.c_str(), font_size_pixels);
 
-    m_frag_shader.init(m_device->getDevice(), "shaders/imgui.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-    m_vert_shader.init(m_device->getDevice(), "shaders/imgui.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+    m_pipeline = managers->pipelines_manager->
+    m_render_node = std::make_shared<RenderNode>();
 
-    std::vector<VulkanDescriptor::Binding> binding(max_frames);
-    m_vertex_buffers.resize(max_frames);
-    m_uniform_buffers.resize(max_frames);
-    for(size_t i = 0u; i < max_frames; ++i) {
-        m_vertex_buffers[i] = std::make_shared<VertexBuffer>();
-        m_vertex_buffers[i]->init(m_device, nullptr, 0u, nullptr, 0u, VK_INDEX_TYPE_UINT16, getImVertextInputInfo(), VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    // m_frag_shader.init(m_device->getDevice(), "shaders/imgui.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+    // m_vert_shader.init(m_device->getDevice(), "shaders/imgui.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
 
-        m_uniform_buffers[i] = std::make_shared<VulkanUniformBuffer>();
-        m_uniform_buffers[i]->init<ImGuiUniformBufferObject>(m_device, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    // std::vector<VulkanDescriptor::Binding> binding(max_frames);
+    // m_vertex_buffers.resize(max_frames);
+    // m_uniform_buffers.resize(max_frames);
+    // for(size_t i = 0u; i < max_frames; ++i) {
+    //     m_vertex_buffers[i] = std::make_shared<VertexBuffer>();
+    //     m_vertex_buffers[i]->init(m_device, nullptr, 0u, nullptr, 0u, VK_INDEX_TYPE_UINT16, getImVertextInputInfo(), VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-        binding[i].resize(2u);
-        binding[i][0u].layout_binding.binding = 0u;
-        binding[i][0u].layout_binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        binding[i][0u].layout_binding.descriptorCount = 1u;
-        binding[i][0u].layout_binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-        binding[i][0u].layout_binding.pImmutableSamplers = nullptr;
-        binding[i][0u].buffer_info = std::make_shared<VkDescriptorBufferInfo>(m_uniform_buffers[i]->getDescBufferInfo());
+    //     m_uniform_buffers[i] = std::make_shared<VulkanUniformBuffer>();
+    //     m_uniform_buffers[i]->init<ImGuiUniformBufferObject>(m_device, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    //     binding[i].resize(2u);
+    //     binding[i][0u].layout_binding.binding = 0u;
+    //     binding[i][0u].layout_binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    //     binding[i][0u].layout_binding.descriptorCount = 1u;
+    //     binding[i][0u].layout_binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    //     binding[i][0u].layout_binding.pImmutableSamplers = nullptr;
+    //     binding[i][0u].buffer_info = std::make_shared<VkDescriptorBufferInfo>(m_uniform_buffers[i]->getDescBufferInfo());
         
-        binding[i][1u].layout_binding.binding = 1u;
-        binding[i][1u].layout_binding.descriptorCount = 1u;
-        binding[i][1u].layout_binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        binding[i][1u].layout_binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-        binding[i][1u].layout_binding.pImmutableSamplers = nullptr;
-        binding[i][1u].image_info = std::make_shared<VkDescriptorImageInfo>(m_font_texture->getDescImageInfo());
-        binding[i][1u].sampler = m_font_texture->getSampler()->getSampler();
-    }
+    //     binding[i][1u].layout_binding.binding = 1u;
+    //     binding[i][1u].layout_binding.descriptorCount = 1u;
+    //     binding[i][1u].layout_binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    //     binding[i][1u].layout_binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    //     binding[i][1u].layout_binding.pImmutableSamplers = nullptr;
+    //     binding[i][1u].image_info = std::make_shared<VkDescriptorImageInfo>(m_font_texture->getDescImageInfo());
+    //     binding[i][1u].sampler = m_font_texture->getSampler()->getSampler();
+    // }
 
-    m_descriptor.init(m_device->getDevice(), std::move(binding), max_frames);
+    // m_descriptor.init(m_device->getDevice(), std::move(binding), max_frames);
 
-    std::vector<VkPipelineShaderStageCreateInfo> pipeline_shaders_info;
-    pipeline_shaders_info.reserve(2u);
-    pipeline_shaders_info.push_back(m_frag_shader.getShaderInfo());
-    pipeline_shaders_info.push_back(m_vert_shader.getShaderInfo());
+    // std::vector<VkPipelineShaderStageCreateInfo> pipeline_shaders_info;
+    // pipeline_shaders_info.reserve(2u);
+    // pipeline_shaders_info.push_back(m_frag_shader.getShaderInfo());
+    // pipeline_shaders_info.push_back(m_vert_shader.getShaderInfo());
 
-    m_pipelines = std::vector<GraphicsPipeline>(2u);
-    m_pipelines[0].pipeline_cfg = createPipelineCfg(
-        {m_descriptor.getDescLayouts()},
-        rt.getRenderPass(RenderTarget::AttachmentLoadOp::LOAD),
-        rt.getViewportExtent(),
-        pipeline_shaders_info,
-        m_vertex_buffers[0]->getVertextInputInfo(),
-        m_device->getMsaaSamples()
-    );
-    m_pipelines[0].pipeline.init(m_device->getDevice(), m_pipelines[0].pipeline_cfg);
+    // m_pipelines = std::vector<GraphicsPipeline>(2u);
+    // m_pipelines[0].pipeline_cfg = createPipelineCfg(
+    //     {m_descriptor.getDescLayouts()},
+    //     rt.getRenderPass(RenderTarget::AttachmentLoadOp::LOAD),
+    //     rt.getViewportExtent(),
+    //     pipeline_shaders_info,
+    //     m_vertex_buffers[0]->getVertextInputInfo(),
+    //     m_device->getMsaaSamples()
+    // );
+    // m_pipelines[0].pipeline.init(m_device->getDevice(), m_pipelines[0].pipeline_cfg);
 
-    m_pipelines[1].pipeline_cfg = createPipelineCfg(
-        {m_descriptor.getDescLayouts()},
-        rt.getRenderPass(RenderTarget::AttachmentLoadOp::CLEAR),
-        rt.getViewportExtent(),
-        pipeline_shaders_info,
-        m_vertex_buffers[0]->getVertextInputInfo(),
-        m_device->getMsaaSamples()
-    );
-    m_pipelines[1].pipeline.init(m_device->getDevice(), m_pipelines[1].pipeline_cfg);
+    // m_pipelines[1].pipeline_cfg = createPipelineCfg(
+    //     {m_descriptor.getDescLayouts()},
+    //     rt.getRenderPass(RenderTarget::AttachmentLoadOp::CLEAR),
+    //     rt.getViewportExtent(),
+    //     pipeline_shaders_info,
+    //     m_vertex_buffers[0]->getVertextInputInfo(),
+    //     m_device->getMsaaSamples()
+    // );
+    // m_pipelines[1].pipeline.init(m_device->getDevice(), m_pipelines[1].pipeline_cfg);
 
     return true;
 }

@@ -1,14 +1,20 @@
 #pragma once
 
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
+#include <pugixml.hpp>
+
 #include "render_resource.h"
-#include "../api/vulkan_pipeline.h"
 
 class VulkanDevice;
+class VulkanPipeline;
+class RenderNodeConfig;
 
 class RenderNode {
 public:
@@ -24,6 +30,7 @@ public:
     using AttachMap = std::unordered_map<LocalName, AttachmentSlot>;
 
     bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<VulkanPipeline> pipeline);
+    bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<RenderNodeConfig> node_config);
     void destroy();
 
     void addReadDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as, bool only_read = true);
@@ -53,6 +60,7 @@ private:
     std::shared_ptr<VulkanPipeline> m_pipeline;
 
     uint32_t m_max_frames;
+    std::shared_ptr<RenderNodeConfig> m_node_config;
 
     std::vector<VkFramebuffer> m_frame_buffers;
     VkExtent2D m_viewport_extent;

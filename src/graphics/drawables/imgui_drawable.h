@@ -47,16 +47,11 @@ public:
 
 private:
     std::shared_ptr<VulkanDevice> m_device;
-
-    std::vector<GraphicsPipeline> m_pipelines;
-
-    VulkanDescriptor m_descriptor;
     int m_max_frames;
+
+    std::shared_ptr<VulkanPipeline> m_pipeline;
+    std::shared_ptr<RenderNode> m_render_node;
     
-
-    VulkanShader m_vert_shader;
-    VulkanShader m_frag_shader;
-
     std::shared_ptr<VulkanImageBuffer> m_font_texture;
     std::vector<std::shared_ptr<VulkanUniformBuffer>> m_uniform_buffers;
 

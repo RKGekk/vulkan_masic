@@ -4,6 +4,7 @@
 #include "vulkan_pipeline.h"
 #include "vulkan_render_pass.h"
 
+
 bool RenderGraph::init(std::shared_ptr<VulkanDevice> device) {
     m_device = std::move(device);
 

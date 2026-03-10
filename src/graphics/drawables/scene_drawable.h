@@ -23,7 +23,6 @@
 #include "../api/vulkan_pipeline.h"
 #include "../api/vulkan_shader.h"
 #include "../api/vulkan_descriptor.h"
-#include "../api/vulkan_texture.h"
 
 #include <array>
 #include <cstdint>
@@ -35,7 +34,7 @@ class SceneDrawable : public IVulkanDrawable {
 public:
     struct GraphicsPipeline {
         VulkanPipeline pipeline;
-        VulkanPipeline::PipelineCfg pipeline_cfg;
+        //VulkanPipeline::PipelineCfg pipeline_cfg;
     };
 
     struct Renderable {
@@ -45,7 +44,7 @@ public:
         VulkanDescriptor descriptor;
         std::shared_ptr<VulkanShader> vert_shader;
         std::shared_ptr<VulkanShader> frag_shader;
-        std::shared_ptr<VulkanTexture> texture;
+        //std::shared_ptr<VulkanTexture> texture;
     };
 
     bool init(std::shared_ptr<VulkanDevice> device, const RenderTarget& rt, int max_frames);

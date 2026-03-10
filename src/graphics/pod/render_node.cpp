@@ -2,9 +2,12 @@
 
 #include "../api/vulkan_render_pass.h"
 #include "render_pass_config.h"
+#include "render_node_config.h"
 #include "../api/vulkan_image_buffer.h"
 #include "../api/vulkan_device.h"
 #include "../api/vulkan_swapchain.h"
+#include "../api/vulkan_pipeline.h"
+#include "../api/vulkan_pipelines_manager.h"
 #include "../vulkan_renderer.h"
 #include "../../application.h"
 
@@ -17,11 +20,20 @@ bool RenderNode::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<Vulk
     return true;
 }
 
-void RenderNode::destroy() {
+bool RenderNode::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<RenderNodeConfig> node_config) {
+    m_device = std::move(device);
+    m_node_config = std::move(node_config);
 
+    m_pipeline = Application::Get().GetRenderer().getManagers()->pipelines_manager->getPipeline(m_node_config->getPipelineName());
+
+    
 }
 
-void RenderNode::addReadDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as) {
+void RenderNode::destroy() {
+    
+}
+
+void RenderNode::addReadDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as, bool only_read) {
     AttachmentSlot attachment_slot = {std::move(resource), std::move(attached_as)};
     m_read_resources[resource->getName()] = attachment_slot;
     m_read_attached[attached_as] = std::move(attachment_slot);
