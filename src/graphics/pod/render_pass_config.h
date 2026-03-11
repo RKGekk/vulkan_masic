@@ -13,13 +13,20 @@
 
 class VulkanDevice;
 class VulkanSwapChain;
+class VulkanFormatManager;
+class FormatConfig;
 
 class RenderPassConfig {
 public:
-    bool init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanSwapChain>& swapchain, const pugi::xml_node& render_pass_data);
+    bool init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanFormatManager>& format_manager, const pugi::xml_node& render_pass_data);
 
     const VkRenderPassCreateInfo& getRenderPassCreateInfo() const;
-    const std::unordered_map<std::string, size_t>& getAttachmentNameMap();
+
+    const std::unordered_map<std::string, size_t>& getAttachmentNameToIdxMap() const;
+    size_t getAttachmentIdx(const std::string& attachment_name) const;
+
+    const std::unordered_map<std::string, std::shared_ptr<FormatConfig>>& getAttachmentNameToFormatMap() const;
+    const std::shared_ptr<FormatConfig>& getAttachmentFormat(const std::string& attachment_name) const;
 
 private:
     std::string m_name;
@@ -27,13 +34,13 @@ private:
 
     std::vector<VkAttachmentDescription> m_attachment_descriptions;
     std::unordered_map<std::string, size_t> m_attachment_name_to_attach_idx_map;
-
+    std::unordered_map<std::string, std::shared_ptr<FormatConfig>> m_attachment_name_to_format_map;
 
     std::vector<VkAttachmentReference> m_input_desc_attach_refs;
 
     std::vector<VkAttachmentReference> m_color_desc_attach_refs;
     std::vector<VkAttachmentReference> m_resolve_desc_attach_refs;
-    VkAttachmentReference m_depth_desc_attach_ref;
+    std::vector<VkAttachmentReference> m_depth_desc_attach_refs;
 
     std::vector<VkSubpassDescription> m_subpass_descriptions;
     std::unordered_map<std::string, size_t> m_subpass_name_to_idx_map;

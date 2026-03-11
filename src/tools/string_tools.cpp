@@ -1047,7 +1047,7 @@ VkRenderPassCreateFlagBits getRenderPassCreateFlag(const std::string& flag_str) 
 	using namespace std::literals;
     VkRenderPassCreateFlagBits res{};
 
-    if(flag_str == "transform_bit_qcom"s) {res = VK_RENDER_PASS_CREATE_TRANSFORM_BIT_QCOM;}
+    if(flag_str == "transform_qcom"s) {res = VK_RENDER_PASS_CREATE_TRANSFORM_BIT_QCOM;}
     
     return res;
 }

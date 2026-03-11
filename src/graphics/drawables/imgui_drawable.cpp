@@ -4,7 +4,11 @@
 #include "../pod/image_buffer_config.h"
 #include "../pod/format_config.h"
 #include "../pod/render_node.h"
+#include "../pod/render_node_config.h"
 #include "../api/vulkan_pipelines_manager.h"
+#include "../../application.h"
+
+#include <pugixml.hpp>
 
 #include <filesystem>
 
@@ -42,6 +46,25 @@ std::shared_ptr<VulkanImageBuffer> makeFontTexture(std::shared_ptr<VulkanDevice>
     return font_texture;
 }
 
+std::shared_ptr<RenderNodeConfig> getImguiRenderNodeConfig(const std::shared_ptr<VulkanDevice>& device) {
+    std::shared_ptr<RenderNodeConfig> render_node_config = std::make_shared<RenderNodeConfig>();
+
+    pugi::xml_document xml_doc;
+	pugi::xml_parse_result parse_res = xml_doc.load_file(rg_file_path.c_str());
+	if (!parse_res) { return false;	}
+
+	pugi::xml_node root_node = xml_doc.root();
+	if (!root_node) { return false; }
+	root_node = root_node.child("RenderGraph");
+
+    pugi::xml_node render_nodes_node = root_node.child("RenderNodes");
+	if (!render_nodes_node) return false;
+
+    render_node_config->init(device, render_nodes_node.child("imgui_renderer"));
+
+    return render_node_config;
+}
+
 bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<Managers>& managers, int max_frames) {
     using namespace std::literals;
 
@@ -68,8 +91,14 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<M
 
     m_font_texture = makeFontTexture(m_device, managers, TTF_font_file_name.c_str(), font_size_pixels);
 
-    m_pipeline = managers->pipelines_manager->
+    std::shared_ptr<RenderNodeConfig> render_node_config = getImguiRenderNodeConfig(device);
     m_render_node = std::make_shared<RenderNode>();
+    m_render_node->init(device, std::move(render_node_config));
+
+    
+
+    m_render_node->finishRenderNode();
+    Application::GetRenderer().addRenderNode(m_render_node);
 
     // m_frag_shader.init(m_device->getDevice(), "shaders/imgui.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
     // m_vert_shader.init(m_device->getDevice(), "shaders/imgui.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);

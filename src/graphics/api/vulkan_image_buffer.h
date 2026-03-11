@@ -29,6 +29,7 @@ public:
 
     VkImage getImageBuffer() const;
     VkImageView getImageBufferView() const;
+    VkImageView getImageBufferView(const std::string& view_name) const;
     const std::unordered_map<std::string, VkImageView>& getImageViewMap() const;
     VkDeviceMemory getMemory() const;
     VkDeviceSize getSize() const;

@@ -233,6 +233,10 @@ VkImageView VulkanImageBuffer::getImageBufferView() const {
     return (*m_image_view_map.begin()).second;
 };
 
+VkImageView VulkanImageBuffer::getImageBufferView(const std::string& view_name) const {
+    return m_image_view_map.at(view_name);
+}
+
 const std::unordered_map<std::string, VkImageView>& VulkanImageBuffer::getImageViewMap() const {
     return m_image_view_map;
 }

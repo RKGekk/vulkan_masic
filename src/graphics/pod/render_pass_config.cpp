@@ -3,14 +3,15 @@
 #include "../../tools/string_tools.h"
 #include "../api/vulkan_device.h"
 #include "../api/vulkan_swapchain.h"
+#include "../api/vulkan_format_manager.h"
 
-bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanSwapChain>& swapchain, const pugi::xml_node& render_pass_data) {
+bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanFormatManager>& format_manager, const pugi::xml_node& render_pass_data) {
     using namespace std::literals;
 
     VkSampleCountFlagBits samples = device->getMsaaSamples();
-    VkExtent2D swapchain_extent = swapchain->getSwapchainParams().extent;
+    VkExtent2D swapchain_extent = swapchain->getSwapchainParams().imageExtent;
     VkImageUsageFlags depth_usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-    VkFormat swapchain_color_format = swapchain->getSwapchainParams().surface_format.format;
+    VkFormat swapchain_color_format = swapchain->getSwapchainParams().imageFormat;
     VkFormat swapchain_depth_format = device->findDepthFormat(depth_usage, swapchain_extent, 1u, samples);
     bool has_stencil = device->hasStencilComponent(swapchain_depth_format);
     
@@ -36,30 +37,10 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
 	        	}
             }
             
-            pugi::xml_node attachment_format_node = attachment_desc_node.child("Format");
-	        if (attachment_format_node) {
-                std::string format_str = attachment_format_node.text().as_string();
-                if(format_str == "as_swapchain"s) {
-                    attachment_desc.format = swapchain_color_format;
-                }
-                else if(format_str == "find_suitable_depth"s) {
-                    attachment_desc.format = swapchain_depth_format;
-                }
-                else {
-                    attachment_desc.format = getFormat(format_str);
-                }
-            }
-
-            pugi::xml_node attachment_samples_node = attachment_desc_node.child("Samples");
-	        if (attachment_samples_node) {
-                std::string samples_str = attachment_samples_node.text().as_string();
-                if(samples_str == "as_device"s || samples_str == "as_user"s) {
-                    attachment_desc.samples = samples;
-                }
-                else {
-                    attachment_desc.samples = getSampleCountFlag(samples_str);
-                }
-            }
+            std::string format_name = attachment_desc_node.child("FormatName").text().as_string();
+            std::shared_ptr<FormatConfig> format_config = format_manager->getFormat(format_name);
+            attachment_desc.format = format_config->getVkFormat();
+            attachment_desc.samples = format_config->getSamplesCount();
 
             pugi::xml_node attachment_load_op_node = attachment_desc_node.child("LoadOp");
 	        if (attachment_load_op_node) {
@@ -110,6 +91,7 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
             size_t attachment_desc_idx = m_attachment_descriptions.size();
             m_attachment_descriptions.push_back(attachment_desc);
             m_attachment_name_to_attach_idx_map.insert({attachment_desc_name, attachment_desc_idx});
+            m_attachment_name_to_format_map.insert({attachment_desc_name, std::move(format_config)});
 		}
     }
 
@@ -132,6 +114,7 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
 
             pugi::xml_node input_attachments_node = subpass_desc_node.child("InputAttachments");
 	        if (input_attachments_node) {
+                size_t input_attachments_start_point = m_input_desc_attach_refs.size();
                 for (pugi::xml_node input_attachment_ref_node = input_attachments_node.first_child(); input_attachment_ref_node; input_attachment_ref_node = input_attachment_ref_node.next_sibling()) {
                     VkAttachmentReference attach_ref{};
                     std::string input_attachment_ref_name = input_attachment_ref_node.child("AttachmentName").text().as_string();
@@ -141,12 +124,13 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
 
                     m_input_desc_attach_refs.push_back(attach_ref);
                 }
-                subpass_desc.inputAttachmentCount = static_cast<uint32_t>(m_input_desc_attach_refs.size());
-                subpass_desc.pInputAttachments = m_input_desc_attach_refs.data();
+                subpass_desc.inputAttachmentCount = static_cast<uint32_t>(m_input_desc_attach_refs.size() - input_attachments_start_point);
+                subpass_desc.pInputAttachments = m_input_desc_attach_refs.data() + input_attachments_start_point;
             }
 
             pugi::xml_node output_attachments_node = subpass_desc_node.child("OutputAttachments");
 	        if (output_attachments_node) {
+                size_t output_color_attachments_start_point = m_color_desc_attach_refs.size();
                 for (pugi::xml_node output_attachment_ref_node = output_attachments_node.child("AttachmentReferences").first_child(); output_attachment_ref_node; output_attachment_ref_node = output_attachment_ref_node.next_sibling()) {
 
                     pugi::xml_node color_output_attachments_node = output_attachment_ref_node.child("ColorAttachment");
@@ -174,18 +158,25 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
                 }
                 pugi::xml_node depth_stencil_output_attachments_node = output_attachments_node.child("DepthStencilAttachmen");
 	            if (depth_stencil_output_attachments_node) {
+                    VkAttachmentReference depth_desc_attach_ref{};
                     std::string depth_stencil_attachment_ref_name = depth_stencil_output_attachments_node.child("AttachmentName").text().as_string();
                     size_t depth_stencil_attachment_ref_idx = m_attachment_name_to_attach_idx_map.at(depth_stencil_attachment_ref_name);
-                    m_depth_desc_attach_ref.attachment = depth_stencil_attachment_ref_idx;
-                    m_depth_desc_attach_ref.layout = getImageLayout(depth_stencil_output_attachments_node.child("Layout").text().as_string());
-                    subpass_desc.pDepthStencilAttachment = &m_depth_desc_attach_ref;
+                    depth_desc_attach_ref.attachment = depth_stencil_attachment_ref_idx;
+                    depth_desc_attach_ref.layout = getImageLayout(depth_stencil_output_attachments_node.child("Layout").text().as_string());
+                    m_depth_desc_attach_refs.push_back(depth_desc_attach_ref);
+                    subpass_desc.pDepthStencilAttachment = &m_depth_desc_attach_refs.back();
                 }
                 else {
                     subpass_desc.pDepthStencilAttachment = nullptr;
                 }
-                subpass_desc.colorAttachmentCount = static_cast<uint32_t>(m_color_desc_attach_refs.size());
-                subpass_desc.pColorAttachments = m_color_desc_attach_refs.data();
-                subpass_desc.pResolveAttachments = m_resolve_desc_attach_refs.data();
+                subpass_desc.colorAttachmentCount = static_cast<uint32_t>(m_color_desc_attach_refs.size() - output_color_attachments_start_point);
+                subpass_desc.pColorAttachments = m_color_desc_attach_refs.data() + output_color_attachments_start_point;
+                subpass_desc.pResolveAttachments = m_resolve_desc_attach_refs.data() + output_color_attachments_start_point;
+            }
+
+            pugi::xml_node preserve_attachments_node = subpass_desc_node.child("PreserveAttachments");
+	        if (preserve_attachments_node) {
+
             }
 
             m_subpass_descriptions.push_back(subpass_desc);
@@ -276,4 +267,20 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
 
 const VkRenderPassCreateInfo& RenderPassConfig::getRenderPassCreateInfo() const {
     return m_render_pass_create_info;
+}
+
+const std::unordered_map<std::string, size_t>& RenderPassConfig::getAttachmentNameToIdxMap() const {
+    return m_attachment_name_to_attach_idx_map;
+}
+
+size_t RenderPassConfig::getAttachmentIdx(const std::string& attachment_name) const {
+    return m_attachment_name_to_attach_idx_map.at(attachment_name);
+}
+
+const std::unordered_map<std::string, std::shared_ptr<FormatConfig>>& RenderPassConfig::getAttachmentNameToFormatMap() const {
+    return m_attachment_name_to_format_map;
+}
+
+const std::shared_ptr<FormatConfig>& RenderPassConfig::getAttachmentFormat(const std::string& attachment_name) const {
+    return m_attachment_name_to_format_map.at(attachment_name);
 }

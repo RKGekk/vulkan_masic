@@ -29,7 +29,6 @@ public:
     using ResourceMap = std::unordered_map<GlobalName, AttachmentSlot>;
     using AttachMap = std::unordered_map<LocalName, AttachmentSlot>;
 
-    bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<VulkanPipeline> pipeline);
     bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<RenderNodeConfig> node_config);
     void destroy();
 
@@ -50,24 +49,30 @@ public:
     void finishRenderNode();
 
     const std::shared_ptr<VulkanPipeline>& getPipeline();
-    VkFramebuffer getFramebuffer(uint32_t frame_index) const;
+    VkFramebuffer getFramebuffer() const;
     VkExtent2D getViewportExtent() const;
 
-    const std::shared_ptr<RenderResource>& getAttachedResource(LocalName attached_as, uint32_t frame_index = -1) const;
+    const std::shared_ptr<RenderResource>& getAttachedResource(const LocalName& attached_as) const;
+    std::shared_ptr<VulkanImageBuffer> getAttachedImageResource(const LocalName& attached_as);
+    std::shared_ptr<VulkanImageBuffer> getWrittenAttachedImageResource(const LocalName& name);
+    std::shared_ptr<VulkanImageBuffer> getReadAttachedImageResource(const LocalName& name);
 
 private:
+    std::vector<VkImageView> getAttachments() const;
+
     std::shared_ptr<VulkanDevice> m_device;
     std::shared_ptr<VulkanPipeline> m_pipeline;
 
-    uint32_t m_max_frames;
     std::shared_ptr<RenderNodeConfig> m_node_config;
 
-    std::vector<VkFramebuffer> m_frame_buffers;
+    std::vector<VkImageView> m_framebuffers_attachments;
+    VkFramebufferCreateInfo m_framebuffer_info;
+    VkFramebuffer m_frame_buffer;
     VkExtent2D m_viewport_extent;
 
     ResourceMap m_read_resources;
     AttachMap m_read_attached;
 
     ResourceMap m_written_resources;
-    ResourceMap m_written_attached;
+    AttachMap m_written_attached;
 };

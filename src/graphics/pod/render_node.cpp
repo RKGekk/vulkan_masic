@@ -3,6 +3,8 @@
 #include "../api/vulkan_render_pass.h"
 #include "render_pass_config.h"
 #include "render_node_config.h"
+#include "image_buffer_config.h"
+#include "buffer_config.h"
 #include "../api/vulkan_image_buffer.h"
 #include "../api/vulkan_device.h"
 #include "../api/vulkan_swapchain.h"
@@ -13,20 +15,12 @@
 
 #include <utility>
 
-bool RenderNode::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<VulkanPipeline> pipeline) {
-    m_device = std::move(device);
-    m_pipeline = std::move(pipeline);
-
-    return true;
-}
-
 bool RenderNode::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<RenderNodeConfig> node_config) {
     m_device = std::move(device);
     m_node_config = std::move(node_config);
-
     m_pipeline = Application::Get().GetRenderer().getManagers()->pipelines_manager->getPipeline(m_node_config->getPipelineName());
 
-    
+    return true;
 }
 
 void RenderNode::destroy() {
@@ -77,56 +71,61 @@ const RenderNode::AttachMap& RenderNode::getWrittenAttachmentMap() const {
     return m_written_attached;
 }
 
+std::vector<VkImageView> RenderNode::getAttachments() const {
+    const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = m_pipeline->getRenderPass();
+    const std::shared_ptr<RenderPassConfig>& render_pass_cfg_ptr = render_pass_ptr->getRenderPassConfig();
+    std::vector<VkImageView> attachments;
+    const std::vector<RenderNodeConfig::FrameBufferAttachment>& attachments_config = m_node_config->getAttachmentsConfig();
+    size_t attachments_count = attachments_config.size();
+    attachments.resize(attachments_count);
+    for(size_t attachment_idx = 0u; attachment_idx < attachments_count; ++attachment_idx) {
+        const RenderNodeConfig::FrameBufferAttachment& frame_buffer_attachment = attachments_config.at(attachment_idx);
+        if(std::shared_ptr<VulkanImageBuffer> image_resource = std::dynamic_pointer_cast<VulkanImageBuffer>(m_written_attached.at(frame_buffer_attachment.attachment_name).resource)) {
+            attachments[attachment_idx] = image_resource->getImageBufferView(frame_buffer_attachment.attachment_resource_view);
+        }
+    }
+
+    return attachments;
+}
+
 void RenderNode::finishRenderNode() {
     VulkanRenderer& renderer = Application::GetRenderer();
 
-    m_max_frames = renderer.getSwapchain()->getMaxFrames();
-    m_frame_buffers.resize(m_max_frames);
-    for(int current_frame = 0; current_frame < m_max_frames; ++current_frame) {
-        const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = m_pipeline->getRenderPass();
-        const std::shared_ptr<RenderPassConfig>& render_pass_cfg_ptr = render_pass_ptr->getRenderPassConfig();
-        std::vector<VkImageView> attachments;
-        attachments.resize(render_pass_cfg_ptr->getAttachmentNameMap().size());
-        for(const auto&[attach_name, attach_idx] : render_pass_cfg_ptr->getAttachmentNameMap()) {
-            if(std::shared_ptr<VulkanImageBuffer> image_resource = std::dynamic_pointer_cast<VulkanImageBuffer>(m_written_attached.at(attach_name).resource)) {
-                attachments[attach_idx] = image_resource->getImageBufferView();
-                m_viewport_extent = {image_resource->getImageInfo().extent.width, image_resource->getImageInfo().extent.height};
-            }
-            else if(std::shared_ptr<VulkanSwapChain> swapchain_resource = std::dynamic_pointer_cast<VulkanSwapChain>(m_written_attached.at(attach_name).resource)) {
-                attachments[attach_idx] = swapchain_resource->getSwapchainImages().at(current_frame).getImageBufferView();
-                m_viewport_extent = swapchain_resource->getSwapchainParams().extent;
-            }
-        }
+    const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = m_pipeline->getRenderPass();
+    const std::shared_ptr<RenderPassConfig>& render_pass_cfg_ptr = render_pass_ptr->getRenderPassConfig();
+    std::vector<VkImageView> attachments = getAttachments();
 
-        VkFramebufferCreateInfo framebuffer_info{};
-        framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebuffer_info.renderPass = render_pass_ptr->getRenderPass();
-        framebuffer_info.attachmentCount = static_cast<uint32_t>(attachments.size());
-        framebuffer_info.pAttachments = attachments.data();
-        framebuffer_info.width = m_viewport_extent.width;
-        framebuffer_info.height = m_viewport_extent.height;
-        framebuffer_info.layers = 1u;
+    m_viewport_extent = getWrittenAttachedImageResource(m_node_config->getAttachmentsConfig().front().attachment_name)->getImageConfig()->getFormat()->getExtent2D();
 
-        VkResult result = vkCreateFramebuffer(m_device->getDevice(), &framebuffer_info, nullptr, &m_frame_buffers[current_frame]);
-        if(result != VK_SUCCESS) {
-            throw std::runtime_error("failed to create framebuffer!");
-        }
+    m_framebuffer_info = VkFramebufferCreateInfo{};
+    m_framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    m_framebuffer_info.renderPass = render_pass_ptr->getRenderPass();
+    m_framebuffer_info.attachmentCount = static_cast<uint32_t>(attachments.size());
+    m_framebuffer_info.pAttachments = attachments.data();
+    m_framebuffer_info.width = m_viewport_extent.width;
+    m_framebuffer_info.height = m_viewport_extent.height;
+    m_framebuffer_info.layers = 1u;
+
+    VkResult result = vkCreateFramebuffer(m_device->getDevice(), &m_framebuffer_info, nullptr, &m_frame_buffer);
+    if(result != VK_SUCCESS) {
+        throw std::runtime_error("failed to create framebuffer!");
     }
+    
 }
 
 const std::shared_ptr<VulkanPipeline>& RenderNode::getPipeline() {
     return m_pipeline;
 }
 
-VkFramebuffer RenderNode::getFramebuffer(uint32_t frame_index) const {
-    return m_frame_buffers.at(frame_index);
+VkFramebuffer RenderNode::getFramebuffer() const {
+    return m_frame_buffer;
 }
 
 VkExtent2D RenderNode::getViewportExtent() const {
     return m_viewport_extent;
 }
 
-const std::shared_ptr<RenderResource>& RenderNode::getAttachedResource(LocalName attached_as) const {
+const std::shared_ptr<RenderResource>& RenderNode::getAttachedResource(const RenderNode::LocalName& attached_as) const {
     if(isReadAttached(attached_as)) {
         return m_read_attached.at(attached_as).resource;
     }
@@ -135,7 +134,25 @@ const std::shared_ptr<RenderResource>& RenderNode::getAttachedResource(LocalName
         return m_written_attached.at(attached_as).resource;
     }
 
-    //const static std::shared_ptr<RenderResource> null_render_ptr = nullptr;
-    //return null_render_ptr;
     return nullptr;
+}
+
+std::shared_ptr<VulkanImageBuffer> RenderNode::getAttachedImageResource(const RenderNode::LocalName& attached_as) {
+    if(isReadAttached(attached_as)) {
+        return getWrittenAttachedImageResource(attached_as);
+    }
+
+    if(isWrittenAttached(attached_as)) {
+        return getReadAttachedImageResource(attached_as);
+    }
+
+    return nullptr;
+}
+
+std::shared_ptr<VulkanImageBuffer> RenderNode::getWrittenAttachedImageResource(const RenderNode::LocalName& name) {
+    return std::dynamic_pointer_cast<VulkanImageBuffer>(m_written_attached.at(name).resource);
+}
+
+std::shared_ptr<VulkanImageBuffer> RenderNode::getReadAttachedImageResource(const RenderNode::LocalName& name) {
+    return std::dynamic_pointer_cast<VulkanImageBuffer>(m_read_attached.at(name).resource);
 }
