@@ -35,3 +35,7 @@ std::shared_ptr<VulkanShader> VulkanShadersManager::getShader(const std::string 
     size_t shader_pos = m_shader_name_map.at(name);
     return m_shaders.at(shader_pos);
 }
+
+VkShaderStageFlagBits VulkanShadersManager::getShaderStage(const std::string name) const {
+    return m_shaders.at(m_shader_name_map.at(name))->getShaderInfo().stage;
+}

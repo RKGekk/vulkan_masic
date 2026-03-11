@@ -5,6 +5,7 @@
 #include "../pod/format_config.h"
 #include "../pod/render_node.h"
 #include "../pod/render_node_config.h"
+#include "../pod/pipeline_config.h"
 #include "../api/vulkan_pipelines_manager.h"
 #include "../../application.h"
 
@@ -92,16 +93,28 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<M
     m_font_texture = makeFontTexture(m_device, managers, TTF_font_file_name.c_str(), font_size_pixels);
 
     std::shared_ptr<RenderNodeConfig> render_node_config = getImguiRenderNodeConfig(device);
-    m_render_node = std::make_shared<RenderNode>();
-    m_render_node->init(device, std::move(render_node_config));
 
-    
+    m_render_nodes.resize(max_frames);
+    m_vertex_buffers.resize(max_frames);
+    m_uniform_buffers.resize(max_frames);
+    for(size_t i = 0u; i < max_frames; ++i) {
 
-    m_render_node->finishRenderNode();
-    Application::GetRenderer().addRenderNode(m_render_node);
+        m_vertex_buffers[i] = managers->resources_manager->create_buffer(nullptr, 0, "imgui_vertex_resource");
+        m_index_buffers[i] = managers->resources_manager->create_buffer(nullptr, 0, "imgui_index_resource");
+        m_uniform_buffers[i] = managers->resources_manager->create_buffer(nullptr, 0, "imgui_uniform_resource");
 
-    // m_frag_shader.init(m_device->getDevice(), "shaders/imgui.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-    // m_vert_shader.init(m_device->getDevice(), "shaders/imgui.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+        m_render_nodes[i] = std::make_shared<RenderNode>();
+        m_render_nodes[i]->init(device, render_node_config);
+
+        std::shared_ptr<VulkanShader> vertex_shader = m_render_nodes[i]->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
+
+        m_render_nodes[i]->addReadDependency(m_vertex_buffers[i], vertex_shader->getShaderSignature()->getVertexFormat().getVertexBufferBindingName());
+        m_render_nodes[i]->addReadDependency(m_index_buffers[i], vertex_shader->getShaderSignature()->getVertexFormat().getIndexBufferBindingName());
+        m_render_nodes[i]->addReadDependency(m_uniform_buffers[i], );
+
+        m_render_nodes[i]->finishRenderNode();
+        Application::GetRenderer().addRenderNode(m_render_nodes[i]);
+    }
 
     // std::vector<VulkanDescriptor::Binding> binding(max_frames);
     // m_vertex_buffers.resize(max_frames);

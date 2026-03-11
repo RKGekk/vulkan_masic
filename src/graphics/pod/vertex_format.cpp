@@ -185,3 +185,27 @@ VkVertexInputRate VertexFormat::getInputRate() const {
 void VertexFormat::setInputRate(VkVertexInputRate rate) {
     m_input_rate = rate;
 }
+
+size_t VertexFormat::getBindingNum() const {
+    return m_binding_num;
+}
+
+void VertexFormat::setBindingNum(size_t num) {
+    m_binding_num = num;
+}
+
+const std::string& VertexFormat::getVertexBufferBindingName() const {
+    return m_vertex_buffer_binding_name;
+}
+
+void VertexFormat::setVertexBufferBindingName(std::string name) {
+    m_vertex_buffer_binding_name = std::move(name);
+}
+
+const std::string& VertexFormat::getIndexBufferBindingName() const {
+    return m_index_buffer_binding_name;
+}
+
+void VertexFormat::setIndexBufferBindingName(std::string name) {
+    m_index_buffer_binding_name = std::move(name);
+}

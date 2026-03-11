@@ -56,6 +56,8 @@ std::shared_ptr<VulkanImageBuffer> VulkanResourcesManager::create_image(const st
 	std::shared_ptr<VulkanImageBuffer> image = std::make_shared<VulkanImageBuffer>(m_device, path_to_file);
 	image->init(basic_image_config_template, path_to_file);
 
+	m_image_map[path_to_file] = image;
+
 	return image;
 }
 
@@ -65,6 +67,8 @@ std::shared_ptr<VulkanImageBuffer> VulkanResourcesManager::create_image(VkImage 
 	std::shared_ptr<ImageBufferConfig> basic_image_config = m_image_buffer_config_map.at(resource_type_name);
 	std::shared_ptr<VulkanImageBuffer> image = std::make_shared<VulkanImageBuffer>(m_device, image_name);
 	image->init(vk_image, std::move(basic_image_config));
+
+	m_image_map[image_name] = image;
 
 	return image;
 }
@@ -79,4 +83,36 @@ std::shared_ptr<VulkanBuffer> VulkanResourcesManager::create_buffer(const void* 
 	buffer->init(data, std::move(buffer_config));
 
 	return buffer;
+}
+
+std::shared_ptr<VulkanBuffer> VulkanResourcesManager::create_buffer(const void* data, VkDeviceSize buffer_size, std::string buffer_name, std::string resource_type_name) {
+	using namespace std::literals;
+
+	const std::shared_ptr<BufferConfig>& buffer_config_template = m_buffer_config_map.at(resource_type_name);
+	std::shared_ptr<BufferConfig> buffer_config = buffer_config_template->makeInstance(buffer_name + "_"s + resource_type_name, buffer_size);
+
+	std::shared_ptr<VulkanBuffer> buffer = std::make_shared<VulkanBuffer>(m_device, buffer_name);
+	buffer->init(data, std::move(buffer_config));
+
+	m_buffer_map[buffer_name] = buffer;
+
+	return buffer;
+}
+
+const std::shared_ptr<VulkanImageBuffer>& VulkanResourcesManager::getImageResource(const std::string& resource_global_name) {
+	return m_image_map.at(resource_global_name);
+}
+
+const std::shared_ptr<VulkanBuffer>& VulkanResourcesManager::getBufferResource(const std::string& resource_global_name) {
+	return m_buffer_map.at(resource_global_name);
+}
+
+std::shared_ptr<RenderResource> VulkanResourcesManager::getResource(const std::string& resource_global_name) {
+	if(m_image_map.contains(resource_global_name)) {
+		return m_image_map[resource_global_name];
+	}
+	else if(m_buffer_map.contains(resource_global_name)) {
+		return m_buffer_map[resource_global_name];
+	}
+	return nullptr;
 }

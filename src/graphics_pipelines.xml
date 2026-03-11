@@ -483,7 +483,7 @@
             <EntryPointName>main</EntryPointName>
             <Stage>vertex</Stage>
             <InputAttributeDescription>
-                <Binding num="0" input_rate="vertex" vertex_buffer_resource_type="imgui_vertex_resource" index_buffer_resource_type="imgui_index_resource">
+                <Binding num="0" vertex_buffer_bind_name="vertex" index_buffer_bind_name="index" input_rate="vertex" vertex_buffer_resource_type="imgui_vertex_resource" index_buffer_resource_type="imgui_index_resource">
                     <Attribute name="inPosition">
                         <Location>0</Location>
                         <Format>vec2</Format>

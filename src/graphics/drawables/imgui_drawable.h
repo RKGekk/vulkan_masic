@@ -18,7 +18,6 @@
 #include "vulkan_drawable.h"
 #include "../pod/render_resource.h"
 #include "../api/vulkan_uniform_buffer.h"
-#include "../api/vulkan_vertex_buffer.h"
 #include "../api/vulkan_pipeline.h"
 #include "../api/vulkan_shader.h"
 #include "../api/vulkan_descriptor.h"
@@ -50,12 +49,13 @@ private:
     int m_max_frames;
 
     std::shared_ptr<VulkanPipeline> m_pipeline;
-    std::shared_ptr<RenderNode> m_render_node;
+    std::vector<std::shared_ptr<RenderNode>> m_render_nodes;
     
     std::shared_ptr<VulkanImageBuffer> m_font_texture;
     std::vector<std::shared_ptr<VulkanUniformBuffer>> m_uniform_buffers;
 
-    std::vector<std::shared_ptr<VertexBuffer>> m_vertex_buffers;
+    std::vector<std::shared_ptr<VulkanBuffer>> m_vertex_buffers;
+    std::vector<std::shared_ptr<VulkanBuffer>> m_index_buffers;
     std::vector<std::vector<ImDrawVert>> m_imgui_vtx;
     std::vector<std::vector<ImDrawIdx>> m_imgui_idx;
 

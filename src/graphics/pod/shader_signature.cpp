@@ -83,9 +83,12 @@ bool ShaderSignature::init(const pugi::xml_node& shader_data) {
     pugi::xml_node input_attributes_desc_node = shader_data.child("InputAttributeDescription");
 	if (input_attributes_desc_node) {
         for (pugi::xml_node binding_node = input_attributes_desc_node.first_child(); binding_node; binding_node = binding_node.next_sibling()) {
-            size_t binding_num = binding_node.attribute("num").as_int();
+
             VertexFormat vf;
             vf.setInputRate(getVertexInputRate(binding_node.attribute("input_rate").as_string()));
+            vf.setBindingNum(binding_node.attribute("num").as_int());
+            vf.setVertexBufferBindingName(binding_node.attribute("vertex_buffer_bind_name").as_string());
+            vf.setIndexBufferBindingName(binding_node.attribute("index_buffer_bind_name").as_string());
 
             for (pugi::xml_node attribute_node = binding_node.first_child(); attribute_node; attribute_node = attribute_node.next_sibling()) {
                 int location = attribute_node.child("Location").text().as_int(0);

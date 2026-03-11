@@ -19,6 +19,7 @@ public:
     void destroy();
 
     std::shared_ptr<VulkanShader> getShader(const std::string name) const;
+    VkShaderStageFlagBits getShaderStage(const std::string name) const;
 
 private:
     std::shared_ptr<VulkanDevice> m_device;

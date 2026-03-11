@@ -101,8 +101,21 @@ public:
     VkVertexInputRate getInputRate() const;
     void setInputRate(VkVertexInputRate rate);
 
+    size_t getBindingNum() const;
+    void setBindingNum(size_t num);
+
+    const std::string& getVertexBufferBindingName() const;
+    void setVertexBufferBindingName(std::string name);
+
+    const std::string& getIndexBufferBindingName() const;
+    void setIndexBufferBindingName(std::string name);
+
 private:
     VkVertexInputRate m_input_rate = VK_VERTEX_INPUT_RATE_VERTEX;
+    size_t m_binding_num;
+    std::string m_vertex_buffer_binding_name;
+    std::string m_index_buffer_binding_name;
+
     std::vector<SemanticName> m_semantic_pos;
     std::vector<VertexAttributeFormat> m_format_pos;
     std::unordered_map<SemanticName, size_t> m_semantic_pos_map;
