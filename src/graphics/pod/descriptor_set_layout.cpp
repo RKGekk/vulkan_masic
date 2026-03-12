@@ -11,6 +11,8 @@ bool DescSetLayout::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_n
     
     pugi::xml_node layout_node = descriptor_sets_node.child("Layout");
 	for (pugi::xml_node layout_binding_node = layout_node.first_child(); layout_binding_node; layout_binding_node = layout_binding_node.next_sibling()) {
+        std::string layout_binding_name = layout_binding_node.attribute("name").as_string();
+
         VkDescriptorSetLayoutBinding layout_binding{};
         layout_binding.binding = layout_binding_node.child("Binding").text().as_int();
         layout_binding.descriptorType = getDescriptorType(layout_binding_node.child("DescriptorType").text().as_string());
@@ -32,7 +34,10 @@ bool DescSetLayout::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_n
         
         layout_binding.pImmutableSamplers = m_immutable_samplers_ptr.data();
         
+        m_binding_num_to_idx_map[layout_binding.binding] = m_bindings.size();
         m_bindings.push_back(layout_binding);
+        m_binding_name_map[layout_binding_name] = layout_binding.binding;
+        m_binding_num_to_name_map[layout_binding.binding] = layout_binding_name;
 
         UpdateMetadata metadata{};
 
@@ -129,9 +134,9 @@ VkDescriptorSetLayoutBinding DescSetLayout::getBinding(VkDescriptorType desc_typ
     return {};
 }
 
-VkDescriptorSetLayoutBinding DescSetLayout::getBinding(uint32_t binding_num) const {
-    for(const VkDescriptorSetLayoutBinding& binding : m_bindings) {
-        if(binding.binding == binding_num) return binding;
+VkDescriptorSetLayoutBinding DescSetLayout::getBinding(DescSetLayout::BindingNum binding_num) const {
+    if(m_binding_num_to_idx_map.contains(binding_num)) {
+        return m_bindings.at(m_binding_num_to_idx_map.at(binding_num));
     }
     return {};
 }
@@ -143,11 +148,22 @@ bool DescSetLayout::haveBindingType(VkDescriptorType desc_type) const {
     return false;
 }
 
-bool DescSetLayout::haveBindingNum(uint32_t binding_num) const {
+bool DescSetLayout::haveBindingNum(DescSetLayout::BindingNum binding_num) const {
+    return m_binding_num_to_idx_map.contains(binding_num);
+}
+
+const std::string& DescSetLayout::getBindingName(VkDescriptorType desc_type) const {
+    static const std::string empty = "";
     for(const VkDescriptorSetLayoutBinding& binding : m_bindings) {
-        if(binding.binding == binding_num) return true;
+        if(binding.descriptorType == desc_type) {
+            return m_binding_num_to_name_map.at(binding.binding);
+        }
     }
-    return false;
+    return empty;
+}
+
+const std::string& DescSetLayout::getBindingName(DescSetLayout::BindingNum binding_num) const {
+    return m_binding_num_to_name_map.at(binding_num);
 }
 
 const std::vector<std::shared_ptr<VulkanSampler>>& DescSetLayout::getImmutableSamplers() const {

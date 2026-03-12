@@ -6,8 +6,10 @@
 #include <pugixml.hpp>
 
 #include <cstdint>
+#include <string>
 #include <map>
 #include <memory>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -34,6 +36,8 @@ public:
 
     using DescSetBindings = std::vector<VkDescriptorSetLayoutBinding>;
     using DescSetBindingsMetadata = std::vector<UpdateMetadata>;
+    using BindingNum = uint32_t;
+    using BindingIndex = int;
 
     bool init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_path);
     bool init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& descriptor_sets_node);
@@ -43,9 +47,11 @@ public:
     const std::string& getAllocatorName() const;
     const DescSetBindings& getBindings() const;
     VkDescriptorSetLayoutBinding getBinding(VkDescriptorType desc_type) const;
-    VkDescriptorSetLayoutBinding getBinding(uint32_t binding_num) const;
+    VkDescriptorSetLayoutBinding getBinding(BindingNum binding_num) const;
     bool haveBindingType(VkDescriptorType desc_type) const;
-    bool haveBindingNum(uint32_t binding_num) const;
+    bool haveBindingNum(BindingNum binding_num) const;
+    const std::string& getBindingName(VkDescriptorType desc_type) const;
+    const std::string& getBindingName(BindingNum binding_num) const;
     const std::vector<std::shared_ptr<VulkanSampler>>& getImmutableSamplers() const;
     const std::vector<VkSampler>& getImmutableSamplersPtr() const;
     VkDescriptorSetLayoutCreateInfo getDescriptorSetLayoutInfo() const;
@@ -56,7 +62,12 @@ private:
 
     std::string m_name;
     std::string m_allocator_name;
+
     DescSetBindings m_bindings;
+    std::unordered_map<std::string, BindingNum> m_binding_name_map;
+    std::unordered_map<BindingNum, std::string> m_binding_num_to_name_map;
+    std::unordered_map<BindingNum, BindingIndex> m_binding_num_to_idx_map;
+
     DescSetBindingsMetadata m_bindings_metadata;
     std::vector<std::shared_ptr<VulkanSampler>> m_immutable_samplers;
     std::vector<VkSampler> m_immutable_samplers_ptr;

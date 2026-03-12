@@ -10,6 +10,7 @@
 #include <vector>
 
 class VulkanDevice;
+class VulkanDescriptor;
 class VulkanDescriptorsManager;
 class VulkanShadersManager;
 class PipelineConfig;
@@ -49,6 +50,7 @@ private:
     std::vector<VkVertexInputBindingDescription> m_input_binding_descs;
     std::vector<VkVertexInputAttributeDescription> m_input_attribute_descs;
     std::vector<VkDescriptorSetLayout> m_desc_set_layouts;
+    std::vector<VulkanDescriptor> m_descriptor_sets;
     std::vector<VkPushConstantRange> m_push_constants;
     VkPipelineLayout m_pipeline_layout = VK_NULL_HANDLE;
     VkPipelineLayoutCreateInfo m_pipeline_layout_info;
