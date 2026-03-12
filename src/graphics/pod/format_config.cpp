@@ -73,6 +73,7 @@ bool FormatConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::
         m_extent_2D = {1u, 1u};
         m_extent_3D = {1u, 1u, 1u};
     }
+    m_aspect = ((float)m_extent_2D.width) / ((float)m_extent_2D.height);
     
     pugi::xml_node mip_node = format_data.child("MipLevels");
     std::string mip_str = mip_node.text().as_string();
@@ -145,6 +146,8 @@ void FormatConfig::setExtent2D(VkExtent2D extent) {
     m_extent_2D = extent;
     m_extent_3D.width = m_extent_2D.width;
     m_extent_3D.height = m_extent_2D.height;
+
+    m_aspect = ((float)m_extent_2D.width) / ((float)m_extent_2D.height);
 }
 
 VkExtent3D FormatConfig::getExtent3D() const {
@@ -155,6 +158,8 @@ void FormatConfig::setExtent3D(VkExtent3D extent) {
     m_extent_3D = extent;
     m_extent_2D.width = m_extent_3D.width;
     m_extent_2D.height = m_extent_3D.height;
+
+    m_aspect = ((float)m_extent_2D.width) / ((float)m_extent_2D.height);
 }
 
 uint32_t FormatConfig::getMipLevels() const {
@@ -227,6 +232,10 @@ VkFormat FormatConfig::getVkFormat() const {
 
 void FormatConfig::setVkFormat(VkFormat format) {
     m_format = format;
+}
+
+float FormatConfig::getAspect() const {
+    return m_aspect;
 }
 
 VkColorSpaceKHR FormatConfig::getVkColorSpace() const {

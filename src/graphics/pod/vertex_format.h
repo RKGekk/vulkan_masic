@@ -98,6 +98,10 @@ public:
     size_t getVertexAttribCount() const;
     size_t getVertexSize() const;
 
+    VkIndexType getIndexType() const;
+    uint32_t getIndexTypeBytesCount() const;
+    void setIndexType(VkIndexType idx_type);
+
     VkVertexInputRate getInputRate() const;
     void setInputRate(VkVertexInputRate rate);
 
@@ -113,6 +117,7 @@ public:
 private:
     VkVertexInputRate m_input_rate = VK_VERTEX_INPUT_RATE_VERTEX;
     size_t m_binding_num;
+    VkIndexType m_index_type;
     std::string m_vertex_buffer_binding_name;
     std::string m_index_buffer_binding_name;
 

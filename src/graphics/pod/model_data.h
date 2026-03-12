@@ -16,13 +16,14 @@
 
 #include "../../physics/bounding_box.h"
 #include "../../physics/bounding_sphere.h"
-#include "../api/vulkan_vertex_buffer.h"
 #include "material.h"
 #include "vertex_format.h"
 
 #include <map>
 #include <memory>
 #include <string>
+
+class VulkanBuffer;
 
 class ModelData {
 public:
@@ -32,8 +33,11 @@ public:
 	void SetPrimitiveTopology(VkPrimitiveTopology primitive_toplogy);
 	VkPrimitiveTopology GetPrimitiveTopology() const;
 
-	void SetVertexBuffer(std::shared_ptr<VertexBuffer> vertex_buffer);
-	const std::shared_ptr<VertexBuffer>& GetVertexBuffer() const;
+	void SetVertexBuffer(std::shared_ptr<VulkanBuffer> vertex_buffer);
+	const std::shared_ptr<VulkanBuffer>& GetVertexBuffer() const;
+
+	void SetIndexBuffer(std::shared_ptr<VulkanBuffer> index_buffer);
+	const std::shared_ptr<VulkanBuffer>& GetIndexBuffer() const;
 
 	size_t GetIndexCount() const;
 	size_t GetVertexCount() const;
@@ -49,12 +53,12 @@ public:
 	const std::string& GetName() const;
 	void SetName(std::string name);
 
-	VkPipelineVertexInputStateCreateInfo GetVertextInputInfo() const;
 	const VertexFormat& GetVertexFormat();
 	void SetVertexFormat(const VertexFormat& format);
 
 private:
-	std::shared_ptr<VertexBuffer> m_vertex_buffer;
+	std::shared_ptr<VulkanBuffer> m_vertex_buffer;
+	std::shared_ptr<VulkanBuffer> m_index_buffer;
 	VertexFormat m_vertex_format;
 	std::shared_ptr<Material> m_material;
 

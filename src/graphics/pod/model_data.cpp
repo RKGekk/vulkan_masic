@@ -3,9 +3,11 @@
 #include <mutex>
 #include <utility>
 
+#include "../api/vulkan_buffer.h"
+
 ModelData::ModelData() : m_primitive_topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST) {}
 
-const std::shared_ptr<VertexBuffer>& ModelData::GetVertexBuffer() const {
+const std::shared_ptr<VulkanBuffer>& ModelData::GetVertexBuffer() const {
     return m_vertex_buffer;
 }
 
@@ -17,14 +19,22 @@ VkPrimitiveTopology ModelData::GetPrimitiveTopology() const {
     return m_primitive_topology;
 }
 
-void ModelData::SetVertexBuffer(std::shared_ptr<VertexBuffer> vertex_buffer) {
+void ModelData::SetVertexBuffer(std::shared_ptr<VulkanBuffer> vertex_buffer) {
     m_vertex_buffer = std::move(vertex_buffer);
 }
 
+void ModelData::SetIndexBuffer(std::shared_ptr<VulkanBuffer> index_buffer) {
+    m_index_buffer = std::move(index_buffer);
+}
+
+const std::shared_ptr<VulkanBuffer>& ModelData::GetIndexBuffer() const {
+    return index_buffer;
+}
+
 size_t ModelData::GetIndexCount() const {
-    size_t index_count = 0;
-    if (m_vertex_buffer) {
-        index_count = m_vertex_buffer->getIndicesCount();
+    size_t index_count = 0u;
+    if (m_index_buffer) {
+        index_count = m_index_buffer->getSize() / m_vertex_format.getIndexTypeBytesCount();;
     }
 
     return index_count;
@@ -34,7 +44,7 @@ size_t ModelData::GetVertexCount() const {
     size_t vertex_count = 0u;
 
     if (m_vertex_buffer) {
-        vertex_count = m_vertex_buffer->getVertexCount();
+        vertex_count = m_vertex_buffer->getSize() /  m_vertex_format.getVertexSize();
     }
 
     return vertex_count;
@@ -66,38 +76,6 @@ const std::string& ModelData::GetName() const {
 
 void ModelData::SetName(std::string name) {
     m_name = std::move(name);
-}
-
-VkPipelineVertexInputStateCreateInfo ModelData::GetVertextInputInfo() const {
-    static std::vector<VkVertexInputBindingDescription> binding_desc(1);
-    static std::once_flag binding_exe_flag;
-    std::call_once(binding_exe_flag, [this](){
-        binding_desc[0].binding = 0u;
-        binding_desc[0].stride = m_vertex_format.getVertexSize();
-        binding_desc[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-    });
-
-    static std::vector<VkVertexInputAttributeDescription> attribute_desc;
-    static std::once_flag attribute_exe_flag;
-    std::call_once(attribute_exe_flag, [this](){
-        size_t sz = m_vertex_format.getVertexAttribCount();
-        attribute_desc.resize(sz);
-        for (size_t i = 0; i < sz; ++i) {
-            attribute_desc[i].binding = 0u;
-            attribute_desc[i].location = i;
-            attribute_desc[i].format = getAttributeFormat(m_vertex_format.getAttribFormat(i));
-            attribute_desc[i].offset = m_vertex_format.getOffset(i);
-        }
-    });
-
-    VkPipelineVertexInputStateCreateInfo vertex_input_info{};
-    vertex_input_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertex_input_info.vertexBindingDescriptionCount = static_cast<uint32_t>(binding_desc.size());
-    vertex_input_info.pVertexBindingDescriptions = binding_desc.data();
-    vertex_input_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribute_desc.size());
-    vertex_input_info.pVertexAttributeDescriptions = attribute_desc.data();
-
-    return vertex_input_info;
 }
 
 const VertexFormat& ModelData::GetVertexFormat() {

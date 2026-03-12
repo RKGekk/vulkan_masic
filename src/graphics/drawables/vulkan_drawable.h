@@ -7,7 +7,6 @@
 #include "../pod/render_resource.h"
 #include "../api/vulkan_command_buffer.h"
 #include "../api/vulkan_image_buffer.h"
-#include "../api/vulkan_render_target.h"
 
 #include <cstdint>
 #include <memory>
@@ -16,7 +15,7 @@
 
 class IVulkanDrawable {
 public:
-    virtual void reset(const RenderTarget& rt) = 0;
+    virtual void reset() = 0;
     virtual void destroy() = 0;
     virtual void update(const GameTimerDelta& delta, uint32_t image_index) = 0;
     virtual int order() = 0;

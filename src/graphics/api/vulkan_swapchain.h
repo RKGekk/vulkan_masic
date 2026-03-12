@@ -50,6 +50,7 @@ public:
     VkSwapchainKHR getSwapchain() const;
 
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& getSwapchainImages() const;
+    const std::shared_ptr<FormatConfig>& getFormatConfig() const;
 
     static VkSurfaceKHR createSurface(VkInstance vk_instance, GLFWwindow* glfw_window_ptr);
     static SwapchainSupportDetails querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface);

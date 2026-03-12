@@ -3,6 +3,7 @@
 #include "vulkan_device.h"
 #include "../pod/pipeline_config.h"
 #include "vulkan_shaders_manager.h"
+#include "vulkan_shader.h"
 #include "vulkan_pipelines_manager.h"
 #include "vulkan_descriptors_manager.h"
 #include "vulkan_render_pass.h"

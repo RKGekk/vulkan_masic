@@ -24,7 +24,6 @@
 #include "api/vulkan_image_buffer.h"
 #include "api/vulkan_command_buffer.h"
 #include "api/vulkan_command_pool_type.h"
-#include "api/vulkan_uniform_buffer.h"
 #include "api/vulkan_render_passes_manager.h"
 #include "api/vulkan_semaphores_manager.h"
 #include "api/vulkan_fence_manager.h"

@@ -15,6 +15,7 @@ class VulkanDescriptorsManager;
 class VulkanShadersManager;
 class PipelineConfig;
 class VulkanRenderPass;
+class VulkanShader;
 
 class VulkanPipeline {
 public:

@@ -62,7 +62,7 @@ public:
 
     VkFormat getVkFormat() const;
     void setVkFormat(VkFormat format);
-
+    float getAspect() const;
     VkColorSpaceKHR getVkColorSpace() const;
     void setVkColorSpace(VkColorSpaceKHR color_space);
 
@@ -82,6 +82,7 @@ private:
     ExtentSource m_extent_source;
     VkExtent2D m_extent_2D;
     VkExtent3D m_extent_3D;
+    float m_aspect;
     uint32_t m_mip_levels;
     uint32_t m_array_layers;
     VkSampleCountFlagBits m_samples;

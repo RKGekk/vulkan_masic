@@ -178,6 +178,24 @@ size_t VertexFormat::getVertexSize() const {
     return stride;
 }
 
+VkIndexType VertexFormat::getIndexType() const {
+    return m_index_type;
+}
+
+uint32_t VertexFormat::getIndexTypeBytesCount() const {
+    switch (m_index_type) {
+        case VK_INDEX_TYPE_UINT16 : return 2u;
+        case VK_INDEX_TYPE_UINT32 : return 4u;
+        case VK_INDEX_TYPE_NONE_KHR : return 0u;
+        case VK_INDEX_TYPE_UINT8_KHR : return 1u;
+        default : return 0;
+    }
+}
+
+void VertexFormat::setIndexType(VkIndexType idx_type) {
+    m_index_type = idx_type;
+}
+
 VkVertexInputRate VertexFormat::getInputRate() const {
     return m_input_rate;
 }

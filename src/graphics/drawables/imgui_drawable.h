@@ -17,11 +17,9 @@
 #include "../api/vulkan_device.h"
 #include "vulkan_drawable.h"
 #include "../pod/render_resource.h"
-#include "../api/vulkan_uniform_buffer.h"
 #include "../api/vulkan_pipeline.h"
 #include "../api/vulkan_shader.h"
 #include "../api/vulkan_descriptor.h"
-#include "../api/vulkan_image_buffer.h"
 
 #include <array>
 #include <memory>
@@ -30,18 +28,21 @@
 #include <vector>
 
 struct Managers;
+class RenderNode;
+class VulkanBuffer;
+class VulkanImageBuffer;
 
 class ImGUIDrawable : public IVulkanDrawable {
 public:
     bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<Managers>& managers, int max_frames);
 
-    void reset(const RenderTarget& rt) override;
+    void reset() override;
     void destroy() override;
     void update(const GameTimerDelta& delta, uint32_t image_index) override;
 
     virtual int order() override;
 
-    void beginFrame(const RenderTarget& rt);
+    void beginFrame();
     void endFrame();
 
 private:
@@ -52,7 +53,7 @@ private:
     std::vector<std::shared_ptr<RenderNode>> m_render_nodes;
     
     std::shared_ptr<VulkanImageBuffer> m_font_texture;
-    std::vector<std::shared_ptr<VulkanUniformBuffer>> m_uniform_buffers;
+    std::vector<std::shared_ptr<VulkanBuffer>> m_uniform_buffers;
 
     std::vector<std::shared_ptr<VulkanBuffer>> m_vertex_buffers;
     std::vector<std::shared_ptr<VulkanBuffer>> m_index_buffers;
