@@ -141,26 +141,34 @@ void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     float angle = delta.fGetTotalSeconds() * glm::radians(90.f);
     glm::vec3 rotation_axis = glm::vec3(0.0f, 0.0f, 1.0f);
     ImDrawData* dd = ImGui::GetDrawData();
-    size_t vertex_count = m_index_buffers[image_index]->getSize();
+    std::shared_ptr<VulkanShader> vertex_shader = m_render_nodes[image_index]->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
+    size_t vertex_count = m_index_buffers[image_index]->getSize() / vertex_shader->getShaderSignature()->getVertexFormat().getIndexTypeBytesCount();
 
-    if(m_vertex_buffers[image_index]->getVertexCount() < dd->TotalVtxCount || m_vertex_buffers[image_index]->getIndicesCount() < dd->TotalIdxCount) {
+    if(vertex_count < dd->TotalVtxCount) {
         m_imgui_vtx[image_index].resize(dd->TotalVtxCount);
         m_imgui_idx[image_index].resize(dd->TotalIdxCount);
-        m_vertex_buffers[image_index]->destroy();
-        m_vertex_buffers[image_index]->init(m_device, nullptr, dd->TotalVtxCount, nullptr, dd->TotalIdxCount, VK_INDEX_TYPE_UINT16, getImVertextInputInfo());
     }
 
-    uint32_t idxOffset = 0;
+    int vertex_sz = 0;
+    int index_sz = 0;
     uint32_t vtxOffset = 0;
+    uint32_t idxOffset = 0;
     ImDrawVert* vtx = (ImDrawVert*)m_imgui_vtx[image_index].data();
     uint16_t* idx = (uint16_t*)m_imgui_idx[image_index].data();
     for (const ImDrawList* cmdList : dd->CmdLists) {
-        memcpy(vtx, cmdList->VtxBuffer.Data, cmdList->VtxBuffer.Size * sizeof(ImDrawVert));
-        memcpy(idx, cmdList->IdxBuffer.Data, cmdList->IdxBuffer.Size * sizeof(ImDrawIdx));
+        size_t vtx_sz = cmdList->VtxBuffer.Size * sizeof(ImDrawVert);
+        size_t idx_sz = cmdList->IdxBuffer.Size * sizeof(ImDrawIdx);
+
+        memcpy(vtx, cmdList->VtxBuffer.Data, vtx_sz);
+        memcpy(idx, cmdList->IdxBuffer.Data, idx_sz);
         vtx += cmdList->VtxBuffer.Size;
         idx += cmdList->IdxBuffer.Size;
+
+        vertex_sz += vtx_sz;
+        index_sz += idx_sz;
     }
-    m_vertex_buffers[image_index]->update(m_imgui_vtx[image_index], m_imgui_idx[image_index]);
+    m_vertex_buffers[image_index]->update(m_imgui_vtx[image_index].data(), vertex_sz);
+    m_index_buffers[image_index]->update(m_imgui_idx[image_index].data(), index_sz);
 }
 
 int ImGUIDrawable::order() {
@@ -170,7 +178,8 @@ int ImGUIDrawable::order() {
 void ImGUIDrawable::beginFrame() {
     ImGui::SetCurrentContext(m_pImgui_ctx);
     ImGuiIO& io = ImGui::GetIO();
-    io.DisplaySize = ImVec2(rt.getViewportExtent().width, rt.getViewportExtent().height);
+    VkExtent2D extent = Application::GetRenderer().getSwapchain()->getFormatConfig()->getExtent2D();
+    io.DisplaySize = ImVec2(extent.width, extent.height);
     io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
     io.IniFilename = nullptr;
 

@@ -21,7 +21,6 @@ bool SceneDrawable::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<M
     m_rt_aspect = Application::GetRenderer().getSwapchain()->getFormatConfig()->getAspect();
     m_viewport_extent = Application::GetRenderer().getSwapchain()->getFormatConfig()->getExtent2D();
 
-
     return true;
 }
 
@@ -83,6 +82,8 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model, std::shared_pt
     const MeshNode::MeshList& mesh_list = model->GetMeshes();
     std::shared_ptr<RenderNodeConfig> render_node_config = getMeshRenderNodeConfig(m_device);
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
+    std::vector<std::shared_ptr<VulkanImageBuffer>>& color_images = Application::GetRenderer().getOutColorImages();
+    std::vector<std::shared_ptr<VulkanImageBuffer>>& depth_images = Application::GetRenderer().getOutDepthImages();
     size_t msz = mesh_list.size();
     for (size_t i = 0u; i < msz; ++i) {
         m_mesh_nodes.push_back(model);
@@ -113,6 +114,8 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model, std::shared_pt
         renderable->render_nodes[i]->addReadDependency(renderable->uniform_buffers[i], desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER));
         renderable->render_nodes[i]->addReadDependency(renderable->texture, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
         renderable->render_nodes[i]->addWriteDependency(swapchain_images[i], "resolve_attachment");
+        renderable->render_nodes[i]->addWriteDependency(color_images[i], "color_attachment");
+        renderable->render_nodes[i]->addWriteDependency(depth_images[i], "depth_attachment");
 
         renderable->render_nodes[i]->finishRenderNode();
         Application::GetRenderer().addRenderNode(renderable->render_nodes[i]);
