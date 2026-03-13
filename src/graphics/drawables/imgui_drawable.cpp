@@ -96,6 +96,8 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<M
     std::shared_ptr<RenderNodeConfig> render_node_config = getImguiRenderNodeConfig(device);
 
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
+    std::vector<std::shared_ptr<VulkanImageBuffer>>& color_images = Application::GetRenderer().getOutColorImages();
+    std::vector<std::shared_ptr<VulkanImageBuffer>>& depth_images = Application::GetRenderer().getOutDepthImages();
 
     m_render_nodes.resize(max_frames);
     m_vertex_buffers.resize(max_frames);
@@ -117,6 +119,8 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<M
         m_render_nodes[i]->addReadDependency(m_uniform_buffers[i], desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER));
         m_render_nodes[i]->addReadDependency(m_font_texture, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
         m_render_nodes[i]->addWriteDependency(swapchain_images[i], "resolve_attachment");
+        m_render_nodes[i]->addWriteDependency(color_images[i], "color_attachment");
+        m_render_nodes[i]->addWriteDependency(depth_images[i], "depth_attachment");
 
         m_render_nodes[i]->finishRenderNode();
         Application::GetRenderer().addRenderNode(m_render_nodes[i]);
@@ -136,6 +140,8 @@ void ImGUIDrawable::destroy() {
 void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     float angle = delta.fGetTotalSeconds() * glm::radians(90.f);
     glm::vec3 rotation_axis = glm::vec3(0.0f, 0.0f, 1.0f);
+    ImDrawData* dd = ImGui::GetDrawData();
+    size_t vertex_count = m_index_buffers[image_index]->getSize();
 
     if(m_vertex_buffers[image_index]->getVertexCount() < dd->TotalVtxCount || m_vertex_buffers[image_index]->getIndicesCount() < dd->TotalIdxCount) {
         m_imgui_vtx[image_index].resize(dd->TotalVtxCount);

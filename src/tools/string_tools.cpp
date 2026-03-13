@@ -1886,6 +1886,20 @@ VkCompositeAlphaFlagBitsKHR getCompositeAlphaFlag(const std::string& flag_str) {
     return res;
 }
 
+VkIndexType getIndexType(const std::string& type_str) {
+	using namespace std::literals;
+    VkIndexType res{};
+
+	     if(type_str == "uint16"s) {res = VK_INDEX_TYPE_UINT16;}
+	else if(type_str == "uint32"s) {res = VK_INDEX_TYPE_UINT32;}
+	else if(type_str == "none_khr"s) {res = VK_INDEX_TYPE_NONE_KHR;}
+	else if(type_str == "uint8_khr"s) {res = VK_INDEX_TYPE_UINT8_KHR;}
+	else if(type_str == "none_nv"s) {res = VK_INDEX_TYPE_NONE_NV;}
+	else if(type_str == "uint8_ext"s) {res = VK_INDEX_TYPE_UINT8_EXT;}
+    
+    return res;
+}
+
 VkComponentMapping getComponentMapping(const pugi::xml_node& mapping_node) {
 	VkComponentMapping mapping{};
 

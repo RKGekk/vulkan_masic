@@ -53,6 +53,8 @@ private:
     std::vector<std::shared_ptr<RenderNode>> m_render_nodes;
     
     std::shared_ptr<VulkanImageBuffer> m_font_texture;
+    std::vector<std::shared_ptr<VulkanImageBuffer>> m_out_color_images;
+    std::vector<std::shared_ptr<VulkanImageBuffer>> m_out_depth_images;
     std::vector<std::shared_ptr<VulkanBuffer>> m_uniform_buffers;
 
     std::vector<std::shared_ptr<VulkanBuffer>> m_vertex_buffers;

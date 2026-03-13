@@ -128,6 +128,15 @@ bool VulkanImageBuffer::init(const std::shared_ptr<ImageBufferConfig>& image_buf
     return result;
 }
 
+bool VulkanImageBuffer::init(const std::shared_ptr<ImageBufferConfig>& image_buffer_config_template) {
+    using namespace std::literals;
+
+    std::shared_ptr<ImageBufferConfig> image_buffer_config = image_buffer_config_template->makeInstance(m_name + "_cfg"s);
+    bool result = init((unsigned char*)nullptr, std::move(image_buffer_config));
+
+    return result;
+}
+
 bool VulkanImageBuffer::init(CommandBatch& command_buffer, unsigned char* pixels, std::shared_ptr<ImageBufferConfig> image_buffer_config) {
     m_image_config = std::move(image_buffer_config);
     

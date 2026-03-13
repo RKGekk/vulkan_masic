@@ -57,6 +57,8 @@ struct PerFrame {
 
 	std::vector<VkSemaphore> timeline_semaphores;
 	std::vector<uint64_t> timeline_fences;
+    std::shared_ptr<VulkanImageBuffer> out_color_image;
+    std::shared_ptr<VulkanImageBuffer> out_depth_image;
 
 	std::vector<VkFence> wait_and_recycle_fences;
 
@@ -74,6 +76,8 @@ public:
     const std::shared_ptr<VulkanSwapChain>& getSwapchain() const;
     std::shared_ptr<VulkanDevice>& GetDevice();
     std::shared_ptr<Managers>& getManagers();
+    std::vector<std::shared_ptr<VulkanImageBuffer>>& getOutColorImages();
+    std::vector<std::shared_ptr<VulkanImageBuffer>>& getOutDepthImages();
 
     void recordCommandBuffer(CommandBatch& command_buffer);
     void drawFrame();
@@ -89,6 +93,8 @@ private:
     std::shared_ptr<VulkanSwapChain> m_swapchain;
 
     std::vector<std::shared_ptr<PerFrame>> m_per_frame;
+    std::vector<std::shared_ptr<VulkanImageBuffer>> m_out_color_images;
+    std::vector<std::shared_ptr<VulkanImageBuffer>> m_out_depth_images;
     std::shared_ptr<Managers> m_managers;
     std::shared_ptr<RenderGraph> m_render_graph;
     

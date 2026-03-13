@@ -227,3 +227,19 @@ const std::string& VertexFormat::getIndexBufferBindingName() const {
 void VertexFormat::setIndexBufferBindingName(std::string name) {
     m_index_buffer_binding_name = std::move(name);
 }
+
+const std::string& VertexFormat::getVertexBufferResourceType() const {
+    return m_vertex_buffer_resource_type;
+}
+
+void VertexFormat::setVertexBufferResourceType(std::string res_type) {
+    m_vertex_buffer_resource_type = std::move(res_type);
+}
+    
+const std::string& VertexFormat::getIndexBufferResourceType() const {
+    return m_index_buffer_resource_type;
+}
+
+void VertexFormat::setIndexBufferResourceType(std::string res_type) {
+    m_index_buffer_resource_type = std::move(res_type);
+}

@@ -114,12 +114,20 @@ public:
     const std::string& getIndexBufferBindingName() const;
     void setIndexBufferBindingName(std::string name);
 
+    const std::string& getVertexBufferResourceType() const;
+    void setVertexBufferResourceType(std::string res_type);
+
+    const std::string& getIndexBufferResourceType() const;
+    void setIndexBufferResourceType(std::string res_type);
+
 private:
     VkVertexInputRate m_input_rate = VK_VERTEX_INPUT_RATE_VERTEX;
     size_t m_binding_num;
     VkIndexType m_index_type;
     std::string m_vertex_buffer_binding_name;
     std::string m_index_buffer_binding_name;
+    std::string m_vertex_buffer_resource_type;
+    std::string m_index_buffer_resource_type;
 
     std::vector<SemanticName> m_semantic_pos;
     std::vector<VertexAttributeFormat> m_format_pos;

@@ -73,6 +73,18 @@ std::shared_ptr<VulkanImageBuffer> VulkanResourcesManager::create_image(VkImage 
 	return image;
 }
 
+std::shared_ptr<VulkanImageBuffer> VulkanResourcesManager::create_image(std::string image_name, std::string resource_type_name) {
+	if(m_image_map.contains(image_name)) return m_image_map[image_name];
+
+	std::shared_ptr<ImageBufferConfig> basic_image_config = m_image_buffer_config_map.at(resource_type_name);
+	std::shared_ptr<VulkanImageBuffer> image = std::make_shared<VulkanImageBuffer>(m_device, image_name);
+	image->init(std::move(basic_image_config));
+
+	m_image_map[image_name] = image;
+
+	return image;
+}
+
 std::shared_ptr<VulkanBuffer> VulkanResourcesManager::create_buffer(const void* data, VkDeviceSize buffer_size, std::string resource_type_name) {
 	using namespace std::literals;
 

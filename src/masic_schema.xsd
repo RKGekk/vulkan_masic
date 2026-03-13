@@ -746,6 +746,17 @@
         </xs:restriction>
     </xs:simpleType>
 
+    <xs:simpleType name="IndexTypeSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="uint16"></xs:enumeration>
+            <xs:enumeration value="uint32"></xs:enumeration>
+            <xs:enumeration value="none_khr"></xs:enumeration>
+            <xs:enumeration value="uint8_khr"></xs:enumeration>
+            <xs:enumeration value="none_nv"></xs:enumeration>
+            <xs:enumeration value="uint8_ext"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:complexType name="InputAttributeDescriptionComplexType">
         <xs:sequence>
             <xs:element name="Binding">
@@ -757,8 +768,9 @@
                     <xs:attribute name="vertex_buffer_bind_name" type="xs:string" use="required"></xs:attribute>
                     <xs:attribute name="index_buffer_bind_name" type="xs:string" use="required"></xs:attribute>
                     <xs:attribute name="input_rate" type="target:VertexInputRateSimpleType" use="required"></xs:attribute>
-                    <xs:attribute name="vertex_buffer_resource_type" use="required"></xs:attribute>
-                    <xs:attribute name="index_buffer_resource_type" use="optional"></xs:attribute>
+                    <xs:attribute name="vertex_buffer_resource_type" type="xs:string" use="required"></xs:attribute>
+                    <xs:attribute name="index_buffer_resource_type" type="xs:string" use="optional"></xs:attribute>
+                    <xs:attribute name="index_type" type="target:IndexTypeSimpleType" use="required"></xs:attribute>
                 </xs:complexType>
             </xs:element>
 

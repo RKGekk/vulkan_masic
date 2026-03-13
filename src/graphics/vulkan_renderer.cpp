@@ -25,17 +25,17 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
     m_swapchain = std::make_shared<VulkanSwapChain>();
     m_swapchain->init(m_device, std::move(window), m_managers, "graphics_pipelines.xml"s);
 
-    int max_frames = m_swapchain->getMaxFrames();
-
     m_managers->command_manager = m_device->getCommandManager();
 
+    int max_frames = m_swapchain->getMaxFrames();
     m_per_frame.reserve(max_frames);
     for(int i = 0; i < max_frames; ++i) {
         std::shared_ptr<PerFrame> per_frame = std::make_shared<PerFrame>();
+        m_out_color_images[i] = m_managers->resources_manager->create_image("render_target_color", "render_target_color_resource");
+        per_frame->out_color_image = m_out_color_images[i];
+        m_out_depth_images[i] = m_managers->resources_manager->create_image("render_target_depth", "render_target_depth_resource");
+        per_frame->out_depth_image = m_out_depth_images[i];
         per_frame->init(m_device, i);
-
-        std::shared_ptr<RenderTarget> rt = std::make_shared<RenderTarget>();
-        rt->init(m_device, m_swapchain, i);
 
         per_frame->command_buffer = m_managers->command_manager->allocCommandBufferPtr(PoolTypeEnum::GRAPICS);
 
@@ -105,6 +105,14 @@ void VulkanRenderer::TransitionResourcesToProperState(const std::shared_ptr<Rend
     for(const auto&[gloabal_name, att_slot] : render_node_ptr->getWrittenResourcesMap()){
         
     }
+}
+
+std::vector<std::shared_ptr<VulkanImageBuffer>>& VulkanRenderer::getOutColorImages() {
+    return m_out_color_images;
+}
+
+std::vector<std::shared_ptr<VulkanImageBuffer>>& VulkanRenderer::getOutDepthImages() {
+    return m_out_depth_images;
 }
 
 void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer) {
