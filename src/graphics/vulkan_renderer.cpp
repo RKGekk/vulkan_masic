@@ -87,7 +87,7 @@ void VulkanRenderer::TransitionResourcesToProperState(const std::shared_ptr<Rend
 
     for(const auto&[gloabal_name, att_slot] : render_node_ptr->getReadResourcesMap()){
         RenderResource::Type att_slot_res_type = att_slot.resource->getType();
-        if(att_slot_res_type == RenderResource::Type::BUFFER || att_slot_res_type == RenderResource::Type::UNIFORM_BUFFER || att_slot_res_type == RenderResource::Type::VERTEX_BUFFER) continue;
+        if(att_slot_res_type == RenderResource::Type::BUFFER) continue;
 
         size_t last_written_by_node_id = m_render_graph->getLastWrittenIdentity(render_node_ptr, gloabal_name);
         size_t last_read_by_node_id = m_render_graph->getLastReadIdentity(render_node_ptr, gloabal_name);
@@ -131,7 +131,8 @@ void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer) {
         VkRenderPassBeginInfo renderpass_info{};
         renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderpass_info.renderPass = render_pass_ptr->getRenderPass();
-        renderpass_info.framebuffer = render_node_ptr->getFramebuffer(m_swapchain->getCurrentSync());
+        //renderpass_info.framebuffer = render_node_ptr->getFramebuffer(m_swapchain->getCurrentSync());
+        renderpass_info.framebuffer = render_node_ptr->getFramebuffer();
         renderpass_info.renderArea.offset = {0, 0};
         renderpass_info.renderArea.extent = render_node_ptr->getViewportExtent();
     }

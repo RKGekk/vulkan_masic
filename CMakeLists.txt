@@ -310,8 +310,6 @@ set(APP_SOURCES
     "${SRC_DIR}/graphics/pod/pipeline_config.cpp"
     "${SRC_DIR}/graphics/drawables/basic_drawable.h"
     "${SRC_DIR}/graphics/drawables/basic_drawable.cpp"
-    "${SRC_DIR}/graphics/drawables/gltf_drawable.h"
-    "${SRC_DIR}/graphics/drawables/gltf_drawable.cpp"
     "${SRC_DIR}/graphics/drawables/scene_drawable.h"
     "${SRC_DIR}/graphics/drawables/scene_drawable.cpp"
     "${SRC_DIR}/graphics/pod/render_resource.h"

@@ -101,13 +101,7 @@ protected:
 	std::shared_ptr<MovementController> m_pFree_camera_controller;
 
 	//glfw::window m_window;
-	//std::shared_ptr<ImGUIDrawable> m_gui;
-	std::shared_ptr<RenderNode> m_gui_render_node;
-	std::shared_ptr<VulkanTexture> m_font_texture;
-	std::vector<std::shared_ptr<VulkanUniformBuffer>> m_uniform_buffers;
-    std::vector<std::shared_ptr<VertexBuffer>> m_vertex_buffers;
-    std::vector<std::vector<ImDrawVert>> m_imgui_vtx;
-    std::vector<std::vector<ImDrawIdx>> m_imgui_idx;
+	std::shared_ptr<ImGUIDrawable> m_gui;
 
 private:
 	void RegisterAllDelegates();

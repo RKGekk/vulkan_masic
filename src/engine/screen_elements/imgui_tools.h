@@ -39,7 +39,6 @@ void printBoundingBoxImGUI(const BoundingBox& bb);
 void printBoundingSphereImGUI(const BoundingSphere& bs);
 void printBoundingFrustumImGUI(const BoundingFrustum& bf);
 void printVulkanBufferImGUI(std::shared_ptr<VulkanBuffer> vk_buffer);
-void printVertexBufferImGUI(std::shared_ptr<VertexBuffer> vtx, VkPrimitiveTopology topology);
 void printMeshNodeImGUI(std::shared_ptr<MeshNode> pMesh);
 void printCameraNodeImGUI(std::shared_ptr<CameraNode> pCamera);
 void printAABBNodeImGUI(std::shared_ptr<AABBNode> pAABB);

@@ -189,7 +189,7 @@ CommandBatch VulkanCommandManager::allocCommandBuffer(PoolTypeEnum pool_type, si
     return result_buffers;
 }
 
-std::shared_ptr<CommandBatch> VulkanCommandManager::allocCommandBufferPtr(PoolTypeEnum pool_type = PoolTypeEnum::GRAPICS, size_t buffers_count = 1u, CommandBatch::BatchWaitInfo wait_info = {}, VkCommandBufferAllocateInfo* command_buffer_info = nullptr) {
+std::shared_ptr<CommandBatch> VulkanCommandManager::allocCommandBufferPtr(PoolTypeEnum pool_type, size_t buffers_count, CommandBatch::BatchWaitInfo wait_info, VkCommandBufferAllocateInfo* command_buffer_info) {
     std::vector<VkCommandBuffer> command_buffers;
     command_buffers.resize(buffers_count);
 

@@ -1187,7 +1187,7 @@ VkFormat getFormat(const std::string& format_str) {
 	else if(format_str == "r64g64b64a64_uint"s) {res = VK_FORMAT_R64G64B64A64_UINT;}
 	else if(format_str == "r64g64b64a64_sint"s) {res = VK_FORMAT_R64G64B64A64_SINT;}
 	else if(format_str == "r64g64b64a64_sfloat"s) {res = VK_FORMAT_R64G64B64A64_SFLOAT;}
-	else if(format_str == "b10g11r11_ufloat_pack32"s) {res = VK_FORMAT_B10G11R11_UFLOAT_PACK32;}
+	if(format_str == "b10g11r11_ufloat_pack32"s) {res = VK_FORMAT_B10G11R11_UFLOAT_PACK32;}
 	else if(format_str == "e5b9g9r9_ufloat_pack32"s) {res = VK_FORMAT_E5B9G9R9_UFLOAT_PACK32;}
 	else if(format_str == "d16_unorm"s) {res = VK_FORMAT_D16_UNORM;}
 	else if(format_str == "x8_d24_unorm_pack32"s) {res = VK_FORMAT_X8_D24_UNORM_PACK32;}
@@ -1309,7 +1309,7 @@ VkFormat getFormat(const std::string& format_str) {
 	else if(format_str == "pvrtc2_2bpp_unorm_block_img"s) {res = VK_FORMAT_PVRTC2_2BPP_UNORM_BLOCK_IMG;}
 	else if(format_str == "pvrtc2_4bpp_unorm_block_img"s) {res = VK_FORMAT_PVRTC2_4BPP_UNORM_BLOCK_IMG;}
 	else if(format_str == "pvrtc1_2bpp_srgb_block_img"s) {res = VK_FORMAT_PVRTC1_2BPP_SRGB_BLOCK_IMG;}
-	else if(format_str == "pvrtc1_4bpp_srgb_block_img"s) {res = VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG;}
+	if(format_str == "pvrtc1_4bpp_srgb_block_img"s) {res = VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG;}
 	else if(format_str == "pvrtc2_2bpp_srgb_block_img"s) {res = VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG;}
 	else if(format_str == "pvrtc2_4bpp_srgb_block_img"s) {res = VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG;}
 	else if(format_str == "r16g16_sfixed5_nv"s) {res = VK_FORMAT_R16G16_SFIXED5_NV;}

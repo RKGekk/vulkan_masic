@@ -15,7 +15,6 @@
 #include "graphics/pod/basic_vertex.h"
 #include "graphics/pod/basic_uniform.h"
 #include "graphics/drawables/basic_drawable.h"
-#include "graphics/drawables/gltf_drawable.h"
 
 std::unique_ptr<Application> gs_pSingeton;
 std::once_flag gs_only_once;
@@ -81,7 +80,7 @@ bool Application::Initialize(ApplicationOptions opt) {
     m_vulkan_device = std::make_shared<VulkanDevice>();
     m_vulkan_device->init(m_vulkan_instance, m_surface, m_thread_pool);
 
-    m_renderer.init(m_vulkan_device, m_surface, m_window->GetWindow(), m_thread_pool);
+    m_renderer.init(m_vulkan_device, m_window, m_thread_pool);
 
     VRegisterEvents();
     RegisterAllDelegates();

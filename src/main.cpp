@@ -40,7 +40,6 @@
 #include "graphics/drawables/vulkan_drawable.h"
 #include "graphics/pod/basic_vertex.h"
 #include "graphics/drawables/basic_drawable.h"
-#include "graphics/api/vulkan_vertex_buffer.h"
 #include "tools/string_tools.h"
 #include "tools/game_timer.h"
 

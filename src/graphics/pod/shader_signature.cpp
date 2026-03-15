@@ -1,6 +1,6 @@
 #include "shader_signature.h"
 
-#include "../api/vulkan_device.h"\
+#include "../api/vulkan_device.h"
 #include "../../tools/string_tools.h"
 
 std::vector<char> getDataFromXmlValue(pugi::xml_node value_data, VertexAttributeFormat value_format) {
@@ -177,8 +177,8 @@ bool ShaderSignature::init(const std::string& rg_file_path) {
     return true;
 }
 
-const VertexFormat& ShaderSignature::getVertexFormat(size_t binding) const {
-    return m_input_attributes.at(binding);
+const VertexFormat& ShaderSignature::getVertexFormat() const {
+    return m_input_attributes.front();
 }
 
 const std::string& ShaderSignature::getName() const {

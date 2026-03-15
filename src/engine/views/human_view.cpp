@@ -15,66 +15,6 @@
 
 const std::string HumanView::g_name = "Level"s;
 
-std::shared_ptr<VulkanSampler> createFontTextureSampler2(std::shared_ptr<VulkanDevice> device) {
-    VkSamplerCreateInfo sampler_info{};
-    sampler_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    sampler_info.magFilter = VK_FILTER_LINEAR;
-    sampler_info.minFilter = VK_FILTER_LINEAR;
-    sampler_info.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    sampler_info.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    sampler_info.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    sampler_info.anisotropyEnable = VK_FALSE;
-    sampler_info.maxAnisotropy = 1.0f;
-    sampler_info.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-    sampler_info.unnormalizedCoordinates = VK_FALSE;
-    sampler_info.compareEnable = VK_FALSE;
-    sampler_info.compareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
-    sampler_info.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
-    sampler_info.mipLodBias = 0.0f;
-    sampler_info.minLod = 0.0f;
-    sampler_info.maxLod = 15;
-    
-    std::shared_ptr<VulkanSampler> texture_sampler = std::make_shared<VulkanSampler>();
-    texture_sampler->init(std::move(device), sampler_info);
-    return texture_sampler;
-}
-
-std::shared_ptr<VulkanTexture> makeFontTexture2(std::shared_ptr<VulkanDevice> device, const char* TTF_font_file_name, float fontSizePixels) {
-    ImGuiIO& io = ImGui::GetIO();
-
-    ImFontConfig cfg = ImFontConfig();
-    cfg.FontDataOwnedByAtlas = false;
-    cfg.RasterizerMultiply = 1.0f;
-    cfg.SizePixels = ceilf(fontSizePixels);
-    cfg.PixelSnapH = true;
-    cfg.OversampleH = 1;
-    cfg.OversampleV = 1;
-    ImFont* font = nullptr;
-
-    if (TTF_font_file_name) {
-        font = io.Fonts->AddFontFromFileTTF(TTF_font_file_name, cfg.SizePixels, &cfg);
-    }
-    else {
-        font = io.Fonts->AddFontDefault(&cfg);
-    }
-
-    io.Fonts->Flags |= ImFontAtlasFlags_NoPowerOfTwoHeight;
-
-    // init fonts
-    unsigned char* pixels;
-    int width, height;
-    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-
-    std::shared_ptr<VulkanTexture> font_texture = std::make_shared<VulkanTexture>();
-    std::shared_ptr<VulkanSampler> fonts_sampler = createFontTextureSampler2(device);
-    font_texture->init(pixels, width, height, std::move(fonts_sampler), VK_FORMAT_R8G8B8A8_UNORM);
-
-    io.Fonts->TexID = 0u;
-    io.FontDefault = font;
-
-    return font_texture;
-}
-
 HumanView::HumanView(std::shared_ptr<ProcessManager> process_manager) {
 	using namespace std::literals;
 
@@ -108,39 +48,8 @@ HumanView::HumanView(std::shared_ptr<ProcessManager> process_manager) {
 		m_anim_menu_ui = std::make_shared<AnimationMenuUI>();
 		VPushElement(m_anim_menu_ui);
 
-		//m_gui = std::make_shared<ImGUIDrawable>();
-    	//m_gui->init(device, renderer.getRenderTarget(), renderer.getSwapchain()->getMaxFrames());
-		//renderer.addDrawable(m_gui);
-
-		std::shared_ptr<VulkanPipeline> pipeline = renderer.getManagers()->pipelines_manager->getPipeline("imgui_pipeline"s);
-        std::shared_ptr<RenderNode> render_node = std::make_shared<RenderNode>();
-		render_node->init(pipeline);
-
-		static const std::string TTF_font_file_name = std::filesystem::current_path().append("fonts").append("OpenSans-Light.ttf").string();
-    	static const float font_size_pixels = 15.0f;
-		m_font_texture = makeFontTexture2(device, TTF_font_file_name.c_str(), font_size_pixels);
-		render_node->addReadDependency(m_font_texture);
-
-		int max_frames = renderer.getSwapchain()->getMaxFrames();
-		m_imgui_vtx.resize(max_frames);
-    	m_imgui_idx.resize(max_frames);
-		m_uniform_buffers.resize(max_frames);
-		m_vertex_buffers.resize(max_frames);
-
-		for(size_t i = 0u; i < max_frames; ++i) {
-        	m_vertex_buffers[i] = std::make_shared<VertexBuffer>(device, "imgui_vertex_buffer_"s + std::to_string(i));
-        	m_vertex_buffers[i]->init(nullptr, 0u, nullptr, 0u, VK_INDEX_TYPE_UINT16, pipeline->getInputInfo(), VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-			render_node->addReadDependency(m_vertex_buffers[i]);
-
-        	m_uniform_buffers[i] = std::make_shared<VulkanUniformBuffer>(device, "imgui_uniform_" + std::to_string(i));
-        	m_uniform_buffers[i]->init<ImGuiUniformBufferObject>(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-			render_node->addReadDependency(m_uniform_buffers[i]);
-		}
-
-		std::shared_ptr<VulkanSwapChain> swap_chain_ptr = renderer.getSwapchain();
-        render_node->addWriteDependency(swap_chain_ptr);
-
-		renderer.addRenderNode(render_node);
+		m_gui = std::make_shared<ImGUIDrawable>();
+    	m_gui->init(device, renderer.getManagers(), renderer.getSwapchain()->getMaxFrames());
 	}
 	
 	m_current_tick = {};
@@ -183,7 +92,7 @@ void HumanView::VOnRender(const GameTimerDelta& delta) {
 
 	const auto one_frame_time = 0.016ms;
 	if (m_run_full_speed || ((m_current_tick - m_last_draw) > one_frame_time)) {
-		m_gui->beginFrame(Application::GetRenderer().getRenderTarget());
+		m_gui->beginFrame();
 		
 		m_screen_elements.sort(SortBy_SharedPtr_Content<IScreenElement>());
 		for (ScreenElementList::iterator i = m_screen_elements.begin(); i != m_screen_elements.end(); ++i) {

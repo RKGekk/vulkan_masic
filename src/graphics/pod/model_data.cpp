@@ -28,7 +28,7 @@ void ModelData::SetIndexBuffer(std::shared_ptr<VulkanBuffer> index_buffer) {
 }
 
 const std::shared_ptr<VulkanBuffer>& ModelData::GetIndexBuffer() const {
-    return index_buffer;
+    return m_index_buffer;
 }
 
 size_t ModelData::GetIndexCount() const {

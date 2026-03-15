@@ -530,83 +530,6 @@ void printVulkanBufferImGUI(std::shared_ptr<VulkanBuffer> vk_buffer) {
     ImGui::InputText("BufferUsage", const_cast<char*>(vtx_usage_str.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
 }
 
-void printVertexBufferImGUI(std::shared_ptr<VertexBuffer> vtx, VkPrimitiveTopology topology) {
-    using namespace std::literals;
-    if(!vtx) return;
-
-    std::string topology_str = getPrimitiveTopologyStr(topology);
-    ImGui::InputText("PrimitiveTopology", const_cast<char*>(topology_str.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
-
-    int index_count = vtx->getIndicesCount();
-	ImGui::InputInt("IndexCount", &index_count, 0, 0, ImGuiInputTextFlags_ReadOnly);
-
-    int vertex_count = vtx->getVertexCount();
-	ImGui::InputInt("VertexCount", &vertex_count, 0, 0, ImGuiInputTextFlags_ReadOnly);
-
-    VkIndexType index_type = vtx->getIndexType();
-    std::string index_type_str = index_type == VK_INDEX_TYPE_UINT16 ? "UINT16"s : "UINT32"s;
-    ImGui::InputText("IndexType", const_cast<char*>(index_type_str.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
-
-    ImGui::SeparatorText("vkVertexBuffer");
-    ImGui::PushID("vkVertexBuffer");
-    printVulkanBufferImGUI(vtx->getVertexBuffer());
-    ImGui::PopID();
-
-    ImGui::SeparatorText("vkIndexBuffer");
-    ImGui::PushID("vkIndexBuffer");
-    printVulkanBufferImGUI(vtx->getIndexBuffer());
-    ImGui::PopID();
-
-    if(ImGui::TreeNode("VertexInputBindingDescription")) {
-        VkPipelineVertexInputStateCreateInfo vtx_input_desc = vtx->getVertextInputInfo();
-        size_t bind_sz = vtx_input_desc.vertexBindingDescriptionCount;
-        for(size_t b = 0u; b < bind_sz; ++b) {
-            ImGui::PushID(b);
-
-            VkVertexInputBindingDescription bind_desc = vtx_input_desc.pVertexBindingDescriptions[b];
-
-            ImGui::Text(("InputDescription"s + std::to_string(b)).c_str());
-
-            int binding = bind_desc.binding;
-            ImGui::InputInt("binding", &binding, 0, 0, ImGuiInputTextFlags_ReadOnly);
-
-            int stride = bind_desc.stride;
-            ImGui::InputInt("stride", &stride, 0, 0, ImGuiInputTextFlags_ReadOnly);
-
-            std::string input_rate_str = bind_desc.inputRate == VK_VERTEX_INPUT_RATE_VERTEX ? "per vertex"s : "per instance"s;
-            ImGui::InputText("inputRate", const_cast<char*>(input_rate_str.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
-
-            ImGui::PopID();
-        }
-
-        ImGui::SeparatorText("VertexInputAttributeDescription");
-        size_t attrib_sz = vtx_input_desc.vertexAttributeDescriptionCount;
-        for(size_t a = 0u; a < attrib_sz; ++a) {
-            ImGui::PushID(a + bind_sz);
-
-            VkVertexInputAttributeDescription attr_desc = vtx_input_desc.pVertexAttributeDescriptions[a];
-
-            ImGui::Text(("AttributeDescription"s + std::to_string(a)).c_str());
-
-            int binding = attr_desc.binding;
-            ImGui::InputInt("binding", &binding, 0, 0, ImGuiInputTextFlags_ReadOnly);
-
-            int location = attr_desc.location;
-            ImGui::InputInt("location", &location, 0, 0, ImGuiInputTextFlags_ReadOnly);
-
-            std::string format_str = getFormatStr(attr_desc.format);
-            ImGui::InputText("format", const_cast<char*>(format_str.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
-
-            int offset = attr_desc.offset;
-            ImGui::InputInt("offset", &offset, 0, 0, ImGuiInputTextFlags_ReadOnly);
-
-            ImGui::PopID();
-        }
-
-        ImGui::TreePop();
-    }
-}
-
 void printMeshNodeImGUI(std::shared_ptr<MeshNode> pMesh) {
     if(!pMesh) return;
 
@@ -615,14 +538,6 @@ void printMeshNodeImGUI(std::shared_ptr<MeshNode> pMesh) {
         ImGui::PushID(mode_data->GetName().c_str());
 
         ImGui::SeparatorText(mode_data->GetName().c_str());
-
-        std::shared_ptr<VertexBuffer> vtx = mode_data->GetVertexBuffer();
-
-        if(vtx && ImGui::TreeNode("VertexBuffer")) {
-            printVertexBufferImGUI(vtx, mode_data->GetPrimitiveTopology());
-
-            ImGui::TreePop();
-        }
 
         std::shared_ptr<Material> material = mode_data->GetMaterial();
         if(material && ImGui::TreeNode("Material")) {

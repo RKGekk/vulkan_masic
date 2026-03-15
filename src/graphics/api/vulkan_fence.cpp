@@ -7,6 +7,8 @@ bool VulkanFence::init(std::shared_ptr<VulkanDevice> device, VkFence fence) {
 	m_fence = fence;
 	m_timeline_semaphore = VK_NULL_HANDLE;
 	m_timeline_value = 0u;
+
+	return true;
 }
 
 bool VulkanFence::init(std::shared_ptr<VulkanDevice> device, uint64_t value, VkSemaphore timeline_semaphore) {
@@ -14,6 +16,8 @@ bool VulkanFence::init(std::shared_ptr<VulkanDevice> device, uint64_t value, VkS
 	m_fence = VK_NULL_HANDLE;
 	m_timeline_semaphore = timeline_semaphore;
 	m_timeline_value = value;
+
+	return true;
 }
 
 void VulkanFence::setInternalSyncObject() {

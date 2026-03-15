@@ -169,9 +169,9 @@ void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, Vk
     Application& app = Application::Get();
     VulkanRenderer& renderer = app.GetRenderer();
     //renderer.getManagers()->resources_manager->
-    std::shared_ptr<VulkanBuffer> staging_buffer = std::make_shared<VulkanBuffer>(m_device);
-
-    staging_buffer->init(src_data, m_size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    //std::shared_ptr<VulkanBuffer> staging_buffer = std::make_shared<VulkanBuffer>(m_device);
+    std::shared_ptr<VulkanBuffer> staging_buffer = Application::Get().GetRenderer().getManagers()->resources_manager->create_buffer(src_data, m_buffer_config->getBufferInfo().size, "basic_staging_buffer"s);
+    //staging_buffer->init(src_data, m_buffer_config->getBufferInfo().size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
     command_buffer.addResource(staging_buffer);
 
     m_device->getCommandManager()->copyBuffer(command_buffer.getCommandBufer(), staging_buffer->getBuffer(), m_buffer, buffer_size);
@@ -184,7 +184,7 @@ void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, Vk
 }
 
 void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, VkDeviceSize buffer_size) {
-    update(command_buffer, src_data, buffer_size, VulkanDevice::getDstAccessMask(m_usage));
+    update(command_buffer, src_data, buffer_size, VulkanDevice::getDstAccessMask(m_buffer_config->getBufferInfo().usage));
 }
 
 const RenderResource::ResourceName& VulkanBuffer::getName() const {
@@ -192,7 +192,7 @@ const RenderResource::ResourceName& VulkanBuffer::getName() const {
 }
 
 RenderResource::Type VulkanBuffer::getType() const {
-    return RenderResource::Type::UNIFORM_BUFFER;
+    return RenderResource::Type::BUFFER;
 }
 
 void VulkanBuffer::setGlobalMemoryUpdateBarier(CommandBatch& command_buffer, VkAccessFlags dstAccessMask) {

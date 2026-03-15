@@ -39,7 +39,7 @@ bool VulkanDescriptorsManager::init(std::shared_ptr<VulkanDevice> device, const 
             VkDescriptorPoolCreateFlags f;
             pugi::xml_node alloc_flags_node = alloc_node.child("Flags");
             for (pugi::xml_node create_flag = alloc_flags_node.first_child(); create_flag; create_flag = create_flag.next_sibling()) {
-	            f |= getDescriptorPoolCreateFlagBit(create_flag.text().as_string());
+	            f |= getDescriptorPoolCreateFlag(create_flag.text().as_string());
 	        }
             flags.insert({alloc_node.attribute("name").as_string(), f});
             sizes.insert({alloc_node.attribute("name").as_string(), alloc_node.child("PageSize").text().as_uint()});

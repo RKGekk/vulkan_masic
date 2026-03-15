@@ -18,7 +18,7 @@ bool VulkanPipelinesManager::init(std::shared_ptr<VulkanDevice> device, std::sha
 
     pugi::xml_node pipelines_node = root_node.child("Pipelines");
 	if (pipelines_node) {
-        VkExtent2D viewport_extent = Application::Get().GetRenderer().getSwapchain()->getSwapchainParams().extent;
+        VkExtent2D viewport_extent = Application::Get().GetRenderer().getSwapchain()->getSwapchainParams().imageExtent;
 
 		for (pugi::xml_node pipeline_node = pipelines_node.first_child(); pipeline_node; pipeline_node = pipeline_node.next_sibling()) {
             std::shared_ptr<VulkanRenderPass> render_pass_ptr = managers->render_passes_manager->getRenderPass(pipeline_node.child("RenderPass").child("RenderPassName").text().as_string());

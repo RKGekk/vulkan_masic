@@ -61,7 +61,7 @@ private:
     void SetTextureProperty(const tinygltf::Texture& texture, Material::TextureType texture_type_enum, std::shared_ptr<Material> material);
     std::shared_ptr<VulkanSampler> createTextureSampler(uint32_t mip_levels, const tinygltf::Sampler& texture_sampler);
     void MakeMaterialProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material> material);
-    VertexFormat GetVertexFormat(std::map<std::string, int> attributes);
+    VertexFormat GetVertexFormat(std::map<std::string, int> attributes) const;
     std::vector<float> GetVertices(const tinygltf::Primitive& primitive, const VertexFormat& pbr_shader_vertex_format);
     VkIndexType getIndexType(int accessor_component_type);
 

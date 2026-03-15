@@ -53,7 +53,7 @@ struct PerFrame {
 	void begin();
 
 	unsigned frame_index;
-	Managers &managers;
+	std::shared_ptr<Managers> managers_ptr;
 
 	std::vector<VkSemaphore> timeline_semaphores;
 	std::vector<uint64_t> timeline_fences;

@@ -15,6 +15,7 @@
 class VulkanDevice;
 class VulkanPipeline;
 class RenderNodeConfig;
+class VulkanImageBuffer;
 
 class RenderNode {
 public:

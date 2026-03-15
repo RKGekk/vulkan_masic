@@ -72,7 +72,7 @@ bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr
         throw std::runtime_error("failed to create swap chain!");
     }
 
-    VkResult result = vkGetSwapchainImagesKHR(m_device->getDevice(), m_swapchain, &m_max_frames, nullptr);
+    result = vkGetSwapchainImagesKHR(m_device->getDevice(), m_swapchain, &m_max_frames, nullptr);
     if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to get swapchain images!");
     }

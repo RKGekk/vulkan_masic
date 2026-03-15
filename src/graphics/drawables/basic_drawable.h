@@ -15,12 +15,9 @@
 #include "../api/vulkan_device.h"
 #include "vulkan_drawable.h"
 #include "../pod/render_resource.h"
-#include "../api/vulkan_uniform_buffer.h"
-#include "../api/vulkan_vertex_buffer.h"
 #include "../api/vulkan_pipeline.h"
 #include "../api/vulkan_shader.h"
 #include "../api/vulkan_descriptor.h"
-#include "../api/vulkan_texture.h"
 
 #include <array>
 #include <cstdint>
@@ -28,36 +25,31 @@
 #include <stdexcept>
 #include <vector>
 
+class VulkanImageBuffer;
+class VulkanBuffer;
+class Managers;
+class RenderNode;
+
 class BasicDrawable : public IVulkanDrawable {
 public:
-    bool init(std::shared_ptr<VulkanDevice> device, const RenderTarget& rt, int max_frames);
-    void reset(const RenderTarget& rt) override;
+    bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<Managers>& managers, int max_frames);
     void destroy() override;
-    void recordCommandBuffer(CommandBatch& command_buffer, const RenderTarget& rt, uint32_t frame_index) override;
     void update(const GameTimerDelta& delta, uint32_t image_index) override;
 
     virtual int order() override;
 
 private:
-    VulkanPipeline::PipelineCfg createPipelineCfg(const std::vector<VkDescriptorSetLayout>& desc_set_layouts, VkRenderPass render_pass, VkExtent2D viewport_extent, std::vector<VkPipelineShaderStageCreateInfo> shaders_info, const VkPipelineVertexInputStateCreateInfo& vertex_input_info, VkSampleCountFlagBits msaa_samples);
-
     std::shared_ptr<VulkanDevice> m_device;
 
-    std::vector<std::shared_ptr<VulkanUniformBuffer>> m_uniform_buffers;
-    std::vector<std::shared_ptr<VertexBuffer>> m_vertex_buffers;
+    std::vector<std::shared_ptr<VulkanBuffer>> m_uniform_buffers;
+    std::vector<std::shared_ptr<VulkanBuffer>> m_vertex_buffers;
+    std::vector<std::shared_ptr<VulkanBuffer>> m_index_buffers;
     float m_rt_aspect = 1.0f;
 
-	struct GraphicsPipeline {
-        VulkanPipeline pipeline;
-        VulkanPipeline::PipelineCfg pipeline_cfg;
-    };
-    std::vector<GraphicsPipeline> m_pipelines;
+    std::shared_ptr<VulkanPipeline> m_pipeline;
+    std::vector<std::shared_ptr<RenderNode>> m_render_nodes;
 
-    VulkanDescriptor m_descriptor;
     int m_max_frames;
 
-    VulkanShader m_vert_shader;
-    VulkanShader m_frag_shader;
-
-    VulkanTexture m_texture;
+    std::shared_ptr<VulkanImageBuffer> m_texture;
 };

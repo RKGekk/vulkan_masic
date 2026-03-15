@@ -31,6 +31,7 @@
 class VulkanBuffer;
 class VulkanImageBuffer;
 class RenderNode;
+class Managers;
 
 class SceneDrawable : public IVulkanDrawable {
 public:

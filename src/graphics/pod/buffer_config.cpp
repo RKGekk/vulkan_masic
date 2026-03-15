@@ -80,6 +80,8 @@ bool BufferConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::
 
         m_view_info_map[view_name_str] = std::move(buffer_view_config_ptr);
     }
+
+    return true;
 }
     
 const std::string& BufferConfig::getName() const {

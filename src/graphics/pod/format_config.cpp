@@ -108,6 +108,8 @@ bool FormatConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::
     m_images_sharing_mode = device->getCommandManager()->getBufferSharingMode();
     m_queue_family_index_count = static_cast<uint32_t>(families.size());
     m_pQueue_family_indices = families.data();
+
+    return true;
 }
 
 const std::string& FormatConfig::getName() const {

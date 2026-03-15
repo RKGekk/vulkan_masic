@@ -54,7 +54,7 @@ bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_
     m_pipeline_layout_info.pushConstantRangeCount = static_cast<uint32_t>(m_push_constants.size());
     m_pipeline_layout_info.pPushConstantRanges = m_push_constants.data();
 
-    VkResult result = vkCreatePipelineLayout(m_device->getDevice(), &m_pipeline_layout_info, nullptr, &m_pipeline_layout);
+    result = vkCreatePipelineLayout(m_device->getDevice(), &m_pipeline_layout_info, nullptr, &m_pipeline_layout);
     if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to create pipeline layout!");
     }
@@ -101,7 +101,7 @@ bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_
     m_pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
     m_pipeline_info.basePipelineIndex = -1;
     
-    VkResult result = vkCreateGraphicsPipelines(m_device->getDevice(), VK_NULL_HANDLE, 1, &m_pipeline_info, nullptr, &m_pipeline);
+    result = vkCreateGraphicsPipelines(m_device->getDevice(), VK_NULL_HANDLE, 1, &m_pipeline_info, nullptr, &m_pipeline);
     if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to create graphics pipeline!");
     }

@@ -12,6 +12,8 @@ bool DescriptorAllocator::init(std::shared_ptr<VulkanDevice> device, std::string
         new_page->init(m_device, layout, flags, m_num_descriptors_per_heap);
         m_heap_pool.insert({layout->getName(), {new_page}});
     }
+
+    return true;
 }
 
 void DescriptorAllocator::destroy() {

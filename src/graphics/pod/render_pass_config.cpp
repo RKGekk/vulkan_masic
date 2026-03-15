@@ -4,14 +4,15 @@
 #include "../api/vulkan_device.h"
 #include "../api/vulkan_swapchain.h"
 #include "../api/vulkan_format_manager.h"
+#include "../../application.h"
 
 bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanFormatManager>& format_manager, const pugi::xml_node& render_pass_data) {
     using namespace std::literals;
 
     VkSampleCountFlagBits samples = device->getMsaaSamples();
-    VkExtent2D swapchain_extent = swapchain->getSwapchainParams().imageExtent;
+    VkExtent2D swapchain_extent = Application::GetRenderer().getSwapchain()->getSwapchainParams().imageExtent;
     VkImageUsageFlags depth_usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-    VkFormat swapchain_color_format = swapchain->getSwapchainParams().imageFormat;
+    VkFormat swapchain_color_format = Application::GetRenderer().getSwapchain()->getSwapchainParams().imageFormat;
     VkFormat swapchain_depth_format = device->findDepthFormat(depth_usage, swapchain_extent, 1u, samples);
     bool has_stencil = device->hasStencilComponent(swapchain_depth_format);
     
@@ -235,9 +236,9 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
                 }
             }
 
-            pugi::xml_node dst_stage_mask_node = subpass_dependency_node.child("dstAccessMask");
-	        if (dst_stage_mask_node) {
-                for (pugi::xml_node mask_node = dst_stage_mask_node.first_child(); mask_node; mask_node = mask_node.next_sibling()) {
+            pugi::xml_node dst_access_mask_node = subpass_dependency_node.child("dstAccessMask");
+	        if (dst_access_mask_node) {
+                for (pugi::xml_node mask_node = dst_access_mask_node.first_child(); mask_node; mask_node = mask_node.next_sibling()) {
                     subpass_dependency_sync.dstAccessMask |= getAccessFlag(mask_node.text().as_string());
                 }
             }

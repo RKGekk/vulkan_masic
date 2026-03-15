@@ -4,9 +4,9 @@
 #include <GLFW/glfw3.h>
 
 #include <memory>
+#include <mutex>
 
 class VulkanDevice;
-
 
 class VulkanFence {
 public:

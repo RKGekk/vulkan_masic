@@ -1,6 +1,10 @@
 #include "mesh_node_loader.h"
 
 #include "../application.h"
+#include "../graphics/pod/image_buffer_config.h"
+#include "../graphics/pod/buffer_config.h"
+#include "../graphics/api/vulkan_image_buffer.h"
+#include "../graphics/api/vulkan_buffer.h"
 
 struct TextureMatInfo {
 	int index = -1; // required.
@@ -182,7 +186,7 @@ VertexAttributeFormat getAttribFormat(const tinygltf::Accessor& gltf_accessor) {
 }
 
 
-VertexFormat MeshNodeLoader::GetVertexFormat(std::map<std::string, int> attributes) {
+VertexFormat MeshNodeLoader::GetVertexFormat(std::map<std::string, int> attributes) const {
 	VertexFormat format{};
 	std::vector<std::string> attributes_seq(attributes.size());
 	for (const auto &[semantic_name_str, accessor] : attributes) {
@@ -249,10 +253,11 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& g
 
     	std::vector<float> vertices = GetVertices(primitive, m_pbr_shader_signature->getVertexFormat());
 		const void* vertices_data = vertices.data();
-		std::shared_ptr<VertexBuffer> vertex_buffer = std::make_shared<VertexBuffer>(m_device, mesh_name + prop_set->GetName() + "VertexBuffer");
-        vertex_buffer->init(vertices_data, num_vertices, indices_data, index_count, getIndexType(indices_component_type), model_data->GetVertextInputInfo());
+		std::shared_ptr<VulkanBuffer> vertex_buffer = Application::GetRenderer().getManagers()->resources_manager->create_buffer(vertices_data, num_vertices * model_data->GetVertexFormat().getVertexSize(), "basic_vertex_resource");
+		std::shared_ptr<VulkanBuffer> index_buffer = Application::GetRenderer().getManagers()->resources_manager->create_buffer(indices.data(), indices.size() * sizeof(uint32_t), "basic_index_resource");
 
-		model_data->SetVertexBuffer(vertex_buffer);
+		model_data->SetVertexBuffer(std::move(vertex_buffer));
+		model_data->SetIndexBuffer(std::move(index_buffer));
 		
     	model_data->SetName(mesh_name);
     	//model_data->calculateBoundingBox();
@@ -487,8 +492,8 @@ std::shared_ptr<VulkanSampler> MeshNodeLoader::createTextureSampler(uint32_t mip
     sampler_info.minLod = 0.0f;
     sampler_info.maxLod = static_cast<float>(mip_levels);;
     
-	std::shared_ptr<VulkanSampler> texture_sampler = std::make_shared<VulkanSampler>();
-	texture_sampler->init(m_device, sampler_info);
+	std::shared_ptr<VulkanSampler> texture_sampler = std::make_shared<VulkanSampler>(m_device, gltf_texture_sampler.name);
+	texture_sampler->init(sampler_info);
     
     return texture_sampler;
 }
@@ -503,7 +508,7 @@ void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, M
 	uint32_t mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(texture_image.width, texture_image.height))));
 	std::shared_ptr<VulkanSampler> sampler = createTextureSampler(mip_levels, texture_sampler);
 
-	std::shared_ptr<VulkanTexture> texture = std::make_shared<VulkanTexture>(m_device, gltf_texture.name);
+	std::shared_ptr<VulkanImageBuffer> texture;
 	if (mime_is_file) {
 		std::string texture_image_file_name = texture_image.uri;
 		bool file_exists = std::filesystem::exists(texture_image_file_name);
@@ -511,7 +516,9 @@ void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, M
 			texture_image_file_name = "textures/"s + texture_image.uri;
 			file_exists = std::filesystem::exists(texture_image_file_name);
 		}
-		texture->init(texture_image_file_name, std::move(sampler));
+
+		texture = Application::GetRenderer().getManagers()->resources_manager->create_image(texture_image_file_name);
+		texture->getImageConfig()->setSampler(std::move(sampler));
 		material->SetTexture(texture_type_enum, std::move(texture));
 	}
 	else {
@@ -520,7 +527,8 @@ void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, M
 		size_t texture_image_buffer_idx = texture_image_view.buffer;
 		tinygltf::Buffer& texture_image_buffer = m_gltf_model.buffers[texture_image_buffer_idx];
 
-		texture->init(texture_image_buffer.data.data(), texture_image_buffer.data.size(), std::move(sampler));
+		texture = Application::GetRenderer().getManagers()->resources_manager->create_image(texture_image_buffer.data.data(), {(uint32_t)texture_image.width, (uint32_t)texture_image.height}, texture_image.name, "basic_image_resource");
+		texture->getImageConfig()->setSampler(std::move(sampler));
 		material->SetTexture(texture_type_enum, std::move(texture));
 	}
 }

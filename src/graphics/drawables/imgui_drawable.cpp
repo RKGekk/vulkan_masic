@@ -53,14 +53,14 @@ std::shared_ptr<RenderNodeConfig> getImguiRenderNodeConfig(const std::shared_ptr
 
     pugi::xml_document xml_doc;
 	pugi::xml_parse_result parse_res = xml_doc.load_file("graphics_pipelines.xml");
-	if (!parse_res) { return false;	}
+	if (!parse_res) { return nullptr;	}
 
 	pugi::xml_node root_node = xml_doc.root();
-	if (!root_node) { return false; }
+	if (!root_node) { return nullptr; }
 	root_node = root_node.child("RenderGraph");
 
     pugi::xml_node render_nodes_node = root_node.child("RenderNodes");
-	if (!render_nodes_node) return false;
+	if (!render_nodes_node) return nullptr;
 
     render_node_config->init(device, render_nodes_node.child("imgui_renderer"));
 

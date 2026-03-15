@@ -38,7 +38,7 @@ public:
     VkSubresourceLayout getSubresourceSizes(uint32_t mip_level, uint32_t array_layer) const;
     VkSubresourceLayout getSubresourceSizes(VkImageAspectFlags aspect, uint32_t mip_level, uint32_t array_layer) const;
 
-    const std::shared_ptr<ImageBufferConfig>& getImageConfig() const;
+    std::shared_ptr<ImageBufferConfig>& getImageConfig();
 
     void changeLayout(VkImageLayout old_layout, VkImageLayout new_layout);
     void changeLayout(CommandBatch& command_buffer, VkImageLayout old_layout, VkImageLayout new_layout);

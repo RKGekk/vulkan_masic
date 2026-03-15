@@ -9,6 +9,8 @@ bool VulkanSemaphore::init(std::shared_ptr<VulkanDevice> device, VkSemaphore sem
 	m_semaphore_type = VK_SEMAPHORE_TYPE_BINARY_KHR;
 	m_signalled = signalled;
 	m_owned = owned;
+
+	return true;
 }
 
 bool VulkanSemaphore::init(std::shared_ptr<VulkanDevice> device, VkSemaphore semaphore, uint64_t timeline, bool owned) {
@@ -17,6 +19,8 @@ bool VulkanSemaphore::init(std::shared_ptr<VulkanDevice> device, VkSemaphore sem
 	m_timeline = timeline;
 	m_semaphore_type = VK_SEMAPHORE_TYPE_TIMELINE_KHR;
 	m_owned = owned;
+
+	return true;
 }
 
 void VulkanSemaphore::destroy() {

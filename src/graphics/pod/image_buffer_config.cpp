@@ -124,6 +124,10 @@ const std::vector<std::shared_ptr<VulkanSampler>>& ImageBufferConfig::getSampler
     return m_samplers;
 }
 
+void ImageBufferConfig::setSampler(std::shared_ptr<VulkanSampler> sampler) {
+    m_samplers.insert(m_samplers.begin(), std::move(sampler));
+}
+
 const std::shared_ptr<VulkanSampler>& ImageBufferConfig::getSampler() const {
     return m_samplers.front();
 }

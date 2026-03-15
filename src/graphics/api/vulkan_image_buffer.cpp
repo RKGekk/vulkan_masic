@@ -275,7 +275,7 @@ VkSubresourceLayout VulkanImageBuffer::getSubresourceSizes(VkImageAspectFlags as
     return result;
 }
 
-const std::shared_ptr<ImageBufferConfig>& VulkanImageBuffer::getImageConfig() const {
+std::shared_ptr<ImageBufferConfig>& VulkanImageBuffer::getImageConfig() {
     return m_image_config;
 }
 

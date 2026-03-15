@@ -172,6 +172,8 @@ bool PipelineConfig::init(const pugi::xml_node& pipeline_data) {
         m_dynamic_info.dynamicStateCount = m_dynamic_states.size();
         m_dynamic_info.pDynamicStates = m_dynamic_states.data();
     }
+
+    return true;
 }
 
 bool PipelineConfig::init(const std::string& rg_file_path) {

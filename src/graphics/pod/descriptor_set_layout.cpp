@@ -26,8 +26,8 @@ bool DescSetLayout::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_n
         pugi::xml_node immutable_samplers_node = layout_binding_node.child("ImmutableSamplers");
         for (pugi::xml_node sampler_node = immutable_samplers_node.first_child(); sampler_node; sampler_node = sampler_node.next_sibling()) {
             VkSamplerCreateInfo sampler_info = getSamplerCreateInfo(sampler_node);
-            std::shared_ptr<VulkanSampler> sampler = std::make_shared<VulkanSampler>();
-            sampler->init(device, sampler_info);
+            std::shared_ptr<VulkanSampler> sampler = std::make_shared<VulkanSampler>(device, m_name + "_immutable_sampler"s);
+            sampler->init(sampler_info);
             m_immutable_samplers_ptr.push_back(sampler->getSampler());
             m_immutable_samplers.push_back(std::move(sampler));
         }
@@ -61,8 +61,8 @@ bool DescSetLayout::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_n
 
                 if(metadata.sampler_type == UpdateMetadata::SamplerType::INLINE) {
                     VkSamplerCreateInfo sampler_info = getSamplerCreateInfo(sampler_node.child("Inline"));
-                    metadata.image_sampler = std::make_shared<VulkanSampler>();
-                    metadata.image_sampler->init(device, sampler_info);
+                    metadata.image_sampler = std::make_shared<VulkanSampler>(device, m_name + "_inline_sampler"s);
+                    metadata.image_sampler->init(sampler_info);
                 }
             }
         }

@@ -45,7 +45,7 @@ bool VulkanSampler::init(uint32_t mip_levels) {
     sampler_info.minLod = 0.0f;
     sampler_info.maxLod = static_cast<float>(mip_levels);
 
-    init(sampler_info);
+    return init(sampler_info);
 }
 
 void VulkanSampler::destroy() {

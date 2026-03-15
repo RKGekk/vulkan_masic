@@ -29,6 +29,7 @@ public:
     const VkImageCreateInfo& getImageInfo() const;
     VkImageLayout getAfterInitLayout() const;
     const std::vector<std::shared_ptr<VulkanSampler>>& getSamplers() const;
+    void setSampler(std::shared_ptr<VulkanSampler> sampler);
     const std::shared_ptr<VulkanSampler>& getSampler() const;
     const std::shared_ptr<FormatConfig>& getFormat() const;
     const std::unordered_map<std::string, std::shared_ptr<ImageBufferViewConfig>>& getViewInfoMap() const;

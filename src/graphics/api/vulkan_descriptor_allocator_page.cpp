@@ -36,7 +36,7 @@ bool DescriptorAllocatorPage::init(std::shared_ptr<VulkanDevice> device, std::sh
     alloc_info.descriptorSetCount = num_descriptors_per_heap;
     alloc_info.pSetLayouts = layouts.data();
     
-    VkResult result = vkAllocateDescriptorSets(m_device->getDevice(), &alloc_info, m_desc_sets.data());
+    result = vkAllocateDescriptorSets(m_device->getDevice(), &alloc_info, m_desc_sets.data());
     if(result != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate descriptor sets!");
     }
