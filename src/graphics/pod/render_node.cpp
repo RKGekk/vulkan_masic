@@ -12,6 +12,7 @@
 #include "../api/vulkan_pipelines_manager.h"
 #include "../vulkan_renderer.h"
 #include "../../application.h"
+#include "format_config.h"
 
 #include <utility>
 
@@ -125,7 +126,7 @@ VkExtent2D RenderNode::getViewportExtent() const {
     return m_viewport_extent;
 }
 
-const std::shared_ptr<RenderResource>& RenderNode::getAttachedResource(const RenderNode::LocalName& attached_as) const {
+std::shared_ptr<RenderResource> RenderNode::getAttachedResource(const RenderNode::LocalName& attached_as) const {
     if(isReadAttached(attached_as)) {
         return m_read_attached.at(attached_as).resource;
     }

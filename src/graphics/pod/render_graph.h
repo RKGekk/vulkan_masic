@@ -12,10 +12,10 @@
 #include <vector>
 
 #include "render_resource.h"
-#include "render_node.h"
 #include "dependency_level.h"
 
 class VulkanDevice;
+class RenderNode;
 
 class RenderGraph {
 public:
@@ -33,18 +33,18 @@ public:
 
 	const RenderNodeList& getTopologicallySortedNodes();
 	const RenderNodePtr& getRenderNodeByID(size_t id) const;
-	const RenderNodePtr& getLastWritten(const RenderNodePtr& render_node, RenderNode::GlobalName resuotce_name) const;
-	size_t getLastWrittenIdentity(const RenderNodePtr& render_node, RenderNode::GlobalName resuotce_name) const;
-	const RenderNodePtr& getLastRead(const RenderNodePtr& render_node, RenderNode::GlobalName resuotce_name) const;
-	size_t getLastReadIdentity(const RenderNodePtr& render_node, RenderNode::GlobalName resuotce_name) const;
+	RenderNodePtr getLastWritten(const RenderNodePtr& render_node, const std::string& global_resuotce_name) const;
+	size_t getLastWrittenIdentity(const RenderNodePtr& render_node, const std::string& global_resuotce_name) const;
+	RenderNodePtr getLastRead(const RenderNodePtr& render_node, const std::string& global_resuotce_name) const;
+	size_t getLastReadIdentity(const RenderNodePtr& render_node, const std::string& global_resuotce_name) const;
 	size_t getTopologicalIdentity(const RenderNodePtr& render_node) const;
 
 private:
 
 	std::shared_ptr<VulkanDevice> m_device;
 	RenderNodeList m_render_nodes;
-	std::unordered_map<RenderNode::GlobalName, RenderNodeSet> m_read_map;
-	std::unordered_map<RenderNode::GlobalName, RenderNodeSet> m_written_map;
+	std::unordered_map<std::string, RenderNodeSet> m_read_map;
+	std::unordered_map<std::string, RenderNodeSet> m_written_map;
 
 	std::unordered_map<RenderNodePtr, RenderNodeSet> m_adjency_list; // Write To Read
 	std::unordered_map<RenderNodePtr, RenderNodeSet> m_rev_adjency_list; // Read To Write

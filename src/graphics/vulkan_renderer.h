@@ -13,25 +13,25 @@
 #include "../tools/game_timer.h"
 #include "../tools/thread_pool.h"
 #include "../window_surface.h"
-#include "api/vulkan_device.h"
-#include "api/vulkan_swapchain.h"
-#include "drawables/vulkan_drawable.h"
-#include "api/vulkan_descriptors_manager.h"
-#include "api/vulkan_shaders_manager.h"
-#include "api/vulkan_shader.h"
-#include "api/vulkan_pipelines_manager.h"
-#include "api/vulkan_pipeline.h"
-#include "api/vulkan_image_buffer.h"
-#include "api/vulkan_command_buffer.h"
+
 #include "api/vulkan_command_pool_type.h"
-#include "api/vulkan_render_passes_manager.h"
-#include "api/vulkan_semaphores_manager.h"
-#include "api/vulkan_fence_manager.h"
-#include "api/vulkan_format_manager.h"
-#include "api/vulkan_resources_manager.h"
 #include "../engine/views/iengine_view.h"
-#include "pod/render_graph.h"
-#include "pod/render_node.h"
+
+class VulkanDevice;
+class VulkanImageBuffer;
+class CommandBatch;
+class VulkanSwapChain;
+class VulkanDescriptorsManager;
+class VulkanShadersManager;
+class VulkanPipelinesManager;
+class VulkanFenceManager;
+class VulkanSemaphoresManager;
+class VulkanCommandManager;
+class VulkanRenderPassesManager;
+class VulkanFormatManager;
+class VulkanResourcesManager;
+class RenderNode;
+class RenderGraph;
 
 struct Managers {
     std::shared_ptr<VulkanDescriptorsManager> descriptors_manager;

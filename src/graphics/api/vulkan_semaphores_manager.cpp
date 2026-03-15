@@ -16,6 +16,8 @@ bool VulkanSemaphoresManager::init(std::shared_ptr<VulkanDevice> device) {
             throw std::runtime_error("failed to create semaphore!");
         }
     }
+
+    return true;
 }
 
 void VulkanSemaphoresManager::destroy() {

@@ -1,6 +1,40 @@
 #include "vulkan_renderer.h"
 
+#include "api/vulkan_device.h"
+#include "api/vulkan_image_buffer.h"
+#include "api/vulkan_command_buffer.h"
+#include "api/vulkan_shader.h"
+#include "api/vulkan_pipeline.h"
+#include "api/vulkan_swapchain.h"
+#include "api/vulkan_descriptors_manager.h"
+#include "api/vulkan_shaders_manager.h"
+#include "api/vulkan_pipelines_manager.h"
+#include "api/vulkan_fence_manager.h"
+#include "api/vulkan_semaphores_manager.h"
+#include "api/vulkan_command_manager.h"
+#include "api/vulkan_render_passes_manager.h"
+#include "api/vulkan_format_manager.h"
+#include "api/vulkan_resources_manager.h"
+#include "pod/render_node.h"
+#include "pod/render_graph.h"
+
 #include <algorithm>
+
+bool PerFrame::init(std::shared_ptr<VulkanDevice> device, unsigned index) {
+    return true;
+}
+
+void PerFrame::destroy() {
+
+}
+	
+bool PerFrame::wait(uint64_t timeout) {
+    return true;
+}
+
+void PerFrame::begin() {
+
+}
 
 bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<WindowSurface> window, std::shared_ptr<ThreadPool> thread_pool) {
     using namespace std::literals;

@@ -2,6 +2,7 @@
 
 #include "transform_component.h"
 #include "../application.h"
+#include "../graphics/vulkan_renderer.h"
 #include "../scene/mesh_node_loader.h"
 
 #include <cassert>

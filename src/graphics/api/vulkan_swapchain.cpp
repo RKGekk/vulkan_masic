@@ -1,9 +1,13 @@
 #include "vulkan_swapchain.h"
 
+#include "vulkan_device.h"
 #include "vulkan_resources_manager.h"
 #include "../vulkan_renderer.h"
 #include "../../window_surface.h"
 #include "vulkan_format_manager.h"
+#include "vulkan_semaphores_manager.h"
+#include "vulkan_fence_manager.h"
+#include "vulkan_image_buffer.h"
 #include "../pod/format_config.h"
 #include "../../tools/string_tools.h"
 
@@ -206,6 +210,10 @@ VkSwapchainKHR VulkanSwapChain::getSwapchain() const {
 
 const std::vector<std::shared_ptr<VulkanImageBuffer>>& VulkanSwapChain::getSwapchainImages() const {
     return m_swapchain_images;
+}
+
+const std::shared_ptr<FormatConfig>& VulkanSwapChain::getFormatConfig() const {
+    return m_format_config;
 }
 
 VkSurfaceKHR VulkanSwapChain::createSurface(VkInstance vk_instance, GLFWwindow* glfw_window_ptr) {

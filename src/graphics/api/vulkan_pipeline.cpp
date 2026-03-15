@@ -9,6 +9,7 @@
 #include "vulkan_render_pass.h"
 #include "../../tools/string_tools.h"
 #include "../../application.h"
+#include "../vulkan_renderer.h"
 
 #include <array>
 #include <filesystem>

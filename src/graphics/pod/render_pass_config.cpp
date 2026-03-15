@@ -232,14 +232,14 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
             pugi::xml_node src_access_mask_node = subpass_dependency_node.child("srcAccessMask");
 	        if (src_access_mask_node) {
                 for (pugi::xml_node mask_node = src_access_mask_node.first_child(); mask_node; mask_node = mask_node.next_sibling()) {
-                    subpass_dependency_sync.srcAccessMask |= getAccessFlag(mask_node.text().as_string());
+                    subpass_dependency_sync.srcAccessMask |= getVkAccessFlag(mask_node.text().as_string());
                 }
             }
 
             pugi::xml_node dst_access_mask_node = subpass_dependency_node.child("dstAccessMask");
 	        if (dst_access_mask_node) {
                 for (pugi::xml_node mask_node = dst_access_mask_node.first_child(); mask_node; mask_node = mask_node.next_sibling()) {
-                    subpass_dependency_sync.dstAccessMask |= getAccessFlag(mask_node.text().as_string());
+                    subpass_dependency_sync.dstAccessMask |= getVkAccessFlag(mask_node.text().as_string());
                 }
             }
 

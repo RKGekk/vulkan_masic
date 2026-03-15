@@ -53,7 +53,7 @@ public:
     VkFramebuffer getFramebuffer() const;
     VkExtent2D getViewportExtent() const;
 
-    const std::shared_ptr<RenderResource>& getAttachedResource(const LocalName& attached_as) const;
+    std::shared_ptr<RenderResource> getAttachedResource(const LocalName& attached_as) const;
     std::shared_ptr<VulkanImageBuffer> getAttachedImageResource(const LocalName& attached_as);
     std::shared_ptr<VulkanImageBuffer> getWrittenAttachedImageResource(const LocalName& name);
     std::shared_ptr<VulkanImageBuffer> getReadAttachedImageResource(const LocalName& name);

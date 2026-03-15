@@ -6,6 +6,7 @@
 #include "../pod/format_config.h"
 #include "../../application.h"
 #include "../vulkan_renderer.h"
+#include "vulkan_resources_manager.h"
 
 VulkanBuffer::VulkanBuffer(std::shared_ptr<VulkanDevice> device, std::string name) : m_device(std::move(device)), m_name(std::move(name)) {}
 VulkanBuffer::VulkanBuffer(std::shared_ptr<VulkanDevice> device) : m_device(std::move(device)), m_name(std::to_string(rand())) {};

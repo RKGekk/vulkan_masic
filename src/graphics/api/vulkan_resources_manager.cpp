@@ -12,8 +12,6 @@
 
 #include "../../tools/string_tools.h"
 
-#include <stb_image.h>
-
 #include <utility>
 
 VulkanResourcesManager::VulkanResourcesManager(std::shared_ptr<VulkanDevice> device, std::shared_ptr<VulkanFormatManager> format_manager) : m_device(std::move(device)), m_format_manager(std::move(format_manager)) {}

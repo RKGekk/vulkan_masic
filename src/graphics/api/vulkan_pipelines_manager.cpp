@@ -3,9 +3,11 @@
 #include "../../application.h"
 #include "../../tools/string_tools.h"
 #include "vulkan_device.h"
+#include "vulkan_swapchain.h"
 #include "vulkan_descriptors_manager.h"
 #include "vulkan_shaders_manager.h"
 #include "vulkan_render_passes_manager.h"
+#include "../vulkan_renderer.h"
 
 bool VulkanPipelinesManager::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<Managers> managers, const std::string& rg_file_path) {
     pugi::xml_document xml_doc;

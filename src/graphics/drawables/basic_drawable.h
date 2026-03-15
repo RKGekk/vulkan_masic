@@ -27,7 +27,7 @@
 
 class VulkanImageBuffer;
 class VulkanBuffer;
-class Managers;
+struct Managers;
 class RenderNode;
 
 class BasicDrawable : public IVulkanDrawable {

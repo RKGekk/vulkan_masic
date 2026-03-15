@@ -1,9 +1,9 @@
 #include "render_graph.h"
 
-#include "vulkan_device.h"
-#include "vulkan_pipeline.h"
-#include "vulkan_render_pass.h"
-
+#include "../api/vulkan_device.h"
+#include "../api/vulkan_pipeline.h"
+#include "../api/vulkan_render_pass.h"
+#include "render_node.h"
 
 bool RenderGraph::init(std::shared_ptr<VulkanDevice> device) {
     m_device = std::move(device);
@@ -127,8 +127,8 @@ const RenderGraph::RenderNodePtr& RenderGraph::getRenderNodeByID(size_t id) cons
     return m_topologically_sorted_nodes.at(id);
 }
 
-const RenderGraph::RenderNodePtr& RenderGraph::getLastWritten(const RenderNodePtr& render_node, RenderNode::GlobalName resuotce_name) const {
-    size_t current_idx = getLastWrittenIdentity(render_node, resuotce_name);
+RenderGraph::RenderNodePtr RenderGraph::getLastWritten(const RenderNodePtr& render_node, const std::string& gloabal_resuorce_name) const {
+    size_t current_idx = getLastWrittenIdentity(render_node, gloabal_resuorce_name);
     if(current_idx == NO_ID) {
         return nullptr;
     }
@@ -137,10 +137,10 @@ const RenderGraph::RenderNodePtr& RenderGraph::getLastWritten(const RenderNodePt
     }
 }
 
-size_t RenderGraph::getLastWrittenIdentity(const RenderNodePtr& render_node, RenderNode::GlobalName resuotce_name) const {
+size_t RenderGraph::getLastWrittenIdentity(const RenderNodePtr& render_node, const std::string& gloabal_resuorce_name) const {
     size_t current_idx = NO_ID;
     for (const RenderNodePtr& write_node : m_rev_adjency_list.at(render_node)) {
-        if(!write_node->isWritten(resuotce_name)) continue;
+        if(!write_node->isWrittenGlobal(gloabal_resuorce_name)) continue;
         size_t write_node_idx = m_render_node_sort_idx.at(write_node);
         if(current_idx > write_node_idx) {
             current_idx = write_node_idx;
@@ -149,8 +149,8 @@ size_t RenderGraph::getLastWrittenIdentity(const RenderNodePtr& render_node, Ren
     return current_idx;
 }
 
-const RenderGraph::RenderNodePtr& RenderGraph::getLastRead(const RenderNodePtr& render_node, RenderNode::GlobalName resuotce_name) const {
-    size_t current_idx = getLastReadIdentity(render_node, resuotce_name);
+RenderGraph::RenderNodePtr RenderGraph::getLastRead(const RenderNodePtr& render_node, const std::string& gloabal_resuorce_name) const {
+    size_t current_idx = getLastReadIdentity(render_node, gloabal_resuorce_name);
     if(current_idx == NO_ID) {
         return nullptr;
     }
@@ -159,10 +159,10 @@ const RenderGraph::RenderNodePtr& RenderGraph::getLastRead(const RenderNodePtr& 
     }
 }
 
-size_t RenderGraph::getLastReadIdentity(const RenderNodePtr& render_node, RenderNode::GlobalName resuotce_name) const {
+size_t RenderGraph::getLastReadIdentity(const RenderNodePtr& render_node, const std::string& gloabal_resuorce_name) const {
     size_t current_idx = NO_ID;
     for (const RenderNodePtr& write_node : m_rev_adjency_list.at(render_node)) {
-        if(!write_node->isWritten(resuotce_name)) continue;
+        if(!write_node->isWrittenGlobal(gloabal_resuorce_name)) continue;
         size_t write_node_idx = m_render_node_sort_idx.at(write_node);
         if(current_idx > write_node_idx) {
             current_idx = write_node_idx;

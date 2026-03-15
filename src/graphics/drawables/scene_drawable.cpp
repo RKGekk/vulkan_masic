@@ -6,8 +6,12 @@
 #include "../../scene/nodes/basic_camera_node.h"
 #include "../api/vulkan_buffer.h"
 #include "../api/vulkan_image_buffer.h"
+#include "../api/vulkan_swapchain.h"
+#include "../api/vulkan_resources_manager.h"
+#include "../api/vulkan_descriptors_manager.h"
 #include "../pod/render_node.h"
 #include "../pod/render_node_config.h"
+#include "../pod/format_config.h"
 #include "../vulkan_renderer.h"
 
 struct SceneUniformBufferObject {

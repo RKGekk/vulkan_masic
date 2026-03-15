@@ -14,7 +14,7 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "tiny_gltf.h"
+//#include "tiny_gltf.h"
 #include <pugixml.hpp>
 
 #include "actor_component.h"

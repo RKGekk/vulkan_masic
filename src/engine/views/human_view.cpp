@@ -5,6 +5,7 @@
 #include "../../graphics/vulkan_renderer.h"
 #include "../../graphics/api/vulkan_device.h"
 #include "../../graphics/api/vulkan_shaders_manager.h"
+#include "../../graphics/api/vulkan_swapchain.h"
 #include "../../tools/memory_utility.h"
 #include "../../events/cicadas/evt_data_mouse_motion.h"
 #include "../../events/cicadas/evt_data_mouse_button_pressed.h"

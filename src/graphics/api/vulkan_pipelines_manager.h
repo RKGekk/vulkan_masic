@@ -12,7 +12,7 @@
 #include <vector>
 
 class VulkanDevice;
-class Managers;
+struct Managers;
 
 class VulkanPipelinesManager {
 public:

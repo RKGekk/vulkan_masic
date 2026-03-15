@@ -12,7 +12,7 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "tiny_gltf.h"
+//#include "tiny_gltf.h"
 
 #include "../../scene/nodes/mesh_node.h"
 #include "../api/vulkan_device.h"
@@ -31,7 +31,7 @@
 class VulkanBuffer;
 class VulkanImageBuffer;
 class RenderNode;
-class Managers;
+struct Managers;
 
 class SceneDrawable : public IVulkanDrawable {
 public:

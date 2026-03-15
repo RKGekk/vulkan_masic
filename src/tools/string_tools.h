@@ -185,7 +185,7 @@ VkAttachmentLoadOp getAttachmentLoadOp(const std::string& load_op_str);
 VkAttachmentStoreOp getAttachmentStoreOp(const std::string& store_op_str);
 VkImageLayout getImageLayout(const std::string& layout_str);
 VkPipelineStageFlagBits getPipelineStageFlag(const std::string& flag_str);
-VkAccessFlagBits getAccessFlag(const std::string& flag_str);
+VkAccessFlagBits getVkAccessFlag(const std::string& flag_str);
 VkDependencyFlagBits getDependencyFlag(const std::string& flag_str);
 VkImageCreateFlagBits getVkImageCreateFlag(const std::string& flag_str);
 VkImageType getImageType(const std::string& image_type_str);

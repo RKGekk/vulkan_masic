@@ -7,7 +7,10 @@
 #include "../pod/render_node_config.h"
 #include "../pod/pipeline_config.h"
 #include "../api/vulkan_pipelines_manager.h"
+#include "../api/vulkan_resources_manager.h"
+#include "../api/vulkan_descriptors_manager.h"
 #include "../api/vulkan_image_buffer.h"
+#include "../api/vulkan_swapchain.h"
 #include "../../application.h"
 
 #include <pugixml.hpp>

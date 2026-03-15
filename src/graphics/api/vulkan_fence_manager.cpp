@@ -17,6 +17,8 @@ bool VulkanFenceManager::init(std::shared_ptr<VulkanDevice> device) {
             throw std::runtime_error("failed to create fence!");
         }
     }
+
+    return true;
 }
 
 void VulkanFenceManager::destroy() {

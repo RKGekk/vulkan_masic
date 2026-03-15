@@ -3,6 +3,7 @@
 #include "vulkan_swapchain.h"
 #include "../pod/render_pass_config.h"
 #include "../../application.h"
+#include "../vulkan_renderer.h"
 
 bool VulkanRenderPassesManager::init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_path, const std::shared_ptr<VulkanSwapChain>& swapchain) {
     pugi::xml_document xml_doc;

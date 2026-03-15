@@ -110,6 +110,8 @@ bool ImageBufferConfig::init(const std::shared_ptr<VulkanDevice>& device, const 
 
         m_image_view_info_map[view_name_str] = std::move(view_info_ptr);
     }
+
+    return true;
 }
     
 const VkImageCreateInfo& ImageBufferConfig::getImageInfo() const {
@@ -144,7 +146,7 @@ VkMemoryPropertyFlags ImageBufferConfig::getMemoryProperties() const {
     return m_memory_properties;
 }
 
-std::shared_ptr<ImageBufferConfig> ImageBufferConfig::makeInstance(std::string image_instance_name, VkExtent2D extent = {0, 0}) const {
+std::shared_ptr<ImageBufferConfig> ImageBufferConfig::makeInstance(std::string image_instance_name, VkExtent2D extent) const {
     using namespace std::literals;
 
     std::shared_ptr<ImageBufferConfig> instance_ptr = std::make_shared<ImageBufferConfig>();

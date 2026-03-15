@@ -6,7 +6,19 @@
 #include "../pod/image_buffer_config.h"
 #include "vulkan_resources_manager.h"
 #include "../../application.h"
+#include "../vulkan_renderer.h"
 
+// #ifdef STB_IMAGE_IMPLEMENTATION
+// #undef STB_IMAGE_IMPLEMENTATION
+// #endif
+
+// #ifdef STB_IMAGE_WRITE_IMPLEMENTATION
+// #undef STB_IMAGE_WRITE_IMPLEMENTATION
+// #endif
+
+//#define STB_IMAGE_IMPLEMENTATION
+//#define STBI_MSC_SECURE_CRT 
+//#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image.h>
 
 VulkanImageBuffer::VulkanImageBuffer(std::shared_ptr<VulkanDevice> device, std::string name) : m_device(std::move(device)), m_name(std::move(name)) {}

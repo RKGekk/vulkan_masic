@@ -1,12 +1,13 @@
 #include "application.h"
 
-#include <tiny_gltf.h>
+//#define STBI_MSC_SECURE_CRT 
+//#define STB_IMAGE_WRITE_IMPLEMENTATION
+//#include "stb_image_write.h"
 #include <pugixml.hpp>
-#include <stb_image.h>
+//#include <stb_image.h>
 
-#define TINYGLTF_IMPLEMENTATION
-#define STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
+//#define STB_IMAGE_IMPLEMENTATION
+//#define STB_IMAGE_WRITE_IMPLEMENTATION
 
 #include "events/cicadas/evt_data_update_tick.h"
 #include "events/cicadas/evt_data_window_close.h"
@@ -15,6 +16,7 @@
 #include "graphics/pod/basic_vertex.h"
 #include "graphics/pod/basic_uniform.h"
 #include "graphics/drawables/basic_drawable.h"
+#include "graphics/api/vulkan_swapchain.h"
 
 std::unique_ptr<Application> gs_pSingeton;
 std::once_flag gs_only_once;

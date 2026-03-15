@@ -3,8 +3,12 @@
 #include "../pod/basic_vertex.h"
 #include "../pod/basic_uniform.h"
 #include "../pod/render_node_config.h"
+#include "../pod/format_config.h"
 #include "../pod/render_node.h"
 #include "../vulkan_renderer.h"
+#include "../api/vulkan_swapchain.h"
+#include "../api/vulkan_resources_manager.h"
+#include "../api/vulkan_descriptors_manager.h"
 #include "../../application.h"
 
 #include <utility>

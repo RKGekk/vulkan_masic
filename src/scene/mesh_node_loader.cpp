@@ -1,3 +1,8 @@
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+//#include "stb_image_write.h"
+
+#define TINYGLTF_IMPLEMENTATION
 #include "mesh_node_loader.h"
 
 #include "../application.h"
@@ -5,6 +10,8 @@
 #include "../graphics/pod/buffer_config.h"
 #include "../graphics/api/vulkan_image_buffer.h"
 #include "../graphics/api/vulkan_buffer.h"
+#include "../graphics/vulkan_renderer.h"
+#include "../graphics/api/vulkan_resources_manager.h"
 
 struct TextureMatInfo {
 	int index = -1; // required.
@@ -518,7 +525,7 @@ void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, M
 		}
 
 		texture = Application::GetRenderer().getManagers()->resources_manager->create_image(texture_image_file_name);
-		texture->getImageConfig()->setSampler(std::move(sampler));
+		//texture->getImageConfig()->setSampler(std::move(sampler));
 		material->SetTexture(texture_type_enum, std::move(texture));
 	}
 	else {
@@ -528,7 +535,7 @@ void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, M
 		tinygltf::Buffer& texture_image_buffer = m_gltf_model.buffers[texture_image_buffer_idx];
 
 		texture = Application::GetRenderer().getManagers()->resources_manager->create_image(texture_image_buffer.data.data(), {(uint32_t)texture_image.width, (uint32_t)texture_image.height}, texture_image.name, "basic_image_resource");
-		texture->getImageConfig()->setSampler(std::move(sampler));
+		//texture->getImageConfig()->setSampler(std::move(sampler));
 		material->SetTexture(texture_type_enum, std::move(texture));
 	}
 }

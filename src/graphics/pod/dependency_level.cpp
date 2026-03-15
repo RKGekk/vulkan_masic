@@ -4,15 +4,7 @@
 
 #include <utility>
 
-bool DependencyLevel::init(int level) {
-    m_level = level;
-
-    return true;
-}
-
-void DependencyLevel::destroy() {
-
-}
+DependencyLevel::DependencyLevel(int level) : m_level(level) {}
 
 const std::vector<std::shared_ptr<RenderNode>>& DependencyLevel::getNodes() const {
     return m_nodes;

@@ -10,8 +10,7 @@ class RenderNode;
 
 class DependencyLevel {
 public:
-    bool init(int level);
-    void destroy();
+    DependencyLevel(int level);
 
     const std::vector<std::shared_ptr<RenderNode>>& getNodes() const;
     int getLevel() const;

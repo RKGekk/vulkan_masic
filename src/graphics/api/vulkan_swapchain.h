@@ -11,13 +11,13 @@
 
 #include <pugixml.hpp>
 
-#include "vulkan_device.h"
-#include "vulkan_image_buffer.h"
 #include "../pod/render_resource.h"
 
 class WindowSurface;
 class Managers;
 class FormatConfig;
+class VulkanImageBuffer;
+class VulkanDevice;
 
 struct SwapchainSupportDetails {
     VkSurfaceCapabilitiesKHR capabilities;
