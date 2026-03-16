@@ -11,10 +11,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "vulkan_render_pass.h"
-
 class VulkanDevice;
 class VulkanSwapChain;
+class VulkanRenderPass;
 
 class VulkanRenderPassesManager {
 public:

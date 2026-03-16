@@ -169,10 +169,7 @@ void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, Vk
 
     Application& app = Application::Get();
     VulkanRenderer& renderer = app.GetRenderer();
-    //renderer.getManagers()->resources_manager->
-    //std::shared_ptr<VulkanBuffer> staging_buffer = std::make_shared<VulkanBuffer>(m_device);
-    std::shared_ptr<VulkanBuffer> staging_buffer = Application::Get().GetRenderer().getManagers()->resources_manager->create_buffer(src_data, m_buffer_config->getBufferInfo().size, "basic_staging_buffer"s);
-    //staging_buffer->init(src_data, m_buffer_config->getBufferInfo().size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    std::shared_ptr<VulkanBuffer> staging_buffer = Application::Get().GetRenderer().getResourcesManager()->create_buffer(src_data, m_buffer_config->getBufferInfo().size, "basic_staging_buffer"s);
     command_buffer.addResource(staging_buffer);
 
     m_device->getCommandManager()->copyBuffer(command_buffer.getCommandBufer(), staging_buffer->getBuffer(), m_buffer, buffer_size);

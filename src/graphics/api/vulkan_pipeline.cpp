@@ -112,8 +112,8 @@ bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_
 
 std::shared_ptr<VulkanShader> VulkanPipeline::getShader(VkShaderStageFlagBits stage) {
     for(const std::string& shader_name : m_pipeline_config->getShaderNames()) {
-        if(Application::GetRenderer().getManagers()->shaders_manager->getShaderStage(shader_name) == stage) {
-            return Application::GetRenderer().getManagers()->shaders_manager->getShader(shader_name);
+        if(Application::GetRenderer().getShadersManager()->getShaderStage(shader_name) == stage) {
+            return Application::GetRenderer().getShadersManager()->getShader(shader_name);
         }
     }
     return nullptr;

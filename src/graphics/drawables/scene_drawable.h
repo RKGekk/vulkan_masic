@@ -56,7 +56,7 @@ public:
 
     virtual int order() override;
 
-    void addRendeNode(std::shared_ptr<MeshNode> model, std::shared_ptr<Managers>& managers);
+    void addRendeNode(std::shared_ptr<MeshNode> model);
 
 private:
 

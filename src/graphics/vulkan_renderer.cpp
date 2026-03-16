@@ -6,6 +6,7 @@
 #include "api/vulkan_shader.h"
 #include "api/vulkan_pipeline.h"
 #include "api/vulkan_swapchain.h"
+#include "api/vulkan_render_pass.h"
 #include "api/vulkan_descriptors_manager.h"
 #include "api/vulkan_shaders_manager.h"
 #include "api/vulkan_pipelines_manager.h"
@@ -42,51 +43,49 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
     m_device = std::move(device);
     m_thread_pool = std::move(thread_pool);
 
-    m_managers = std::make_shared<Managers>();
+    m_format_manager = std::make_shared<VulkanFormatManager>();
+    m_format_manager->init(m_device, window, "graphics_pipelines.xml"s);
 
-    m_managers->format_manager = std::make_shared<VulkanFormatManager>();
-    m_managers->format_manager->init(m_device, window, "graphics_pipelines.xml"s);
+    m_fence_manager = std::make_shared<VulkanFenceManager>();
+    m_fence_manager->init(m_device);
 
-    m_managers->fence_manager = std::make_shared<VulkanFenceManager>();
-    m_managers->fence_manager->init(m_device);
+    m_semaphore_manager = std::make_shared<VulkanSemaphoresManager>();
+    m_semaphore_manager->init(m_device);
 
-    m_managers->semaphore_manager = std::make_shared<VulkanSemaphoresManager>();
-    m_managers->semaphore_manager->init(m_device);
-
-    m_managers->resources_manager = std::make_shared<VulkanResourcesManager>(m_device, m_managers->format_manager);
-    m_managers->resources_manager->init("graphics_pipelines.xml"s);
+    m_resources_manager = std::make_shared<VulkanResourcesManager>(m_device, m_format_manager);
+    m_resources_manager->init("graphics_pipelines.xml"s);
 
     m_swapchain = std::make_shared<VulkanSwapChain>();
-    m_swapchain->init(m_device, std::move(window), m_managers, "graphics_pipelines.xml"s);
+    m_swapchain->init(m_device, std::move(window), "graphics_pipelines.xml"s);
 
-    m_managers->command_manager = m_device->getCommandManager();
+    m_command_manager = m_device->getCommandManager();
 
     int max_frames = m_swapchain->getMaxFrames();
     m_per_frame.reserve(max_frames);
     for(int i = 0; i < max_frames; ++i) {
         std::shared_ptr<PerFrame> per_frame = std::make_shared<PerFrame>();
-        m_out_color_images[i] = m_managers->resources_manager->create_image("render_target_color", "render_target_color_resource");
+        m_out_color_images[i] = m_resources_manager->create_image("render_target_color", "render_target_color_resource");
         per_frame->out_color_image = m_out_color_images[i];
-        m_out_depth_images[i] = m_managers->resources_manager->create_image("render_target_depth", "render_target_depth_resource");
+        m_out_depth_images[i] = m_resources_manager->create_image("render_target_depth", "render_target_depth_resource");
         per_frame->out_depth_image = m_out_depth_images[i];
         per_frame->init(m_device, i);
 
-        per_frame->command_buffer = m_managers->command_manager->allocCommandBufferPtr(PoolTypeEnum::GRAPICS);
+        per_frame->command_buffer = m_command_manager->allocCommandBufferPtr(PoolTypeEnum::GRAPICS);
 
         m_per_frame.push_back(std::move(per_frame));
     }
 
-    m_managers->descriptors_manager = std::make_shared<VulkanDescriptorsManager>();
-    m_managers->descriptors_manager->init(m_device, "graphics_pipelines.xml"s);
+    m_descriptors_manager = std::make_shared<VulkanDescriptorsManager>();
+    m_descriptors_manager->init(m_device, "graphics_pipelines.xml"s);
 
-    m_managers->render_passes_manager = std::make_shared<VulkanRenderPassesManager>();
-    m_managers->render_passes_manager->init(m_device, "graphics_pipelines.xml"s, m_swapchain);
+    m_render_passes_manager = std::make_shared<VulkanRenderPassesManager>();
+    m_render_passes_manager->init(m_device, "graphics_pipelines.xml"s, m_swapchain);
 
-    m_managers->shaders_manager = std::make_shared<VulkanShadersManager>();
-    m_managers->shaders_manager->init(m_device, "graphics_pipelines.xml"s);
+    m_shaders_manager = std::make_shared<VulkanShadersManager>();
+    m_shaders_manager->init(m_device, "graphics_pipelines.xml"s);
 
-    m_managers->pipelines_manager = std::make_shared<VulkanPipelinesManager>();
-    m_managers->pipelines_manager->init(m_device, m_managers, "graphics_pipelines.xml"s);
+    m_pipelines_manager = std::make_shared<VulkanPipelinesManager>();
+    m_pipelines_manager->init(m_device, "graphics_pipelines.xml"s);
 
     m_render_graph = std::make_shared<RenderGraph>();
     m_render_graph->init(m_device);
@@ -111,8 +110,40 @@ std::shared_ptr<VulkanDevice>& VulkanRenderer::GetDevice() {
     return m_device;
 }
 
-std::shared_ptr<Managers>& VulkanRenderer::getManagers() {
-    return m_managers;
+std::shared_ptr<VulkanDescriptorsManager>& VulkanRenderer::getDescriptorsManager() {
+    return m_descriptors_manager;
+}
+
+std::shared_ptr<VulkanShadersManager>& VulkanRenderer::getShadersManager() {
+    return m_shaders_manager;
+}
+
+std::shared_ptr<VulkanPipelinesManager>& VulkanRenderer::getPipelinesManager() {
+    return m_pipelines_manager;
+}
+	
+std::shared_ptr<VulkanFenceManager>& VulkanRenderer::getFenceManager() {
+    return m_fence_manager;
+}
+
+std::shared_ptr<VulkanSemaphoresManager>& VulkanRenderer::getSemaphoreManager() {
+    return m_semaphore_manager;
+}
+
+std::shared_ptr<VulkanCommandManager>& VulkanRenderer::getCommandManager() {
+    return m_command_manager;
+}
+
+std::shared_ptr<VulkanRenderPassesManager>& VulkanRenderer::getRenderPassesManager() {
+    return m_render_passes_manager;
+}
+
+std::shared_ptr<VulkanFormatManager>& VulkanRenderer::getFormatManager() {
+    return m_format_manager;
+}
+
+std::shared_ptr<VulkanResourcesManager>& VulkanRenderer::getResourcesManager() {
+    return m_resources_manager;
 }
 
 void VulkanRenderer::TransitionResourcesToProperState(const std::shared_ptr<RenderNode>& render_node_ptr, CommandBatch& command_buffer) {
@@ -188,7 +219,7 @@ void VulkanRenderer::drawFrame() {
     wait_info.wait_for_stages.push_back(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
     VkSubmitInfo submit_info = m_per_frame[m_swapchain->getCurrentSync()]->command_buffer->getSubmitInfo(&wait_info);
 
-    m_managers->command_manager->submitCommandBuffer(*m_per_frame[m_swapchain->getCurrentSync()]->command_buffer, VulkanCommandManager::SELECT_ALL_BUFFERS, &submit_info);
+    m_command_manager->submitCommandBuffer(*m_per_frame[m_swapchain->getCurrentSync()]->command_buffer, VulkanCommandManager::SELECT_ALL_BUFFERS, &submit_info);
     
     VkSwapchainKHR swapchains[] = {m_swapchain->getSwapchain()};
     VkPresentInfoKHR present_info{};
@@ -199,7 +230,7 @@ void VulkanRenderer::drawFrame() {
     present_info.pSwapchains = swapchains;
     present_info.pImageIndices = m_swapchain->getCurrentFramePtr();
     present_info.pResults = nullptr;
-    VkResult result = vkQueuePresentKHR(m_managers->command_manager->getQueue(), &present_info);
+    VkResult result = vkQueuePresentKHR(m_command_manager->getQueue(), &present_info);
     if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to present swap chain image!");
     }

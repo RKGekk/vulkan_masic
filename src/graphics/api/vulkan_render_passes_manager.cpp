@@ -1,5 +1,7 @@
 #include "vulkan_render_passes_manager.h"
 
+#include "vulkan_device.h"
+#include "vulkan_render_pass.h"
 #include "vulkan_swapchain.h"
 #include "../pod/render_pass_config.h"
 #include "../../application.h"
@@ -18,7 +20,7 @@ bool VulkanRenderPassesManager::init(std::shared_ptr<VulkanDevice> device, const
 	if (passes_node) {
 		for (pugi::xml_node pass_node = passes_node.first_child(); pass_node; pass_node = pass_node.next_sibling()) {
             std::shared_ptr<RenderPassConfig> pass_cfg = std::make_shared<RenderPassConfig>();
-            pass_cfg->init(device, Application::GetRenderer().getManagers()->format_manager, pass_node);
+            pass_cfg->init(device, Application::GetRenderer().getFormatManager(), pass_node);
 
             std::shared_ptr<VulkanRenderPass> pass = std::make_shared<VulkanRenderPass>();
 			pass->init(device, pass_cfg);

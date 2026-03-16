@@ -26,7 +26,6 @@ HumanView::HumanView(std::shared_ptr<ProcessManager> process_manager) {
 
 	VulkanRenderer& renderer = Application::GetRenderer();
 	std::shared_ptr<VulkanDevice> device = renderer.GetDevice();
-	std::shared_ptr<Managers> managers = renderer.getManagers();
 
 	m_bShow_ui = false;
 	m_bShow_debug_ui = Application::Get().GetApplicationOptions().DebugUI;
@@ -50,7 +49,7 @@ HumanView::HumanView(std::shared_ptr<ProcessManager> process_manager) {
 		VPushElement(m_anim_menu_ui);
 
 		m_gui = std::make_shared<ImGUIDrawable>();
-    	m_gui->init(device, renderer.getManagers(), renderer.getSwapchain()->getMaxFrames());
+    	m_gui->init(device, renderer.getSwapchain()->getMaxFrames());
 	}
 	
 	m_current_tick = {};

@@ -10,8 +10,9 @@
 #include "vulkan_image_buffer.h"
 #include "../pod/format_config.h"
 #include "../../tools/string_tools.h"
+#include "../../application.h"
 
-bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<WindowSurface> window, std::shared_ptr<Managers> managers, const std::string& rg_file_path) {
+bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<WindowSurface> window, const std::string& rg_file_path) {
     using namespace std::literals;
 
     m_window = std::move(window);
@@ -29,7 +30,7 @@ bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr
 	if (!swapchain_node) return false;
 
     std::string surface_format_name = swapchain_node.child("SurfaceFormatName").text().as_string();
-    m_format_config = managers->format_manager->getFormat(surface_format_name);
+    m_format_config = Application::GetRenderer().getFormatManager()->getFormat(surface_format_name);
     
     m_swapchain_create_info = VkSwapchainCreateInfoKHR{};
     m_swapchain_create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -92,7 +93,7 @@ bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr
     size_t sz = swapchain_images.size();
     m_swapchain_images.resize(sz);
     for(size_t i = 0u; i < sz; ++i) {
-        m_swapchain_images[i] = managers->resources_manager->create_image(swapchain_images[i], "swap_chain_"s + std::to_string(i), resource_type_name);
+        m_swapchain_images[i] = Application::GetRenderer().getResourcesManager()->create_image(swapchain_images[i], "swap_chain_"s + std::to_string(i), resource_type_name);
     }
 
     m_image_available_sem.resize(m_max_frames);
@@ -106,8 +107,8 @@ bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr
     in_flight_fen_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     for(size_t i = 0u; i < m_max_frames; ++i) {
-        m_image_available_sem[i] = managers->semaphore_manager->getSemaphore();
-        m_image_available_fen[i] = managers->fence_manager->getFence();
+        m_image_available_sem[i] = Application::GetRenderer().getSemaphoreManager()->getSemaphore();
+        m_image_available_fen[i] = Application::GetRenderer().getFenceManager()->getFence();
     }
 
     return true;

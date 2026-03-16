@@ -34,7 +34,7 @@ class VulkanImageBuffer;
 
 class ImGUIDrawable : public IVulkanDrawable {
 public:
-    bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<Managers>& managers, int max_frames);
+    bool init(std::shared_ptr<VulkanDevice> device, int max_frames);
 
     void reset() override;
     void destroy() override;

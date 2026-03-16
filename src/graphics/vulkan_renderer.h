@@ -33,18 +33,6 @@ class VulkanResourcesManager;
 class RenderNode;
 class RenderGraph;
 
-struct Managers {
-    std::shared_ptr<VulkanDescriptorsManager> descriptors_manager;
-    std::shared_ptr<VulkanShadersManager> shaders_manager;
-    std::shared_ptr<VulkanPipelinesManager> pipelines_manager;
-	std::shared_ptr<VulkanFenceManager> fence_manager;
-	std::shared_ptr<VulkanSemaphoresManager> semaphore_manager;
-    std::shared_ptr<VulkanCommandManager> command_manager;
-    std::shared_ptr<VulkanRenderPassesManager> render_passes_manager;
-    std::shared_ptr<VulkanFormatManager> format_manager;
-    std::shared_ptr<VulkanResourcesManager> resources_manager;
-};
-
 struct PerFrame {
     bool init(std::shared_ptr<VulkanDevice> device, unsigned index);
     void destroy();
@@ -53,7 +41,6 @@ struct PerFrame {
 	void begin();
 
 	unsigned frame_index;
-	std::shared_ptr<Managers> managers_ptr;
 
 	std::vector<VkSemaphore> timeline_semaphores;
 	std::vector<uint64_t> timeline_fences;
@@ -75,7 +62,17 @@ public:
 
     const std::shared_ptr<VulkanSwapChain>& getSwapchain() const;
     std::shared_ptr<VulkanDevice>& GetDevice();
-    std::shared_ptr<Managers>& getManagers();
+    
+    std::shared_ptr<VulkanDescriptorsManager>& getDescriptorsManager();
+    std::shared_ptr<VulkanShadersManager>& getShadersManager();
+    std::shared_ptr<VulkanPipelinesManager>& getPipelinesManager();
+	std::shared_ptr<VulkanFenceManager>& getFenceManager();
+	std::shared_ptr<VulkanSemaphoresManager>& getSemaphoreManager();
+    std::shared_ptr<VulkanCommandManager>& getCommandManager();
+    std::shared_ptr<VulkanRenderPassesManager>& getRenderPassesManager();
+    std::shared_ptr<VulkanFormatManager>& getFormatManager();
+    std::shared_ptr<VulkanResourcesManager>& getResourcesManager();
+
     std::vector<std::shared_ptr<VulkanImageBuffer>>& getOutColorImages();
     std::vector<std::shared_ptr<VulkanImageBuffer>>& getOutDepthImages();
 
@@ -95,7 +92,17 @@ private:
     std::vector<std::shared_ptr<PerFrame>> m_per_frame;
     std::vector<std::shared_ptr<VulkanImageBuffer>> m_out_color_images;
     std::vector<std::shared_ptr<VulkanImageBuffer>> m_out_depth_images;
-    std::shared_ptr<Managers> m_managers;
+    
+    std::shared_ptr<VulkanDescriptorsManager> m_descriptors_manager;
+    std::shared_ptr<VulkanShadersManager> m_shaders_manager;
+    std::shared_ptr<VulkanPipelinesManager> m_pipelines_manager;
+	std::shared_ptr<VulkanFenceManager> m_fence_manager;
+	std::shared_ptr<VulkanSemaphoresManager> m_semaphore_manager;
+    std::shared_ptr<VulkanCommandManager> m_command_manager;
+    std::shared_ptr<VulkanRenderPassesManager> m_render_passes_manager;
+    std::shared_ptr<VulkanFormatManager> m_format_manager;
+    std::shared_ptr<VulkanResourcesManager> m_resources_manager;
+
     std::shared_ptr<RenderGraph> m_render_graph;
     
     std::shared_ptr<ThreadPool> m_thread_pool;

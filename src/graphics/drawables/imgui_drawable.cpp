@@ -17,7 +17,7 @@
 
 #include <filesystem>
 
-std::shared_ptr<VulkanImageBuffer> makeFontTexture(std::shared_ptr<VulkanDevice> device, std::shared_ptr<Managers>& managers, const char* TTF_font_file_name, float fontSizePixels) {
+std::shared_ptr<VulkanImageBuffer> makeFontTexture(std::shared_ptr<VulkanDevice> device, const char* TTF_font_file_name, float fontSizePixels) {
     ImGuiIO& io = ImGui::GetIO();
 
     ImFontConfig cfg = ImFontConfig();
@@ -43,7 +43,7 @@ std::shared_ptr<VulkanImageBuffer> makeFontTexture(std::shared_ptr<VulkanDevice>
     int width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-    std::shared_ptr<VulkanImageBuffer> font_texture = managers->resources_manager->create_image(TTF_font_file_name);
+    std::shared_ptr<VulkanImageBuffer> font_texture = Application::GetRenderer().getResourcesManager()->create_image(TTF_font_file_name);
 
     io.Fonts->TexID = 0u;
     io.FontDefault = font;
@@ -70,7 +70,7 @@ std::shared_ptr<RenderNodeConfig> getImguiRenderNodeConfig(const std::shared_ptr
     return render_node_config;
 }
 
-bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<Managers>& managers, int max_frames) {
+bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
     using namespace std::literals;
 
     m_device = std::move(device);
@@ -94,7 +94,7 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<M
     io.KeyRepeatRate = 0.2f;
     ImGui::StyleColorsClassic();
 
-    m_font_texture = makeFontTexture(m_device, managers, TTF_font_file_name.c_str(), font_size_pixels);
+    m_font_texture = makeFontTexture(m_device, TTF_font_file_name.c_str(), font_size_pixels);
 
     std::shared_ptr<RenderNodeConfig> render_node_config = getImguiRenderNodeConfig(device);
 
@@ -107,15 +107,15 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<M
     m_uniform_buffers.resize(max_frames);
     for(size_t i = 0u; i < max_frames; ++i) {
 
-        m_vertex_buffers[i] = managers->resources_manager->create_buffer(nullptr, 0, "imgui_vertex_resource");
-        m_index_buffers[i] = managers->resources_manager->create_buffer(nullptr, 0, "imgui_index_resource");
-        m_uniform_buffers[i] = managers->resources_manager->create_buffer(nullptr, 0, "imgui_uniform_resource");
+        m_vertex_buffers[i] = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, "imgui_vertex_resource");
+        m_index_buffers[i] = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, "imgui_index_resource");
+        m_uniform_buffers[i] = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, "imgui_uniform_resource");
 
         m_render_nodes[i] = std::make_shared<RenderNode>();
         m_render_nodes[i]->init(device, render_node_config);
 
         std::shared_ptr<VulkanShader> vertex_shader = m_render_nodes[i]->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
-        std::shared_ptr<DescSetLayout> desc_set_layout = managers->descriptors_manager->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames()[0]);
+        std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames()[0]);
 
         m_render_nodes[i]->addReadDependency(m_vertex_buffers[i], vertex_shader->getShaderSignature()->getVertexFormat().getVertexBufferBindingName());
         m_render_nodes[i]->addReadDependency(m_index_buffers[i], vertex_shader->getShaderSignature()->getVertexFormat().getIndexBufferBindingName());

@@ -83,7 +83,8 @@ std::shared_ptr<RenderNodeConfig> getMeshRenderNodeConfig(const std::shared_ptr<
     return render_node_config;
 }
 
-void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model, std::shared_ptr<Managers>& managers) {
+void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
+
     const MeshNode::MeshList& mesh_list = model->GetMeshes();
     std::shared_ptr<RenderNodeConfig> render_node_config = getMeshRenderNodeConfig(m_device);
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
@@ -103,7 +104,7 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model, std::shared_pt
 
         renderable->uniform_buffers.resize(m_max_frames);
         
-        std::shared_ptr<VulkanBuffer> ubo = managers->resources_manager->create_buffer(nullptr, 0, "basic_uniform_resource");
+        std::shared_ptr<VulkanBuffer> ubo = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, "basic_uniform_resource");
         renderable->uniform_buffers[i] = std::move(ubo);
         
         renderable->vertex_buffer = model_data->GetVertexBuffer();
@@ -112,7 +113,7 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model, std::shared_pt
         m_renderables.push_back(std::move(renderable));
 
         std::shared_ptr<VulkanShader> vertex_shader = renderable->render_nodes[i]->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
-        std::shared_ptr<DescSetLayout> desc_set_layout = managers->descriptors_manager->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames()[0]);
+        std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames()[0]);
 
         renderable->render_nodes[i]->addReadDependency(renderable->vertex_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getVertexBufferBindingName());
         renderable->render_nodes[i]->addReadDependency(renderable->index_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getIndexBufferBindingName());

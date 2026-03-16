@@ -30,7 +30,7 @@ class VulkanSwapChain {
 public:
     static const uint32_t CURRENT_SYNC = -1;
 
-    bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<WindowSurface> window, std::shared_ptr<Managers> managers, const std::string& rg_file_path);
+    bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<WindowSurface> window, const std::string& rg_file_path);
     void destroy();
     void recreate();
 

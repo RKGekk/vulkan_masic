@@ -58,7 +58,7 @@ bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<M
 
     std::shared_ptr<RenderNodeConfig> render_node_config = getBasicMeshRenderNodeConfig(device);
 
-    m_texture = managers->resources_manager->create_image("textures/texture.jpg");
+    m_texture = Application::GetRenderer().getResourcesManager()->create_image("textures/texture.jpg");
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
     std::vector<std::shared_ptr<VulkanImageBuffer>>& color_images = Application::GetRenderer().getOutColorImages();
     std::vector<std::shared_ptr<VulkanImageBuffer>>& depth_images = Application::GetRenderer().getOutDepthImages();
@@ -68,16 +68,16 @@ bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<M
     m_uniform_buffers.resize(max_frames);
     for(size_t i = 0u; i < max_frames; ++i) {
 
-        m_vertex_buffers[i] = managers->resources_manager->create_buffer(g_vertices.data(), g_vertices.size() * sizeof(Vertex), "basic_vertex_resource");
-        m_index_buffers[i] = managers->resources_manager->create_buffer(g_indices.data(), g_indices.size() * sizeof(uint16_t), "basic_index_resource");
-        m_uniform_buffers[i] = managers->resources_manager->create_buffer(nullptr, 0, "basic_uniform_resource");
+        m_vertex_buffers[i] = Application::GetRenderer().getResourcesManager()->create_buffer(g_vertices.data(), g_vertices.size() * sizeof(Vertex), "basic_vertex_resource");
+        m_index_buffers[i] = Application::GetRenderer().getResourcesManager()->create_buffer(g_indices.data(), g_indices.size() * sizeof(uint16_t), "basic_index_resource");
+        m_uniform_buffers[i] = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, "basic_uniform_resource");
 
 
         m_render_nodes[i] = std::make_shared<RenderNode>();
         m_render_nodes[i]->init(device, render_node_config);
 
         std::shared_ptr<VulkanShader> vertex_shader = m_render_nodes[i]->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
-        std::shared_ptr<DescSetLayout> desc_set_layout = managers->descriptors_manager->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames()[0]);
+        std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames()[0]);
 
         m_render_nodes[i]->addReadDependency(m_vertex_buffers[i], vertex_shader->getShaderSignature()->getVertexFormat().getVertexBufferBindingName());
         m_render_nodes[i]->addReadDependency(m_index_buffers[i], vertex_shader->getShaderSignature()->getVertexFormat().getIndexBufferBindingName());

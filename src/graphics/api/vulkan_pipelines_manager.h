@@ -16,7 +16,7 @@ struct Managers;
 
 class VulkanPipelinesManager {
 public:
-    bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<Managers> managers, const std::string& rg_file_path);
+    bool init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_path);
     void destroy();
 
     std::shared_ptr<VulkanPipeline> getPipeline(std::string pipeline_name);

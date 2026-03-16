@@ -55,7 +55,7 @@ bool ModelComponent::Init(const pugi::xml_node& data) {
 	std::filesystem::path p(m_resource_name);
 	m_resource_directory = p.parent_path().string();
 
-    std::shared_ptr<VulkanShadersManager> shader_manager = Application::Get().GetRenderer().getManagers()->shaders_manager;
+    std::shared_ptr<VulkanShadersManager> shader_manager = Application::Get().GetRenderer().getShadersManager();
 
     std::shared_ptr<Actor> act = GetOwner();
 

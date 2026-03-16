@@ -19,7 +19,7 @@
 bool RenderNode::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<RenderNodeConfig> node_config) {
     m_device = std::move(device);
     m_node_config = std::move(node_config);
-    m_pipeline = Application::Get().GetRenderer().getManagers()->pipelines_manager->getPipeline(m_node_config->getPipelineName());
+    m_pipeline = Application::Get().GetRenderer().getPipelinesManager()->getPipeline(m_node_config->getPipelineName());
 
     return true;
 }
