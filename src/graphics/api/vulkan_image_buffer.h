@@ -22,7 +22,7 @@ public:
     bool init(VkImage image, std::shared_ptr<ImageBufferConfig> image_buffer_config);
     bool init(unsigned char* pixels, std::shared_ptr<ImageBufferConfig> image_buffer_config);
     bool init(const std::shared_ptr<ImageBufferConfig>& image_buffer_config_template, const std::string& path_to_file);
-    bool init(const std::shared_ptr<ImageBufferConfig>& image_buffer_config_template);
+    bool init(std::shared_ptr<ImageBufferConfig> image_buffer_config);
     bool init(CommandBatch& command_buffer, unsigned char* pixels, std::shared_ptr<ImageBufferConfig> image_buffer_config);
     bool init(CommandBatch& command_buffer, const std::shared_ptr<ImageBufferConfig>& image_buffer_config_template, const std::string& path_to_file);
 

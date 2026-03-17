@@ -76,6 +76,24 @@ bool VulkanImageBuffer::init(unsigned char* pixels, std::shared_ptr<ImageBufferC
     VkMemoryRequirements mem_req{};
     vkGetImageMemoryRequirements(m_device->getDevice(), m_image, &mem_req);
     m_image_size = mem_req.size;
+
+    if(m_image_config->isMemoryPropertiesByMemoryRequirements()) {
+        int memory_type_idx = std::countr_zero(mem_req.memoryTypeBits);
+        if(memory_type_idx < m_device->getDeviceAbilities().memory_properties.memoryTypeCount) {
+            VkMemoryPropertyFlags memory_property_flags = m_device->getDeviceAbilities().memory_properties.memoryTypes[memory_type_idx].propertyFlags;
+            if(memory_property_flags) {
+                m_image_config->setMemoryProperties(m_device->getDeviceAbilities().memory_properties.memoryTypes[memory_type_idx].propertyFlags);
+            }
+            else {
+                mem_req.memoryTypeBits = mem_req.memoryTypeBits & ~(1 << memory_type_idx);
+                memory_type_idx = std::countr_zero(mem_req.memoryTypeBits);
+                if(memory_type_idx < m_device->getDeviceAbilities().memory_properties.memoryTypeCount) {
+                    VkMemoryPropertyFlags memory_property_flags = m_device->getDeviceAbilities().memory_properties.memoryTypes[memory_type_idx].propertyFlags;
+                    m_image_config->setMemoryProperties(m_device->getDeviceAbilities().memory_properties.memoryTypes[memory_type_idx].propertyFlags);
+                }
+            }
+        }
+    }
     
     uint32_t mem_type_idx = m_device->findMemoryType(mem_req.memoryTypeBits, m_image_config->getMemoryProperties());
     VkMemoryAllocateInfo alloc_info{};
@@ -91,7 +109,8 @@ bool VulkanImageBuffer::init(unsigned char* pixels, std::shared_ptr<ImageBufferC
     VkDeviceSize offset = 0u;
     vkBindImageMemory(m_device->getDevice(), m_image, m_memory, offset);
 
-    for(const auto&[view_type_name, view_cfg_ptr] : m_image_config->getViewInfoMap()) {
+    for(auto&[view_type_name, view_cfg_ptr] : m_image_config->getViewInfoMap()) {
+        view_cfg_ptr->image_view_info.image = m_image;
         VkResult result = vkCreateImageView(m_device->getDevice(), &view_cfg_ptr->image_view_info, nullptr, &m_image_view_map[view_type_name]);
         if(result != VK_SUCCESS) {
             throw std::runtime_error("failed to create texture image view!");
@@ -160,13 +179,8 @@ bool VulkanImageBuffer::init(const std::shared_ptr<ImageBufferConfig>& image_buf
     return result;
 }
 
-bool VulkanImageBuffer::init(const std::shared_ptr<ImageBufferConfig>& image_buffer_config_template) {
-    using namespace std::literals;
-
-    std::shared_ptr<ImageBufferConfig> image_buffer_config = image_buffer_config_template->makeInstance(m_name + "_cfg"s);
-    bool result = init((unsigned char*)nullptr, std::move(image_buffer_config));
-
-    return result;
+bool VulkanImageBuffer::init(std::shared_ptr<ImageBufferConfig> image_buffer_config) {
+    return init((unsigned char*)nullptr, std::move(image_buffer_config));
 }
 
 bool VulkanImageBuffer::init(CommandBatch& command_buffer, unsigned char* pixels, std::shared_ptr<ImageBufferConfig> image_buffer_config) {
@@ -180,6 +194,24 @@ bool VulkanImageBuffer::init(CommandBatch& command_buffer, unsigned char* pixels
     VkMemoryRequirements mem_req{};
     vkGetImageMemoryRequirements(m_device->getDevice(), m_image, &mem_req);
     m_image_size = mem_req.size;
+
+    if(m_image_config->isMemoryPropertiesByMemoryRequirements()) {
+        int memory_type_idx = std::countr_zero(mem_req.memoryTypeBits);
+        if(memory_type_idx < m_device->getDeviceAbilities().memory_properties.memoryTypeCount) {
+            VkMemoryPropertyFlags memory_property_flags = m_device->getDeviceAbilities().memory_properties.memoryTypes[memory_type_idx].propertyFlags;
+            if(memory_property_flags) {
+                m_image_config->setMemoryProperties(m_device->getDeviceAbilities().memory_properties.memoryTypes[memory_type_idx].propertyFlags);
+            }
+            else {
+                mem_req.memoryTypeBits = mem_req.memoryTypeBits & ~(1 << memory_type_idx);
+                memory_type_idx = std::countr_zero(mem_req.memoryTypeBits);
+                if(memory_type_idx < m_device->getDeviceAbilities().memory_properties.memoryTypeCount) {
+                    VkMemoryPropertyFlags memory_property_flags = m_device->getDeviceAbilities().memory_properties.memoryTypes[memory_type_idx].propertyFlags;
+                    m_image_config->setMemoryProperties(m_device->getDeviceAbilities().memory_properties.memoryTypes[memory_type_idx].propertyFlags);
+                }
+            }
+        }
+    }
     
     uint32_t mem_type_idx = m_device->findMemoryType(mem_req.memoryTypeBits, m_image_config->getMemoryProperties());
     VkMemoryAllocateInfo alloc_info{};
@@ -196,6 +228,7 @@ bool VulkanImageBuffer::init(CommandBatch& command_buffer, unsigned char* pixels
     vkBindImageMemory(m_device->getDevice(), m_image, m_memory, offset);
 
     for(const auto&[view_type_name, view_cfg_ptr] : m_image_config->getViewInfoMap()) {
+        view_cfg_ptr->image_view_info.image = m_image;
         VkResult result = vkCreateImageView(m_device->getDevice(), &view_cfg_ptr->image_view_info, nullptr, &m_image_view_map[view_type_name]);
         if(result != VK_SUCCESS) {
             throw std::runtime_error("failed to create texture image view!");

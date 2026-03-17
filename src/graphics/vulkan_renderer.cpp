@@ -64,12 +64,11 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
     m_per_frame.reserve(max_frames);
     for(int i = 0; i < max_frames; ++i) {
         std::shared_ptr<PerFrame> per_frame = std::make_shared<PerFrame>();
-        m_out_color_images[i] = m_resources_manager->create_image("render_target_color", "render_target_color_resource");
-        per_frame->out_color_image = m_out_color_images[i];
-        m_out_depth_images[i] = m_resources_manager->create_image("render_target_depth", "render_target_depth_resource");
-        per_frame->out_depth_image = m_out_depth_images[i];
-        per_frame->init(m_device, i);
 
+        per_frame->out_color_image = m_resources_manager->create_image("render_target_color", "render_target_color_resource");
+        per_frame->out_depth_image = m_resources_manager->create_image("render_target_depth", "render_target_depth_resource");
+
+        per_frame->init(m_device, i);
         per_frame->command_buffer = m_command_manager->allocCommandBufferPtr(PoolTypeEnum::GRAPICS);
 
         m_per_frame.push_back(std::move(per_frame));
