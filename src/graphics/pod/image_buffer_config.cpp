@@ -7,28 +7,7 @@
 
 #include "../../tools/string_tools.h"
 
-bool ImageBufferConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::string& rg_file_path, const std::shared_ptr<VulkanFormatManager>& format_manager) {
-    pugi::xml_document xml_doc;
-	pugi::xml_parse_result parse_res = xml_doc.load_file(rg_file_path.c_str());
-	if (!parse_res) { return false;	}
-
-	pugi::xml_node root_node = xml_doc.root();
-	if (!root_node) { return false; }
-	root_node = root_node.child("RenderGraph");
-
-    pugi::xml_node type_of_resources_node = root_node.child("TypeOfResources");
-	if (!type_of_resources_node) return false;
-    
-	for (pugi::xml_node resource_type_node = type_of_resources_node.first_child(); resource_type_node; resource_type_node = resource_type_node.next_sibling()) {
-        pugi::xml_node image_buffer_node = resource_type_node.child("ImageBuffer");
-	    if (!image_buffer_node) continue;
-	    return init(device, resource_type_node.attribute("name").as_string(), image_buffer_node, format_manager);
-	}
-
-    return true;
-}
-
-bool ImageBufferConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::string& name, const pugi::xml_node& image_buffer_data, const std::shared_ptr<VulkanFormatManager>& format_manager) {
+bool ImageBufferConfig::init(const std::shared_ptr<VulkanDevice>& device, std::string name, const pugi::xml_node& image_buffer_data, const std::shared_ptr<VulkanFormatManager>& format_manager) {
     using namespace std::literals;
 
     m_image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -47,9 +26,8 @@ bool ImageBufferConfig::init(const std::shared_ptr<VulkanDevice>& device, const 
 		}
     }
 
-    m_image_info.imageType = getImageType(image_buffer_data.child("ImageType").text().as_string());
-
     m_format = format_manager->getFormat(image_buffer_data.child("FormatName").text().as_string());
+    m_image_info.imageType = m_format->getVkImageType();
     m_image_info.format = m_format->getVkFormat();
     m_image_info.extent = m_format->getExtent3D();
     m_image_info.mipLevels = m_format->getMipLevels();
@@ -61,7 +39,9 @@ bool ImageBufferConfig::init(const std::shared_ptr<VulkanDevice>& device, const 
     m_image_info.initialLayout = getImageLayout(image_buffer_data.child("CreationLayout").text().as_string());
     m_after_init_layout = getImageLayout(image_buffer_data.child("AfterInitLayout").text().as_string());
 
-    for (pugi::xml_node flag_node = image_buffer_data.child("MemoryProperties").first_child(); flag_node; flag_node = flag_node.next_sibling()) {
+    pugi::xml_node memory_properties_node = image_buffer_data.child("MemoryProperties");
+    m_memory_properties_by_memory_requirements = memory_properties_node.attribute("get_by_memory_requirements").as_bool();
+    for (pugi::xml_node flag_node = memory_properties_node.first_child(); flag_node; flag_node = flag_node.next_sibling()) {
         m_memory_properties |= getMemoryPropertyFlag(flag_node.text().as_string());
     }
 
@@ -100,10 +80,14 @@ bool ImageBufferConfig::init(const std::shared_ptr<VulkanDevice>& device, const 
         }
 
         view_info_ptr->image_view_info.subresourceRange.baseMipLevel = view_node.child("SubresourceRange").child("BaseMipLevel").text().as_uint();
-        pugi::xml_node level_node = view_node.child("LevelCount");
+        pugi::xml_node level_node = view_node.child("SubresourceRange").child("LevelCount");
         std::string level_str = level_node.text().as_string();
-        view_info_ptr->image_view_info.subresourceRange.levelCount = view_info_ptr->format->getMipLevels();
-        
+        if(level_str == "auto") {
+            view_info_ptr->image_view_info.subresourceRange.levelCount = view_info_ptr->format->getMipLevels();
+        }
+        else {
+            view_info_ptr->image_view_info.subresourceRange.levelCount = 1u;
+        }
 
         view_info_ptr->image_view_info.subresourceRange.baseArrayLayer = view_node.child("SubresourceRange").child("BaseArrayLayer").text().as_uint();
         view_info_ptr->image_view_info.subresourceRange.layerCount = view_info_ptr->format->getArrayLayers();
@@ -146,6 +130,14 @@ VkMemoryPropertyFlags ImageBufferConfig::getMemoryProperties() const {
     return m_memory_properties;
 }
 
+void ImageBufferConfig::setMemoryProperties(VkMemoryPropertyFlags props) {
+    m_memory_properties = props;
+}
+
+bool ImageBufferConfig::isMemoryPropertiesByMemoryRequirements() const {
+    return m_memory_properties_by_memory_requirements;
+}
+
 std::shared_ptr<ImageBufferConfig> ImageBufferConfig::makeInstance(std::string image_instance_name, VkExtent2D extent) const {
     using namespace std::literals;
 
@@ -153,6 +145,7 @@ std::shared_ptr<ImageBufferConfig> ImageBufferConfig::makeInstance(std::string i
 
     instance_ptr->m_name = std::move(image_instance_name);
     instance_ptr->m_image_info = m_image_info;
+    instance_ptr->m_after_init_layout = m_after_init_layout;
     instance_ptr->m_format = m_format->makeInstance(instance_ptr->m_name + "_format", extent);
 
     for(const auto&[view_type_name, view_cfg_ptr] : m_image_view_info_map) {
@@ -162,6 +155,7 @@ std::shared_ptr<ImageBufferConfig> ImageBufferConfig::makeInstance(std::string i
     }
 
     instance_ptr->m_memory_properties = m_memory_properties;
+    instance_ptr->m_memory_properties_by_memory_requirements = m_memory_properties_by_memory_requirements;
 
     instance_ptr->m_samplers = m_samplers;
 

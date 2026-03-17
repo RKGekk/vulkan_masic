@@ -58,7 +58,17 @@ bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr
     m_swapchain_create_info.imageSharingMode = m_format_config->getImagesSharingMode();
     m_swapchain_create_info.queueFamilyIndexCount = m_format_config->getQueueFamilyIndexCount();
     m_swapchain_create_info.pQueueFamilyIndices = m_format_config->getQueueFamilyIndicesPtr();
-    m_swapchain_create_info.preTransform = getSurfaceTransformFlag(swapchain_node.child("PreTransform").text().as_string());
+
+    pugi::xml_node pre_transform_node = swapchain_node.child("PreTransform");
+    std::string auto_pre_transform_str = pre_transform_node.text().as_string();
+    bool auto_pre_transform = auto_pre_transform_str == "auto";
+    if(auto_pre_transform) {
+        m_swapchain_create_info.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+    }
+    else {
+        m_swapchain_create_info.preTransform = getSurfaceTransformFlag(swapchain_node.child("PreTransform").text().as_string());
+    }
+
     m_swapchain_create_info.compositeAlpha = getCompositeAlphaFlag(swapchain_node.child("CompositeAlpha").text().as_string());
 
     std::string present_mode_str = swapchain_node.child("RecommendPresentMode").text().as_string();

@@ -5,25 +5,6 @@
 #include "../../window_surface.h"
 #include "../../tools/string_tools.h"
 
-bool FormatConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<WindowSurface>& window, const SwapchainSupportDetails& swapchain_support_details, const std::string& rg_file_path) {
-    pugi::xml_document xml_doc;
-	pugi::xml_parse_result parse_res = xml_doc.load_file(rg_file_path.c_str());
-	if (!parse_res) { return false;	}
-
-	pugi::xml_node root_node = xml_doc.root();
-	if (!root_node) { return false; }
-	root_node = root_node.child("RenderGraph");
-
-    pugi::xml_node formats_node = root_node.child("Formats");
-	if (!formats_node) return false;
-    
-	for (pugi::xml_node format_node = formats_node.first_child(); format_node; format_node = format_node.next_sibling()) {
-	    return init(device, window, swapchain_support_details, format_node);
-	}
-
-    return true;
-}
-
 bool FormatConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<WindowSurface>& window, const SwapchainSupportDetails& swapchain_support_details, const pugi::xml_node& format_data) {
     using namespace std::literals;
 
@@ -80,11 +61,18 @@ bool FormatConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::
     m_mip_levels = 1u;
     if(mip_str == "auto"s) {
         m_mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(m_extent_2D.width, m_extent_2D.height))));
+        m_mip_auto = true;
     }
 
     m_array_layers = format_data.child("ArrayLayers").text().as_uint();
 
-    m_samples = getSampleCountFlag(format_data.child("Samples").text().as_string());
+    std::string samples = format_data.child("Samples").text().as_string();
+    if(samples == "as_device") {
+        m_samples = device->getMsaaSamples();
+    }
+    else {
+        m_samples = getSampleCountFlag(format_data.child("Samples").text().as_string());
+    }
     m_tiling = getImageTiling(format_data.child("Tiling").text().as_string());
     
     for (pugi::xml_node flag_node = format_data.child("ImageUsageFlags").first_child(); flag_node; flag_node = flag_node.next_sibling()) {
@@ -150,6 +138,10 @@ void FormatConfig::setExtent2D(VkExtent2D extent) {
     m_extent_3D.height = m_extent_2D.height;
 
     m_aspect = ((float)m_extent_2D.width) / ((float)m_extent_2D.height);
+
+    if(m_mip_auto) {
+        m_mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(m_extent_2D.width, m_extent_2D.height))));
+    }
 }
 
 VkExtent3D FormatConfig::getExtent3D() const {
@@ -162,6 +154,14 @@ void FormatConfig::setExtent3D(VkExtent3D extent) {
     m_extent_2D.height = m_extent_3D.height;
 
     m_aspect = ((float)m_extent_2D.width) / ((float)m_extent_2D.height);
+
+    if(m_mip_auto) {
+        m_mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(m_extent_2D.width, m_extent_2D.height))));
+    }
+}
+
+FormatConfig::ExtentSource FormatConfig::getExtentSource() const {
+    return m_extent_source;
 }
 
 uint32_t FormatConfig::getMipLevels() const {
@@ -170,6 +170,10 @@ uint32_t FormatConfig::getMipLevels() const {
 
 void FormatConfig::setMipLevels(uint32_t lvl) {
     m_mip_levels = lvl;
+}
+
+bool FormatConfig::isMipAuto() const {
+    return m_mip_auto;
 }
 
 uint32_t FormatConfig::getArrayLayers() const {

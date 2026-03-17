@@ -859,7 +859,6 @@
 
     <xs:simpleType name="SampleCountSimpleType">
         <xs:restriction base="xs:string">
-            <xs:enumeration value="as_user"></xs:enumeration>
             <xs:enumeration value="as_device"></xs:enumeration>
 
             <xs:enumeration value="1_bit"></xs:enumeration>

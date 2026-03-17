@@ -525,7 +525,7 @@ void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, M
 		}
 
 		texture = Application::GetRenderer().getResourcesManager()->create_image(texture_image_file_name);
-		//texture->getImageConfig()->setSampler(std::move(sampler));
+		texture->getImageConfig()->setSampler(std::move(sampler));
 		material->SetTexture(texture_type_enum, std::move(texture));
 	}
 	else {
@@ -535,7 +535,7 @@ void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, M
 		tinygltf::Buffer& texture_image_buffer = m_gltf_model.buffers[texture_image_buffer_idx];
 
 		texture = Application::GetRenderer().getResourcesManager()->create_image(texture_image_buffer.data.data(), {(uint32_t)texture_image.width, (uint32_t)texture_image.height}, texture_image.name, "basic_image_resource");
-		//texture->getImageConfig()->setSampler(std::move(sampler));
+		texture->getImageConfig()->setSampler(std::move(sampler));
 		material->SetTexture(texture_type_enum, std::move(texture));
 	}
 }

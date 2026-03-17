@@ -1878,10 +1878,10 @@ VkCompositeAlphaFlagBitsKHR getCompositeAlphaFlag(const std::string& flag_str) {
 	using namespace std::literals;
     VkCompositeAlphaFlagBitsKHR res{};
 
-	     if(flag_str == "alpha_opaque_khr"s) {res = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;}
-	else if(flag_str == "alpha_pre_multiplied_khr"s) {res = VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR;}
-	else if(flag_str == "alpha_post_multiplied_khr"s) {res = VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR;}
-	else if(flag_str == "alpha_inherit_khr"s) {res = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;}
+	     if(flag_str == "opaque_khr"s) {res = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;}
+	else if(flag_str == "pre_multiplied_khr"s) {res = VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR;}
+	else if(flag_str == "post_multiplied_khr"s) {res = VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR;}
+	else if(flag_str == "inherit_khr"s) {res = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;}
     
     return res;
 }

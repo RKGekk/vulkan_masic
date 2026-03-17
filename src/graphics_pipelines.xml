@@ -28,7 +28,7 @@
             <Extent source="auto"></Extent>
             <MipLevels>auto</MipLevels>
             <ArrayLayers>1</ArrayLayers>
-            <Samples>as_device</Samples>
+            <Samples>1_bit</Samples>
             <Tiling>optimal</Tiling>
             <Candidates>
                 <Format>r8g8b8a8_unorm</Format>
@@ -48,6 +48,7 @@
                 <Flag>sampled</Flag>
             </ImageUsageFlags>
         </Format>
+
         <Format name="render_target_color_format" select="auto">
             <ImageType>2D</ImageType>
             <Extent source="as_swapchain"></Extent>
@@ -68,6 +69,7 @@
                 <Flag>color_attachment</Flag>
             </ImageUsageFlags>
         </Format>
+
         <Format name="render_target_depth_format" select="auto">
             <ImageType>2D</ImageType>
             <Extent source="as_swapchain"></Extent>
@@ -190,7 +192,7 @@
                                 <AspectMask>color</AspectMask>
                             </AspectFlags>
                             <BaseMipLevel>0</BaseMipLevel>
-                            <LevelCount>auto</LevelCount>
+                            <LevelCount>none</LevelCount>
                             <BaseArrayLayer>0</BaseArrayLayer>
                             <LayerCount>1</LayerCount>
                         </SubresourceRange>
@@ -446,7 +448,7 @@
             <EntryPointName>main</EntryPointName>
             <Stage>vertex</Stage>
             <InputAttributeDescription>
-                <Binding num="0" input_rate="vertex" vertex_buffer_resource_type="basic_vertex_resource" index_buffer_resource_type="basic_index_resource">
+                <Binding num="0" vertex_buffer_bind_name="basic_diffuse_vertex_buffer" index_buffer_bind_name="basic_diffuse_index_buffer" input_rate="vertex" vertex_buffer_resource_type="basic_vertex_resource" index_buffer_resource_type="basic_index_resource" index_type="uint32">
                     <Attribute name="inPosition">
                         <Location>0</Location>
                         <Format>vec3</Format>
@@ -483,7 +485,7 @@
             <EntryPointName>main</EntryPointName>
             <Stage>vertex</Stage>
             <InputAttributeDescription>
-                <Binding num="0" vertex_buffer_bind_name="vertex" index_buffer_bind_name="index" input_rate="vertex" vertex_buffer_resource_type="imgui_vertex_resource" index_buffer_resource_type="imgui_index_resource">
+                <Binding num="0" vertex_buffer_bind_name="vertex" index_buffer_bind_name="index" input_rate="vertex" vertex_buffer_resource_type="imgui_vertex_resource" index_buffer_resource_type="imgui_index_resource" index_type="uint32">
                     <Attribute name="inPosition">
                         <Location>0</Location>
                         <Format>vec2</Format>

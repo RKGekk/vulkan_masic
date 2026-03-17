@@ -69,7 +69,10 @@ uint32_t VulkanDevice::findMemoryType(uint32_t type_filter, VkMemoryPropertyFlag
     VkPhysicalDeviceMemoryProperties mem_prop{};
     vkGetPhysicalDeviceMemoryProperties(getDeviceAbilities().physical_device, &mem_prop);
     for(uint32_t i = 0u; i < mem_prop.memoryTypeCount; ++i) {
+        // 1. Check if this specific memory type index is allowed by the resource
         bool is_type_suit = type_filter & (1 << i);
+
+        // 2. Check if this memory type has the properties we want (e.g. HOST_VISIBLE)
         bool is_type_adequate = mem_prop.memoryTypes[i].propertyFlags & properties;
         if(is_type_suit && is_type_adequate) {
             return i;
@@ -90,6 +93,17 @@ VkFormat VulkanDevice::findSupportedFormat(const std::vector<VkFormat>& candidat
             return format;
         }
     }
+    for (VkFormat format : candidates) {
+        VkFormatProperties props;
+        vkGetPhysicalDeviceFormatProperties(m_device_abilities.physical_device, format, &props);
+        if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features && checkFormatSupported(format, tiling, usage, extent, mip_levels, sample_count, flags)) {
+            return format;
+        }
+        else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features && checkFormatSupported(format, tiling, usage, extent, mip_levels, sample_count, flags)) {
+            return format;
+        }
+    }
+    
     throw std::runtime_error("failed to find supported format!");
 }
 

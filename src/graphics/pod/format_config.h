@@ -19,7 +19,6 @@ class FormatConfig {
 public:
     enum class ExtentSource { AUTO, AS_SWAPCHAIN, EXACT };
 
-    bool init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<WindowSurface>& window, const SwapchainSupportDetails& swapchain_support_details, const std::string& rg_file_path);
     bool init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<WindowSurface>& window, const SwapchainSupportDetails& swapchain_support_details, const pugi::xml_node& format_data);
 
     const std::string& getName() const;
@@ -34,12 +33,14 @@ public:
 
     VkExtent2D getExtent2D() const;
     void setExtent2D(VkExtent2D extent);
+    ExtentSource getExtentSource() const;
 
     VkExtent3D getExtent3D() const;
     void setExtent3D(VkExtent3D extent);
 
     uint32_t getMipLevels() const;
     void setMipLevels(uint32_t lvl);
+    bool isMipAuto() const;
 
     uint32_t getArrayLayers() const;
     void setArrayLayers(uint32_t layers);
@@ -84,6 +85,7 @@ private:
     VkExtent3D m_extent_3D;
     float m_aspect;
     uint32_t m_mip_levels;
+    bool m_mip_auto;
     uint32_t m_array_layers;
     VkSampleCountFlagBits m_samples;
     VkImageTiling m_tiling;

@@ -8,6 +8,8 @@
 #include "../../application.h"
 #include "../vulkan_renderer.h"
 
+#include <bit>
+
 // #ifdef STB_IMAGE_IMPLEMENTATION
 // #undef STB_IMAGE_IMPLEMENTATION
 // #endif
@@ -32,6 +34,23 @@ bool VulkanImageBuffer::init(VkImage image, std::shared_ptr<ImageBufferConfig> i
     VkMemoryRequirements mem_req{};
     vkGetImageMemoryRequirements(m_device->getDevice(), m_image, &mem_req);
     m_image_size = mem_req.size;
+    if(m_image_config->isMemoryPropertiesByMemoryRequirements()) {
+        int memory_type_idx = std::countr_zero(mem_req.memoryTypeBits);
+        if(memory_type_idx < m_device->getDeviceAbilities().memory_properties.memoryTypeCount) {
+            VkMemoryPropertyFlags memory_property_flags = m_device->getDeviceAbilities().memory_properties.memoryTypes[memory_type_idx].propertyFlags;
+            if(memory_property_flags) {
+                m_image_config->setMemoryProperties(m_device->getDeviceAbilities().memory_properties.memoryTypes[memory_type_idx].propertyFlags);
+            }
+            else {
+                mem_req.memoryTypeBits = mem_req.memoryTypeBits & ~(1 << memory_type_idx);
+                memory_type_idx = std::countr_zero(mem_req.memoryTypeBits);
+                if(memory_type_idx < m_device->getDeviceAbilities().memory_properties.memoryTypeCount) {
+                    VkMemoryPropertyFlags memory_property_flags = m_device->getDeviceAbilities().memory_properties.memoryTypes[memory_type_idx].propertyFlags;
+                    m_image_config->setMemoryProperties(m_device->getDeviceAbilities().memory_properties.memoryTypes[memory_type_idx].propertyFlags);
+                }
+            }
+        }
+    }
 
     for(const auto&[view_type_name, view_cfg_ptr] : m_image_config->getViewInfoMap()) {
         VkResult result = vkCreateImageView(m_device->getDevice(), &view_cfg_ptr->image_view_info, nullptr, &m_image_view_map[view_type_name]);
