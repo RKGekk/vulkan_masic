@@ -52,7 +52,8 @@ bool VulkanImageBuffer::init(VkImage image, std::shared_ptr<ImageBufferConfig> i
         }
     }
 
-    for(const auto&[view_type_name, view_cfg_ptr] : m_image_config->getViewInfoMap()) {
+    for(auto&[view_type_name, view_cfg_ptr] : m_image_config->getViewInfoMap()) {
+        view_cfg_ptr->image_view_info.image = image;
         VkResult result = vkCreateImageView(m_device->getDevice(), &view_cfg_ptr->image_view_info, nullptr, &m_image_view_map[view_type_name]);
         if(result != VK_SUCCESS) {
             throw std::runtime_error("failed to create texture image view!");
