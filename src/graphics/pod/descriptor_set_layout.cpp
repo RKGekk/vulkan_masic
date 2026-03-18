@@ -8,6 +8,7 @@ bool DescSetLayout::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_n
     m_device = device;
 
     m_name = descriptor_sets_node.attribute("name").as_string();
+    m_allocator_name = descriptor_sets_node.attribute("allocator").as_string();
     
     pugi::xml_node layout_node = descriptor_sets_node.child("Layout");
 	for (pugi::xml_node layout_binding_node = layout_node.first_child(); layout_binding_node; layout_binding_node = layout_binding_node.next_sibling()) {
@@ -32,7 +33,12 @@ bool DescSetLayout::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_n
             m_immutable_samplers.push_back(std::move(sampler));
         }
         
-        layout_binding.pImmutableSamplers = m_immutable_samplers_ptr.data();
+        if(m_immutable_samplers_ptr.empty()) {
+            layout_binding.pImmutableSamplers = nullptr;
+        }
+        else {
+            layout_binding.pImmutableSamplers = m_immutable_samplers_ptr.data();
+        }
         
         m_binding_num_to_idx_map[layout_binding.binding] = m_bindings.size();
         m_bindings.push_back(layout_binding);
@@ -46,7 +52,7 @@ bool DescSetLayout::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_n
             metadata.resource_type = RenderResource::Type::BUFFER;
             metadata.buffer_resource_type_name = buffer_metadata_node.child("BufferResourceType").text().as_string();
         }
-        else if (pugi::xml_node image_metadata_node = image_metadata_node.child("Image")) {
+        else if (pugi::xml_node image_metadata_node = update_metadata_node.child("Image")) {
             metadata.resource_type = RenderResource::Type::IMAGE;
             metadata.image_resource_type_name = image_metadata_node.child("ImageBufferResourceType").text().as_string();
             metadata.image_view_type_name = image_metadata_node.child("ImageViewResourceType").text().as_string();
@@ -141,6 +147,13 @@ VkDescriptorSetLayoutBinding DescSetLayout::getBinding(DescSetLayout::BindingNum
     return {};
 }
 
+VkDescriptorSetLayoutBinding DescSetLayout::getBinding(const std::string& binding_name) const {
+    if(m_binding_name_map.contains(binding_name)) {
+        return m_bindings.at(m_binding_num_to_idx_map.at(m_binding_name_map.at(binding_name)));
+    }
+    return {};
+}
+
 bool DescSetLayout::haveBindingType(VkDescriptorType desc_type) const {
     for(const VkDescriptorSetLayoutBinding& binding : m_bindings) {
         if(binding.descriptorType == desc_type) return true;
@@ -150,6 +163,10 @@ bool DescSetLayout::haveBindingType(VkDescriptorType desc_type) const {
 
 bool DescSetLayout::haveBindingNum(DescSetLayout::BindingNum binding_num) const {
     return m_binding_num_to_idx_map.contains(binding_num);
+}
+
+bool DescSetLayout::haveBindingName(const std::string& binding_name) const {
+    return m_binding_name_map.contains(binding_name);
 }
 
 const std::string& DescSetLayout::getBindingName(VkDescriptorType desc_type) const {
@@ -180,4 +197,23 @@ VkDescriptorSetLayoutCreateInfo DescSetLayout::getDescriptorSetLayoutInfo() cons
 
 VkDescriptorSetLayout DescSetLayout::getDescriptorSetLayout() const {
     return m_desc_layout;
+}
+
+const DescSetLayout::UpdateMetadata& DescSetLayout::getBufferMetadata(VkDescriptorType desc_type) const {
+    size_t sz = m_bindings.size();
+    for(size_t i = 0u; i < sz; ++i) {
+        const VkDescriptorSetLayoutBinding& binding = m_bindings.at(i);
+        if(binding.descriptorType == desc_type) {
+            return m_bindings_metadata.at(i);
+        }
+    }
+    return {};
+}
+
+const DescSetLayout::UpdateMetadata& DescSetLayout::getBufferMetadata(BindingNum binding_num) const {
+    return m_bindings_metadata.at(m_binding_num_to_idx_map.at(binding_num));
+}
+
+const DescSetLayout::UpdateMetadata& DescSetLayout::getBufferMetadata(const std::string& binding_name) const {
+    return m_bindings_metadata.at(m_binding_num_to_idx_map.at(m_binding_name_map.at(binding_name)));
 }

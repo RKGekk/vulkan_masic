@@ -19,7 +19,7 @@ bool VulkanDescriptorsManager::init(std::shared_ptr<VulkanDevice> device, const 
     pugi::xml_node dscriptors_node = root_node.child("Descriptors");
 	if (dscriptors_node) {
 		for (pugi::xml_node descriptor_node = dscriptors_node.first_child(); descriptor_node; descriptor_node = descriptor_node.next_sibling()) {
-            std::shared_ptr<DescSetLayout> layout;
+            std::shared_ptr<DescSetLayout> layout = std::make_shared<DescSetLayout>();
 			layout->init(m_device, descriptor_node);
             m_name_layout_map.insert({layout->getName(), layout});
             if(!alloc_desc_layout_map.contains(layout->getAllocatorName())) {
@@ -36,7 +36,7 @@ bool VulkanDescriptorsManager::init(std::shared_ptr<VulkanDevice> device, const 
     pugi::xml_node descriptor_allocators_node = root_node.child("DescriptorAllocators");
 	if (descriptor_allocators_node) {
 		for (pugi::xml_node alloc_node = descriptor_allocators_node.first_child(); alloc_node; alloc_node = alloc_node.next_sibling()) {
-            VkDescriptorPoolCreateFlags f;
+            VkDescriptorPoolCreateFlags f{};
             pugi::xml_node alloc_flags_node = alloc_node.child("Flags");
             for (pugi::xml_node create_flag = alloc_flags_node.first_child(); create_flag; create_flag = create_flag.next_sibling()) {
 	            f |= getDescriptorPoolCreateFlag(create_flag.text().as_string());

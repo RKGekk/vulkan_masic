@@ -48,14 +48,20 @@ public:
     const DescSetBindings& getBindings() const;
     VkDescriptorSetLayoutBinding getBinding(VkDescriptorType desc_type) const;
     VkDescriptorSetLayoutBinding getBinding(BindingNum binding_num) const;
+    VkDescriptorSetLayoutBinding getBinding(const std::string& binding_name) const;
     bool haveBindingType(VkDescriptorType desc_type) const;
     bool haveBindingNum(BindingNum binding_num) const;
+    bool haveBindingName(const std::string& binding_name) const;
     const std::string& getBindingName(VkDescriptorType desc_type) const;
     const std::string& getBindingName(BindingNum binding_num) const;
     const std::vector<std::shared_ptr<VulkanSampler>>& getImmutableSamplers() const;
     const std::vector<VkSampler>& getImmutableSamplersPtr() const;
     VkDescriptorSetLayoutCreateInfo getDescriptorSetLayoutInfo() const;
     VkDescriptorSetLayout getDescriptorSetLayout() const;
+
+    const UpdateMetadata& getBufferMetadata(VkDescriptorType desc_type) const;
+    const UpdateMetadata& getBufferMetadata(BindingNum binding_num) const;
+    const UpdateMetadata& getBufferMetadata(const std::string& binding_name) const;
 
 private:
     std::shared_ptr<VulkanDevice> m_device;
@@ -64,11 +70,12 @@ private:
     std::string m_allocator_name;
 
     DescSetBindings m_bindings;
+    DescSetBindingsMetadata m_bindings_metadata;
     std::unordered_map<std::string, BindingNum> m_binding_name_map;
     std::unordered_map<BindingNum, std::string> m_binding_num_to_name_map;
     std::unordered_map<BindingNum, BindingIndex> m_binding_num_to_idx_map;
 
-    DescSetBindingsMetadata m_bindings_metadata;
+    
     std::vector<std::shared_ptr<VulkanSampler>> m_immutable_samplers;
     std::vector<VkSampler> m_immutable_samplers_ptr;
     VkDescriptorSetLayoutCreateInfo m_desc_layout_info;
