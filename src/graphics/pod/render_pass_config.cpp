@@ -9,12 +9,12 @@
 bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanFormatManager>& format_manager, const pugi::xml_node& render_pass_data) {
     using namespace std::literals;
 
-    VkSampleCountFlagBits samples = device->getMsaaSamples();
-    VkExtent2D swapchain_extent = Application::GetRenderer().getSwapchain()->getSwapchainParams().imageExtent;
-    VkImageUsageFlags depth_usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-    VkFormat swapchain_color_format = Application::GetRenderer().getSwapchain()->getSwapchainParams().imageFormat;
-    VkFormat swapchain_depth_format = device->findDepthFormat(depth_usage, swapchain_extent, 1u, samples);
-    bool has_stencil = device->hasStencilComponent(swapchain_depth_format);
+    // VkSampleCountFlagBits samples = device->getMsaaSamples();
+    // VkExtent2D swapchain_extent = Application::GetRenderer().getSwapchain()->getSwapchainParams().imageExtent;
+    // VkImageUsageFlags depth_usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    // VkFormat swapchain_color_format = Application::GetRenderer().getSwapchain()->getSwapchainParams().imageFormat;
+    // VkFormat swapchain_depth_format = device->findDepthFormat(depth_usage, swapchain_extent, 1u, samples);
+    // bool has_stencil = device->hasStencilComponent(swapchain_depth_format);
     
     m_name = render_pass_data.attribute("name").as_string();
 
@@ -67,7 +67,7 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
 	        if (attachment_initial_layout_node) {
                 std::string attachment_initial_str = attachment_initial_layout_node.text().as_string();
                 if(attachment_initial_str == "auto_depth_stencil_attachment_optimal"s) {
-                    VkImageLayout depth_image_layout = has_stencil ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+                    VkImageLayout depth_image_layout = format_config->hasStencil() ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
                     attachment_desc.initialLayout = depth_image_layout;
                 }
                 else {
@@ -79,7 +79,7 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
 	        if (attachment_final_layout_node) {
                 std::string attachment_final_str = attachment_final_layout_node.text().as_string();
                 if(attachment_final_str == "auto_depth_stencil_attachment_optimal"s) {
-                    VkImageLayout depth_image_layout = has_stencil ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+                    VkImageLayout depth_image_layout = format_config->hasStencil() ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
                     attachment_desc.finalLayout = depth_image_layout;
                 }
                 else {
@@ -163,7 +163,16 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
                     std::string depth_stencil_attachment_ref_name = depth_stencil_output_attachments_node.child("AttachmentName").text().as_string();
                     size_t depth_stencil_attachment_ref_idx = m_attachment_name_to_attach_idx_map.at(depth_stencil_attachment_ref_name);
                     depth_desc_attach_ref.attachment = depth_stencil_attachment_ref_idx;
-                    depth_desc_attach_ref.layout = getImageLayout(depth_stencil_output_attachments_node.child("Layout").text().as_string());
+
+                    std::string depth_stencil_output_attachments_layout_str = depth_stencil_output_attachments_node.child("Layout").text().as_string();
+                    if(depth_stencil_output_attachments_layout_str == "auto_depth_stencil_attachment_optimal"s) {
+                        VkImageLayout depth_stencil_output_attachments_layout = m_attachment_name_to_format_map.at(depth_stencil_attachment_ref_name)->hasStencil() ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+                        depth_desc_attach_ref.layout = depth_stencil_output_attachments_layout;
+                    }
+                    else {
+                        depth_desc_attach_ref.layout = getImageLayout(depth_stencil_output_attachments_layout_str);
+                    }
+
                     m_depth_desc_attach_refs.push_back(depth_desc_attach_ref);
                     subpass_desc.pDepthStencilAttachment = &m_depth_desc_attach_refs.back();
                 }
@@ -180,6 +189,8 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
 
             }
 
+            std::string subpass_name = subpass_desc_node.attribute("name").as_string();
+            m_subpass_name_to_idx_map[subpass_name] = m_subpass_descriptions.size();
             m_subpass_descriptions.push_back(subpass_desc);
         }
     }

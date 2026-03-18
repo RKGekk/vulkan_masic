@@ -19,7 +19,7 @@ class FormatConfig {
 public:
     enum class ExtentSource { AUTO, AS_SWAPCHAIN, EXACT };
 
-    bool init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<WindowSurface>& window, const SwapchainSupportDetails& swapchain_support_details, const pugi::xml_node& format_data);
+    bool init(std::shared_ptr<VulkanDevice> device, const std::shared_ptr<WindowSurface>& window, const SwapchainSupportDetails& swapchain_support_details, const pugi::xml_node& format_data);
 
     const std::string& getName() const;
 
@@ -66,6 +66,7 @@ public:
     float getAspect() const;
     VkColorSpaceKHR getVkColorSpace() const;
     void setVkColorSpace(VkColorSpaceKHR color_space);
+    bool hasStencil() const;
 
     VkSurfaceFormatKHR getVkSurfaceFormat() const;
 
@@ -76,7 +77,7 @@ public:
     std::shared_ptr<FormatConfig> makeInstance(std::string name, VkExtent2D extent = {0, 0}) const;
 
 private:
-
+    std::shared_ptr<VulkanDevice> m_device;
     std::string m_name;
     VkImageCreateFlags m_image_flags;
     VkImageType m_image_type;
@@ -96,5 +97,6 @@ private:
     const uint32_t* m_pQueue_family_indices;
 
     VkFormat m_format;
+    bool m_has_stencil;
     VkColorSpaceKHR m_color_space;
 };

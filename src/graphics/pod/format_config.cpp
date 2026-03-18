@@ -5,8 +5,10 @@
 #include "../../window_surface.h"
 #include "../../tools/string_tools.h"
 
-bool FormatConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<WindowSurface>& window, const SwapchainSupportDetails& swapchain_support_details, const pugi::xml_node& format_data) {
+bool FormatConfig::init(std::shared_ptr<VulkanDevice> device, const std::shared_ptr<WindowSurface>& window, const SwapchainSupportDetails& swapchain_support_details, const pugi::xml_node& format_data) {
     using namespace std::literals;
+
+    m_device = std::move(device);
 
     std::string auto_config_str = format_data.attribute("select").as_string();
     bool auto_config = auto_config_str == "auto"s;
@@ -68,7 +70,7 @@ bool FormatConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::
 
     std::string samples = format_data.child("Samples").text().as_string();
     if(samples == "as_device") {
-        m_samples = device->getMsaaSamples();
+        m_samples = m_device->getMsaaSamples();
     }
     else {
         m_samples = getSampleCountFlag(format_data.child("Samples").text().as_string());
@@ -84,16 +86,16 @@ bool FormatConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::
     }
 
     if(auto_config) {
-        m_format = device->findSupportedFormat(getFormatCandidates(format_data.child("Candidates")), m_tiling, m_feature_flags, m_usage, m_extent_2D, m_mip_levels, m_samples, m_image_flags, swapchain_support_details.is_native_swapchain_BGR);
+        m_format = m_device->findSupportedFormat(getFormatCandidates(format_data.child("Candidates")), m_tiling, m_feature_flags, m_usage, m_extent_2D, m_mip_levels, m_samples, m_image_flags, swapchain_support_details.is_native_swapchain_BGR);
     }
     else {
         m_format = getFormat(format_data.child("Candidates").first_child().text().as_string());
     }
-
+    m_has_stencil = m_device->hasStencilComponent(m_format);
     m_color_space = getColorSpace(format_data.child("ColorSpace").text().as_string());
 
-    static std::vector<uint32_t> families = device->getCommandManager()->getQueueFamilyIndices().getIndices();
-    m_images_sharing_mode = device->getCommandManager()->getBufferSharingMode();
+    static std::vector<uint32_t> families = m_device->getCommandManager()->getQueueFamilyIndices().getIndices();
+    m_images_sharing_mode = m_device->getCommandManager()->getBufferSharingMode();
     m_queue_family_index_count = static_cast<uint32_t>(families.size());
     m_pQueue_family_indices = families.data();
 
@@ -238,6 +240,11 @@ VkFormat FormatConfig::getVkFormat() const {
 
 void FormatConfig::setVkFormat(VkFormat format) {
     m_format = format;
+    m_has_stencil = m_device->hasStencilComponent(format);
+}
+
+bool FormatConfig::hasStencil() const {
+    return m_has_stencil;
 }
 
 float FormatConfig::getAspect() const {

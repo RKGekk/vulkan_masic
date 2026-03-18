@@ -5,7 +5,7 @@
 
 bool VulkanRenderPass::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<RenderPassConfig> render_pass_cfg) {
     m_device = device;
-    m_render_pass_cfg = render_pass_cfg;
+    m_render_pass_cfg = std::move(render_pass_cfg);
 
     VkResult result = vkCreateRenderPass(m_device->getDevice(), &m_render_pass_cfg->getRenderPassCreateInfo(), nullptr, &m_render_pass);
     if (result != VK_SUCCESS) {

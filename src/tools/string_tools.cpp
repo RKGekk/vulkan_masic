@@ -678,8 +678,8 @@ VkPipelineColorBlendStateCreateFlagBits getPipelineColorBlendStateCreateFlag(con
 	using namespace std::literals;
     VkPipelineColorBlendStateCreateFlagBits res{};
 
-         if(flag_str == "rasterization_order_attachment_access_bit_ext"s) {res = VK_PIPELINE_COLOR_BLEND_STATE_CREATE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_BIT_EXT;}
-    else if(flag_str == "rasterization_order_attachment_access_bit_arm"s) {res = VK_PIPELINE_COLOR_BLEND_STATE_CREATE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_BIT_ARM;}
+         if(flag_str == "rasterization_order_attachment_access_ext"s) {res = VK_PIPELINE_COLOR_BLEND_STATE_CREATE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_BIT_EXT;}
+    else if(flag_str == "rasterization_order_attachment_access_arm"s) {res = VK_PIPELINE_COLOR_BLEND_STATE_CREATE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_BIT_ARM;}
     
     return res;
 }
@@ -798,10 +798,10 @@ VkColorComponentFlagBits getColorComponentFlag(const std::string& mask_str) {
 	using namespace std::literals;
     VkColorComponentFlagBits res{};
 
-         if(mask_str == "r_bit"s) {res = VK_COLOR_COMPONENT_R_BIT;}
-	else if(mask_str == "g_bit"s) {res = VK_COLOR_COMPONENT_G_BIT;}
-	else if(mask_str == "b_bit"s) {res = VK_COLOR_COMPONENT_B_BIT;}
-	else if(mask_str == "a_bit"s) {res = VK_COLOR_COMPONENT_A_BIT;}
+         if(mask_str == "r"s) {res = VK_COLOR_COMPONENT_R_BIT;}
+	else if(mask_str == "g"s) {res = VK_COLOR_COMPONENT_G_BIT;}
+	else if(mask_str == "b"s) {res = VK_COLOR_COMPONENT_B_BIT;}
+	else if(mask_str == "a"s) {res = VK_COLOR_COMPONENT_A_BIT;}
     
     return res;
 }
@@ -1493,41 +1493,41 @@ VkAccessFlagBits getVkAccessFlag(const std::string& flag_str) {
 	using namespace std::literals;
     VkAccessFlagBits res{};
 
-         if(flag_str == "indirect_command_read_bit"s) {res = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;}
-	else if(flag_str == "index_read_bit"s) {res = VK_ACCESS_INDEX_READ_BIT;}
-	else if(flag_str == "vertex_attribute_read_bit"s) {res = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;}
-	else if(flag_str == "uniform_read_bit"s) {res = VK_ACCESS_UNIFORM_READ_BIT;}
-	else if(flag_str == "input_attachment_read_bit"s) {res = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;}
-	else if(flag_str == "shader_read_bit"s) {res = VK_ACCESS_SHADER_READ_BIT;}
-	else if(flag_str == "shader_write_bit"s) {res = VK_ACCESS_SHADER_WRITE_BIT;}
-	else if(flag_str == "color_attachment_read_bit"s) {res = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;}
-	else if(flag_str == "color_attachment_write_bit"s) {res = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;}
-	else if(flag_str == "depth_stencil_attachment_read_bit"s) {res = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;}
-	else if(flag_str == "depth_stencil_attachment_write_bit"s) {res = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;}
-	else if(flag_str == "transfer_read_bit"s) {res = VK_ACCESS_TRANSFER_READ_BIT;}
-	else if(flag_str == "transfer_write_bit"s) {res = VK_ACCESS_TRANSFER_WRITE_BIT;}
-	else if(flag_str == "host_read_bit"s) {res = VK_ACCESS_HOST_READ_BIT;}
-	else if(flag_str == "host_write_bit"s) {res = VK_ACCESS_HOST_WRITE_BIT;}
-	else if(flag_str == "memory_read_bit"s) {res = VK_ACCESS_MEMORY_READ_BIT;}
-	else if(flag_str == "memory_write_bit"s) {res = VK_ACCESS_MEMORY_WRITE_BIT;}
+         if(flag_str == "indirect_command_read"s) {res = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;}
+	else if(flag_str == "index_read"s) {res = VK_ACCESS_INDEX_READ_BIT;}
+	else if(flag_str == "vertex_attribute_read"s) {res = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;}
+	else if(flag_str == "uniform_read"s) {res = VK_ACCESS_UNIFORM_READ_BIT;}
+	else if(flag_str == "input_attachment_read"s) {res = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;}
+	else if(flag_str == "shader_read"s) {res = VK_ACCESS_SHADER_READ_BIT;}
+	else if(flag_str == "shader_write"s) {res = VK_ACCESS_SHADER_WRITE_BIT;}
+	else if(flag_str == "color_attachment_read"s) {res = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;}
+	else if(flag_str == "color_attachment_write"s) {res = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;}
+	else if(flag_str == "depth_stencil_attachment_read"s) {res = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;}
+	else if(flag_str == "depth_stencil_attachment_write"s) {res = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;}
+	else if(flag_str == "transfer_read"s) {res = VK_ACCESS_TRANSFER_READ_BIT;}
+	else if(flag_str == "transfer_write"s) {res = VK_ACCESS_TRANSFER_WRITE_BIT;}
+	else if(flag_str == "host_read"s) {res = VK_ACCESS_HOST_READ_BIT;}
+	else if(flag_str == "host_write"s) {res = VK_ACCESS_HOST_WRITE_BIT;}
+	else if(flag_str == "memory_read"s) {res = VK_ACCESS_MEMORY_READ_BIT;}
+	else if(flag_str == "memory_write"s) {res = VK_ACCESS_MEMORY_WRITE_BIT;}
 	else if(flag_str == "none"s) {res = VK_ACCESS_NONE;}
-	else if(flag_str == "transform_feedback_write_bit_ext"s) {res = VK_ACCESS_TRANSFORM_FEEDBACK_WRITE_BIT_EXT;}
-	else if(flag_str == "transform_feedback_counter_read_bit_ext"s) {res = VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_READ_BIT_EXT;}
-	else if(flag_str == "transform_feedback_counter_write_bit_ext"s) {res = VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_WRITE_BIT_EXT;}
-	else if(flag_str == "conditional_rendering_read_bit_ext"s) {res = VK_ACCESS_CONDITIONAL_RENDERING_READ_BIT_EXT;}
-	else if(flag_str == "color_attachment_read_noncoherent_bit_ext"s) {res = VK_ACCESS_COLOR_ATTACHMENT_READ_NONCOHERENT_BIT_EXT;}
-	else if(flag_str == "acceleration_structure_read_bit_khr"s) {res = VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR;}
-	else if(flag_str == "acceleration_structure_write_bit_khr"s) {res = VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_KHR;}
-	else if(flag_str == "fragment_density_map_read_bit_ext"s) {res = VK_ACCESS_FRAGMENT_DENSITY_MAP_READ_BIT_EXT;}
-	else if(flag_str == "fragment_shading_rate_attachment_read_bit_khr"s) {res = VK_ACCESS_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR;}
-	else if(flag_str == "command_preprocess_read_bit_nv"s) {res = VK_ACCESS_COMMAND_PREPROCESS_READ_BIT_NV;}
-	else if(flag_str == "command_preprocess_write_bit_nv"s) {res = VK_ACCESS_COMMAND_PREPROCESS_WRITE_BIT_NV;}
-	else if(flag_str == "shading_rate_image_read_bit_nv"s) {res = VK_ACCESS_SHADING_RATE_IMAGE_READ_BIT_NV;}
-	else if(flag_str == "acceleration_structure_read_bit_nv"s) {res = VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_NV;}
-	else if(flag_str == "acceleration_structure_write_bit_nv"s) {res = VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_NV;}
+	else if(flag_str == "transform_feedback_write_ext"s) {res = VK_ACCESS_TRANSFORM_FEEDBACK_WRITE_BIT_EXT;}
+	else if(flag_str == "transform_feedback_counter_read_ext"s) {res = VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_READ_BIT_EXT;}
+	else if(flag_str == "transform_feedback_counter_write_ext"s) {res = VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_WRITE_BIT_EXT;}
+	else if(flag_str == "conditional_rendering_read_ext"s) {res = VK_ACCESS_CONDITIONAL_RENDERING_READ_BIT_EXT;}
+	else if(flag_str == "color_attachment_read_noncoherent_ext"s) {res = VK_ACCESS_COLOR_ATTACHMENT_READ_NONCOHERENT_BIT_EXT;}
+	else if(flag_str == "acceleration_structure_read_khr"s) {res = VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR;}
+	else if(flag_str == "acceleration_structure_write_khr"s) {res = VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_KHR;}
+	else if(flag_str == "fragment_density_map_read_ext"s) {res = VK_ACCESS_FRAGMENT_DENSITY_MAP_READ_BIT_EXT;}
+	else if(flag_str == "fragment_shading_rate_attachment_read_khr"s) {res = VK_ACCESS_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR;}
+	else if(flag_str == "command_preprocess_read_nv"s) {res = VK_ACCESS_COMMAND_PREPROCESS_READ_BIT_NV;}
+	else if(flag_str == "command_preprocess_write_nv"s) {res = VK_ACCESS_COMMAND_PREPROCESS_WRITE_BIT_NV;}
+	else if(flag_str == "shading_rate_image_read_nv"s) {res = VK_ACCESS_SHADING_RATE_IMAGE_READ_BIT_NV;}
+	else if(flag_str == "acceleration_structure_read_nv"s) {res = VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_NV;}
+	else if(flag_str == "acceleration_structure_write_nv"s) {res = VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_NV;}
 	else if(flag_str == "none_khr"s) {res = VK_ACCESS_NONE_KHR;}
-	else if(flag_str == "command_preprocess_read_bit_ext"s) {res = VK_ACCESS_COMMAND_PREPROCESS_READ_BIT_EXT;}
-	else if(flag_str == "command_preprocess_write_bit_ext"s) {res = VK_ACCESS_COMMAND_PREPROCESS_WRITE_BIT_EXT;}
+	else if(flag_str == "command_preprocess_read_ext"s) {res = VK_ACCESS_COMMAND_PREPROCESS_READ_BIT_EXT;}
+	else if(flag_str == "command_preprocess_write_ext"s) {res = VK_ACCESS_COMMAND_PREPROCESS_WRITE_BIT_EXT;}
     
     return res;
 }

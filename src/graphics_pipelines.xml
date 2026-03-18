@@ -579,7 +579,8 @@
                         <SubpassType>External</SubpassType>
                     </srcSubpass>
                     <dstSubpass>
-                        <SubpassType>External</SubpassType>
+                        <SubpassType>Internal</SubpassType>
+                        <SubpassName>only_subpass</SubpassName>
                     </dstSubpass>
                     <srcStageMask>
                         <Mask>color_attachment_output</Mask>
