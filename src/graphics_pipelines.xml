@@ -448,7 +448,15 @@
             <EntryPointName>main</EntryPointName>
             <Stage>vertex</Stage>
             <InputAttributeDescription>
-                <Binding num="0" vertex_buffer_bind_name="basic_diffuse_vertex_buffer" index_buffer_bind_name="basic_diffuse_index_buffer" input_rate="vertex" vertex_buffer_resource_type="basic_vertex_resource" index_buffer_resource_type="basic_index_resource" index_type="uint32">
+                <Binding
+                    num="0"
+                    vertex_buffer_bind_name="basic_diffuse_vertex_buffer"
+                    index_buffer_bind_name="basic_diffuse_index_buffer"
+                    input_rate="vertex"
+                    vertex_buffer_resource_type="basic_vertex_resource"
+                    index_buffer_resource_type="basic_index_resource"
+                    index_type="uint32"
+                >
                     <Attribute name="inPosition">
                         <Location>0</Location>
                         <Format>vec3</Format>

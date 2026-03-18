@@ -58,9 +58,9 @@ void VertexFormat::addVertexAttribute(SemanticName semantic_name, VertexAttribut
 }
 
 void VertexFormat::setVertexAttribute(SemanticName semantic_name, VertexAttributeFormat format, int location) {
-    if(m_semantic_pos.size() < location) {
-        m_semantic_pos.resize(location);
-        m_format_pos.resize(location);
+    if(m_semantic_pos.size() <= location) {
+        m_semantic_pos.resize(location + 1);
+        m_format_pos.resize(location + 1);
     }
 
     m_semantic_pos[location] = semantic_name;

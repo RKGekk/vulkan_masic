@@ -49,7 +49,7 @@ bool ShaderSignature::init(const pugi::xml_node& shader_data) {
     using namespace std::literals;
 
     m_name = shader_data.attribute("name").as_string();
-	m_file_name = shader_data.child("FilePath").text().as_string();
+	m_file_name = shader_data.child("FilePath").attribute("file_name").as_string();
 
     m_create_flags = {};
     pugi::xml_node flags_node = shader_data.child("Flags");

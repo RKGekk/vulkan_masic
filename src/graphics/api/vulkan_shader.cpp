@@ -3,6 +3,8 @@
 #include "vulkan_device.h"
 #include "../../tools/string_tools.h"
 
+#include <filesystem>
+
 bool VulkanShader::init(std::shared_ptr<VulkanDevice> device, const std::string& path, VkShaderStageFlagBits pipeline_stage) {
     m_device = device;
 
@@ -43,12 +45,24 @@ bool VulkanShader::init(std::shared_ptr<VulkanDevice> device, const std::string&
 }
 
 bool VulkanShader::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& shader_data) {
-    m_device = device;
+    using namespace std::literals;
+
+    m_device = std::move(device);
 
     m_shader_signature = std::make_shared<ShaderSignature>();
     m_shader_signature->init(shader_data);
+    
+    std::filesystem::path shader_file_path(m_shader_signature->getFileName());
+    if(shader_file_path.extension() != ".spv") {
+        shader_file_path += ".spv";
+    }
 
-    std::vector<char> shader_buff = readFile(m_shader_signature->getFileName());
+    if(!std::filesystem::exists(shader_file_path)) {
+        std::filesystem::path shader_file_directory("shaders/");
+        shader_file_path = shader_file_directory / shader_file_path;
+    }
+
+    std::vector<char> shader_buff = readFile(shader_file_path.string());
     VkShaderModule shader_module = CreateShaderModule(shader_buff);
 
     m_shader_info = VkPipelineShaderStageCreateInfo{};

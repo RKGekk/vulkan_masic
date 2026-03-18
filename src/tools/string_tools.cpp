@@ -444,9 +444,9 @@ VertexAttributeFormat getInputAttributeFormat(const std::string& format_str) {
     else if(format_str == "uvec2"s) {res = VertexAttributeFormat::UINT_VEC2;}
     else if(format_str == "uvec3"s) {res = VertexAttributeFormat::UINT_VEC3;}
     else if(format_str == "uvec4"s) {res = VertexAttributeFormat::UINT_VEC4;}
-    else if(format_str == "vec2"s) {res = VertexAttributeFormat::INT_VEC2;}
-    else if(format_str == "vec3"s) {res = VertexAttributeFormat::INT_VEC3;}
-    else if(format_str == "vec4"s) {res = VertexAttributeFormat::INT_VEC4;}
+    else if(format_str == "vec2"s) {res = VertexAttributeFormat::FLOAT_VEC2;}
+    else if(format_str == "vec3"s) {res = VertexAttributeFormat::FLOAT_VEC3;}
+    else if(format_str == "vec4"s) {res = VertexAttributeFormat::FLOAT_VEC4;}
     else if(format_str == "dvec2"s) {res = VertexAttributeFormat::DOUBLE_VEC2;}
     else if(format_str == "dvec3"s) {res = VertexAttributeFormat::DOUBLE_VEC3;}
     else if(format_str == "dvec4"s) {res = VertexAttributeFormat::DOUBLE_VEC4;}
