@@ -798,10 +798,10 @@ VkColorComponentFlagBits getColorComponentFlag(const std::string& mask_str) {
 	using namespace std::literals;
     VkColorComponentFlagBits res{};
 
-         if(mask_str == "r"s) {res = VK_COLOR_COMPONENT_R_BIT;}
-	else if(mask_str == "g"s) {res = VK_COLOR_COMPONENT_G_BIT;}
-	else if(mask_str == "b"s) {res = VK_COLOR_COMPONENT_B_BIT;}
-	else if(mask_str == "a"s) {res = VK_COLOR_COMPONENT_A_BIT;}
+         if(mask_str == "r_bit"s) {res = VK_COLOR_COMPONENT_R_BIT;}
+	else if(mask_str == "g_bit"s) {res = VK_COLOR_COMPONENT_G_BIT;}
+	else if(mask_str == "b_bit"s) {res = VK_COLOR_COMPONENT_B_BIT;}
+	else if(mask_str == "a_bit"s) {res = VK_COLOR_COMPONENT_A_BIT;}
     
     return res;
 }

@@ -23,7 +23,6 @@ public:
 
 private:
     std::shared_ptr<VulkanDevice> m_device;
-    std::string m_name;
     std::shared_ptr<RenderPassConfig> m_render_pass_cfg;
     VkRenderPass m_render_pass = VK_NULL_HANDLE;
 };

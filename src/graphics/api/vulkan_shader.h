@@ -15,8 +15,6 @@ class VulkanDevice;
 
 class VulkanShader {
 public:
-    bool init(std::shared_ptr<VulkanDevice> device, const std::string& path, VkShaderStageFlagBits pipeline_stage);
-    bool init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_path);
     bool init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& shader_data);
     bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<ShaderSignature> shader_signature);
 

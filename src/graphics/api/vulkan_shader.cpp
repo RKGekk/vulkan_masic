@@ -5,53 +5,19 @@
 
 #include <filesystem>
 
-bool VulkanShader::init(std::shared_ptr<VulkanDevice> device, const std::string& path, VkShaderStageFlagBits pipeline_stage) {
-    m_device = device;
-
-    std::vector<char> shader_buff = readFile(path);
-    VkShaderModule shader_module = CreateShaderModule(shader_buff);
-
-    m_shader_info = VkPipelineShaderStageCreateInfo{};
-    m_shader_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    m_shader_info.pNext = nullptr;
-    m_shader_info.flags = 0u;
-    m_shader_info.stage = pipeline_stage;
-    m_shader_info.module = shader_module;
-    m_shader_info.pName = "main";
-    m_shader_info.pSpecializationInfo = nullptr; // fill constants
-
-    return true;
-}
-
-bool VulkanShader::init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_path) {
-    m_device = device;
-
-    pugi::xml_document xml_doc;
-	pugi::xml_parse_result parse_res = xml_doc.load_file(rg_file_path.c_str());
-	if (!parse_res) { return false;	}
-
-	pugi::xml_node root_node = xml_doc.root();
-	if (!root_node) { return false; }
-	root_node = root_node.child("RenderGraph");
-
-    pugi::xml_node shaders_node = root_node.child("Shaders");
-	if (shaders_node) {
-		for (pugi::xml_node shader_node = shaders_node.first_child(); shader_node; shader_node = shader_node.next_sibling()) {
-			return init(device, shader_node);
-		}
-	}
-
-    return true;
-}
-
 bool VulkanShader::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& shader_data) {
+    std::shared_ptr<ShaderSignature> shader_signature = std::make_shared<ShaderSignature>();
+    shader_signature->init(shader_data);
+
+    return init(std::move(device), std::move(shader_signature));
+}
+
+bool VulkanShader::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<ShaderSignature> shader_signature) {
     using namespace std::literals;
 
     m_device = std::move(device);
+    m_shader_signature = std::move(shader_signature);
 
-    m_shader_signature = std::make_shared<ShaderSignature>();
-    m_shader_signature->init(shader_data);
-    
     std::filesystem::path shader_file_path(m_shader_signature->getFileName());
     if(shader_file_path.extension() != ".spv") {
         shader_file_path += ".spv";
@@ -63,26 +29,6 @@ bool VulkanShader::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_no
     }
 
     std::vector<char> shader_buff = readFile(shader_file_path.string());
-    VkShaderModule shader_module = CreateShaderModule(shader_buff);
-
-    m_shader_info = VkPipelineShaderStageCreateInfo{};
-    m_shader_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    m_shader_info.pNext = nullptr;
-    m_shader_info.flags = m_shader_signature->getPipelineShaderStageCreateFlags();
-    m_shader_info.stage = m_shader_signature->getStage();
-    m_shader_info.module = shader_module;
-    m_shader_info.pName = m_shader_signature->getEntryPointName().c_str();
-    m_shader_info.pSpecializationInfo = &(m_shader_signature->getSpecializationInfo()); // fill constants
-
-    return true;
-}
-
-bool VulkanShader::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<ShaderSignature> shader_signature) {
-    m_device = device;
-
-    m_shader_signature = shader_signature;
-
-    std::vector<char> shader_buff = readFile(m_shader_signature->getFileName());
     VkShaderModule shader_module = CreateShaderModule(shader_buff);
 
     m_shader_info = VkPipelineShaderStageCreateInfo{};

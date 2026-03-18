@@ -640,7 +640,7 @@
                 <DepthBiasSlopeFactor>0.0</DepthBiasSlopeFactor>
                 <LineWidth>1.0</LineWidth>
             </RasterizationState>
-            <MultisampleState>
+            <MultisampleState sample_count_as_device="true">
                 <SampleCount>16_bit</SampleCount>
                 <SampleShadingEnable>false</SampleShadingEnable>
                 <alphaToCoverageEnable>false</alphaToCoverageEnable>
@@ -715,7 +715,7 @@
                 <DepthBiasSlopeFactor>0.0</DepthBiasSlopeFactor>
                 <LineWidth>1.0</LineWidth>
             </RasterizationState>
-            <MultisampleState>
+            <MultisampleState sample_count_as_device="true">
                 <SampleCount>16_bit</SampleCount>
                 <SampleShadingEnable>false</SampleShadingEnable>
                 <alphaToCoverageEnable>false</alphaToCoverageEnable>

@@ -24,8 +24,9 @@ bool VulkanPipelinesManager::init(std::shared_ptr<VulkanDevice> device, const st
 
 		for (pugi::xml_node pipeline_node = pipelines_node.first_child(); pipeline_node; pipeline_node = pipeline_node.next_sibling()) {
             std::shared_ptr<VulkanRenderPass> render_pass_ptr = Application::GetRenderer().getRenderPassesManager()->getRenderPass(pipeline_node.child("RenderPass").child("RenderPassName").text().as_string());
+            uint32_t subpass = pipeline_node.child("RenderPass").child("Subpass").text().as_uint();
             std::shared_ptr<VulkanPipeline> pipeline = std::make_shared<VulkanPipeline>();
-			pipeline->init(device, pipeline_node, viewport_extent, render_pass_ptr, Application::GetRenderer().getDescriptorsManager(), Application::GetRenderer().getShadersManager());
+			pipeline->init(device, pipeline_node, viewport_extent, render_pass_ptr, subpass, Application::GetRenderer().getDescriptorsManager(), Application::GetRenderer().getShadersManager());
             m_pipeline_name_map.insert({pipeline_node.attribute("name").as_string(), std::move(pipeline)});
 		}
 	}

@@ -16,12 +16,12 @@
 #include <stdexcept>
 #include <unordered_set>
 
-bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& pipeline_data, VkExtent2D viewport_extent, std::shared_ptr<VulkanRenderPass> render_pass, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager) {
-    m_device = device;
-    m_render_pass = render_pass;
+bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& pipeline_data, VkExtent2D viewport_extent, std::shared_ptr<VulkanRenderPass> render_pass, uint32_t subpass, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager) {
+    m_device = std::move(device);
+    m_render_pass = std::move(render_pass);
 
     m_pipeline_config = std::make_shared<PipelineConfig>();
-    m_pipeline_config->init(pipeline_data);
+    m_pipeline_config->init(m_device, pipeline_data);
 
     m_pipeline_type = PipelineType::GRAPHICS;
     m_name = m_pipeline_config->getName();
@@ -39,7 +39,7 @@ bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_
     pipeline_cache_info.initialDataSize = pipeline_cache_data.size();
     pipeline_cache_info.pInitialData = pipeline_cache_data.data();
     pipeline_cache_info.flags = 0u;
-    VkResult  result = vkCreatePipelineCache(device->getDevice(), &pipeline_cache_info, NULL, &m_pipeline_cache);
+    VkResult  result = vkCreatePipelineCache(m_device->getDevice(), &pipeline_cache_info, NULL, &m_pipeline_cache);
     if(result != VK_SUCCESS) {
         throw std::runtime_error("failed to create pipeline cache!");
     }
@@ -53,7 +53,12 @@ bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_
 
     m_push_constants = getPushConstantRanges(m_pipeline_config->getShaderNames(), shader_manager);
     m_pipeline_layout_info.pushConstantRangeCount = static_cast<uint32_t>(m_push_constants.size());
-    m_pipeline_layout_info.pPushConstantRanges = m_push_constants.data();
+    if(m_push_constants.empty()) {
+        m_pipeline_layout_info.pPushConstantRanges = nullptr;
+    }
+    else {
+        m_pipeline_layout_info.pPushConstantRanges = m_push_constants.data();
+    }
 
     result = vkCreatePipelineLayout(m_device->getDevice(), &m_pipeline_layout_info, nullptr, &m_pipeline_layout);
     if (result != VK_SUCCESS) {
@@ -98,7 +103,7 @@ bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_
     m_pipeline_info.pDynamicState = &m_pipeline_config->getDynamicInfo();
     m_pipeline_info.layout = m_pipeline_layout;
     m_pipeline_info.renderPass = m_render_pass->getRenderPass();
-    m_pipeline_info.subpass = 0u;
+    m_pipeline_info.subpass = subpass;
     m_pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
     m_pipeline_info.basePipelineIndex = -1;
     

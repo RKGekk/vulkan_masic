@@ -5,13 +5,15 @@
 
 #include <pugixml.hpp>
 
+#include <memory>
 #include <string>
 #include <vector>
 
+class VulkanDevice;
+
 class PipelineConfig {
 public:
-    bool init(const std::string& rg_file_path);
-    bool init(const pugi::xml_node& pipeline_data);
+    bool init(const std::shared_ptr<VulkanDevice>& device, const pugi::xml_node& pipeline_data);
     void destroy();
 
     const std::string& getName() const;

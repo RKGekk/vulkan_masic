@@ -1257,6 +1257,7 @@
                         <xs:element name="alphaToCoverageEnable" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
                         <xs:element name="alphaToOneEnable" type="xs:boolean" minOccurs="1" maxOccurs="1"></xs:element>
                     </xs:sequence>
+                    <xs:attribute name="sample_count_as_device" type="xs:boolean" use="required"></xs:attribute>
                 </xs:complexType>
             </xs:element>
             <xs:element name="DepthStencilState" minOccurs="1" maxOccurs="1">
