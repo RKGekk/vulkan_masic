@@ -156,7 +156,10 @@ std::shared_ptr<ImageBufferConfig> ImageBufferConfig::makeInstance(std::string i
 
     instance_ptr->m_memory_properties = m_memory_properties;
     instance_ptr->m_memory_properties_by_memory_requirements = m_memory_properties_by_memory_requirements;
-
+    if(instance_ptr->m_format->getExtentSource() == FormatConfig::ExtentSource::AUTO) {
+        instance_ptr->m_image_info.extent = {extent.width, extent.height, 1};
+        instance_ptr->m_image_info.mipLevels = instance_ptr->m_format->getMipLevels();
+    }
     instance_ptr->m_samplers = m_samplers;
 
     return instance_ptr;

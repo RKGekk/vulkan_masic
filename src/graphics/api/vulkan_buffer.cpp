@@ -14,12 +14,8 @@ VulkanBuffer::VulkanBuffer(std::shared_ptr<VulkanDevice> device) : m_device(std:
 bool VulkanBuffer::init(const void* data, std::shared_ptr<BufferConfig> buffer_config) {
     m_buffer_config = std::move(buffer_config);
 
-    if (!m_buffer_config->isSizeDynamic()) return true;
+    if (m_buffer_config->isSizeDynamic()) return true;
 
-    VkDeviceSize data_size = m_buffer_config->getBufferInfo().size;
-    
-    std::vector<uint32_t> family_indices = m_device->getCommandManager()->getQueueFamilyIndices().getIndices();
-    
     VkResult result = vkCreateBuffer(m_device->getDevice(), &m_buffer_config->getBufferInfo(), nullptr, &m_buffer);
     if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to create buffer!");
@@ -47,7 +43,7 @@ bool VulkanBuffer::init(const void* data, std::shared_ptr<BufferConfig> buffer_c
     }
     
     if(data) {
-        update(data, data_size);
+        update(data, m_buffer_config->getBufferInfo().size);
     }
  
     return true;

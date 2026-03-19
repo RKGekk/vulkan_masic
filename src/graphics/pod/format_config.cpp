@@ -65,6 +65,9 @@ bool FormatConfig::init(std::shared_ptr<VulkanDevice> device, const std::shared_
         m_mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(m_extent_2D.width, m_extent_2D.height))));
         m_mip_auto = true;
     }
+    if(!m_mip_levels) {
+        m_mip_levels = 1u;
+    }
 
     m_array_layers = format_data.child("ArrayLayers").text().as_uint();
 
@@ -247,6 +250,12 @@ bool FormatConfig::hasStencil() const {
     return m_has_stencil;
 }
 
+size_t FormatConfig::getRawFormatBytesCount() const {
+    size_t bytes_count = VulkanDevice::getBytesCount(m_format);
+    size_t tide_size = m_extent_2D.width * m_extent_2D.height * m_extent_3D.depth * bytes_count;
+    return tide_size;
+}
+
 float FormatConfig::getAspect() const {
     return m_aspect;
 }
@@ -282,6 +291,14 @@ std::shared_ptr<FormatConfig> FormatConfig::makeInstance(std::string name, VkExt
     instance_ptr->m_name = name;
     if(m_extent_source == ExtentSource::AUTO) {
         instance_ptr->m_extent_2D = extent;
+        instance_ptr->m_extent_3D = {extent.width, extent.height, 1};
+        instance_ptr->m_aspect = ((float)extent.width) / ((float)extent.height);
+        if(instance_ptr->m_mip_auto) {
+            instance_ptr->m_mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(extent.width, extent.height))));
+        }
+        if(!instance_ptr->m_mip_levels) {
+            instance_ptr->m_mip_levels = 1u;
+        }
     }
 
     return instance_ptr;

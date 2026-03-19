@@ -1913,6 +1913,7 @@ VkComponentMapping getComponentMapping(const pugi::xml_node& mapping_node) {
 
 VkSamplerCreateInfo getSamplerCreateInfo(const pugi::xml_node& sampler_node) {
 	VkSamplerCreateInfo sampler_info{};
+	sampler_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
             
     pugi::xml_node create_flags_node = sampler_node.child("CreateFlags");
     for (pugi::xml_node create_flag = create_flags_node.first_child(); create_flag; create_flag = create_flag.next_sibling()) {

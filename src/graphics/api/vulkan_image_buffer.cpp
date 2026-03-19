@@ -121,7 +121,7 @@ bool VulkanImageBuffer::init(unsigned char* pixels, std::shared_ptr<ImageBufferC
         return true;
     }
 
-    std::shared_ptr<VulkanBuffer> staging_buffer = Application::Get().GetRenderer().getResourcesManager()->create_buffer(pixels, m_image_size, "basic_staging_buffer"s);
+    std::shared_ptr<VulkanBuffer> staging_buffer = Application::Get().GetRenderer().getResourcesManager()->create_buffer(pixels, m_image_config->getFormat()->getRawFormatBytesCount(), "basic_staging_buffer"s);
     CommandBatch command_buffer = m_device->getCommandManager()->allocCommandBuffer(PoolTypeEnum::TRANSFER);
     command_buffer.addResource(staging_buffer);
 

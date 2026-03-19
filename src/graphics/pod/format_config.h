@@ -67,6 +67,7 @@ public:
     VkColorSpaceKHR getVkColorSpace() const;
     void setVkColorSpace(VkColorSpaceKHR color_space);
     bool hasStencil() const;
+    size_t getRawFormatBytesCount() const;
 
     VkSurfaceFormatKHR getVkSurfaceFormat() const;
 

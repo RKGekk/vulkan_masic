@@ -195,7 +195,6 @@ void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer) {
         VkRenderPassBeginInfo renderpass_info{};
         renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderpass_info.renderPass = render_pass_ptr->getRenderPass();
-        //renderpass_info.framebuffer = render_node_ptr->getFramebuffer(m_swapchain->getCurrentSync());
         renderpass_info.framebuffer = render_node_ptr->getFramebuffer();
         renderpass_info.renderArea.offset = {0, 0};
         renderpass_info.renderArea.extent = render_node_ptr->getViewportExtent();

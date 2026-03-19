@@ -171,6 +171,7 @@ bool PipelineConfig::init(const std::shared_ptr<VulkanDevice>& device, const pug
     }
 
     m_dynamic_info = VkPipelineDynamicStateCreateInfo{};
+    m_dynamic_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
     pugi::xml_node dynamic_state_node = pipeline_data.child("DynamicState");
     if(dynamic_state_node) {
         for (pugi::xml_node dynamic_node = dynamic_state_node.first_child(); dynamic_node; dynamic_node = dynamic_node.next_sibling()) {

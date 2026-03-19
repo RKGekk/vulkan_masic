@@ -40,10 +40,11 @@ std::shared_ptr<VulkanImageBuffer> makeFontTexture(std::shared_ptr<VulkanDevice>
 
     // init fonts
     unsigned char* pixels;
-    int width, height;
+    int width;
+    int height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-    std::shared_ptr<VulkanImageBuffer> font_texture = Application::GetRenderer().getResourcesManager()->create_image(TTF_font_file_name);
+    std::shared_ptr<VulkanImageBuffer> font_texture = Application::GetRenderer().getResourcesManager()->create_image(pixels, {(uint32_t)width, (uint32_t)height}, TTF_font_file_name, "imgui_font_resource");
 
     io.Fonts->TexID = 0u;
     io.FontDefault = font;

@@ -493,7 +493,14 @@
             <EntryPointName>main</EntryPointName>
             <Stage>vertex</Stage>
             <InputAttributeDescription>
-                <Binding num="0" vertex_buffer_bind_name="vertex" index_buffer_bind_name="index" input_rate="vertex" vertex_buffer_resource_type="imgui_vertex_resource" index_buffer_resource_type="imgui_index_resource" index_type="uint32">
+                <Binding num="0" 
+                         vertex_buffer_bind_name="vertex"
+                         index_buffer_bind_name="index"
+                         input_rate="vertex"
+                         vertex_buffer_resource_type="imgui_vertex_resource"
+                         index_buffer_resource_type="imgui_index_resource"
+                         index_type="uint32"
+                >
                     <Attribute name="inPosition">
                         <Location>0</Location>
                         <Format>vec2</Format>
@@ -505,7 +512,7 @@
                         <Semantic num="0">TEXCOORD</Semantic>
                     </Attribute>
                     <Attribute name="inColor">
-                        <Location>3</Location>
+                        <Location>2</Location>
                         <Format>vec3</Format>
                         <Semantic num="0">COLOR</Semantic>
                     </Attribute>

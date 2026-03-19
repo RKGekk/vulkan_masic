@@ -2416,7 +2416,7 @@
                                                 </xs:sequence>
                                             </xs:complexType>
                                         </xs:element>
-                                        <xs:element name="CameraComponent">
+                                        <xs:element name="CameraComponent" minOccurs="0" maxOccurs="1">
                                             <xs:complexType>
                                                 <xs:sequence>
                                                     <xs:element name="Fov" type="xs:float"></xs:element>
@@ -2425,7 +2425,7 @@
                                                 </xs:sequence>
                                             </xs:complexType>
                                         </xs:element>
-                                        <xs:element name="ModelComponent">
+                                        <xs:element name="ModelComponent" minOccurs="0" maxOccurs="1">
                                             <xs:complexType>
                                                 <xs:sequence>
                                                     <xs:element name="FilePath" type="xs:string"></xs:element>
