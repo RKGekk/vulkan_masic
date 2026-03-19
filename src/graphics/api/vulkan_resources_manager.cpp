@@ -122,7 +122,13 @@ std::shared_ptr<VulkanBuffer> VulkanResourcesManager::create_buffer(const void* 
 	using namespace std::literals;
 
 	const std::shared_ptr<BufferConfig>& buffer_config_template = m_buffer_config_map.at(resource_type_name);
-	std::shared_ptr<BufferConfig> buffer_config = buffer_config_template->makeInstance(resource_type_name + "_"s + get_uuid(), buffer_size);
+	std::shared_ptr<BufferConfig> buffer_config;
+	if(buffer_config_template->isSizeDeffered()) {
+		buffer_config = buffer_config_template->makeInstance(resource_type_name + "_"s + get_uuid(), buffer_size);
+	}
+	else {
+		buffer_config = buffer_config_template->makeInstance(resource_type_name + "_"s + get_uuid(), buffer_config_template->getBufferInfo().size);
+	}
 
 	std::shared_ptr<VulkanBuffer> buffer = std::make_shared<VulkanBuffer>(m_device);
 	buffer->init(data, std::move(buffer_config));

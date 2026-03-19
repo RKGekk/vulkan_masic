@@ -53,7 +53,7 @@ std::shared_ptr<VulkanImageBuffer> makeFontTexture(std::shared_ptr<VulkanDevice>
 }
 
 std::shared_ptr<RenderNodeConfig> getImguiRenderNodeConfig(const std::shared_ptr<VulkanDevice>& device) {
-    std::shared_ptr<RenderNodeConfig> render_node_config = std::make_shared<RenderNodeConfig>();
+    using namespace std::literals;
 
     pugi::xml_document xml_doc;
 	pugi::xml_parse_result parse_res = xml_doc.load_file("graphics_pipelines.xml");
@@ -66,9 +66,16 @@ std::shared_ptr<RenderNodeConfig> getImguiRenderNodeConfig(const std::shared_ptr
     pugi::xml_node render_nodes_node = root_node.child("RenderNodes");
 	if (!render_nodes_node) return nullptr;
 
-    render_node_config->init(device, render_nodes_node.child("imgui_renderer"));
+    for (pugi::xml_node render_node = render_nodes_node.first_child(); render_node; render_node = render_node.next_sibling()) {
+        std::string node_name = render_node.attribute("name").as_string();
+        if(node_name == "imgui_renderer"s) {
+            std::shared_ptr<RenderNodeConfig> render_node_config = std::make_shared<RenderNodeConfig>();
+            render_node_config->init(device, render_node);
+            return render_node_config;
+        }
+    }
 
-    return render_node_config;
+    return nullptr;
 }
 
 bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
@@ -105,6 +112,7 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
 
     m_render_nodes.resize(max_frames);
     m_vertex_buffers.resize(max_frames);
+    m_index_buffers.resize(max_frames);
     m_uniform_buffers.resize(max_frames);
     for(size_t i = 0u; i < max_frames; ++i) {
 
