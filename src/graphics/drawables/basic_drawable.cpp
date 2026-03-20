@@ -88,7 +88,7 @@ bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<M
         m_render_nodes[i]->addWriteDependency(depth_images[i], "depth_attachment");
 
         m_render_nodes[i]->finishRenderNode();
-        Application::GetRenderer().addRenderNode(m_render_nodes[i]);
+        Application::GetRenderer().addRenderNode(m_render_nodes[i], i);
     }
 
     return true;
