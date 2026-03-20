@@ -53,6 +53,8 @@ struct PerFrame {
 	std::vector<VkSemaphore> recycled_semaphores;
 	std::vector<VkEvent> recycled_events;
 	std::vector<VkSemaphore> consumed_semaphores;
+
+    std::shared_ptr<RenderGraph> render_graph;
 };
 
 class VulkanRenderer {
@@ -76,14 +78,14 @@ public:
     std::vector<std::shared_ptr<VulkanImageBuffer>>& getOutColorImages();
     std::vector<std::shared_ptr<VulkanImageBuffer>>& getOutDepthImages();
 
-    void recordCommandBuffer(CommandBatch& command_buffer);
+    void recordCommandBuffer(CommandBatch& command_buffer, unsigned image_index);
     void drawFrame();
     
     void update_frame(const GameTimerDelta& delta, uint32_t image_index);
-    void addRenderNode(std::shared_ptr<RenderNode> render_node);
+    void addRenderNode(std::shared_ptr<RenderNode> render_node, unsigned image_index);
 
 private:
-    void TransitionResourcesToProperState(const std::shared_ptr<RenderNode>& render_node, CommandBatch& command_buffer);
+    void TransitionResourcesToProperState(const std::shared_ptr<RenderNode>& render_node, CommandBatch& command_buffer, unsigned image_index);
 
     std::shared_ptr<VulkanDevice> m_device;
     
@@ -103,7 +105,5 @@ private:
     std::shared_ptr<VulkanFormatManager> m_format_manager;
     std::shared_ptr<VulkanResourcesManager> m_resources_manager;
 
-    std::shared_ptr<RenderGraph> m_render_graph;
-    
     std::shared_ptr<ThreadPool> m_thread_pool;
 };

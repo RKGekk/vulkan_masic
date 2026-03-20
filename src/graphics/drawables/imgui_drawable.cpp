@@ -104,7 +104,7 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
 
     m_font_texture = makeFontTexture(m_device, TTF_font_file_name.c_str(), font_size_pixels);
 
-    std::shared_ptr<RenderNodeConfig> render_node_config = getImguiRenderNodeConfig(device);
+    std::shared_ptr<RenderNodeConfig> render_node_config = getImguiRenderNodeConfig(m_device);
 
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
     std::vector<std::shared_ptr<VulkanImageBuffer>>& color_images = Application::GetRenderer().getOutColorImages();
@@ -121,7 +121,7 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
         m_uniform_buffers[i] = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, "imgui_uniform_resource");
 
         m_render_nodes[i] = std::make_shared<RenderNode>();
-        m_render_nodes[i]->init(device, render_node_config);
+        m_render_nodes[i]->init(m_device, render_node_config);
 
         std::shared_ptr<VulkanShader> vertex_shader = m_render_nodes[i]->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
         std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames()[0]);

@@ -73,6 +73,9 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
         m_out_color_images.push_back(per_frame->out_color_image);
         m_out_depth_images.push_back(per_frame->out_depth_image);
 
+        per_frame->render_graph = std::make_shared<RenderGraph>();
+        per_frame->render_graph->init(m_device);
+
         per_frame->init(m_device, i);
         per_frame->command_buffer = m_command_manager->allocCommandBufferPtr(PoolTypeEnum::GRAPICS);
 
@@ -90,9 +93,6 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
 
     m_pipelines_manager = std::make_shared<VulkanPipelinesManager>();
     m_pipelines_manager->init(m_device, "graphics_pipelines.xml"s);
-
-    m_render_graph = std::make_shared<RenderGraph>();
-    m_render_graph->init(m_device);
 
     return true;
 }
@@ -150,7 +150,7 @@ std::shared_ptr<VulkanResourcesManager>& VulkanRenderer::getResourcesManager() {
     return m_resources_manager;
 }
 
-void VulkanRenderer::TransitionResourcesToProperState(const std::shared_ptr<RenderNode>& render_node_ptr, CommandBatch& command_buffer) {
+void VulkanRenderer::TransitionResourcesToProperState(const std::shared_ptr<RenderNode>& render_node_ptr, CommandBatch& command_buffer, unsigned image_index) {
     const std::shared_ptr<VulkanPipeline>& pipeline_ptr = render_node_ptr->getPipeline();
     const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = pipeline_ptr->getRenderPass();
 
@@ -158,15 +158,15 @@ void VulkanRenderer::TransitionResourcesToProperState(const std::shared_ptr<Rend
         RenderResource::Type att_slot_res_type = att_slot.resource->getType();
         if(att_slot_res_type == RenderResource::Type::BUFFER) continue;
 
-        size_t last_written_by_node_id = m_render_graph->getLastWrittenIdentity(render_node_ptr, gloabal_name);
-        size_t last_read_by_node_id = m_render_graph->getLastReadIdentity(render_node_ptr, gloabal_name);
+        size_t last_written_by_node_id = m_per_frame[image_index]->render_graph->getLastWrittenIdentity(render_node_ptr, gloabal_name);
+        size_t last_read_by_node_id = m_per_frame[image_index]->render_graph->getLastReadIdentity(render_node_ptr, gloabal_name);
 
         if(last_read_by_node_id != RenderGraph::NO_ID && last_read_by_node_id > last_written_by_node_id) {
             continue;
         }
 
         if(last_written_by_node_id != RenderGraph::NO_ID && last_written_by_node_id > last_read_by_node_id) {
-            const RenderGraph::RenderNodePtr& last_written_by_node = m_render_graph->getRenderNodeByID(last_read_by_node_id);
+            const RenderGraph::RenderNodePtr& last_written_by_node = m_per_frame[image_index]->render_graph->getRenderNodeByID(last_read_by_node_id);
             
         }
     }
@@ -184,18 +184,18 @@ std::vector<std::shared_ptr<VulkanImageBuffer>>& VulkanRenderer::getOutDepthImag
     return m_out_depth_images;
 }
 
-void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer) {
+void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer, unsigned image_index) {
     VulkanCommandManager::beginCommandBuffer(command_buffer);
 
     uint32_t current_frame = m_swapchain->getCurrentFrame();
 
     // return all RenderResources to initial state
 
-    for(const std::shared_ptr<RenderNode> render_node_ptr : m_render_graph->getTopologicallySortedNodes()) {
+    for(const std::shared_ptr<RenderNode> render_node_ptr : m_per_frame[image_index]->render_graph->getTopologicallySortedNodes()) {
         const std::shared_ptr<VulkanPipeline>& pipeline_ptr = render_node_ptr->getPipeline();
         const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = pipeline_ptr->getRenderPass();
 
-        TransitionResourcesToProperState(render_node_ptr, command_buffer);
+        TransitionResourcesToProperState(render_node_ptr, command_buffer, image_index);
 
         VkRenderPassBeginInfo renderpass_info{};
         renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -215,7 +215,7 @@ void VulkanRenderer::drawFrame() {
     }
 
     m_per_frame[m_swapchain->getCurrentSync()]->command_buffer->reset();
-    recordCommandBuffer(*m_per_frame[m_swapchain->getCurrentSync()]->command_buffer);
+    recordCommandBuffer(*m_per_frame[m_swapchain->getCurrentSync()]->command_buffer, m_swapchain->getCurrentSync());
     
     CommandBatch::BatchWaitInfo wait_info;
     wait_info.wait_for_semaphores.push_back(m_swapchain->getImageAvailableSemaphore());
@@ -243,6 +243,6 @@ void VulkanRenderer::update_frame(const GameTimerDelta& delta, uint32_t image_in
     
 }
 
-void VulkanRenderer::addRenderNode(std::shared_ptr<RenderNode> render_node) {
-    m_render_graph->add_pass(std::move(render_node));
+void VulkanRenderer::addRenderNode(std::shared_ptr<RenderNode> render_node, unsigned image_index) {
+    m_per_frame[image_index]->render_graph->add_pass(std::move(render_node));
 }
