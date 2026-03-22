@@ -34,6 +34,17 @@ class VulkanImageBuffer;
 
 class ImGUIDrawable : public IVulkanDrawable {
 public:
+    struct Renderable {
+        std::shared_ptr<VulkanBuffer> uniform_buffer;
+        std::shared_ptr<VulkanBuffer> vertex_buffer;
+        std::shared_ptr<VulkanBuffer> index_buffer;
+        std::shared_ptr<VulkanImageBuffer> font_texture;
+        std::vector<ImDrawVert> imgui_vtx;
+        std::vector<ImDrawIdx> imgui_idx;
+        std::shared_ptr<RenderNode> render_node;
+        int frame;
+    };
+
     bool init(std::shared_ptr<VulkanDevice> device, int max_frames);
 
     void reset() override;
@@ -49,18 +60,7 @@ private:
     std::shared_ptr<VulkanDevice> m_device;
     int m_max_frames;
 
-    std::shared_ptr<VulkanPipeline> m_pipeline;
-    std::vector<std::shared_ptr<RenderNode>> m_render_nodes;
-    
-    std::shared_ptr<VulkanImageBuffer> m_font_texture;
-    std::vector<std::shared_ptr<VulkanImageBuffer>> m_out_color_images;
-    std::vector<std::shared_ptr<VulkanImageBuffer>> m_out_depth_images;
-    std::vector<std::shared_ptr<VulkanBuffer>> m_uniform_buffers;
-
-    std::vector<std::shared_ptr<VulkanBuffer>> m_vertex_buffers;
-    std::vector<std::shared_ptr<VulkanBuffer>> m_index_buffers;
-    std::vector<std::vector<ImDrawVert>> m_imgui_vtx;
-    std::vector<std::vector<ImDrawIdx>> m_imgui_idx;
+    std::vector<std::shared_ptr<Renderable>> m_renderables;
 
     ImGuiContext* m_pImgui_ctx;
 };

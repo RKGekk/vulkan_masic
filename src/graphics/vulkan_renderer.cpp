@@ -188,10 +188,14 @@ void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer, unsigned 
     VulkanCommandManager::beginCommandBuffer(command_buffer);
 
     uint32_t current_frame = m_swapchain->getCurrentFrame();
+    static std::array<VkClearValue, 2> clear_values{};
+    clear_values[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+    clear_values[1].depthStencil = {1.0f, 0};
 
     // return all RenderResources to initial state
 
-    for(const std::shared_ptr<RenderNode> render_node_ptr : m_per_frame[image_index]->render_graph->getTopologicallySortedNodes()) {
+    const RenderGraph::RenderNodeList& topologically_sorted_nodes = m_per_frame[image_index]->render_graph->getTopologicallySortedNodes();
+    for(const std::shared_ptr<RenderNode> render_node_ptr : topologically_sorted_nodes) {
         const std::shared_ptr<VulkanPipeline>& pipeline_ptr = render_node_ptr->getPipeline();
         const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = pipeline_ptr->getRenderPass();
 
@@ -203,6 +207,47 @@ void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer, unsigned 
         renderpass_info.framebuffer = render_node_ptr->getFramebuffer();
         renderpass_info.renderArea.offset = {0, 0};
         renderpass_info.renderArea.extent = render_node_ptr->getViewportExtent();
+        renderpass_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
+        renderpass_info.pClearValues = clear_values.data();
+        
+        VkViewport view_port{};
+        view_port.x = 0.0f;
+        view_port.y = 0.0f;
+        view_port.width = static_cast<float>(render_node_ptr->getViewportExtent().width);
+        view_port.height = static_cast<float>(render_node_ptr->getViewportExtent().height);
+        view_port.minDepth = 0.0f;
+        view_port.maxDepth = 1.0f;
+        
+        VkRect2D scissor{};
+        scissor.offset = {0, 0};
+        scissor.extent = render_node_ptr->getViewportExtent();
+        
+        vkCmdBeginRenderPass(command_buffer.getCommandBufer(), &renderpass_info, VK_SUBPASS_CONTENTS_INLINE);
+
+        vkCmdSetViewport(command_buffer.getCommandBufer(), 0u, 1u, &view_port);
+        vkCmdSetScissor(command_buffer.getCommandBufer(), 0u, 1u, &scissor);
+        
+        vkCmdBindDescriptorSets(
+            command_buffer.getCommandBufer(), // commandBuffer
+            VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
+            render_node_ptr->getPipeline()->getPipelineLayout(), // pipeline layout
+            0, // first set
+            1, // descriptor set count
+            &m_renderables[k]->descriptor.getDescriptorSets()[frame_index], // descriptor sets pointer
+            0, // dynamic offset count
+            nullptr // dynamic offsets pointer
+        );
+
+        vkCmdBindPipeline(command_buffer.getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_renderables[k]->pipelines[current_pipeline].pipeline.getPipeline());
+        
+        VkBuffer vertex_buffers[] = {m_renderables[k]->vertex_buffer->getVertexBuffer()->getBuffer()};
+        VkDeviceSize offsets[] = {0};
+        vkCmdBindVertexBuffers(command_buffer.getCommandBufer(), 0, 1, vertex_buffers, offsets);
+        vkCmdBindIndexBuffer(command_buffer.getCommandBufer(), m_renderables[k]->vertex_buffer->getIndexBuffer()->getBuffer(), 0u, m_renderables[k]->vertex_buffer->getIndexType());
+        
+        vkCmdDrawIndexed(command_buffer.getCommandBufer(), static_cast<uint32_t>(m_renderables[k]->vertex_buffer->getIndicesCount()), 1u, 0u, 0u, 0u);
+        
+        vkCmdEndRenderPass(command_buffer.getCommandBufer());
     }
     
     VulkanCommandManager::endCommandBuffer(command_buffer);

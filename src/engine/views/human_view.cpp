@@ -36,6 +36,9 @@ HumanView::HumanView(std::shared_ptr<ProcessManager> process_manager) {
 	m_scene = std::make_shared<ScreenElementScene>();
 
 	if (m_bShow_debug_ui) {
+		m_gui = std::make_shared<ImGUIDrawable>();
+    	m_gui->init(device, renderer.getSwapchain()->getMaxFrames());
+
 		m_test_menu_ui = std::make_shared<TestMenuUI>();
 		VPushElement(m_test_menu_ui);
 
@@ -47,9 +50,6 @@ HumanView::HumanView(std::shared_ptr<ProcessManager> process_manager) {
 
 		m_anim_menu_ui = std::make_shared<AnimationMenuUI>();
 		VPushElement(m_anim_menu_ui);
-
-		m_gui = std::make_shared<ImGUIDrawable>();
-    	m_gui->init(device, renderer.getSwapchain()->getMaxFrames());
 	}
 	
 	m_current_tick = {};

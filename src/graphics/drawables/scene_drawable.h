@@ -35,17 +35,15 @@ struct Managers;
 
 class SceneDrawable : public IVulkanDrawable {
 public:
-    struct GraphicsPipeline {
-        VulkanPipeline pipeline;
-        //VulkanPipeline::PipelineCfg pipeline_cfg;
-    };
 
     struct Renderable {
-        std::vector<std::shared_ptr<VulkanBuffer>> uniform_buffers;
+        std::shared_ptr<MeshNode> mesh_node;
+        std::shared_ptr<VulkanBuffer> uniform_buffer;
         std::shared_ptr<VulkanBuffer> vertex_buffer;
         std::shared_ptr<VulkanBuffer> index_buffer;
         std::shared_ptr<VulkanImageBuffer> texture;
-        std::vector<std::shared_ptr<RenderNode>> render_nodes;
+        std::shared_ptr<RenderNode> render_node;
+        int frame;
     };
 
     bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<Managers>& managers, int max_frames);
@@ -65,6 +63,5 @@ private:
     int m_max_frames;
     VkExtent2D m_viewport_extent;
 
-    std::vector<std::shared_ptr<MeshNode>> m_mesh_nodes;
     std::vector<std::shared_ptr<Renderable>> m_renderables;
 };
