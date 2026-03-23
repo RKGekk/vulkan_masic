@@ -21,25 +21,11 @@ class VulkanSampler;
 class DescSetLayout {
 public:
 
-    struct UpdateMetadata {
-        enum class SamplerType { NONE, INLINE, DEFAULT, FROM_IMAGEBUFFER };
-
-        RenderResource::Type resource_type;
-        std::string buffer_resource_type_name;
-
-        SamplerType sampler_type;
-        std::shared_ptr<VulkanSampler> image_sampler;
-        std::string image_resource_type_name;
-        std::string image_view_type_name;
-        VkImageLayout read_image_layout;
-    };
-
     using DescSetBindings = std::vector<VkDescriptorSetLayoutBinding>;
     using DescSetBindingsMetadata = std::vector<UpdateMetadata>;
     using BindingNum = uint32_t;
     using BindingIndex = int;
 
-    bool init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_path);
     bool init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& descriptor_sets_node);
     void destroy();
     
@@ -59,10 +45,6 @@ public:
     VkDescriptorSetLayoutCreateInfo getDescriptorSetLayoutInfo() const;
     VkDescriptorSetLayout getDescriptorSetLayout() const;
 
-    const UpdateMetadata& getBufferMetadata(VkDescriptorType desc_type) const;
-    const UpdateMetadata& getBufferMetadata(BindingNum binding_num) const;
-    const UpdateMetadata& getBufferMetadata(const std::string& binding_name) const;
-
 private:
     std::shared_ptr<VulkanDevice> m_device;
 
@@ -70,7 +52,6 @@ private:
     std::string m_allocator_name;
 
     DescSetBindings m_bindings;
-    DescSetBindingsMetadata m_bindings_metadata;
     std::unordered_map<std::string, BindingNum> m_binding_name_map;
     std::unordered_map<BindingNum, std::string> m_binding_num_to_name_map;
     std::unordered_map<BindingNum, BindingIndex> m_binding_num_to_idx_map;

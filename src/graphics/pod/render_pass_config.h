@@ -15,6 +15,7 @@ class VulkanDevice;
 class VulkanSwapChain;
 class VulkanFormatManager;
 class FormatConfig;
+class VulkanSampler;
 
 class RenderPassConfig {
 public:

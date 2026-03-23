@@ -25,6 +25,8 @@ bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_
 
     m_pipeline_type = PipelineType::GRAPHICS;
     m_name = m_pipeline_config->getName();
+    m_shaders = createShadersMap(shader_manager);
+    m_desc_slot_to_layout_map = createDescSlotToLayoutMap(desc_manager, shader_manager);
 
     std::filesystem::path pipeline_cache_file_path(m_name);
     std::vector<char> pipeline_cache_data;
@@ -115,116 +117,12 @@ bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_
     return true;
 }
 
-std::shared_ptr<VulkanShader> VulkanPipeline::getShader(VkShaderStageFlagBits stage) {
-    for(const std::string& shader_name : m_pipeline_config->getShaderNames()) {
-        if(Application::GetRenderer().getShadersManager()->getShaderStage(shader_name) == stage) {
-            return Application::GetRenderer().getShadersManager()->getShader(shader_name);
-        }
-    }
-    return nullptr;
-}
-
-std::vector<VkDescriptorSetLayout> VulkanPipeline::getVkDescriptorSetLayouts(const std::vector<std::string>& shader_names, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager) const {
-    std::unordered_set<VkDescriptorSetLayout> temp;
-    for(const std::string& shader_name : shader_names) {
-        for(const std::string& desc_name : shader_manager->getShader(shader_name)->getShaderSignature()->getDescSetNames()) {
-            temp.insert(desc_manager->getDescSetLayout(desc_name)->getDescriptorSetLayout());
-        }
-    }
-
-    return {temp.begin(), temp.end()};
-}
-
-std::vector<VkPushConstantRange> VulkanPipeline::getPushConstantRanges(const std::vector<std::string>& shader_names, std::shared_ptr<VulkanShadersManager> shader_manager) {
-    std::vector<VkPushConstantRange> push_constants;
-    uint32_t offset = 0u;
-    for(const std::string& shader_name : shader_names) {
-        for(VkPushConstantRange constant : shader_manager->getShader(shader_name)->getShaderSignature()->getPushConstantsRanges()) {
-            VkPushConstantRange push_constant = constant;
-            push_constant.offset = offset;
-
-            push_constants.push_back(push_constant);
-            offset += constant.size;
-        }
-    }
-    return push_constants;
-}
-
-std::vector<VkPipelineShaderStageCreateInfo> VulkanPipeline::getPipelineShaderCreateInfo(const std::vector<std::string>& shader_names, std::shared_ptr<VulkanShadersManager> shader_manager) {
-    std::vector<VkPipelineShaderStageCreateInfo> pipeline_shader_create_info;
-    for(const std::string& shader_name : shader_names) {
-        pipeline_shader_create_info.push_back(shader_manager->getShader(shader_name)->getShaderInfo());
-    }
-
-    return pipeline_shader_create_info;
-}
-
-VkPipelineVertexInputStateCreateInfo VulkanPipeline::getVertexInputInfo(const std::vector<std::string>& shader_names, std::shared_ptr<VulkanShadersManager> shader_manager) {
-    m_input_binding_descs.clear();
-    m_input_attribute_descs.clear();
-    for(const std::string& shader_name : shader_names) {
-        if(shader_manager->getShader(shader_name)->getShaderSignature()->getStage() == VK_SHADER_STAGE_VERTEX_BIT) {
-            for(size_t b = 0u; b < shader_manager->getShader(shader_name)->getShaderSignature()->getNumInputAttributeBindings(); ++b) {
-                const VertexFormat& vertex_format = shader_manager->getShader(shader_name)->getShaderSignature()->getInputAttributes(b);
-                VkVertexInputBindingDescription binding_desc{};
-                binding_desc.binding = b;
-                binding_desc.stride = vertex_format.getVertexSize();
-                binding_desc.inputRate = vertex_format.getInputRate();
-                m_input_binding_descs.push_back(binding_desc);
-
-                size_t sz = vertex_format.getVertexAttribCount();
-                for (size_t i = 0; i < sz; ++i) {
-                    VkVertexInputAttributeDescription attribute_desc{};
-                    attribute_desc.binding = b;
-                    attribute_desc.location = i;
-                    attribute_desc.format = getAttributeFormat(vertex_format.getAttribFormat(i));
-                    attribute_desc.offset = vertex_format.getOffset(i);
-
-                    m_input_attribute_descs.push_back(attribute_desc);
-                }
-            }
-
-            VkPipelineVertexInputStateCreateInfo vertex_input_info{};
-            vertex_input_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-            vertex_input_info.vertexBindingDescriptionCount = static_cast<uint32_t>(m_input_binding_descs.size());
-            vertex_input_info.pVertexBindingDescriptions = m_input_binding_descs.data();
-            vertex_input_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(m_input_attribute_descs.size());
-            vertex_input_info.pVertexAttributeDescriptions = m_input_attribute_descs.data();
-
-            return vertex_input_info;
-        }
-    }
-    return VkPipelineVertexInputStateCreateInfo{};
-}
-
 void VulkanPipeline::destroy() {
     //saveCacheToFile(m_pipeline_cache, m_name);
 
     vkDestroyPipelineCache(m_device->getDevice(), m_pipeline_cache, nullptr);
     vkDestroyPipeline(m_device->getDevice(), m_pipeline, nullptr);
     vkDestroyPipelineLayout(m_device->getDevice(), m_pipeline_layout, nullptr);
-}
-
-void VulkanPipeline::saveCacheToFile(VkPipelineCache cache, const std::string& file_name) {
-    size_t cache_data_size;
-    // Determine the size of the cache data.
-    VkResult result = vkGetPipelineCacheData(m_device->getDevice(), cache, &cache_data_size, nullptr);
-    if (result != VK_SUCCESS) {
-        throw std::runtime_error("failed to read pipeline cache size!");
-    }
-
-    if (cache_data_size == 0u) return;
-
-    // Allocate a temporary store for the cache data.
-    std::vector<char> data(cache_data_size);
-
-    // Retrieve the actual data from the cache.
-    result = vkGetPipelineCacheData(m_device->getDevice(), cache, &cache_data_size, data.data());
-    if (result != VK_SUCCESS) {
-        throw std::runtime_error("failed to write pipeline cache to file!");
-    }
-    // Open the file and write the data to it.
-    writeFile(file_name, data.size(), data.data());
 }
 
 VulkanPipeline::PipelineType VulkanPipeline::getPipelineType() const {
@@ -253,4 +151,133 @@ const std::shared_ptr<VulkanRenderPass>& VulkanPipeline::getRenderPass() {
 
 VkPipelineVertexInputStateCreateInfo VulkanPipeline::getInputInfo() const {
     return m_input_info;
+}
+
+std::shared_ptr<VulkanShader> VulkanPipeline::getShader(VkShaderStageFlagBits stage) {
+    if(!m_shaders.contains(stage)) return nullptr;
+    return m_shaders.at(stage);
+}
+
+const std::unordered_map<VkShaderStageFlagBits, std::shared_ptr<VulkanShader>>& VulkanPipeline::getShaders() const {
+    return m_shaders;
+}
+
+const std::unordered_map<uint32_t, std::shared_ptr<DescSetLayout>>& VulkanPipeline::getDescLayouts() const {
+    return m_desc_slot_to_layout_map;
+}
+
+std::vector<VkDescriptorSetLayout> VulkanPipeline::getVkDescriptorSetLayouts(const std::vector<std::string>& shader_names, const std::shared_ptr<VulkanDescriptorsManager>& desc_manager, const std::shared_ptr<VulkanShadersManager>& shader_manager) const {
+    std::unordered_set<VkDescriptorSetLayout> temp;
+    for(const std::string& shader_name : shader_names) {
+        for(const auto&[slot, desc_name] : shader_manager->getShader(shader_name)->getShaderSignature()->getDescSetNames()) {
+            temp.insert(desc_manager->getDescSetLayout(desc_name)->getDescriptorSetLayout());
+        }
+    }
+
+    return {temp.begin(), temp.end()};
+}
+
+std::vector<VkPushConstantRange> VulkanPipeline::getPushConstantRanges(const std::vector<std::string>& shader_names, const std::shared_ptr<VulkanShadersManager>& shader_manager) {
+    std::vector<VkPushConstantRange> push_constants;
+    uint32_t offset = 0u;
+    for(const std::string& shader_name : shader_names) {
+        for(VkPushConstantRange constant : shader_manager->getShader(shader_name)->getShaderSignature()->getPushConstantsRanges()) {
+            VkPushConstantRange push_constant = constant;
+            push_constant.offset = offset;
+
+            push_constants.push_back(push_constant);
+            offset += constant.size;
+        }
+    }
+    return push_constants;
+}
+
+std::vector<VkPipelineShaderStageCreateInfo> VulkanPipeline::getPipelineShaderCreateInfo(const std::vector<std::string>& shader_names, const std::shared_ptr<VulkanShadersManager>& shader_manager) {
+    std::vector<VkPipelineShaderStageCreateInfo> pipeline_shader_create_info;
+    for(const std::string& shader_name : shader_names) {
+        pipeline_shader_create_info.push_back(shader_manager->getShader(shader_name)->getShaderInfo());
+    }
+
+    return pipeline_shader_create_info;
+}
+
+VkPipelineVertexInputStateCreateInfo VulkanPipeline::getVertexInputInfo(const std::vector<std::string>& shader_names, const std::shared_ptr<VulkanShadersManager>& shader_manager) {
+    m_input_binding_descs.clear();
+    m_input_attribute_descs.clear();
+
+    if(!m_shaders.contains(VK_SHADER_STAGE_VERTEX_BIT)) return VkPipelineVertexInputStateCreateInfo{};
+
+    const std::shared_ptr<VulkanShader>& vertex_shader = m_shaders.at(VK_SHADER_STAGE_VERTEX_BIT);
+    for(size_t b = 0u; b < vertex_shader->getShaderSignature()->getNumInputAttributeBindings(); ++b) {
+        const VertexFormat& vertex_format = vertex_shader->getShaderSignature()->getInputAttributes(b);
+        VkVertexInputBindingDescription binding_desc{};
+        binding_desc.binding = b;
+        binding_desc.stride = vertex_format.getVertexSize();
+        binding_desc.inputRate = vertex_format.getInputRate();
+        m_input_binding_descs.push_back(binding_desc);
+    
+        size_t sz = vertex_format.getVertexAttribCount();
+        for (size_t i = 0; i < sz; ++i) {
+            VkVertexInputAttributeDescription attribute_desc{};
+            attribute_desc.binding = b;
+            attribute_desc.location = i;
+            attribute_desc.format = getAttributeFormat(vertex_format.getAttribFormat(i));
+            attribute_desc.offset = vertex_format.getOffset(i);
+    
+            m_input_attribute_descs.push_back(attribute_desc);
+        }
+    }
+
+    VkPipelineVertexInputStateCreateInfo vertex_input_info{};
+    vertex_input_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vertex_input_info.vertexBindingDescriptionCount = static_cast<uint32_t>(m_input_binding_descs.size());
+    vertex_input_info.pVertexBindingDescriptions = m_input_binding_descs.data();
+    vertex_input_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(m_input_attribute_descs.size());
+    vertex_input_info.pVertexAttributeDescriptions = m_input_attribute_descs.data();
+
+    return vertex_input_info;
+}
+
+std::unordered_map<VkShaderStageFlagBits, std::shared_ptr<VulkanShader>> VulkanPipeline::createShadersMap(const std::shared_ptr<VulkanShadersManager>& shader_manager) const {
+    std::unordered_map<VkShaderStageFlagBits, std::shared_ptr<VulkanShader>> result;
+
+    for(const std::string& shader_name : m_pipeline_config->getShaderNames()) {
+        result[shader_manager->getShader(shader_name)->getShaderSignature()->getStage()] = shader_manager->getShader(shader_name);
+    }
+
+    return result;
+}
+
+std::unordered_map<uint32_t, std::shared_ptr<DescSetLayout>> VulkanPipeline::createDescSlotToLayoutMap(const std::shared_ptr<VulkanDescriptorsManager>& desc_manager, const std::shared_ptr<VulkanShadersManager>& shader_manager) const {
+    std::unordered_map<uint32_t, std::shared_ptr<DescSetLayout>> result;
+
+    for (const auto&[stage, shader] : m_shaders) {
+        for(const auto&[slot, desc_set_name] : shader->getShaderSignature()->getDescSetNames()) {
+            result[slot] = desc_manager->getDescSetLayout(desc_set_name);
+        }
+    }
+
+    return result;
+}
+
+void VulkanPipeline::saveCacheToFile(VkPipelineCache cache, const std::string& file_name) {
+    size_t cache_data_size;
+    // Determine the size of the cache data.
+    VkResult result = vkGetPipelineCacheData(m_device->getDevice(), cache, &cache_data_size, nullptr);
+    if (result != VK_SUCCESS) {
+        throw std::runtime_error("failed to read pipeline cache size!");
+    }
+
+    if (cache_data_size == 0u) return;
+
+    // Allocate a temporary store for the cache data.
+    std::vector<char> data(cache_data_size);
+
+    // Retrieve the actual data from the cache.
+    result = vkGetPipelineCacheData(m_device->getDevice(), cache, &cache_data_size, data.data());
+    if (result != VK_SUCCESS) {
+        throw std::runtime_error("failed to write pipeline cache to file!");
+    }
+    // Open the file and write the data to it.
+    writeFile(file_name, data.size(), data.data());
 }

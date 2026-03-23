@@ -16,6 +16,8 @@ class VulkanDevice;
 class VulkanPipeline;
 class RenderNodeConfig;
 class VulkanImageBuffer;
+class VulkanDescriptor;
+class VulkanSampler;
 
 class RenderNode {
 public:
@@ -70,6 +72,8 @@ private:
     VkFramebufferCreateInfo m_framebuffer_info;
     VkFramebuffer m_frame_buffer;
     VkExtent2D m_viewport_extent;
+
+    std::unordered_map<uint32_t, std::shared_ptr<VulkanDescriptor>> m_descs;
 
     ResourceMap m_read_resources;
     AttachMap m_read_attached;

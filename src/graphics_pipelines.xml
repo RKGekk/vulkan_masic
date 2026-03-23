@@ -111,11 +111,6 @@
                     <ShaderStageFlags>
                         <Flag>vertex</Flag>
                     </ShaderStageFlags>
-                    <UpdateMetadata>
-                        <Buffer>
-                            <BufferResourceType>basic_uniform_resource</BufferResourceType>
-                        </Buffer>
-                    </UpdateMetadata>
                 </LayoutBinding>
                 <LayoutBinding name="image">
                     <Binding>1</Binding>
@@ -124,16 +119,6 @@
                     <ShaderStageFlags>
                         <Flag>fragment</Flag>
                     </ShaderStageFlags>
-                    <UpdateMetadata>
-                        <Image>
-                            <Sampler>
-                                <Type>FromImageBuffer</Type>
-                            </Sampler>
-                            <ImageBufferResourceType>basic_image_resource</ImageBufferResourceType>
-                            <ImageViewResourceType>basic_image_resource_view</ImageViewResourceType>
-                            <ReadImageLayout>shader_read_only_optimal</ReadImageLayout>
-                        </Image>
-                    </UpdateMetadata>
                 </LayoutBinding>
             </Layout>
         </DescriptorSet>
@@ -147,11 +132,6 @@
                     <ShaderStageFlags>
                         <Flag>vertex</Flag>
                     </ShaderStageFlags>
-                    <UpdateMetadata>
-                        <Buffer>
-                            <BufferResourceType>imgui_uniform_resource</BufferResourceType>
-                        </Buffer>
-                    </UpdateMetadata>
                 </LayoutBinding>
                 <LayoutBinding name="image">
                     <Binding>1</Binding>
@@ -160,16 +140,6 @@
                     <ShaderStageFlags>
                         <Flag>fragment</Flag>
                     </ShaderStageFlags>
-                    <UpdateMetadata>
-                        <Image>
-                            <Sampler>
-                                <Type>FromImageBuffer</Type>
-                            </Sampler>
-                            <ImageBufferResourceType>basic_image_resource</ImageBufferResourceType>
-                            <ImageViewResourceType>basic_image_resource_view</ImageViewResourceType>
-                            <ReadImageLayout>shader_read_only_optimal</ReadImageLayout>
-                        </Image>
-                    </UpdateMetadata>
                 </LayoutBinding>
             </Layout>
         </DescriptorSet>
@@ -796,6 +766,23 @@
                     </Attachment>
                 </Attachments>
             </FrameBuffer>
+            <DescriptorResourcesUpdate>
+                <LayoutBinding name="uniform">
+                    <Buffer>
+                        <BufferResourceType>basic_uniform_resource</BufferResourceType>
+                    </Buffer>
+                </LayoutBinding>
+                <LayoutBinding name="image">
+                    <Image>
+                        <Sampler>
+                            <Type>FromImageBuffer</Type>
+                        </Sampler>
+                        <ImageBufferResourceType>basic_image_resource</ImageBufferResourceType>
+                        <ImageViewResourceType>basic_image_resource_view</ImageViewResourceType>
+                        <ReadImageLayout>shader_read_only_optimal</ReadImageLayout>
+                    </Image>
+                </LayoutBinding>
+            </DescriptorResourcesUpdate>
         </RenderNode>
 
         <RenderNode name="imgui_renderer">
@@ -807,19 +794,39 @@
                         <AttachmentName>color_attachment</AttachmentName>
                         <AttachmentResourceType>render_target_color_resource</AttachmentResourceType>
                         <AttachmentResourceTypeView>render_target_color_resource_view</AttachmentResourceTypeView>
+                        <AttachmentWriteImageLayout>color_attachment_optimal</AttachmentWriteImageLayout>
                     </Attachment>
                     <Attachment>
                         <AttachmentName>depth_attachment</AttachmentName>
                         <AttachmentResourceType>render_target_depth_resource</AttachmentResourceType>
                         <AttachmentResourceTypeView>render_target_depth_resource_view</AttachmentResourceTypeView>
+                        <AttachmentWriteImageLayout>auto_depth_stencil_attachment_optimal</AttachmentWriteImageLayout>
                     </Attachment>
                     <Attachment>
                         <AttachmentName>resolve_attachment</AttachmentName>
                         <AttachmentResourceType>basic_swap_chain_resource</AttachmentResourceType>
                         <AttachmentResourceTypeView>basic_swapchain_resource_view</AttachmentResourceTypeView>
+                        <AttachmentWriteImageLayout>present_src_khr</AttachmentWriteImageLayout>
                     </Attachment>
                 </Attachments>
             </FrameBuffer>
+            <DescriptorResourcesUpdate>
+                <LayoutBinding name="uniform">
+                    <Buffer>
+                        <BufferResourceType>imgui_uniform_resource</BufferResourceType>
+                    </Buffer>
+                </LayoutBinding>
+                <LayoutBinding name="image">
+                    <Image>
+                        <Sampler>
+                            <Type>FromImageBuffer</Type>
+                        </Sampler>
+                        <ImageBufferResourceType>basic_image_resource</ImageBufferResourceType>
+                        <ImageViewResourceType>basic_image_resource_view</ImageViewResourceType>
+                        <ReadImageLayout>shader_read_only_optimal</ReadImageLayout>
+                    </Image>
+                </LayoutBinding>
+            </DescriptorResourcesUpdate>
         </RenderNode>
     </RenderNodes>
 </RenderGraph>

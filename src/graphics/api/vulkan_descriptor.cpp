@@ -20,6 +20,10 @@ VkDescriptorSetLayout VulkanDescriptor::getDescLayout() const {
     return m_layout->getDescriptorSetLayout();
 }
 
+const std::shared_ptr<DescSetLayout>& VulkanDescriptor::getBindings() const {
+    return m_layout;
+}
+
 VkDescriptorSet VulkanDescriptor::getDescriptorSet() const {
     return m_descriptor_set;
 }
@@ -32,6 +36,24 @@ void VulkanDescriptor::updateDescSampler(VkSampler sampler) {
     desc_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     desc_write.dstSet = m_descriptor_set;
     desc_write.dstBinding = m_layout->getBinding(VK_DESCRIPTOR_TYPE_SAMPLER).binding;
+    desc_write.dstArrayElement = 0u;
+    desc_write.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+    desc_write.descriptorCount = 1u;
+    desc_write.pImageInfo = &image_info;
+    desc_write.pBufferInfo = nullptr;
+    desc_write.pTexelBufferView = nullptr;
+
+    vkUpdateDescriptorSets(m_device, 1u, &desc_write, 0u, nullptr);
+}
+
+void VulkanDescriptor::updateDescSampler(VkSampler sampler, uint32_t binding) {
+    VkDescriptorImageInfo image_info{};
+    image_info.sampler = sampler;
+
+    VkWriteDescriptorSet desc_write{};
+    desc_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    desc_write.dstSet = m_descriptor_set;
+    desc_write.dstBinding = binding;
     desc_write.dstArrayElement = 0u;
     desc_write.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
     desc_write.descriptorCount = 1u;
@@ -75,6 +97,39 @@ void VulkanDescriptor::updateDescImage(VkImageView image_view, VkImageLayout ima
     vkUpdateDescriptorSets(m_device, 1u, &desc_write, 0u, nullptr);
 }
 
+void VulkanDescriptor::updateDescImage(VkImageView image_view, VkImageLayout image_layout, uint32_t binding) {
+    VkDescriptorImageInfo image_info{};
+    image_info.imageView = image_view;
+    image_info.imageLayout = image_layout;
+
+    VkWriteDescriptorSet desc_write{};
+    desc_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    desc_write.dstSet = m_descriptor_set;
+    desc_write.dstArrayElement = 0u;
+    desc_write.descriptorCount = 1u;
+    desc_write.pImageInfo = &image_info;
+    desc_write.pBufferInfo = nullptr;
+    desc_write.pTexelBufferView = nullptr;
+
+    if(m_layout->haveBindingType(VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE)) {
+        desc_write.dstBinding = binding;
+        desc_write.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+    }
+    else if(m_layout->haveBindingType(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE)) {
+        desc_write.dstBinding = binding;
+        desc_write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+    }
+    else if(m_layout->haveBindingType(VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT)) {
+        desc_write.dstBinding = binding;
+        desc_write.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+    }
+    else {
+        throw std::runtime_error("decriptor not have images attached!");
+    }
+
+    vkUpdateDescriptorSets(m_device, 1u, &desc_write, 0u, nullptr);
+}
+
 void VulkanDescriptor::updateDescCombinedImage(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout) {
     VkDescriptorImageInfo image_info{};
     image_info.imageLayout = image_layout;
@@ -85,6 +140,26 @@ void VulkanDescriptor::updateDescCombinedImage(VkSampler sampler, VkImageView im
     desc_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     desc_write.dstSet = m_descriptor_set;
     desc_write.dstBinding = m_layout->getBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER).binding;
+    desc_write.dstArrayElement = 0u;
+    desc_write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    desc_write.descriptorCount = 1u;
+    desc_write.pImageInfo = &image_info;
+    desc_write.pBufferInfo = nullptr;
+    desc_write.pTexelBufferView = nullptr;
+
+    vkUpdateDescriptorSets(m_device, 1u, &desc_write, 0u, nullptr);
+}
+
+void VulkanDescriptor::updateDescCombinedImage(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout, uint32_t binding) {
+    VkDescriptorImageInfo image_info{};
+    image_info.imageLayout = image_layout;
+    image_info.imageView = image_view;
+    image_info.sampler = sampler;
+
+    VkWriteDescriptorSet desc_write{};
+    desc_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    desc_write.dstSet = m_descriptor_set;
+    desc_write.dstBinding = binding;
     desc_write.dstArrayElement = 0u;
     desc_write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     desc_write.descriptorCount = 1u;
@@ -140,6 +215,21 @@ void VulkanDescriptor::updateDescTexel(VkBufferView buffer_view) {
     desc_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     desc_write.dstSet = m_descriptor_set;
     desc_write.dstBinding = m_layout->getBinding(VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER).binding;
+    desc_write.dstArrayElement = 0u;
+    desc_write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+    desc_write.descriptorCount = 1u;
+    desc_write.pBufferInfo = nullptr;
+    desc_write.pImageInfo = nullptr;
+    desc_write.pTexelBufferView = &buffer_view;
+
+    vkUpdateDescriptorSets(m_device, 1u, &desc_write, 0u, nullptr);
+}
+
+void VulkanDescriptor::updateDescTexel(VkBufferView buffer_view, uint32_t binding) {
+    VkWriteDescriptorSet desc_write{};
+    desc_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    desc_write.dstSet = m_descriptor_set;
+    desc_write.dstBinding = binding;
     desc_write.dstArrayElement = 0u;
     desc_write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
     desc_write.descriptorCount = 1u;

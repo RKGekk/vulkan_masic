@@ -109,7 +109,7 @@ bool ShaderSignature::init(const pugi::xml_node& shader_data) {
 	if (descriptor_set_node) {
         for (pugi::xml_node set_node = descriptor_set_node.first_child(); set_node; set_node = set_node.next_sibling()) {
             uint32_t slot = set_node.attribute("slot").as_uint();
-            m_desc_set_names.push_back(set_node.text().as_string());
+            m_desc_set_names[slot] = set_node.text().as_string();
         }
     }
 
@@ -153,26 +153,6 @@ bool ShaderSignature::init(const pugi::xml_node& shader_data) {
         m_specialization_info.dataSize = m_specialization_constants_data.size();
         m_specialization_info.pData = m_specialization_constants_data.data();
     }
-
-    return true;
-}
-
-bool ShaderSignature::init(const std::string& rg_file_path) {
-
-    pugi::xml_document xml_doc;
-	pugi::xml_parse_result parse_res = xml_doc.load_file(rg_file_path.c_str());
-	if (!parse_res) { return false;	}
-
-	pugi::xml_node root_node = xml_doc.root();
-	if (!root_node) { return false; }
-	root_node = root_node.child("RenderGraph");
-
-    pugi::xml_node shaders_node = root_node.child("Shaders");
-	if (shaders_node) {
-		for (pugi::xml_node shader_node = shaders_node.first_child(); shader_node; shader_node = shader_node.next_sibling()) {
-			return init(shader_node);
-		}
-	}
 
     return true;
 }

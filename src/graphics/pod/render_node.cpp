@@ -9,7 +9,9 @@
 #include "../api/vulkan_device.h"
 #include "../api/vulkan_swapchain.h"
 #include "../api/vulkan_pipeline.h"
+#include "../api/vulkan_descriptor.h"
 #include "../api/vulkan_pipelines_manager.h"
+#include "../api/vulkan_descriptors_manager.h"
 #include "../vulkan_renderer.h"
 #include "../../application.h"
 #include "format_config.h"
@@ -94,15 +96,15 @@ void RenderNode::finishRenderNode() {
 
     const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = m_pipeline->getRenderPass();
     const std::shared_ptr<RenderPassConfig>& render_pass_cfg_ptr = render_pass_ptr->getRenderPassConfig();
-    std::vector<VkImageView> attachments = getAttachments();
+    m_framebuffers_attachments = getAttachments();
 
     m_viewport_extent = getWrittenAttachedImageResource(m_node_config->getAttachmentsConfig().front().attachment_name)->getImageConfig()->getFormat()->getExtent2D();
 
     m_framebuffer_info = VkFramebufferCreateInfo{};
     m_framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
     m_framebuffer_info.renderPass = render_pass_ptr->getRenderPass();
-    m_framebuffer_info.attachmentCount = static_cast<uint32_t>(attachments.size());
-    m_framebuffer_info.pAttachments = attachments.data();
+    m_framebuffer_info.attachmentCount = static_cast<uint32_t>(m_framebuffers_attachments.size());
+    m_framebuffer_info.pAttachments = m_framebuffers_attachments.data();
     m_framebuffer_info.width = m_viewport_extent.width;
     m_framebuffer_info.height = m_viewport_extent.height;
     m_framebuffer_info.layers = 1u;
@@ -110,6 +112,17 @@ void RenderNode::finishRenderNode() {
     VkResult result = vkCreateFramebuffer(m_device->getDevice(), &m_framebuffer_info, nullptr, &m_frame_buffer);
     if(result != VK_SUCCESS) {
         throw std::runtime_error("failed to create framebuffer!");
+    }
+
+    for (const auto&[slot, desc_set_layout] : m_pipeline->getDescLayouts()) {
+        m_descs[slot] = renderer.getDescriptorsManager()->allocateDescriptorSet(desc_set_layout->getName());
+        for(const VkDescriptorSetLayoutBinding& binding : desc_set_layout->getBindings()) {
+            const DescSetLayout::UpdateMetadata& binding_metadata = desc_set_layout->getBufferMetadata(binding.binding);
+            if(binding_metadata.resource_type == RenderResource::Type::IMAGE) {
+                m_descs[slot]->updateDescImageInfo(binding.binding, );
+            }
+        }
+        m_descs[slot]->updateDescBuffer();
     }
     
 }

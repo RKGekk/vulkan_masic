@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <stdexcept>
+#include <unordered_map>
 #include <vector>
 
 class VulkanDevice;
@@ -35,23 +36,28 @@ public:
     const std::shared_ptr<VulkanRenderPass>& getRenderPass();
     VkPipelineVertexInputStateCreateInfo getInputInfo() const;
     std::shared_ptr<VulkanShader> getShader(VkShaderStageFlagBits stage);
+    const std::unordered_map<VkShaderStageFlagBits, std::shared_ptr<VulkanShader>>& getShaders() const;
+    const std::unordered_map<uint32_t, std::shared_ptr<DescSetLayout>>& getDescLayouts() const;
 
 private:
-    std::vector<VkDescriptorSetLayout> getVkDescriptorSetLayouts(const std::vector<std::string>& shader_names, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager) const;
-    std::vector<VkPushConstantRange> getPushConstantRanges(const std::vector<std::string>& shader_names, std::shared_ptr<VulkanShadersManager> shader_manager);
-    std::vector<VkPipelineShaderStageCreateInfo> getPipelineShaderCreateInfo(const std::vector<std::string>& shader_names, std::shared_ptr<VulkanShadersManager> shader_manager);
-    VkPipelineVertexInputStateCreateInfo getVertexInputInfo(const std::vector<std::string>& shader_names, std::shared_ptr<VulkanShadersManager> shader_manager);
+    std::vector<VkDescriptorSetLayout> getVkDescriptorSetLayouts(const std::vector<std::string>& shader_names, const std::shared_ptr<VulkanDescriptorsManager>& desc_manager, const std::shared_ptr<VulkanShadersManager>& shader_manager) const;
+    std::vector<VkPushConstantRange> getPushConstantRanges(const std::vector<std::string>& shader_names, const std::shared_ptr<VulkanShadersManager>& shader_manager);
+    std::vector<VkPipelineShaderStageCreateInfo> getPipelineShaderCreateInfo(const std::vector<std::string>& shader_names, const std::shared_ptr<VulkanShadersManager>& shader_manager);
+    std::unordered_map<VkShaderStageFlagBits, std::shared_ptr<VulkanShader>> createShadersMap(const std::shared_ptr<VulkanShadersManager>& shader_manager) const;
+    VkPipelineVertexInputStateCreateInfo getVertexInputInfo(const std::vector<std::string>& shader_names, const std::shared_ptr<VulkanShadersManager>& shader_manager);
+    std::unordered_map<uint32_t, std::shared_ptr<DescSetLayout>> createDescSlotToLayoutMap(const std::shared_ptr<VulkanDescriptorsManager>& desc_manager, const std::shared_ptr<VulkanShadersManager>& shader_manager) const;
     void saveCacheToFile(VkPipelineCache cache, const std::string& file_name);
     
     std::shared_ptr<VulkanDevice> m_device;
     std::string m_name;
     PipelineType m_pipeline_type;
     std::vector<VkPipelineShaderStageCreateInfo> m_shaders_infos;
+    std::unordered_map<VkShaderStageFlagBits, std::shared_ptr<VulkanShader>> m_shaders;
     VkPipelineVertexInputStateCreateInfo m_input_info;
     std::vector<VkVertexInputBindingDescription> m_input_binding_descs;
     std::vector<VkVertexInputAttributeDescription> m_input_attribute_descs;
     std::vector<VkDescriptorSetLayout> m_desc_set_layouts;
-    std::vector<VulkanDescriptor> m_descriptor_sets;
+    std::unordered_map<uint32_t, std::shared_ptr<DescSetLayout>> m_desc_slot_to_layout_map;
     std::vector<VkPushConstantRange> m_push_constants;
     VkPipelineLayout m_pipeline_layout = VK_NULL_HANDLE;
     VkPipelineLayoutCreateInfo m_pipeline_layout_info;

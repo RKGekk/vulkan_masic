@@ -44,36 +44,6 @@ bool DescSetLayout::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_n
         m_bindings.push_back(layout_binding);
         m_binding_name_map[layout_binding_name] = layout_binding.binding;
         m_binding_num_to_name_map[layout_binding.binding] = layout_binding_name;
-
-        UpdateMetadata metadata{};
-
-        pugi::xml_node update_metadata_node = layout_binding_node.child("UpdateMetadata");
-        if(pugi::xml_node buffer_metadata_node = update_metadata_node.child("Buffer")) {
-            metadata.resource_type = RenderResource::Type::BUFFER;
-            metadata.buffer_resource_type_name = buffer_metadata_node.child("BufferResourceType").text().as_string();
-        }
-        else if (pugi::xml_node image_metadata_node = update_metadata_node.child("Image")) {
-            metadata.resource_type = RenderResource::Type::IMAGE;
-            metadata.image_resource_type_name = image_metadata_node.child("ImageBufferResourceType").text().as_string();
-            metadata.image_view_type_name = image_metadata_node.child("ImageViewResourceType").text().as_string();
-            metadata.read_image_layout = getImageLayout(image_metadata_node.child("ReadImageLayout").text().as_string());
-
-            if(pugi::xml_node sampler_node = image_metadata_node.child("Sampler")) {
-                std::string sampler_type_str = sampler_node.child("Type").text().as_string();
-                if(sampler_type_str == "Inline"s) metadata.sampler_type = UpdateMetadata::SamplerType::INLINE;
-                else if(sampler_type_str == "Default"s) metadata.sampler_type = UpdateMetadata::SamplerType::DEFAULT;
-                else if(sampler_type_str == "FromImageBuffer"s) metadata.sampler_type = UpdateMetadata::SamplerType::FROM_IMAGEBUFFER;
-                else metadata.sampler_type = UpdateMetadata::SamplerType::NONE;
-
-                if(metadata.sampler_type == UpdateMetadata::SamplerType::INLINE) {
-                    VkSamplerCreateInfo sampler_info = getSamplerCreateInfo(sampler_node.child("Inline"));
-                    metadata.image_sampler = std::make_shared<VulkanSampler>(device, m_name + "_inline_sampler"s);
-                    metadata.image_sampler->init(sampler_info);
-                }
-            }
-        }
-
-        m_bindings_metadata.push_back(std::move(metadata));
     }
 
     m_desc_layout_info = VkDescriptorSetLayoutCreateInfo{};
@@ -91,26 +61,6 @@ bool DescSetLayout::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_n
     if(result != VK_SUCCESS) {
         throw std::runtime_error("failed to create descriptor set layout!");
     }
-
-    return true;
-}
-
-bool DescSetLayout::init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_path) {
-
-    pugi::xml_document xml_doc;
-	pugi::xml_parse_result parse_res = xml_doc.load_file(rg_file_path.c_str());
-	if (!parse_res) { return false;	}
-
-	pugi::xml_node root_node = xml_doc.root();
-	if (!root_node) { return false; }
-	root_node = root_node.child("RenderGraph");
-
-    pugi::xml_node descriptors_node = root_node.child("Descriptors");
-	if (descriptors_node) {
-		for (pugi::xml_node descriptor_node = descriptors_node.first_child(); descriptor_node; descriptor_node = descriptor_node.next_sibling()) {
-			return init(device, descriptor_node);
-		}
-	}
 
     return true;
 }

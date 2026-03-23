@@ -18,15 +18,23 @@ public:
 
     const std::string& getName() const;
     VkDescriptorSetLayout getDescLayout() const;
+    const std::shared_ptr<DescSetLayout>& getBindings() const;
     VkDescriptorSet getDescriptorSet() const;
     
     void updateDescSampler(VkSampler sampler);
-    void updateDescImage(VkImageView image_view, VkImageLayout image_layout);
-    void updateDescCombinedImage(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout);
-    void updateDescImageInfo(uint32_t binding, VkSampler sampler, VkImageView image_view, VkImageLayout image_layout);
+    void updateDescSampler(VkSampler sampler, uint32_t binding);
 
+    void updateDescImage(VkImageView image_view, VkImageLayout image_layout);
+    void updateDescImage(VkImageView image_view, VkImageLayout image_layout, uint32_t binding);
+
+    void updateDescCombinedImage(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout);
+    void updateDescCombinedImage(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout, uint32_t binding);
+
+    void updateDescImageInfo(uint32_t binding, VkSampler sampler, VkImageView image_view, VkImageLayout image_layout);
     void updateDescBuffer(uint32_t binding, VkBuffer buffer, VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0u);
+
     void updateDescTexel(VkBufferView buffer_view);
+    void updateDescTexel(VkBufferView buffer_view, uint32_t binding);
 
 private:
 

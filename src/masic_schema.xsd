@@ -554,46 +554,6 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="UpdateMetadata" minOccurs="1" maxOccurs="1">
-                <xs:complexType>
-                    <xs:choice>
-                        <xs:element name="Image">
-                            <xs:complexType>
-                                <xs:sequence>
-                                    <xs:element name="Sampler" minOccurs="0" maxOccurs="1">
-                                        <xs:complexType>
-                                            <xs:sequence>
-                                                <xs:element name="Type">
-                                                    <xs:simpleType>
-                                                        <xs:restriction base="xs:string">
-                                                            <xs:enumeration value="None"></xs:enumeration>
-                                                            <xs:enumeration value="Inline"></xs:enumeration>
-                                                            <xs:enumeration value="Default"></xs:enumeration>
-                                                            <xs:enumeration value="FromImageBuffer"></xs:enumeration>
-                                                        </xs:restriction>
-                                                    </xs:simpleType>
-                                                </xs:element>
-                                                <xs:element name="Inline" type="target:SamplerComplexType" minOccurs="0" maxOccurs="1"></xs:element>
-                                            </xs:sequence>
-                                        </xs:complexType>
-                                    </xs:element>
-                                    <xs:element name="ImageBufferResourceType" type="xs:string" minOccurs="0" maxOccurs="1"></xs:element>
-                                    <xs:element name="ImageViewResourceType" type="xs:string" minOccurs="0" maxOccurs="1"></xs:element>
-                                    <xs:element name="ReadImageLayout" type="target:ImageLayoutSimpleType" minOccurs="0" maxOccurs="1"></xs:element>
-                                </xs:sequence>
-                            </xs:complexType>
-                        </xs:element>
-                        <xs:element name="Buffer">
-                            <xs:complexType>
-                                <xs:sequence>
-                                    <xs:element name="BufferResourceType" type="xs:string" minOccurs="0" maxOccurs="1"></xs:element>
-                                </xs:sequence>
-                            </xs:complexType>
-                        </xs:element>
-                        <xs:element name="TexelBufferResourceType" minOccurs="0" maxOccurs="1"></xs:element>
-                    </xs:choice>
-                </xs:complexType>
-            </xs:element>
         </xs:all>
         <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
     </xs:complexType>
@@ -2233,10 +2193,58 @@
                                                 <xs:element name="AttachmentName" type="xs:string"></xs:element>
                                                 <xs:element name="AttachmentResourceType" type="xs:string"></xs:element>
                                                 <xs:element name="AttachmentResourceTypeView" type="xs:string"></xs:element>
+                                                <xs:element name="AttachmentWriteImageLayout" type="target:ImageLayoutSimpleType" minOccurs="0" maxOccurs="1"></xs:element>
                                             </xs:sequence>
                                         </xs:complexType>
                                     </xs:element>
                                 </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="DescriptorResourcesUpdate" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="LayoutBinding" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:choice minOccurs="1" maxOccurs="1">
+                                    <xs:element name="Image">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="Sampler" minOccurs="0" maxOccurs="1">
+                                                    <xs:complexType>
+                                                        <xs:sequence>
+                                                            <xs:element name="Type">
+                                                                <xs:simpleType>
+                                                                    <xs:restriction base="xs:string">
+                                                                        <xs:enumeration value="None"></xs:enumeration>
+                                                                        <xs:enumeration value="Inline"></xs:enumeration>
+                                                                        <xs:enumeration value="Default"></xs:enumeration>
+                                                                        <xs:enumeration value="FromImageBuffer"></xs:enumeration>
+                                                                    </xs:restriction>
+                                                                </xs:simpleType>
+                                                            </xs:element>
+                                                            <xs:element name="Inline" type="target:SamplerComplexType" minOccurs="0" maxOccurs="1"></xs:element>
+                                                        </xs:sequence>
+                                                    </xs:complexType>
+                                                </xs:element>
+                                                <xs:element name="ImageBufferResourceType" type="xs:string" minOccurs="0" maxOccurs="1"></xs:element>
+                                                <xs:element name="ImageViewResourceType" type="xs:string" minOccurs="0" maxOccurs="1"></xs:element>
+                                                <xs:element name="ReadImageLayout" type="target:ImageLayoutSimpleType" minOccurs="0" maxOccurs="1"></xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                    <xs:element name="Buffer">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="BufferResourceType" type="xs:string" minOccurs="0" maxOccurs="1"></xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                    <xs:element name="TexelBufferResourceType" minOccurs="0" maxOccurs="1"></xs:element>
+                                </xs:choice>
+                                <xs:attribute name="name" type="xs:string"></xs:attribute>
                             </xs:complexType>
                         </xs:element>
                     </xs:sequence>
