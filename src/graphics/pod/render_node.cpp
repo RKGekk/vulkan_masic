@@ -6,6 +6,7 @@
 #include "image_buffer_config.h"
 #include "buffer_config.h"
 #include "../api/vulkan_image_buffer.h"
+#include "../api/vulkan_buffer.h"
 #include "../api/vulkan_device.h"
 #include "../api/vulkan_swapchain.h"
 #include "../api/vulkan_pipeline.h"
@@ -75,8 +76,6 @@ const RenderNode::AttachMap& RenderNode::getWrittenAttachmentMap() const {
 }
 
 std::vector<VkImageView> RenderNode::getAttachments() const {
-    const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = m_pipeline->getRenderPass();
-    const std::shared_ptr<RenderPassConfig>& render_pass_cfg_ptr = render_pass_ptr->getRenderPassConfig();
     std::vector<VkImageView> attachments;
     const std::vector<RenderNodeConfig::FrameBufferAttachment>& attachments_config = m_node_config->getAttachmentsConfig();
     size_t attachments_count = attachments_config.size();
@@ -95,7 +94,6 @@ void RenderNode::finishRenderNode() {
     VulkanRenderer& renderer = Application::GetRenderer();
 
     const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = m_pipeline->getRenderPass();
-    const std::shared_ptr<RenderPassConfig>& render_pass_cfg_ptr = render_pass_ptr->getRenderPassConfig();
     m_framebuffers_attachments = getAttachments();
 
     m_viewport_extent = getWrittenAttachedImageResource(m_node_config->getAttachmentsConfig().front().attachment_name)->getImageConfig()->getFormat()->getExtent2D();
@@ -117,12 +115,22 @@ void RenderNode::finishRenderNode() {
     for (const auto&[slot, desc_set_layout] : m_pipeline->getDescLayouts()) {
         m_descs[slot] = renderer.getDescriptorsManager()->allocateDescriptorSet(desc_set_layout->getName());
         for(const VkDescriptorSetLayoutBinding& binding : desc_set_layout->getBindings()) {
-            const DescSetLayout::UpdateMetadata& binding_metadata = desc_set_layout->getBufferMetadata(binding.binding);
-            if(binding_metadata.resource_type == RenderResource::Type::IMAGE) {
-                m_descs[slot]->updateDescImageInfo(binding.binding, );
+            const std::string& binding_name = desc_set_layout->getBindingName(binding.binding);
+            const std::shared_ptr<RenderNodeConfig::UpdateMetadata>& binding_metadata = m_node_config->getUpdateMetadata(binding_name);
+            if(binding_metadata->resource_type == RenderResource::Type::IMAGE) {
+                std::shared_ptr<VulkanImageBuffer> image_to_bind = getReadAttachedImageResource(binding_name);
+                m_descs[slot]->updateDescImageInfo(
+                    binding.binding,
+                    image_to_bind->getImageConfig()->getSampler()->getSampler(),
+                    image_to_bind->getImageBufferView(binding_metadata->image_view_type_name),
+                    binding_metadata->read_image_layout
+                );
+            }
+            else if(binding_metadata->resource_type == RenderResource::Type::BUFFER) {
+                std::shared_ptr<VulkanBuffer> buffer_to_bind = getReadAttachedBufferResource(binding_name);
+                m_descs[slot]->updateDescBuffer(binding.binding, buffer_to_bind->getBuffer());
             }
         }
-        m_descs[slot]->updateDescBuffer();
     }
     
 }
@@ -169,4 +177,24 @@ std::shared_ptr<VulkanImageBuffer> RenderNode::getWrittenAttachedImageResource(c
 
 std::shared_ptr<VulkanImageBuffer> RenderNode::getReadAttachedImageResource(const RenderNode::LocalName& name) {
     return std::dynamic_pointer_cast<VulkanImageBuffer>(m_read_attached.at(name).resource);
+}
+
+std::shared_ptr<VulkanBuffer> RenderNode::getAttachedBufferResource(const RenderNode::LocalName& attached_as) {
+    if(isReadAttached(attached_as)) {
+        return getWrittenAttachedBufferResource(attached_as);
+    }
+
+    if(isWrittenAttached(attached_as)) {
+        return getReadAttachedBufferResource(attached_as);
+    }
+
+    return nullptr;
+}
+
+std::shared_ptr<VulkanBuffer> RenderNode::getWrittenAttachedBufferResource(const RenderNode::LocalName& name) {
+    return std::dynamic_pointer_cast<VulkanBuffer>(m_written_attached.at(name).resource);
+}
+
+std::shared_ptr<VulkanBuffer> RenderNode::getReadAttachedBufferResource(const RenderNode::LocalName& name) {
+    return std::dynamic_pointer_cast<VulkanBuffer>(m_read_attached.at(name).resource);
 }

@@ -22,7 +22,6 @@ class DescSetLayout {
 public:
 
     using DescSetBindings = std::vector<VkDescriptorSetLayoutBinding>;
-    using DescSetBindingsMetadata = std::vector<UpdateMetadata>;
     using BindingNum = uint32_t;
     using BindingIndex = int;
 
@@ -40,6 +39,7 @@ public:
     bool haveBindingName(const std::string& binding_name) const;
     const std::string& getBindingName(VkDescriptorType desc_type) const;
     const std::string& getBindingName(BindingNum binding_num) const;
+    BindingNum getBindingNum(const std::string& binding_name) const;
     const std::vector<std::shared_ptr<VulkanSampler>>& getImmutableSamplers() const;
     const std::vector<VkSampler>& getImmutableSamplersPtr() const;
     VkDescriptorSetLayoutCreateInfo getDescriptorSetLayoutInfo() const;

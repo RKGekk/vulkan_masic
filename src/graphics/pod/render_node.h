@@ -16,6 +16,7 @@ class VulkanDevice;
 class VulkanPipeline;
 class RenderNodeConfig;
 class VulkanImageBuffer;
+class VulkanBuffer;
 class VulkanDescriptor;
 class VulkanSampler;
 
@@ -59,6 +60,9 @@ public:
     std::shared_ptr<VulkanImageBuffer> getAttachedImageResource(const LocalName& attached_as);
     std::shared_ptr<VulkanImageBuffer> getWrittenAttachedImageResource(const LocalName& name);
     std::shared_ptr<VulkanImageBuffer> getReadAttachedImageResource(const LocalName& name);
+    std::shared_ptr<VulkanBuffer> getAttachedBufferResource(const LocalName& attached_as);
+    std::shared_ptr<VulkanBuffer> getWrittenAttachedBufferResource(const LocalName& name);
+    std::shared_ptr<VulkanBuffer> getReadAttachedBufferResource(const LocalName& name);
 
 private:
     std::vector<VkImageView> getAttachments() const;

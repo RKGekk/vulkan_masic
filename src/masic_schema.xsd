@@ -2190,11 +2190,11 @@
                                     <xs:element name="Attachment" minOccurs="1" maxOccurs="unbounded">
                                         <xs:complexType>
                                             <xs:sequence>
-                                                <xs:element name="AttachmentName" type="xs:string"></xs:element>
                                                 <xs:element name="AttachmentResourceType" type="xs:string"></xs:element>
                                                 <xs:element name="AttachmentResourceTypeView" type="xs:string"></xs:element>
                                                 <xs:element name="AttachmentWriteImageLayout" type="target:ImageLayoutSimpleType" minOccurs="0" maxOccurs="1"></xs:element>
                                             </xs:sequence>
+                                            <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
                                         </xs:complexType>
                                     </xs:element>
                                 </xs:sequence>
@@ -2229,8 +2229,8 @@
                                                         </xs:sequence>
                                                     </xs:complexType>
                                                 </xs:element>
-                                                <xs:element name="ImageBufferResourceType" type="xs:string" minOccurs="0" maxOccurs="1"></xs:element>
-                                                <xs:element name="ImageViewResourceType" type="xs:string" minOccurs="0" maxOccurs="1"></xs:element>
+                                                <xs:element name="ImageBufferResourceType" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
+                                                <xs:element name="ImageViewResourceType" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
                                                 <xs:element name="ReadImageLayout" type="target:ImageLayoutSimpleType" minOccurs="0" maxOccurs="1"></xs:element>
                                             </xs:sequence>
                                         </xs:complexType>
@@ -2238,7 +2238,7 @@
                                     <xs:element name="Buffer">
                                         <xs:complexType>
                                             <xs:sequence>
-                                                <xs:element name="BufferResourceType" type="xs:string" minOccurs="0" maxOccurs="1"></xs:element>
+                                                <xs:element name="BufferResourceType" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
                                             </xs:sequence>
                                         </xs:complexType>
                                     </xs:element>

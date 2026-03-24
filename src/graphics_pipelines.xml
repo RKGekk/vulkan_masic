@@ -790,20 +790,17 @@
             <FrameBuffer>
                 <RenderPassName>basic_mulisample_render_pass</RenderPassName>
                 <Attachments>
-                    <Attachment>
-                        <AttachmentName>color_attachment</AttachmentName>
+                    <Attachment name="color_attachment">
                         <AttachmentResourceType>render_target_color_resource</AttachmentResourceType>
                         <AttachmentResourceTypeView>render_target_color_resource_view</AttachmentResourceTypeView>
                         <AttachmentWriteImageLayout>color_attachment_optimal</AttachmentWriteImageLayout>
                     </Attachment>
-                    <Attachment>
-                        <AttachmentName>depth_attachment</AttachmentName>
+                    <Attachment name="depth_attachment">
                         <AttachmentResourceType>render_target_depth_resource</AttachmentResourceType>
                         <AttachmentResourceTypeView>render_target_depth_resource_view</AttachmentResourceTypeView>
                         <AttachmentWriteImageLayout>auto_depth_stencil_attachment_optimal</AttachmentWriteImageLayout>
                     </Attachment>
-                    <Attachment>
-                        <AttachmentName>resolve_attachment</AttachmentName>
+                    <Attachment name="resolve_attachment">
                         <AttachmentResourceType>basic_swap_chain_resource</AttachmentResourceType>
                         <AttachmentResourceTypeView>basic_swapchain_resource_view</AttachmentResourceTypeView>
                         <AttachmentWriteImageLayout>present_src_khr</AttachmentWriteImageLayout>

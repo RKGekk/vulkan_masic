@@ -133,6 +133,10 @@ const std::string& DescSetLayout::getBindingName(DescSetLayout::BindingNum bindi
     return m_binding_num_to_name_map.at(binding_num);
 }
 
+DescSetLayout::BindingNum DescSetLayout::getBindingNum(const std::string& binding_name) const {
+    return m_binding_name_map.at(binding_name);
+}
+
 const std::vector<std::shared_ptr<VulkanSampler>>& DescSetLayout::getImmutableSamplers() const {
     return m_immutable_samplers;
 }
@@ -147,23 +151,4 @@ VkDescriptorSetLayoutCreateInfo DescSetLayout::getDescriptorSetLayoutInfo() cons
 
 VkDescriptorSetLayout DescSetLayout::getDescriptorSetLayout() const {
     return m_desc_layout;
-}
-
-const DescSetLayout::UpdateMetadata& DescSetLayout::getBufferMetadata(VkDescriptorType desc_type) const {
-    size_t sz = m_bindings.size();
-    for(size_t i = 0u; i < sz; ++i) {
-        const VkDescriptorSetLayoutBinding& binding = m_bindings.at(i);
-        if(binding.descriptorType == desc_type) {
-            return m_bindings_metadata.at(i);
-        }
-    }
-    return {};
-}
-
-const DescSetLayout::UpdateMetadata& DescSetLayout::getBufferMetadata(BindingNum binding_num) const {
-    return m_bindings_metadata.at(m_binding_num_to_idx_map.at(binding_num));
-}
-
-const DescSetLayout::UpdateMetadata& DescSetLayout::getBufferMetadata(const std::string& binding_name) const {
-    return m_bindings_metadata.at(m_binding_num_to_idx_map.at(m_binding_name_map.at(binding_name)));
 }

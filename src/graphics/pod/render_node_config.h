@@ -11,6 +11,7 @@
 #include <vector>
 
 class VulkanDevice;
+class VulkanSampler;
 
 class RenderNodeConfig {
 public:
@@ -41,15 +42,15 @@ public:
     const std::string& getPipelineName() const;
     const std::string& getRenderPassName() const;
     const std::vector<FrameBufferAttachment>& getAttachmentsConfig() const;
-    const std::vector<UpdateMetadata>& getBindingsMetadata() const;
+    const std::unordered_map<std::string, std::shared_ptr<UpdateMetadata>>& getBindingsMetadata() const;
+    const std::shared_ptr<UpdateMetadata>& getUpdateMetadata(const std::string& binding_name);
 
     std::shared_ptr<RenderNodeConfig> makeInstance(std::string name) const;
 
 private:
-
     std::string m_name;
     std::string m_pipeline_name;
     std::string m_render_pass_name;
     std::vector<FrameBufferAttachment> m_attachments;
-    std::vector<UpdateMetadata> m_bindings_metadata;
+    std::unordered_map<std::string, std::shared_ptr<UpdateMetadata>> m_bindings_metadata;
 };
