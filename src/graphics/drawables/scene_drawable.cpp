@@ -114,7 +114,7 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             renderable->index_buffer = model_data->GetIndexBuffer();
 
             std::shared_ptr<VulkanShader> vertex_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
-            std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames()[0]);
+            std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames().at(0));
 
             renderable->render_node = std::make_shared<RenderNode>();
             renderable->render_node->init(m_device, render_node_config);
