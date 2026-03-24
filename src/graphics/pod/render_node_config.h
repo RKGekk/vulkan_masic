@@ -10,6 +10,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "render_resource.h"
+
 class VulkanDevice;
 class VulkanSampler;
 

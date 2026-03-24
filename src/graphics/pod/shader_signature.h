@@ -27,6 +27,7 @@ public:
     VkFlags getPipelineShaderStageCreateFlags() const;
     VkShaderStageFlagBits getStage() const;
     const VertexFormat& getInputAttributes(size_t binding) const;
+    const std::vector<VertexFormat>& getInputAttributes() const;
     size_t getNumInputAttributeBindings() const;
     const std::unordered_map<SlotNumber, std::string>& getDescSetNames() const;
     

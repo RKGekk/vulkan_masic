@@ -227,25 +227,51 @@ void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer, unsigned 
         vkCmdSetViewport(command_buffer.getCommandBufer(), 0u, 1u, &view_port);
         vkCmdSetScissor(command_buffer.getCommandBufer(), 0u, 1u, &scissor);
         
-        vkCmdBindDescriptorSets(
-            command_buffer.getCommandBufer(), // commandBuffer
-            VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
-            render_node_ptr->getPipeline()->getPipelineLayout(), // pipeline layout
-            0, // first set
-            1, // descriptor set count
-            &m_renderables[k]->descriptor.getDescriptorSets()[frame_index], // descriptor sets pointer
-            0, // dynamic offset count
-            nullptr // dynamic offsets pointer
-        );
+        for(const auto&[slot, desc] : render_node_ptr->getDescriptors()) {
+            vkCmdBindDescriptorSets(
+                command_buffer.getCommandBufer(), // commandBuffer
+                VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
+                render_node_ptr->getPipeline()->getPipelineLayout(), // pipeline layout
+                slot, // first set
+                1, // descriptor set count
+                desc->getDescriptorSetPtr(), // descriptor sets pointer
+                0, // dynamic offset count
+                nullptr // dynamic offsets pointer
+            );
+        }
 
-        vkCmdBindPipeline(command_buffer.getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_renderables[k]->pipelines[current_pipeline].pipeline.getPipeline());
+        vkCmdBindPipeline(command_buffer.getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_ptr->getPipeline());
         
-        VkBuffer vertex_buffers[] = {m_renderables[k]->vertex_buffer->getVertexBuffer()->getBuffer()};
-        VkDeviceSize offsets[] = {0};
-        vkCmdBindVertexBuffers(command_buffer.getCommandBufer(), 0, 1, vertex_buffers, offsets);
-        vkCmdBindIndexBuffer(command_buffer.getCommandBufer(), m_renderables[k]->vertex_buffer->getIndexBuffer()->getBuffer(), 0u, m_renderables[k]->vertex_buffer->getIndexType());
+        for (const VertexFormat& vf : pipeline_ptr->getShader(VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getInputAttributes()) {
+            const std::string& vertex_buffer_name = vf.getVertexBufferBindingName();
+            std::shared_ptr<VulkanBuffer> vertex_buffer = render_node_ptr->getReadAttachedBufferResource(vertex_buffer_name);
+            VkDeviceSize offsets[] = {0};
+            vkCmdBindVertexBuffers(
+                command_buffer.getCommandBufer(), // commandBuffer
+                vf.getBindingNum(), // firstBinding
+                1, // bindingCount
+                vertex_buffer->getBufferPtr(), // buffers pointer
+                offsets // offsets pointer
+            );
+        }
+        const std::string& index_buffer_name = pipeline_ptr->getShader(VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getVertexFormat().getIndexBufferBindingName();
+        std::shared_ptr<VulkanBuffer> index_buffer = render_node_ptr->getReadAttachedBufferResource(index_buffer_name);
+        vkCmdBindIndexBuffer(
+            command_buffer.getCommandBufer(), // commandBuffer
+            index_buffer->getBuffer(), // buffer
+            0u, // offset
+            pipeline_ptr->getShader(VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getVertexFormat().getIndexType() // indexType
+        );
         
-        vkCmdDrawIndexed(command_buffer.getCommandBufer(), static_cast<uint32_t>(m_renderables[k]->vertex_buffer->getIndicesCount()), 1u, 0u, 0u, 0u);
+        uint32_t index_count = index_buffer->getSize() / pipeline_ptr->getShader(VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getVertexFormat().getIndexTypeBytesCount();
+        vkCmdDrawIndexed(
+            command_buffer.getCommandBufer(), // commandBuffer
+            index_count, // indexCount
+            1u, // instanceCount
+            0u, // firstIndex
+            0u, // vertexOffset
+            0u // firstInstance
+        );
         
         vkCmdEndRenderPass(command_buffer.getCommandBufer());
     }

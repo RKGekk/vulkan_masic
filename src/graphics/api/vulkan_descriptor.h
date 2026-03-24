@@ -20,6 +20,7 @@ public:
     VkDescriptorSetLayout getDescLayout() const;
     const std::shared_ptr<DescSetLayout>& getBindings() const;
     VkDescriptorSet getDescriptorSet() const;
+    VkDescriptorSet* getDescriptorSetPtr();
     
     void updateDescSampler(VkSampler sampler);
     void updateDescSampler(VkSampler sampler, uint32_t binding);

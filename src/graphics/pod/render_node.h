@@ -64,6 +64,8 @@ public:
     std::shared_ptr<VulkanBuffer> getWrittenAttachedBufferResource(const LocalName& name);
     std::shared_ptr<VulkanBuffer> getReadAttachedBufferResource(const LocalName& name);
 
+    const std::unordered_map<uint32_t, std::shared_ptr<VulkanDescriptor>>& getDescriptors() const;
+
 private:
     std::vector<VkImageView> getAttachments() const;
 

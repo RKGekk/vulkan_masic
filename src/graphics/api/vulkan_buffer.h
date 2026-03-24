@@ -24,6 +24,7 @@ public:
     void destroy() override;
 
     VkBuffer getBuffer() const;
+    VkBuffer* getBufferPtr();
     VkDeviceMemory getMemory() const;
     void* getMappedBuffer() const;
     VkDeviceSize getSize() const;

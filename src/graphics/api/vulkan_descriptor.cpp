@@ -28,6 +28,10 @@ VkDescriptorSet VulkanDescriptor::getDescriptorSet() const {
     return m_descriptor_set;
 }
 
+VkDescriptorSet* VulkanDescriptor::getDescriptorSetPtr() {
+    return &m_descriptor_set;
+}
+
 void VulkanDescriptor::updateDescSampler(VkSampler sampler) {
     VkDescriptorImageInfo image_info{};
     image_info.sampler = sampler;

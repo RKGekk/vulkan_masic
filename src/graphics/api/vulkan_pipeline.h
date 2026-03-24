@@ -17,6 +17,7 @@ class VulkanShadersManager;
 class PipelineConfig;
 class VulkanRenderPass;
 class VulkanShader;
+class DescSetLayout;
 
 class VulkanPipeline {
 public:

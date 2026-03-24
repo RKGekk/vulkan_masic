@@ -64,6 +64,10 @@ VkBuffer VulkanBuffer::getBuffer() const {
     return m_buffer;
 }
 
+VkBuffer* VulkanBuffer::getBufferPtr() {
+    return &m_buffer;
+}
+
 VkDeviceMemory VulkanBuffer::getMemory() const {
     return m_memory;
 }

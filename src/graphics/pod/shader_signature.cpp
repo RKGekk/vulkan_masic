@@ -189,11 +189,15 @@ const VertexFormat& ShaderSignature::getInputAttributes(size_t binding) const {
     return m_input_attributes.at(binding);
 }
 
+const std::vector<VertexFormat>& ShaderSignature::getInputAttributes() const {
+    return m_input_attributes;
+}
+
 size_t ShaderSignature::getNumInputAttributeBindings() const {
     return m_input_attributes.size();
 }
 
-const std::vector<std::string>& ShaderSignature::getDescSetNames() const {
+const std::unordered_map<ShaderSignature::SlotNumber, std::string>& ShaderSignature::getDescSetNames() const {
     return m_desc_set_names;
 }
 

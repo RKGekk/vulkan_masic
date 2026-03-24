@@ -198,3 +198,7 @@ std::shared_ptr<VulkanBuffer> RenderNode::getWrittenAttachedBufferResource(const
 std::shared_ptr<VulkanBuffer> RenderNode::getReadAttachedBufferResource(const RenderNode::LocalName& name) {
     return std::dynamic_pointer_cast<VulkanBuffer>(m_read_attached.at(name).resource);
 }
+
+const std::unordered_map<uint32_t, std::shared_ptr<VulkanDescriptor>>& RenderNode::getDescriptors() const {
+    return m_descs;
+}
