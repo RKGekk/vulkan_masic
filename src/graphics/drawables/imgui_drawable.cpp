@@ -136,7 +136,9 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
 
         m_renderables.push_back(renderable);
         Application::GetRenderer().addRenderNode(renderable->render_node, frame);
+        
     }
+    
 
     return true;
 }

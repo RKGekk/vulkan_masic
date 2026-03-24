@@ -316,4 +316,6 @@ void VulkanRenderer::update_frame(const GameTimerDelta& delta, uint32_t image_in
 
 void VulkanRenderer::addRenderNode(std::shared_ptr<RenderNode> render_node, unsigned image_index) {
     m_per_frame[image_index]->render_graph->add_pass(std::move(render_node));
+    m_per_frame[image_index]->render_graph->topological_sort();
+    m_per_frame[image_index]->render_graph->build_dependency_levels();
 }
