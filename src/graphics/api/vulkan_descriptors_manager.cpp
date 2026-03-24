@@ -78,7 +78,7 @@ std::shared_ptr<DescSetLayout> VulkanDescriptorsManager::getDescSetLayout(const 
 }
 
 std::shared_ptr<VulkanDescriptor> VulkanDescriptorsManager::allocateDescriptorSet(const std::string& desc_set_name) {
-    std::shared_ptr<VulkanDescriptor> desc;
+    std::shared_ptr<VulkanDescriptor> desc = std::make_shared<VulkanDescriptor>();
 
     VkDescriptorSet vkdesc_set = m_desc_alloc_map[desc_set_name]->Allocate(desc_set_name);
     desc->init(m_device->getDevice(), m_name_layout_map.at(desc_set_name), vkdesc_set);

@@ -126,7 +126,11 @@ std::shared_ptr<BufferConfig> BufferConfig::makeInstance(std::string name, VkDev
     std::shared_ptr<BufferConfig> instance_ptr = std::make_shared<BufferConfig>();
     instance_ptr->m_name = name;
     instance_ptr->m_buffer_info = m_buffer_info;
-    instance_ptr->m_buffer_info.size = buffer_size;
+
+    if(m_deffered_size) {
+        instance_ptr->m_buffer_info.size = buffer_size;
+    }
+
     instance_ptr->m_dynamic_size = m_dynamic_size;
     instance_ptr->m_deffered_size = false;
     instance_ptr->m_memory_properties = m_memory_properties;

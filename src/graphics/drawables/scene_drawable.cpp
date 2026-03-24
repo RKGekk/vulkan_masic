@@ -127,7 +127,7 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             renderable->render_node->addWriteDependency(depth_images[i], "depth_attachment");
             renderable->render_node->finishRenderNode();
 
-            m_renderables.push_back(std::move(renderable));
+            m_renderables.push_back(renderable);
             Application::GetRenderer().addRenderNode(renderable->render_node, frame);
         }
     }

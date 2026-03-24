@@ -134,7 +134,7 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
         renderable->render_node->addWriteDependency(depth_images[frame], "depth_attachment");
         renderable->render_node->finishRenderNode();
 
-        m_renderables.push_back(std::move(renderable));
+        m_renderables.push_back(renderable);
         Application::GetRenderer().addRenderNode(renderable->render_node, frame);
     }
 
