@@ -11,7 +11,7 @@ bool TestMenuUI::VOnRestore() {
 	return true;
 }
 
-bool TestMenuUI::VOnRender(const GameTimerDelta& delta) {
+bool TestMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index) {
 	using namespace std;
 	if (!m_is_visible) return true;
 
@@ -20,7 +20,7 @@ bool TestMenuUI::VOnRender(const GameTimerDelta& delta) {
 	return true;
 }
 
-void TestMenuUI::VOnUpdate(const GameTimerDelta& delta) {}
+void TestMenuUI::VOnUpdate(const GameTimerDelta& delta, uint32_t image_index) {}
 
 int TestMenuUI::VGetZOrder() const {
 	return 999;

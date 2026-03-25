@@ -27,7 +27,7 @@ public:
     static VulkanRenderer& GetRenderer();
 
     void run();
-    bool update();
+    bool update(uint32_t image_index);
     void Quit(int exit_code = 0);
 
     Application();

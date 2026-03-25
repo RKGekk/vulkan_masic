@@ -202,3 +202,7 @@ std::shared_ptr<VulkanBuffer> RenderNode::getReadAttachedBufferResource(const Re
 const std::unordered_map<uint32_t, std::shared_ptr<VulkanDescriptor>>& RenderNode::getDescriptors() const {
     return m_descs;
 }
+
+const std::shared_ptr<RenderNodeConfig>& RenderNode::getRenderNodeConfig() const {
+    return m_node_config;
+}

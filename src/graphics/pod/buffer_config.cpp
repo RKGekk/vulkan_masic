@@ -47,6 +47,8 @@ bool BufferConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::
     }
 
     m_buffer_info.size = buffer_data.child("Size").text().as_uint();
+    m_not_aligned_size = m_buffer_info.size;
+    m_alignment = 1;
     m_dynamic_size = buffer_data.child("Size").attribute("dynamic").as_bool();
     m_deffered_size = buffer_data.child("Size").attribute("deffered").as_bool();
 
@@ -91,13 +93,33 @@ const std::string& BufferConfig::getName() const {
 bool BufferConfig::isSizeDynamic() const {
     return m_dynamic_size;
 }
+
+void BufferConfig::setSizeDynamic(bool is_dynamic) {
+    m_dynamic_size = is_dynamic;
+}
     
 bool BufferConfig::isSizeDeffered() const {
     return m_deffered_size;
 }
 
-void BufferConfig::setSize(VkDeviceSize sz) {
+void BufferConfig::setAlignedSize(VkDeviceSize sz) {
     m_buffer_info.size = sz;
+}
+
+void BufferConfig::setNotAlignedSize(VkDeviceSize sz) {
+    m_not_aligned_size = sz;
+}
+
+VkDeviceSize BufferConfig::getNotAlignedSize() const {
+    return m_not_aligned_size;
+}
+    
+void BufferConfig::setAlignment(VkDeviceSize alignment) {
+    m_alignment = alignment;
+}
+
+VkDeviceSize BufferConfig::getAlignment() const {
+    return m_alignment;
 }
 
 const VkBufferCreateInfo& BufferConfig::getBufferInfo() const {

@@ -42,7 +42,7 @@ void Application::run() {
     mainLoop();
 }
 
-bool Application::update() {
+bool Application::update(uint32_t image_index) {
     m_timer.Tick();
     std::shared_ptr<EvtData_Update_Tick> pEvent = std::make_shared<EvtData_Update_Tick>(m_timer.GetDeltaDuration(), m_timer.GetTotalDuration());
     m_event_manager->VQueueEvent(pEvent);
@@ -50,7 +50,7 @@ bool Application::update() {
     m_event_manager->VUpdate();
 
     if (m_game) {
-		m_game->VOnUpdate(m_timer);
+		m_game->VOnUpdate(m_timer, image_index);
 	}
 
     return window_close_evt || m_request_quit;
@@ -134,12 +134,15 @@ const std::shared_ptr<BaseEngineLogic>& Application::GetGameLogic() const {
 };
 
 void Application::mainLoop() {
-    while(!update()) {
+    bool exit = false;
+    while(!exit) {
+        uint32_t image_index = m_renderer.getSwapchain()->fetchNextSync();
+        exit = update(image_index);
         if(m_window->SkipDraw()) continue;
         for (GameViewList::const_iterator i = m_game->GetViews().begin(), end = m_game->GetViews().end(); i != end; ++i) {
-		    (*i)->VOnRender(Application::Get().GetTimer());
+		    (*i)->VOnRender(Application::Get().GetTimer(), image_index);
 	    }
-        m_renderer.update_frame(m_timer, m_renderer.getSwapchain()->getCurrentFrame());
+        m_renderer.update_frame(m_timer, image_index);
         m_renderer.drawFrame();
     }
 }

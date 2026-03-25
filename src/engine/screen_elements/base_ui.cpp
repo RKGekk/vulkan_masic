@@ -12,7 +12,7 @@ bool BaseUI::VOnLostDevice() {
 	return true;
 }
 
-void BaseUI::VOnUpdate(const GameTimerDelta& delta) {}
+void BaseUI::VOnUpdate(const GameTimerDelta& delta, uint32_t image_index) {}
 
 bool BaseUI::VIsVisible() const {
 	return m_is_visible;

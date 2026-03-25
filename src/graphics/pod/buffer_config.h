@@ -28,8 +28,13 @@ public:
 
     const std::string& getName() const;
     bool isSizeDynamic() const;
+    void setSizeDynamic(bool is_dynamic);
     bool isSizeDeffered() const;
-    void setSize(VkDeviceSize sz);
+    void setAlignedSize(VkDeviceSize sz);
+    void setNotAlignedSize(VkDeviceSize sz);
+    VkDeviceSize getNotAlignedSize() const;
+    void setAlignment(VkDeviceSize alignment);
+    VkDeviceSize getAlignment() const;
     const VkBufferCreateInfo& getBufferInfo() const;
     VkMemoryPropertyFlags getMemoryProperties() const;
     const std::unordered_map<std::string, std::shared_ptr<BufferViewConfig>>& getViewMap() const;
@@ -40,6 +45,8 @@ public:
 
 private:
     std::string m_name;
+    VkDeviceSize m_not_aligned_size;
+    VkDeviceSize m_alignment;
     VkBufferCreateInfo m_buffer_info;
     bool m_dynamic_size;
     bool m_deffered_size;

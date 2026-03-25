@@ -34,8 +34,8 @@ public:
 	virtual bool VOnRestore() override;
 	virtual bool VOnLostDevice() override;
 
-	virtual void VOnRender(const GameTimerDelta& delta) override;
-	virtual void VOnUpdate(const GameTimerDelta& delta) override;
+	virtual void VOnRender(const GameTimerDelta& delta, uint32_t image_index) override;
+	virtual void VOnUpdate(const GameTimerDelta& delta, uint32_t image_index) override;
 
 	virtual EngineViewType VGetType() override;
 	virtual EngineViewId VGetId() const override;

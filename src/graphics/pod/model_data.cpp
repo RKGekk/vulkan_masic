@@ -34,7 +34,7 @@ const std::shared_ptr<VulkanBuffer>& ModelData::GetIndexBuffer() const {
 size_t ModelData::GetIndexCount() const {
     size_t index_count = 0u;
     if (m_index_buffer) {
-        index_count = m_index_buffer->getSize() / m_vertex_format.getIndexTypeBytesCount();;
+        index_count = m_index_buffer->getNotAlignedSize() / m_vertex_format.getIndexTypeBytesCount();;
     }
 
     return index_count;
@@ -44,7 +44,7 @@ size_t ModelData::GetVertexCount() const {
     size_t vertex_count = 0u;
 
     if (m_vertex_buffer) {
-        vertex_count = m_vertex_buffer->getSize() /  m_vertex_format.getVertexSize();
+        vertex_count = m_vertex_buffer->getNotAlignedSize() /  m_vertex_format.getVertexSize();
     }
 
     return vertex_count;

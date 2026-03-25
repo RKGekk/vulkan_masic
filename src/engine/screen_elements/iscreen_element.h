@@ -15,8 +15,8 @@ public:
 
 	virtual bool VOnRestore() = 0;
 	virtual bool VOnLostDevice() = 0;
-	virtual bool VOnRender(const GameTimerDelta& delta) = 0;
-	virtual void VOnUpdate(const GameTimerDelta& delta) = 0;
+	virtual bool VOnRender(const GameTimerDelta& delta, uint32_t image_index) = 0;
+	virtual void VOnUpdate(const GameTimerDelta& delta, uint32_t image_index) = 0;
 
 	virtual int VGetZOrder() const = 0;
 	virtual void VSetZOrder(int const zOrder) = 0;

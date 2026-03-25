@@ -24,7 +24,8 @@ bool VulkanBuffer::init(const void* data, std::shared_ptr<BufferConfig> buffer_c
     VkMemoryRequirements mem_req;
     vkGetBufferMemoryRequirements(m_device->getDevice(), m_buffer, &mem_req);
     uint32_t mem_type_idx = m_device->findMemoryType(mem_req.memoryTypeBits, m_buffer_config->getMemoryProperties());
-    m_buffer_config->setSize(mem_req.size);
+    m_buffer_config->setAlignedSize(mem_req.size);
+    m_buffer_config->setAlignment(mem_req.alignment);
   
     VkMemoryAllocateInfo alloc_info{};
     alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -79,8 +80,12 @@ void* VulkanBuffer::getMappedBuffer() const {
     throw std::runtime_error("failed map device buffer to host!");
 }
 
-VkDeviceSize VulkanBuffer::getSize() const {
+VkDeviceSize VulkanBuffer::getAlignedSize() const {
     return m_buffer_config->getBufferInfo().size;
+}
+
+VkDeviceSize VulkanBuffer::getNotAlignedSize() const {
+    return m_buffer_config->getNotAlignedSize();
 }
 
 VkMemoryPropertyFlags VulkanBuffer::getProperties() const {
@@ -92,9 +97,13 @@ VkBufferUsageFlags VulkanBuffer::getUsage() const {
 }
 
 void VulkanBuffer::update(const void* src_data, VkDeviceSize buffer_size) {
-    if (buffer_size > m_buffer_config->getBufferInfo().size) {
+    if (buffer_size > m_buffer_config->getBufferInfo().size && m_buffer_config->isSizeDynamic()) {
         destroy();
+        m_buffer_config->setNotAlignedSize(buffer_size);
+        m_buffer_config->setAlignedSize(buffer_size);
+        m_buffer_config->setSizeDynamic(false);
         init(src_data, m_buffer_config);
+        m_buffer_config->setSizeDynamic(true);
         return;
     }
     if(!src_data) {
@@ -129,9 +138,13 @@ void VulkanBuffer::update(const void* src_data, VkDeviceSize buffer_size) {
 }
 
 void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, VkDeviceSize buffer_size, VkAccessFlags dstAccessMask) {
-    if (buffer_size > m_buffer_config->getBufferInfo().size) {
+    if (buffer_size > m_buffer_config->getBufferInfo().size && m_buffer_config->isSizeDynamic()) {
         destroy();
+        m_buffer_config->setNotAlignedSize(buffer_size);
+        m_buffer_config->setAlignedSize(buffer_size);
+        m_buffer_config->setSizeDynamic(false);
         init(src_data, m_buffer_config);
+        m_buffer_config->setSizeDynamic(true);
         return;
     }
     if(!src_data) {

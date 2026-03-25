@@ -27,9 +27,11 @@ bool ScreenElementScene::VOnLostDevice() {
     return true;
 };
 
-void ScreenElementScene::VOnUpdate(const GameTimerDelta& delta) {};
+void ScreenElementScene::VOnUpdate(const GameTimerDelta& delta, uint32_t image_index) {
+    
+};
 
-bool ScreenElementScene::VOnRender(const GameTimerDelta& delta) {
+bool ScreenElementScene::VOnRender(const GameTimerDelta& delta, uint32_t image_index) {
     return true;
 };
 	

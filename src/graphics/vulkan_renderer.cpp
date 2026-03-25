@@ -18,6 +18,8 @@
 #include "api/vulkan_resources_manager.h"
 #include "pod/render_node.h"
 #include "pod/render_graph.h"
+#include "pod/render_node_config.h"
+#include "pod/image_buffer_config.h"
 
 #include <algorithm>
 
@@ -161,6 +163,15 @@ void VulkanRenderer::TransitionResourcesToProperState(const std::shared_ptr<Rend
         size_t last_written_by_node_id = m_per_frame[image_index]->render_graph->getLastWrittenIdentity(render_node_ptr, gloabal_name);
         size_t last_read_by_node_id = m_per_frame[image_index]->render_graph->getLastReadIdentity(render_node_ptr, gloabal_name);
 
+        if(last_read_by_node_id == RenderGraph::NO_ID && last_written_by_node_id == RenderGraph::NO_ID) {
+            // std::shared_ptr<VulkanImageBuffer> attached_read_resource = render_node_ptr->getAttachedImageResource(att_slot.attached_as);
+            // VkImageLayout current_image_layout = attached_read_resource->getImageConfig()->getAfterInitLayout();
+            // VkImageLayout read_image_layout = render_node_ptr->getRenderNodeConfig()->getUpdateMetadata(att_slot.attached_as)->read_image_layout;
+            // if(current_image_layout != read_image_layout) {
+            //     attached_read_resource->changeLayout(current_image_layout, read_image_layout);
+            // }
+        }
+
         if(last_read_by_node_id != RenderGraph::NO_ID && last_read_by_node_id > last_written_by_node_id) {
             continue;
         }
@@ -263,7 +274,7 @@ void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer, unsigned 
             pipeline_ptr->getShader(VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getVertexFormat().getIndexType() // indexType
         );
         
-        uint32_t index_count = index_buffer->getSize() / pipeline_ptr->getShader(VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getVertexFormat().getIndexTypeBytesCount();
+        uint32_t index_count = index_buffer->getNotAlignedSize() / pipeline_ptr->getShader(VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getVertexFormat().getIndexTypeBytesCount();
         vkCmdDrawIndexed(
             command_buffer.getCommandBufer(), // commandBuffer
             index_count, // indexCount
@@ -316,6 +327,4 @@ void VulkanRenderer::update_frame(const GameTimerDelta& delta, uint32_t image_in
 
 void VulkanRenderer::addRenderNode(std::shared_ptr<RenderNode> render_node, unsigned image_index) {
     m_per_frame[image_index]->render_graph->add_pass(std::move(render_node));
-    m_per_frame[image_index]->render_graph->topological_sort();
-    m_per_frame[image_index]->render_graph->build_dependency_levels();
 }

@@ -154,11 +154,9 @@ void ImGUIDrawable::destroy() {
 void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     const std::shared_ptr<Renderable>& renderable = m_renderables.at(image_index);
 
-    float angle = delta.fGetTotalSeconds() * glm::radians(90.f);
-    glm::vec3 rotation_axis = glm::vec3(0.0f, 0.0f, 1.0f);
     ImDrawData* dd = ImGui::GetDrawData();
     std::shared_ptr<VulkanShader> vertex_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
-    size_t vertex_count = renderable->index_buffer->getSize() / vertex_shader->getShaderSignature()->getVertexFormat().getIndexTypeBytesCount();
+    size_t vertex_count = renderable->index_buffer->getNotAlignedSize() / vertex_shader->getShaderSignature()->getVertexFormat().getIndexTypeBytesCount();
 
     if(vertex_count < dd->TotalVtxCount) {
         renderable->imgui_vtx.resize(dd->TotalVtxCount);

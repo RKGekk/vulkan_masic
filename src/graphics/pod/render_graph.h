@@ -51,4 +51,5 @@ private:
 	RenderNodeList m_topologically_sorted_nodes;
 	std::unordered_map<RenderNodePtr, size_t> m_render_node_sort_idx;
 	std::vector<std::shared_ptr<DependencyLevel>> m_dependency_levels;
+	bool m_sorted;
 };

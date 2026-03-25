@@ -12,7 +12,7 @@ bool AnimationMenuUI::VOnRestore() {
 	return true;
 }
 
-bool AnimationMenuUI::VOnRender(const GameTimerDelta& delta) {
+bool AnimationMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index) {
     using namespace std::literals;
 
     Application& app = Application::Get();
@@ -91,7 +91,7 @@ bool AnimationMenuUI::VOnRender(const GameTimerDelta& delta) {
     return true;
 }
 
-void AnimationMenuUI::VOnUpdate(const GameTimerDelta& delta) {}
+void AnimationMenuUI::VOnUpdate(const GameTimerDelta& delta, uint32_t image_index) {}
 
 int AnimationMenuUI::VGetZOrder() const {
 	return 1;

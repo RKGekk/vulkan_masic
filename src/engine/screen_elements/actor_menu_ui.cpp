@@ -20,7 +20,7 @@ bool ActorMenuUI::VOnRestore() {
 	return true;
 }
 
-bool ActorMenuUI::VOnRender(const GameTimerDelta& delta) {
+bool ActorMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index) {
 	using namespace std;
 	if (!m_is_visible) return true;
 
@@ -93,7 +93,7 @@ bool ActorMenuUI::VOnRender(const GameTimerDelta& delta) {
 	return true;
 }
 
-void ActorMenuUI::VOnUpdate(const GameTimerDelta& delta) {}
+void ActorMenuUI::VOnUpdate(const GameTimerDelta& delta, uint32_t image_index) {}
 
 int ActorMenuUI::VGetZOrder() const {
 	return 1;

@@ -206,7 +206,7 @@ bool BaseEngineLogic::VLoadGame(const std::string& level_resource) {
 	return true;
 }
 
-void BaseEngineLogic::VOnUpdate(const GameTimerDelta& delta) {
+void BaseEngineLogic::VOnUpdate(const GameTimerDelta& delta, uint32_t image_index) {
 	using namespace std::literals;
 	GameClockDuration delta_duration = delta.GetDeltaDuration();
 	GameClockDuration total_duration = delta.GetTotalDuration();
@@ -238,7 +238,7 @@ void BaseEngineLogic::VOnUpdate(const GameTimerDelta& delta) {
 	}
 
 	for (GameViewList::iterator it = m_game_views.begin(); it != m_game_views.end(); ++it) {
-		(*it)->VOnUpdate(delta);
+		(*it)->VOnUpdate(delta, image_index);
 	}
 
 	m_animation_player->Update(delta);

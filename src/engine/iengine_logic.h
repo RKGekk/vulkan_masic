@@ -21,7 +21,7 @@ public:
 
 	virtual bool VLoadGame(const std::string& level_resource) = 0;
 
-	virtual void VOnUpdate(const GameTimerDelta& delta) = 0;
+	virtual void VOnUpdate(const GameTimerDelta& delta, uint32_t image_index) = 0;
 	virtual void VChangeState(const BaseEngineState new_state) = 0;
 
 	virtual void VMoveActor(const ActorId id, const glm::mat4x4& mat) = 0;

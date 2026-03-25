@@ -85,7 +85,7 @@ bool HumanView::VOnLostDevice() {
 	return hr;
 }
 
-void HumanView::VOnRender(const GameTimerDelta& delta) {
+void HumanView::VOnRender(const GameTimerDelta& delta, uint32_t image_index) {
 	m_current_tick = delta.GetTotalDuration();
 	if (m_current_tick == m_last_draw) { return; }
 	if (!m_can_draw) { return; }
@@ -97,22 +97,23 @@ void HumanView::VOnRender(const GameTimerDelta& delta) {
 		m_screen_elements.sort(SortBy_SharedPtr_Content<IScreenElement>());
 		for (ScreenElementList::iterator i = m_screen_elements.begin(); i != m_screen_elements.end(); ++i) {
 			if ((*i)->VIsVisible()) {
-				(*i)->VOnRender(delta);
+				(*i)->VOnRender(delta, image_index);
 			}
 		}
 		VRenderText();
 		m_gui->endFrame();
+		m_gui->update(delta, image_index);
 		m_last_draw = m_current_tick;
 	}
 }
 
-void HumanView::VOnUpdate(const GameTimerDelta& delta) {
+void HumanView::VOnUpdate(const GameTimerDelta& delta, uint32_t image_index) {
 	m_process_manager->UpdateProcesses(delta);
 	for(auto& ctrl : m_controllers) {
 		ctrl->OnUpdate(delta);
 	}
 	for (ScreenElementList::iterator i = m_screen_elements.begin(); i != m_screen_elements.end(); ++i) {
-		(*i)->VOnUpdate(delta);
+		(*i)->VOnUpdate(delta, image_index);
 	}
 	m_scene->recalculateGlobalTransforms();
 }

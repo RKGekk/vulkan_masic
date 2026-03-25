@@ -27,7 +27,8 @@ public:
     VkBuffer* getBufferPtr();
     VkDeviceMemory getMemory() const;
     void* getMappedBuffer() const;
-    VkDeviceSize getSize() const;
+    VkDeviceSize getAlignedSize() const;
+    VkDeviceSize getNotAlignedSize() const;
 
     VkMemoryPropertyFlags getProperties() const;
     VkBufferUsageFlags getUsage() const;

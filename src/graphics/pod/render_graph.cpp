@@ -7,7 +7,7 @@
 
 bool RenderGraph::init(std::shared_ptr<VulkanDevice> device) {
     m_device = std::move(device);
-
+    m_sorted = false;
     return true;
 }
 
@@ -25,17 +25,31 @@ void RenderGraph::add_pass(std::shared_ptr<RenderNode> render_node) {
     }
 
     m_render_nodes.push_back(std::move(render_node));
+    m_sorted = false;
 }
 
 void RenderGraph::topological_sort() {
-    for(const RenderNodePtr& render_node : m_render_nodes) for(const auto&[written_resource_name, written_resource_ptr] : render_node->getWrittenResourcesMap()) {
-        for(const RenderNodePtr& reader_node : m_read_map.at(written_resource_name)) {
-            m_adjency_list[render_node].insert(reader_node);
-            m_rev_adjency_list[reader_node].insert(render_node);
+    if(m_render_nodes.size() == 1u) {
+        m_topologically_sorted_nodes.clear();
+        m_topologically_sorted_nodes.push_back(m_render_nodes.front());
+        m_render_node_sort_idx.clear();
+        m_render_node_sort_idx[m_topologically_sorted_nodes.front()] = 0u;
+        m_sorted = true;
+        return;
+    }
+
+    for(const RenderNodePtr& render_node : m_render_nodes) {
+        for(const auto&[written_resource_name, written_resource_ptr] : render_node->getWrittenResourcesMap()) {
+            if(!m_read_map.contains(written_resource_name)) continue;
+            for(const RenderNodePtr& reader_node : m_read_map.at(written_resource_name)) {
+                m_adjency_list[render_node].insert(reader_node);
+                m_rev_adjency_list[reader_node].insert(render_node);
+            }
         }
     }
 
     m_topologically_sorted_nodes.clear();
+    m_render_node_sort_idx.clear();
     m_topologically_sorted_nodes.reserve(m_render_nodes.size());
 
     std::unordered_map<RenderNodePtr, int> count_edges_to_node;
@@ -86,6 +100,8 @@ void RenderGraph::topological_sort() {
         const RenderNodePtr& render_node = m_topologically_sorted_nodes.at(i);
         m_render_node_sort_idx[render_node] = i;
     }
+
+    m_sorted = true;
 }
 
 void RenderGraph::build_dependency_levels() {
@@ -102,6 +118,7 @@ void RenderGraph::build_dependency_levels() {
         const RenderNodePtr& node_ptr = *it;
         int max_neighbor_dist = -1;
 
+        if(!m_adjency_list.contains(node_ptr)) continue;
         for (const RenderNodePtr& adj_node_ptr : m_adjency_list.at(node_ptr)) {
             max_neighbor_dist = std::max(max_neighbor_dist, node_dist_to_start[adj_node_ptr]);
         }
@@ -120,6 +137,10 @@ void RenderGraph::build_dependency_levels() {
 }
 
 const RenderGraph::RenderNodeList& RenderGraph::getTopologicallySortedNodes() {
+    if(!m_sorted) {
+        topological_sort();
+        build_dependency_levels();
+    }
     return m_topologically_sorted_nodes;
 }
 
@@ -139,6 +160,7 @@ RenderGraph::RenderNodePtr RenderGraph::getLastWritten(const RenderNodePtr& rend
 
 size_t RenderGraph::getLastWrittenIdentity(const RenderNodePtr& render_node, const std::string& gloabal_resuorce_name) const {
     size_t current_idx = NO_ID;
+    if(!m_rev_adjency_list.contains(render_node)) return NO_ID;
     for (const RenderNodePtr& write_node : m_rev_adjency_list.at(render_node)) {
         if(!write_node->isWrittenGlobal(gloabal_resuorce_name)) continue;
         size_t write_node_idx = m_render_node_sort_idx.at(write_node);
@@ -161,6 +183,7 @@ RenderGraph::RenderNodePtr RenderGraph::getLastRead(const RenderNodePtr& render_
 
 size_t RenderGraph::getLastReadIdentity(const RenderNodePtr& render_node, const std::string& gloabal_resuorce_name) const {
     size_t current_idx = NO_ID;
+    if(!m_rev_adjency_list.contains(render_node)) return NO_ID;
     for (const RenderNodePtr& write_node : m_rev_adjency_list.at(render_node)) {
         if(!write_node->isWrittenGlobal(gloabal_resuorce_name)) continue;
         size_t write_node_idx = m_render_node_sort_idx.at(write_node);

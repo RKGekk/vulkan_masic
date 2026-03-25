@@ -520,7 +520,7 @@ void printBoundingFrustumImGUI(const BoundingFrustum& bounding_frustum) {
 }
 
 void printVulkanBufferImGUI(std::shared_ptr<VulkanBuffer> vk_buffer) {
-    int vtx_buff_sz = vk_buffer->getSize();
+    int vtx_buff_sz = vk_buffer->getNotAlignedSize();
     ImGui::InputInt("BufferSize", &vtx_buff_sz, 0, 0, ImGuiInputTextFlags_ReadOnly);
 
     std::string vtx_mem_prop_str = getMemoryPropertyStr(vk_buffer->getProperties());

@@ -196,7 +196,7 @@ void DrawFlatHierarchy(std::shared_ptr<Scene> scene) {
     }
 }
 
-bool NodeMenuUI::VOnRender(const GameTimerDelta& delta) {
+bool NodeMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index) {
     using namespace std::literals;
 
     Application& app = Application::Get();
@@ -220,7 +220,7 @@ bool NodeMenuUI::VOnRender(const GameTimerDelta& delta) {
     return true;
 }
 
-void NodeMenuUI::VOnUpdate(const GameTimerDelta& delta) {}
+void NodeMenuUI::VOnUpdate(const GameTimerDelta& delta, uint32_t image_inde) {}
 
 int NodeMenuUI::VGetZOrder() const {
     return 1;

@@ -469,7 +469,7 @@
                          input_rate="vertex"
                          vertex_buffer_resource_type="imgui_vertex_resource"
                          index_buffer_resource_type="imgui_index_resource"
-                         index_type="uint32"
+                         index_type="uint16"
                 >
                     <Attribute name="inPosition">
                         <Location>0</Location>
