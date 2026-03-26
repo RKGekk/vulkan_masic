@@ -43,7 +43,8 @@ public:
     const std::string& getName() const;
     const std::string& getPipelineName() const;
     const std::string& getRenderPassName() const;
-    const std::vector<FrameBufferAttachment>& getAttachmentsConfig() const;
+    const std::vector<std::shared_ptr<FrameBufferAttachment>>& getAttachmentsConfig() const;
+    const std::shared_ptr<FrameBufferAttachment>& getAttachmentData(const std::string& attached_name) const;
     const std::unordered_map<std::string, std::shared_ptr<UpdateMetadata>>& getBindingsMetadata() const;
     const std::shared_ptr<UpdateMetadata>& getUpdateMetadata(const std::string& binding_name);
 
@@ -53,6 +54,7 @@ private:
     std::string m_name;
     std::string m_pipeline_name;
     std::string m_render_pass_name;
-    std::vector<FrameBufferAttachment> m_attachments;
+    std::unordered_map<std::string, size_t> m_name_attach_map;
+    std::vector<std::shared_ptr<FrameBufferAttachment>> m_attachments;
     std::unordered_map<std::string, std::shared_ptr<UpdateMetadata>> m_bindings_metadata;
 };

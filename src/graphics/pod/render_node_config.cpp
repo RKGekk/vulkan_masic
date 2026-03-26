@@ -14,11 +14,13 @@ bool RenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device, const p
     pugi::xml_node attachments_node = node_data.child("FrameBuffer").child("Attachments");
     if(attachments_node) {
         for (pugi::xml_node attachment_node = attachments_node.first_child(); attachment_node; attachment_node = attachment_node.next_sibling()) {
-            FrameBufferAttachment attachment;
-            attachment.attachment_name = attachment_node.attribute("name").as_string();
-            attachment.attachment_resource_type = attachment_node.child("AttachmentResourceType").text().as_string();
-            attachment.attachment_resource_view = attachment_node.child("AttachmentResourceTypeView").text().as_string();
-            attachment.attachment_read_image_layout = getImageLayout(attachment_node.child("AttachmentWriteImageLayout").text().as_string());
+            std::shared_ptr<FrameBufferAttachment> attachment = std::make_shared<FrameBufferAttachment>();
+            attachment->attachment_name = attachment_node.attribute("name").as_string();
+            attachment->attachment_resource_type = attachment_node.child("AttachmentResourceType").text().as_string();
+            attachment->attachment_resource_view = attachment_node.child("AttachmentResourceTypeView").text().as_string();
+            attachment->attachment_read_image_layout = getImageLayout(attachment_node.child("AttachmentWriteImageLayout").text().as_string());
+            size_t attach_idx = m_attachments.size();
+            m_name_attach_map[attachment->attachment_name] = attach_idx;
             m_attachments.push_back(std::move(attachment));
 		}
     }
@@ -76,8 +78,12 @@ const std::string& RenderNodeConfig::getRenderPassName() const {
     return m_render_pass_name;
 }
 
-const std::vector<RenderNodeConfig::FrameBufferAttachment>& RenderNodeConfig::getAttachmentsConfig() const {
+const std::vector<std::shared_ptr<RenderNodeConfig::FrameBufferAttachment>>& RenderNodeConfig::getAttachmentsConfig() const {
     return m_attachments;
+}
+
+const std::shared_ptr<RenderNodeConfig::FrameBufferAttachment>& RenderNodeConfig::getAttachmentData(const std::string& attached_name) const {
+    return m_attachments.at(m_name_attach_map.at(attached_name));
 }
 
 const std::unordered_map<std::string, std::shared_ptr<RenderNodeConfig::UpdateMetadata>>& RenderNodeConfig::getBindingsMetadata() const {

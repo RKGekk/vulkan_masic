@@ -183,7 +183,29 @@ void VulkanRenderer::TransitionResourcesToProperState(const std::shared_ptr<Rend
     }
 
     for(const auto&[gloabal_name, att_slot] : render_node_ptr->getWrittenResourcesMap()){
-        
+        RenderResource::Type att_slot_res_type = att_slot.resource->getType();
+        if(att_slot_res_type == RenderResource::Type::BUFFER) continue;
+
+        size_t last_written_by_node_id = m_per_frame[image_index]->render_graph->getLastWrittenIdentity(render_node_ptr, gloabal_name);
+        size_t last_read_by_node_id = m_per_frame[image_index]->render_graph->getLastReadIdentity(render_node_ptr, gloabal_name);
+
+        if(last_read_by_node_id == RenderGraph::NO_ID && last_written_by_node_id == RenderGraph::NO_ID) {
+            std::shared_ptr<VulkanImageBuffer> attached_write_resource = render_node_ptr->getAttachedImageResource(att_slot.attached_as);
+            VkImageLayout current_image_layout = attached_write_resource->getImageConfig()->getAfterInitLayout();
+            VkImageLayout write_image_layout = render_node_ptr->getRenderNodeConfig()->getAttachmentData(att_slot.attached_as)->attachment_read_image_layout;
+            if(current_image_layout != write_image_layout) {
+                attached_write_resource->changeLayout(current_image_layout, write_image_layout);
+            }
+        }
+
+        if(last_read_by_node_id != RenderGraph::NO_ID && last_read_by_node_id > last_written_by_node_id) {
+            continue;
+        }
+
+        if(last_written_by_node_id != RenderGraph::NO_ID && last_written_by_node_id > last_read_by_node_id) {
+            const RenderGraph::RenderNodePtr& last_written_by_node = m_per_frame[image_index]->render_graph->getRenderNodeByID(last_read_by_node_id);
+            
+        }
     }
 }
 

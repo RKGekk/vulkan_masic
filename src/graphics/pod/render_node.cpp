@@ -77,13 +77,13 @@ const RenderNode::AttachMap& RenderNode::getWrittenAttachmentMap() const {
 
 std::vector<VkImageView> RenderNode::getAttachments() const {
     std::vector<VkImageView> attachments;
-    const std::vector<RenderNodeConfig::FrameBufferAttachment>& attachments_config = m_node_config->getAttachmentsConfig();
+    const std::vector<std::shared_ptr<RenderNodeConfig::FrameBufferAttachment>>& attachments_config = m_node_config->getAttachmentsConfig();
     size_t attachments_count = attachments_config.size();
     attachments.resize(attachments_count);
     for(size_t attachment_idx = 0u; attachment_idx < attachments_count; ++attachment_idx) {
-        const RenderNodeConfig::FrameBufferAttachment& frame_buffer_attachment = attachments_config.at(attachment_idx);
-        if(std::shared_ptr<VulkanImageBuffer> image_resource = std::dynamic_pointer_cast<VulkanImageBuffer>(m_written_attached.at(frame_buffer_attachment.attachment_name).resource)) {
-            attachments[attachment_idx] = image_resource->getImageBufferView(frame_buffer_attachment.attachment_resource_view);
+        const std::shared_ptr<RenderNodeConfig::FrameBufferAttachment>& frame_buffer_attachment = attachments_config.at(attachment_idx);
+        if(std::shared_ptr<VulkanImageBuffer> image_resource = std::dynamic_pointer_cast<VulkanImageBuffer>(m_written_attached.at(frame_buffer_attachment->attachment_name).resource)) {
+            attachments[attachment_idx] = image_resource->getImageBufferView(frame_buffer_attachment->attachment_resource_view);
         }
     }
 
@@ -96,7 +96,7 @@ void RenderNode::finishRenderNode() {
     const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = m_pipeline->getRenderPass();
     m_framebuffers_attachments = getAttachments();
 
-    m_viewport_extent = getWrittenAttachedImageResource(m_node_config->getAttachmentsConfig().front().attachment_name)->getImageConfig()->getFormat()->getExtent2D();
+    m_viewport_extent = getWrittenAttachedImageResource(m_node_config->getAttachmentsConfig().front()->attachment_name)->getImageConfig()->getFormat()->getExtent2D();
 
     m_framebuffer_info = VkFramebufferCreateInfo{};
     m_framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -161,11 +161,11 @@ std::shared_ptr<RenderResource> RenderNode::getAttachedResource(const RenderNode
 
 std::shared_ptr<VulkanImageBuffer> RenderNode::getAttachedImageResource(const RenderNode::LocalName& attached_as) {
     if(isReadAttached(attached_as)) {
-        return getWrittenAttachedImageResource(attached_as);
+        return getReadAttachedImageResource(attached_as);
     }
 
     if(isWrittenAttached(attached_as)) {
-        return getReadAttachedImageResource(attached_as);
+        return getWrittenAttachedImageResource(attached_as);
     }
 
     return nullptr;
