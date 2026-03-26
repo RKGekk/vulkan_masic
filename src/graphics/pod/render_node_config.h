@@ -14,6 +14,7 @@
 
 class VulkanDevice;
 class VulkanSampler;
+class VulkanResourcesManager;
 
 class RenderNodeConfig {
 public:
@@ -21,7 +22,6 @@ public:
         std::string attachment_name;
         std::string attachment_resource_type;
         std::string attachment_resource_view;
-        VkImageLayout attachment_read_image_layout;
     };
 
     struct UpdateMetadata {
@@ -38,7 +38,7 @@ public:
         VkImageLayout read_image_layout;
     };
 
-    bool init(const std::shared_ptr<VulkanDevice>& device, const pugi::xml_node& node_data);
+    bool init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanResourcesManager>& resources_manager, const pugi::xml_node& node_data);
 
     const std::string& getName() const;
     const std::string& getPipelineName() const;

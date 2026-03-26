@@ -38,6 +38,8 @@ public:
     const std::shared_ptr<VulkanImageBuffer>& getImageResource(const std::string& resource_global_name);
     const std::shared_ptr<VulkanBuffer>& getBufferResource(const std::string& resource_global_name);
     std::shared_ptr<RenderResource> getResource(const std::string& resource_global_name);
+    const std::shared_ptr<ImageBufferConfig> getImageBufferConfigTemplate(const std::string& template_name) const;
+    const std::shared_ptr<BufferConfig> getBufferConfigTemplate(const std::string& template_name) const;
 
 protected:
     std::shared_ptr<VulkanDevice> m_device;

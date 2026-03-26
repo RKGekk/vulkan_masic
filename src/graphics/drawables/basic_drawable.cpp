@@ -46,12 +46,12 @@ std::shared_ptr<RenderNodeConfig> getBasicMeshRenderNodeConfig(const std::shared
     pugi::xml_node render_nodes_node = root_node.child("RenderNodes");
 	if (!render_nodes_node) return nullptr;
 
-    render_node_config->init(device, render_nodes_node.child("mesh_render"));
+    render_node_config->init(device, Application::GetRenderer().getResourcesManager(), render_nodes_node.child("mesh_render"));
 
     return render_node_config;
 }
 
-bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<Managers>& managers, int max_frames) {
+bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
     m_device = std::move(device);
     m_rt_aspect = Application::GetRenderer().getSwapchain()->getFormatConfig()->getAspect();
     m_max_frames = max_frames;

@@ -25,9 +25,17 @@ public:
 
     const std::unordered_map<std::string, size_t>& getAttachmentNameToIdxMap() const;
     size_t getAttachmentIdx(const std::string& attachment_name) const;
+    const VkAttachmentDescription& getAttachmentDescription(const std::string& attachment_name) const;
+    const VkAttachmentDescription& getAttachmentDescription(size_t attachment_idx) const;
 
     const std::unordered_map<std::string, std::shared_ptr<FormatConfig>>& getAttachmentNameToFormatMap() const;
     const std::shared_ptr<FormatConfig>& getAttachmentFormat(const std::string& attachment_name) const;
+
+    const std::unordered_map<std::string, size_t> getSubpassNameMap() const;
+    size_t getSubpassIdx(const std::string& subpass_name) const;
+    const std::string& getSubpassName(size_t subpass_idx) const;
+    const VkSubpassDescription& getSubpassDescription(const std::string& subpass_name) const;
+    const VkSubpassDescription& getSubpassDescription(size_t subpass_idx) const;
 
 private:
     std::string m_name;
@@ -44,6 +52,7 @@ private:
     std::vector<VkAttachmentReference> m_depth_desc_attach_refs;
 
     std::vector<VkSubpassDescription> m_subpass_descriptions;
+    std::vector<std::string> m_subpass_names;
     std::unordered_map<std::string, size_t> m_subpass_name_to_idx_map;
 
     std::vector<VkSubpassDependency> m_subpass_dependencies_syncs;

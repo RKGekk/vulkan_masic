@@ -663,7 +663,7 @@
             </DynamicState>
             <RenderPass>
                 <RenderPassName>basic_mulisample_render_pass</RenderPassName>
-                <Subpass>0</Subpass>
+                <SubpassName>only_subpass</SubpassName>
             </RenderPass>
         </GraphicsPipeline>
 
@@ -738,7 +738,7 @@
             </DynamicState>
             <RenderPass>
                 <RenderPassName>basic_mulisample_render_pass</RenderPassName>
-                <Subpass>0</Subpass>
+                <SubpassName>only_subpass</SubpassName>
             </RenderPass>
         </GraphicsPipeline>
     </Pipelines>
@@ -790,17 +790,14 @@
                     <Attachment name="color_attachment">
                         <AttachmentResourceType>render_target_color_resource</AttachmentResourceType>
                         <AttachmentResourceTypeView>render_target_color_resource_view</AttachmentResourceTypeView>
-                        <AttachmentWriteImageLayout>color_attachment_optimal</AttachmentWriteImageLayout>
                     </Attachment>
                     <Attachment name="depth_attachment">
                         <AttachmentResourceType>render_target_depth_resource</AttachmentResourceType>
                         <AttachmentResourceTypeView>render_target_depth_resource_view</AttachmentResourceTypeView>
-                        <AttachmentWriteImageLayout>auto_depth_stencil_attachment_optimal</AttachmentWriteImageLayout>
                     </Attachment>
                     <Attachment name="resolve_attachment">
                         <AttachmentResourceType>basic_swap_chain_resource</AttachmentResourceType>
                         <AttachmentResourceTypeView>basic_swapchain_resource_view</AttachmentResourceTypeView>
-                        <AttachmentWriteImageLayout>present_src_khr</AttachmentWriteImageLayout>
                     </Attachment>
                 </Attachments>
             </FrameBuffer>

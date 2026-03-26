@@ -36,8 +36,24 @@ bool ImageBufferConfig::init(const std::shared_ptr<VulkanDevice>& device, std::s
     m_image_info.tiling = m_format->getTiling();
     m_image_info.usage = m_format->getImageUsage();
     
-    m_image_info.initialLayout = getImageLayout(image_buffer_data.child("CreationLayout").text().as_string());
-    m_after_init_layout = getImageLayout(image_buffer_data.child("AfterInitLayout").text().as_string());
+    bool has_stencil = device->hasStencilComponent(m_image_info.format);
+    std::string initial_layout_str = image_buffer_data.child("CreationLayout").text().as_string();
+    if(initial_layout_str == "auto_depth_stencil_attachment_optimal"s) {
+        VkImageLayout depth_image_layout = has_stencil ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+        m_image_info.initialLayout = depth_image_layout;
+    }
+    else {
+        m_image_info.initialLayout = getImageLayout(initial_layout_str);
+    }
+
+    std::string after_layout_str = image_buffer_data.child("AfterInitLayout").text().as_string();
+    if(after_layout_str == "auto_depth_stencil_attachment_optimal"s) {
+        VkImageLayout depth_image_layout = has_stencil ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+        m_after_init_layout = depth_image_layout;
+    }
+    else {
+        m_after_init_layout = getImageLayout(after_layout_str);
+    }
 
     pugi::xml_node memory_properties_node = image_buffer_data.child("MemoryProperties");
     m_memory_properties_by_memory_requirements = memory_properties_node.attribute("get_by_memory_requirements").as_bool();

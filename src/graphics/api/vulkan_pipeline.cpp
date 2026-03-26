@@ -146,6 +146,10 @@ const std::shared_ptr<PipelineConfig>& VulkanPipeline::getPipelineConfig() const
     return m_pipeline_config;
 }
 
+const VkGraphicsPipelineCreateInfo& VulkanPipeline::getPipelineInfo() const {
+    return m_pipeline_info;
+}
+
 const std::shared_ptr<VulkanRenderPass>& VulkanPipeline::getRenderPass() {
     return m_render_pass;
 }

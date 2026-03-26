@@ -1279,7 +1279,7 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element name="RenderPassName" type="xs:string"></xs:element>
-                        <xs:element name="Subpass" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="SubpassName" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -2192,7 +2192,6 @@
                                             <xs:sequence>
                                                 <xs:element name="AttachmentResourceType" type="xs:string"></xs:element>
                                                 <xs:element name="AttachmentResourceTypeView" type="xs:string"></xs:element>
-                                                <xs:element name="AttachmentWriteImageLayout" type="target:ImageLayoutSimpleType" minOccurs="0" maxOccurs="1"></xs:element>
                                             </xs:sequence>
                                             <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
                                         </xs:complexType>

@@ -80,7 +80,7 @@ std::shared_ptr<RenderNodeConfig> getMeshRenderNodeConfig(const std::shared_ptr<
     pugi::xml_node render_nodes_node = root_node.child("RenderNodes");
 	if (!render_nodes_node) return nullptr;
 
-    render_node_config->init(device, render_nodes_node.child("mesh_render"));
+    render_node_config->init(device, Application::GetRenderer().getResourcesManager(), render_nodes_node.child("mesh_render"));
 
     return render_node_config;
 }

@@ -70,7 +70,7 @@ std::shared_ptr<RenderNodeConfig> getImguiRenderNodeConfig(const std::shared_ptr
         std::string node_name = render_node.attribute("name").as_string();
         if(node_name == "imgui_renderer"s) {
             std::shared_ptr<RenderNodeConfig> render_node_config = std::make_shared<RenderNodeConfig>();
-            render_node_config->init(device, render_node);
+            render_node_config->init(device, Application::GetRenderer().getResourcesManager(), render_node);
             return render_node_config;
         }
     }

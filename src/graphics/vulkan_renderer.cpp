@@ -20,6 +20,7 @@
 #include "pod/render_graph.h"
 #include "pod/render_node_config.h"
 #include "pod/image_buffer_config.h"
+#include "pod/render_pass_config.h"
 
 #include <algorithm>
 
@@ -192,7 +193,9 @@ void VulkanRenderer::TransitionResourcesToProperState(const std::shared_ptr<Rend
         if(last_read_by_node_id == RenderGraph::NO_ID && last_written_by_node_id == RenderGraph::NO_ID) {
             std::shared_ptr<VulkanImageBuffer> attached_write_resource = render_node_ptr->getAttachedImageResource(att_slot.attached_as);
             VkImageLayout current_image_layout = attached_write_resource->getImageConfig()->getAfterInitLayout();
-            VkImageLayout write_image_layout = render_node_ptr->getRenderNodeConfig()->getAttachmentData(att_slot.attached_as)->attachment_read_image_layout;
+            
+            const VkAttachmentDescription& attach_desc = render_node_ptr->getPipeline()->getRenderPass()->getRenderPassConfig()->getAttachmentDescription(att_slot.attached_as);
+            VkImageLayout write_image_layout = attach_desc.initialLayout;
             if(current_image_layout != write_image_layout) {
                 attached_write_resource->changeLayout(current_image_layout, write_image_layout);
             }

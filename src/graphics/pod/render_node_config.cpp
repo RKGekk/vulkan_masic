@@ -2,8 +2,11 @@
 
 #include "../api/vulkan_device.h"
 #include "../api/vulkan_sampler.h"
+#include "../api/vulkan_resources_manager.h"
+#include "image_buffer_config.h"
+#include "format_config.h"
 
-bool RenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device, const pugi::xml_node& node_data) {
+bool RenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanResourcesManager>& resources_manager, const pugi::xml_node& node_data) {
     using namespace std::literals;
 
     m_name = node_data.attribute("name").as_string();
@@ -18,7 +21,7 @@ bool RenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device, const p
             attachment->attachment_name = attachment_node.attribute("name").as_string();
             attachment->attachment_resource_type = attachment_node.child("AttachmentResourceType").text().as_string();
             attachment->attachment_resource_view = attachment_node.child("AttachmentResourceTypeView").text().as_string();
-            attachment->attachment_read_image_layout = getImageLayout(attachment_node.child("AttachmentWriteImageLayout").text().as_string());
+
             size_t attach_idx = m_attachments.size();
             m_name_attach_map[attachment->attachment_name] = attach_idx;
             m_attachments.push_back(std::move(attachment));

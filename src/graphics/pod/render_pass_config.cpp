@@ -190,7 +190,9 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
             }
 
             std::string subpass_name = subpass_desc_node.attribute("name").as_string();
-            m_subpass_name_to_idx_map[subpass_name] = m_subpass_descriptions.size();
+            size_t subpass_idx = m_subpass_descriptions.size();
+            m_subpass_name_to_idx_map[subpass_name] = subpass_idx;
+            m_subpass_names.push_back(subpass_name);
             m_subpass_descriptions.push_back(subpass_desc);
         }
     }
@@ -293,6 +295,34 @@ const std::unordered_map<std::string, std::shared_ptr<FormatConfig>>& RenderPass
     return m_attachment_name_to_format_map;
 }
 
+const VkAttachmentDescription& RenderPassConfig::getAttachmentDescription(const std::string& attachment_name) const {
+    return m_attachment_descriptions.at(m_attachment_name_to_attach_idx_map.at(attachment_name));
+}
+
+const VkAttachmentDescription& RenderPassConfig::getAttachmentDescription(size_t attachment_idx) const {
+    return m_attachment_descriptions.at(attachment_idx);
+}
+
 const std::shared_ptr<FormatConfig>& RenderPassConfig::getAttachmentFormat(const std::string& attachment_name) const {
     return m_attachment_name_to_format_map.at(attachment_name);
+}
+
+const std::unordered_map<std::string, size_t> RenderPassConfig::getSubpassNameMap() const {
+    return m_subpass_name_to_idx_map;
+}
+
+size_t RenderPassConfig::getSubpassIdx(const std::string& subpass_name) const {
+    return m_subpass_name_to_idx_map.at(subpass_name);
+}
+
+const std::string& RenderPassConfig::getSubpassName(size_t subpass_idx) const {
+    return m_subpass_names.at(subpass_idx);
+}
+
+const VkSubpassDescription& RenderPassConfig::getSubpassDescription(const std::string& subpass_name) const {
+    return m_subpass_descriptions.at(m_subpass_name_to_idx_map.at(subpass_name));
+}
+
+const VkSubpassDescription& RenderPassConfig::getSubpassDescription(size_t subpass_idx) const {
+    return m_subpass_descriptions.at(subpass_idx);
 }

@@ -27,12 +27,11 @@
 
 class VulkanImageBuffer;
 class VulkanBuffer;
-struct Managers;
 class RenderNode;
 
 class BasicDrawable : public IVulkanDrawable {
 public:
-    bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<Managers>& managers, int max_frames);
+    bool init(std::shared_ptr<VulkanDevice> device, int max_frames);
     void destroy() override;
     void update(const GameTimerDelta& delta, uint32_t image_index) override;
 

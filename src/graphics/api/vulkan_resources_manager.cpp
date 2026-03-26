@@ -167,3 +167,11 @@ std::shared_ptr<RenderResource> VulkanResourcesManager::getResource(const std::s
 	}
 	return nullptr;
 }
+
+const std::shared_ptr<ImageBufferConfig> VulkanResourcesManager::getImageBufferConfigTemplate(const std::string& template_name) const {
+	return m_image_buffer_config_map.at(template_name);
+}
+
+const std::shared_ptr<BufferConfig> VulkanResourcesManager::getBufferConfigTemplate(const std::string& template_name) const {
+	return m_buffer_config_map.at(template_name);
+}

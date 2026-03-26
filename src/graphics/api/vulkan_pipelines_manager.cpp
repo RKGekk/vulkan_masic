@@ -7,7 +7,9 @@
 #include "vulkan_descriptors_manager.h"
 #include "vulkan_shaders_manager.h"
 #include "vulkan_render_passes_manager.h"
+#include "vulkan_render_pass.h"
 #include "../vulkan_renderer.h"
+#include "../pod/render_pass_config.h"
 
 bool VulkanPipelinesManager::init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_path) {
     pugi::xml_document xml_doc;
@@ -24,7 +26,8 @@ bool VulkanPipelinesManager::init(std::shared_ptr<VulkanDevice> device, const st
 
 		for (pugi::xml_node pipeline_node = pipelines_node.first_child(); pipeline_node; pipeline_node = pipeline_node.next_sibling()) {
             std::shared_ptr<VulkanRenderPass> render_pass_ptr = Application::GetRenderer().getRenderPassesManager()->getRenderPass(pipeline_node.child("RenderPass").child("RenderPassName").text().as_string());
-            uint32_t subpass = pipeline_node.child("RenderPass").child("Subpass").text().as_uint();
+            std::string subpass_name = pipeline_node.child("RenderPass").child("SubpassName").text().as_string();
+            uint32_t subpass = render_pass_ptr->getRenderPassConfig()->getSubpassIdx(subpass_name);
             std::shared_ptr<VulkanPipeline> pipeline = std::make_shared<VulkanPipeline>();
 			pipeline->init(device, pipeline_node, viewport_extent, render_pass_ptr, subpass, Application::GetRenderer().getDescriptorsManager(), Application::GetRenderer().getShadersManager());
             m_pipeline_name_map.insert({pipeline_node.attribute("name").as_string(), std::move(pipeline)});
