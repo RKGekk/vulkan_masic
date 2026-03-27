@@ -93,8 +93,6 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
 
     std::shared_ptr<RenderNodeConfig> render_node_config = getMeshRenderNodeConfig(m_device);
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
-    std::vector<std::shared_ptr<VulkanImageBuffer>>& color_images = Application::GetRenderer().getOutColorImages();
-    std::vector<std::shared_ptr<VulkanImageBuffer>>& depth_images = Application::GetRenderer().getOutDepthImages();
 
     const MeshNode::MeshList& mesh_list = model->GetMeshes();
     size_t msz = mesh_list.size();
@@ -126,8 +124,8 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             renderable->render_node->addReadDependency(renderable->uniform_buffer, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER));
             renderable->render_node->addReadDependency(renderable->texture, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
             renderable->render_node->addWriteDependency(swapchain_images[i], "resolve_attachment");
-            renderable->render_node->addWriteDependency(color_images[i], "color_attachment");
-            renderable->render_node->addWriteDependency(depth_images[i], "depth_attachment");
+            renderable->render_node->addWriteDependency(Application::GetRenderer().getOutColorImage(i), "color_attachment");
+            renderable->render_node->addWriteDependency(Application::GetRenderer().getOutDepthImage(i), "depth_attachment");
             renderable->render_node->finishRenderNode();
 
             m_renderables.push_back(renderable);

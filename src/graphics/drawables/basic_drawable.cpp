@@ -60,8 +60,6 @@ bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
 
     m_texture = Application::GetRenderer().getResourcesManager()->create_image("textures/texture.jpg");
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
-    std::vector<std::shared_ptr<VulkanImageBuffer>>& color_images = Application::GetRenderer().getOutColorImages();
-    std::vector<std::shared_ptr<VulkanImageBuffer>>& depth_images = Application::GetRenderer().getOutDepthImages();
 
     m_render_nodes.resize(max_frames);
     m_vertex_buffers.resize(max_frames);
@@ -84,8 +82,8 @@ bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
         m_render_nodes[i]->addReadDependency(m_uniform_buffers[i], desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER));
         m_render_nodes[i]->addReadDependency(m_texture, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
         m_render_nodes[i]->addWriteDependency(swapchain_images[i], "resolve_attachment");
-        m_render_nodes[i]->addWriteDependency(color_images[i], "color_attachment");
-        m_render_nodes[i]->addWriteDependency(depth_images[i], "depth_attachment");
+        m_render_nodes[i]->addWriteDependency(Application::GetRenderer().getOutColorImage(i), "color_attachment");
+        m_render_nodes[i]->addWriteDependency(Application::GetRenderer().getOutDepthImage(i), "depth_attachment");
 
         m_render_nodes[i]->finishRenderNode();
         Application::GetRenderer().addRenderNode(m_render_nodes[i], i);

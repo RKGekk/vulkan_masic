@@ -215,7 +215,7 @@ void BaseEngineLogic::VOnUpdate(const GameTimerDelta& delta, uint32_t image_inde
 
 	switch (m_state) {
 		case BaseEngineState::BGS_Initializing: {
-			std::shared_ptr<IEngineView> menuView = std::make_shared<HumanView>(m_process_manager);
+			std::shared_ptr<HumanView> menuView = std::make_shared<HumanView>(m_process_manager);
 			VAddView(menuView);
 			VChangeState(BaseEngineState::BGS_MainMenu);
 		}

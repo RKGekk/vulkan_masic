@@ -136,14 +136,15 @@ const std::shared_ptr<BaseEngineLogic>& Application::GetGameLogic() const {
 void Application::mainLoop() {
     bool exit = false;
     while(!exit) {
-        uint32_t image_index = m_renderer.getSwapchain()->fetchNextSync();
+        auto [image_available, image_index] = m_renderer.acquire_next_image();
+        if(!image_available) continue;
         exit = update(image_index);
         if(m_window->SkipDraw()) continue;
         for (GameViewList::const_iterator i = m_game->GetViews().begin(), end = m_game->GetViews().end(); i != end; ++i) {
 		    (*i)->VOnRender(Application::Get().GetTimer(), image_index);
 	    }
         m_renderer.update_frame(m_timer, image_index);
-        m_renderer.drawFrame();
+        m_renderer.drawFrame(image_index);
     }
 }
 

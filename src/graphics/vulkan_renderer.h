@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <memory>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 #define GLFW_INCLUDE_VULKAN
@@ -37,22 +38,21 @@ struct PerFrame {
     bool init(std::shared_ptr<VulkanDevice> device, unsigned index);
     void destroy();
 	
-	bool wait(uint64_t timeout);
 	void begin();
 
 	unsigned frame_index;
 
-	std::vector<VkSemaphore> timeline_semaphores;
-	std::vector<uint64_t> timeline_fences;
     std::shared_ptr<VulkanImageBuffer> out_color_image;
     std::shared_ptr<VulkanImageBuffer> out_depth_image;
 
-	std::vector<VkFence> wait_and_recycle_fences;
+    VkSemaphore swapchain_available_sem;
+    VkFence swapchain_available_fen;
+    std::vector<VkSemaphore> cmd_submit_wait_sem;
+    VkSemaphore cmd_submit_finish_signal_sem;
+    VkFence cmd_submit_finish_fence;
+    std::vector<VkSemaphore> present_wait_sem;
 
 	std::shared_ptr<CommandBatch> command_buffer;
-	std::vector<VkSemaphore> recycled_semaphores;
-	std::vector<VkEvent> recycled_events;
-	std::vector<VkSemaphore> consumed_semaphores;
 
     std::shared_ptr<RenderGraph> render_graph;
 };
@@ -75,14 +75,15 @@ public:
     std::shared_ptr<VulkanFormatManager>& getFormatManager();
     std::shared_ptr<VulkanResourcesManager>& getResourcesManager();
 
-    std::vector<std::shared_ptr<VulkanImageBuffer>>& getOutColorImages();
-    std::vector<std::shared_ptr<VulkanImageBuffer>>& getOutDepthImages();
+    std::shared_ptr<VulkanImageBuffer>& getOutColorImage(uint32_t image_index);
+    std::shared_ptr<VulkanImageBuffer>& getOutDepthImage(uint32_t image_index);
 
     void recordCommandBuffer(CommandBatch& command_buffer, unsigned image_index);
-    void drawFrame();
+    void drawFrame(unsigned image_index);
     
     void update_frame(const GameTimerDelta& delta, uint32_t image_index);
     void addRenderNode(std::shared_ptr<RenderNode> render_node, unsigned image_index);
+    std::pair<bool, uint32_t> acquire_next_image();
 
 private:
     void TransitionResourcesToProperState(const std::shared_ptr<RenderNode>& render_node, CommandBatch& command_buffer, unsigned image_index);
@@ -92,8 +93,6 @@ private:
     std::shared_ptr<VulkanSwapChain> m_swapchain;
 
     std::vector<std::shared_ptr<PerFrame>> m_per_frame;
-    std::vector<std::shared_ptr<VulkanImageBuffer>> m_out_color_images;
-    std::vector<std::shared_ptr<VulkanImageBuffer>> m_out_depth_images;
     
     std::shared_ptr<VulkanDescriptorsManager> m_descriptors_manager;
     std::shared_ptr<VulkanShadersManager> m_shaders_manager;
@@ -106,4 +105,6 @@ private:
     std::shared_ptr<VulkanResourcesManager> m_resources_manager;
 
     std::shared_ptr<ThreadPool> m_thread_pool;
+    uint32_t m_frame;
+    uint32_t m_prev_frame;
 };

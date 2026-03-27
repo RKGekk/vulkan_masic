@@ -106,21 +106,6 @@ bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr
         m_swapchain_images[i] = Application::GetRenderer().getResourcesManager()->create_image(swapchain_images[i], "swap_chain_"s + std::to_string(i), resource_type_name);
     }
 
-    m_image_available_sem.resize(m_max_frames);
-    m_image_available_fen.resize(m_max_frames);
-
-    VkSemaphoreCreateInfo image_available_sema_info{};
-    image_available_sema_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-    VkFenceCreateInfo in_flight_fen_info{};
-    in_flight_fen_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    in_flight_fen_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-    for(size_t i = 0u; i < m_max_frames; ++i) {
-        m_image_available_sem[i] = Application::GetRenderer().getSemaphoreManager()->getSemaphore();
-        m_image_available_fen[i] = Application::GetRenderer().getFenceManager()->getFence();
-    }
-
     return true;
 }
 
@@ -140,75 +125,6 @@ const VkSwapchainCreateInfoKHR& VulkanSwapChain::getSwapchainParams() const {
 
 int VulkanSwapChain::getMaxFrames() const {
     return m_max_frames;
-}
-
-uint32_t VulkanSwapChain::getCurrentFrame() const {
-    return m_current_frame;
-}
-
-const uint32_t* VulkanSwapChain::getCurrentFramePtr() const {
-    return &m_current_frame;
-}
-
-uint32_t VulkanSwapChain::getCurrentSync() const {
-    return m_current_sync;
-}
-
-uint32_t VulkanSwapChain::fetchNextSync() const {
-    return (m_current_sync + 1u) % m_max_frames;
-}
-
-bool VulkanSwapChain::setNextFrame(VkFence wait_to) {
-    if (wait_to) {
-        vkWaitForFences(m_device->getDevice(), 1u, &wait_to, VK_TRUE, UINT64_MAX);
-    }
-    m_current_sync = fetchNextSync();
-    vkWaitForFences(m_device->getDevice(), 1u, getImageAvailableFencePtr(), VK_TRUE, UINT64_MAX);
-    vkResetFences(m_device->getDevice(), 1u, getImageAvailableFencePtr());
-    VkResult result = vkAcquireNextImageKHR(m_device->getDevice(), m_swapchain, UINT64_MAX, getImageAvailableSemaphore(), getImageAvailableFence(), &m_current_frame);
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
-        return false;
-    }
-    else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-        throw std::runtime_error("failed to acquire swap chain image!");
-    }
-    return true;
-}
-
-VkSemaphore VulkanSwapChain::getImageAvailableSemaphore(uint32_t image_index) {
-    if(uint32_t image_index = CURRENT_SYNC) {
-        return m_image_available_sem[m_current_sync];
-    }
-    else {
-        return m_image_available_sem[image_index];
-    }
-}
-
-VkSemaphore* VulkanSwapChain::getImageAvailableSemaphorePtr(uint32_t image_index) {
-    if(uint32_t image_index = CURRENT_SYNC) {
-        return &m_image_available_sem[m_current_sync];
-    }
-    else {
-        return &m_image_available_sem[image_index];
-    }
-}
-
-VkFence VulkanSwapChain::getImageAvailableFence(uint32_t image_index) {
-    if(uint32_t image_index = CURRENT_SYNC) {
-        return m_image_available_fen[m_current_sync];
-    }
-    else {
-        return m_image_available_fen[image_index];
-    }
-}
-
-VkFence* VulkanSwapChain::getImageAvailableFencePtr(uint32_t image_index) {
-    if(uint32_t image_index = CURRENT_SYNC) {
-        return &m_image_available_fen[m_current_sync];
-    }
-    else {
-        return &m_image_available_fen[image_index];
-    }
 }
 
 const std::shared_ptr<WindowSurface>& VulkanSwapChain::getWindow() const {

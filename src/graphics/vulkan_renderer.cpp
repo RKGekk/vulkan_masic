@@ -33,10 +33,6 @@ void PerFrame::destroy() {
 
 }
 	
-bool PerFrame::wait(uint64_t timeout) {
-    return true;
-}
-
 void PerFrame::begin() {
 
 }
@@ -64,18 +60,19 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
 
     m_command_manager = m_device->getCommandManager();
 
+    m_frame = 0u;
+    m_prev_frame = 0u;
+
     int max_frames = m_swapchain->getMaxFrames();
     m_per_frame.reserve(max_frames);
-    m_out_color_images.reserve(max_frames);
-    m_out_depth_images.reserve(max_frames);
     for(int i = 0; i < max_frames; ++i) {
         std::shared_ptr<PerFrame> per_frame = std::make_shared<PerFrame>();
 
         per_frame->out_color_image = m_resources_manager->create_image("render_target_color", "render_target_color_resource");
         per_frame->out_depth_image = m_resources_manager->create_image("render_target_depth", "render_target_depth_resource");
 
-        m_out_color_images.push_back(per_frame->out_color_image);
-        m_out_depth_images.push_back(per_frame->out_depth_image);
+        per_frame->swapchain_available_sem = m_semaphore_manager->getSemaphore();
+        per_frame->swapchain_available_fen = m_fence_manager->getFence();
 
         per_frame->render_graph = std::make_shared<RenderGraph>();
         per_frame->render_graph->init(m_device);
@@ -213,18 +210,17 @@ void VulkanRenderer::TransitionResourcesToProperState(const std::shared_ptr<Rend
     }
 }
 
-std::vector<std::shared_ptr<VulkanImageBuffer>>& VulkanRenderer::getOutColorImages() {
-    return m_out_color_images;
+std::shared_ptr<VulkanImageBuffer>& VulkanRenderer::getOutColorImage(uint32_t image_index) {
+    return m_per_frame[image_index]->out_color_image;
 }
 
-std::vector<std::shared_ptr<VulkanImageBuffer>>& VulkanRenderer::getOutDepthImages() {
-    return m_out_depth_images;
+std::shared_ptr<VulkanImageBuffer>& VulkanRenderer::getOutDepthImage(uint32_t image_index) {
+    return m_per_frame[image_index]->out_depth_image;
 }
 
 void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer, unsigned image_index) {
     VulkanCommandManager::beginCommandBuffer(command_buffer);
 
-    uint32_t current_frame = m_swapchain->getCurrentFrame();
     static std::array<VkClearValue, 2> clear_values{};
     clear_values[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
     clear_values[1].depthStencil = {1.0f, 0};
@@ -316,30 +312,33 @@ void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer, unsigned 
     VulkanCommandManager::endCommandBuffer(command_buffer);
 }
 
-void VulkanRenderer::drawFrame() {
-    bool next_frame_available = m_swapchain->setNextFrame(m_per_frame[m_swapchain->fetchNextSync()]->command_buffer->getRenderFence());
-    if (!next_frame_available) {
-        return;
-    }
+void VulkanRenderer::drawFrame(unsigned image_index) {
+    vkWaitForFences(m_device->getDevice(), 1u, &(m_per_frame[m_prev_frame]->cmd_submit_finish_fence), VK_TRUE, UINT64_MAX);
+    vkResetFences(m_device->getDevice(), 1u, &(m_per_frame[m_prev_frame]->cmd_submit_finish_fence));
 
-    m_per_frame[m_swapchain->getCurrentSync()]->command_buffer->reset();
-    recordCommandBuffer(*m_per_frame[m_swapchain->getCurrentSync()]->command_buffer, m_swapchain->getCurrentSync());
+    m_per_frame[image_index]->command_buffer->reset();
+    m_per_frame[image_index]->cmd_submit_finish_signal_sem = m_per_frame[image_index]->command_buffer->getInProgressSemaphore();
+    m_per_frame[image_index]->cmd_submit_finish_fence = m_per_frame[image_index]->command_buffer->getRenderFence();
+    recordCommandBuffer(*m_per_frame[image_index]->command_buffer, image_index);
     
     CommandBatch::BatchWaitInfo wait_info;
-    wait_info.wait_for_semaphores.push_back(m_swapchain->getImageAvailableSemaphore());
+    wait_info.wait_for_semaphores.push_back(m_per_frame[m_prev_frame]->swapchain_available_sem);
+    wait_info.wait_for_semaphores.insert(wait_info.wait_for_semaphores.end(), m_per_frame[m_prev_frame]->cmd_submit_wait_sem.begin(), m_per_frame[m_prev_frame]->cmd_submit_wait_sem.end());
     wait_info.wait_for_stages.push_back(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
-    VkSubmitInfo submit_info = m_per_frame[m_swapchain->getCurrentSync()]->command_buffer->getSubmitInfo(&wait_info);
+    VkSubmitInfo submit_info = m_per_frame[image_index]->command_buffer->getSubmitInfo(&wait_info);
 
-    m_command_manager->submitCommandBuffer(*m_per_frame[m_swapchain->getCurrentSync()]->command_buffer, VulkanCommandManager::SELECT_ALL_BUFFERS, &submit_info);
+    m_command_manager->submitCommandBuffer(*m_per_frame[image_index]->command_buffer, VulkanCommandManager::SELECT_ALL_BUFFERS, &submit_info);
+
+    m_per_frame[image_index]->present_wait_sem.push_back(m_per_frame[image_index]->cmd_submit_finish_signal_sem);
     
     VkSwapchainKHR swapchains[] = {m_swapchain->getSwapchain()};
     VkPresentInfoKHR present_info{};
     present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    present_info.waitSemaphoreCount = 1u;
-    present_info.pWaitSemaphores = m_per_frame[m_swapchain->getCurrentSync()]->command_buffer->getInProgressSemaphorePtr();
+    present_info.waitSemaphoreCount = static_cast<uint32_t>(m_per_frame[image_index]->present_wait_sem.size());
+    present_info.pWaitSemaphores = m_per_frame[image_index]->present_wait_sem.data();
     present_info.swapchainCount = 1u;
     present_info.pSwapchains = swapchains;
-    present_info.pImageIndices = m_swapchain->getCurrentFramePtr();
+    present_info.pImageIndices = &image_index;
     present_info.pResults = nullptr;
     VkResult result = vkQueuePresentKHR(m_command_manager->getQueue(), &present_info);
     if (result != VK_SUCCESS) {
@@ -353,4 +352,23 @@ void VulkanRenderer::update_frame(const GameTimerDelta& delta, uint32_t image_in
 
 void VulkanRenderer::addRenderNode(std::shared_ptr<RenderNode> render_node, unsigned image_index) {
     m_per_frame[image_index]->render_graph->add_pass(std::move(render_node));
+}
+
+std::pair<bool, uint32_t> VulkanRenderer::acquire_next_image() {
+    uint32_t m_prev_frame = m_frame;
+    VkResult result = vkAcquireNextImageKHR(
+        m_device->getDevice(),
+        m_swapchain->getSwapchain(),
+        UINT64_MAX,
+        m_per_frame[m_prev_frame]->swapchain_available_sem,
+        m_per_frame[m_prev_frame]->swapchain_available_fen,
+        &m_frame
+    );
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+        return {false, m_frame};
+    }
+    else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+        throw std::runtime_error("failed to acquire swap chain image!");
+    }
+    return {true, m_frame};
 }

@@ -104,8 +104,6 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
     std::shared_ptr<RenderNodeConfig> render_node_config = getImguiRenderNodeConfig(m_device);
 
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
-    std::vector<std::shared_ptr<VulkanImageBuffer>>& color_images = Application::GetRenderer().getOutColorImages();
-    std::vector<std::shared_ptr<VulkanImageBuffer>>& depth_images = Application::GetRenderer().getOutDepthImages();
 
     for(size_t frame = 0u; frame < max_frames; ++frame) {
         std::shared_ptr<Renderable> renderable = std::make_shared<Renderable>();
@@ -130,8 +128,8 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
         renderable->render_node->addReadDependency(renderable->uniform_buffer, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER));
         renderable->render_node->addReadDependency(renderable->font_texture, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
         renderable->render_node->addWriteDependency(swapchain_images[frame], "resolve_attachment");
-        renderable->render_node->addWriteDependency(color_images[frame], "color_attachment");
-        renderable->render_node->addWriteDependency(depth_images[frame], "depth_attachment");
+        renderable->render_node->addWriteDependency(Application::GetRenderer().getOutColorImage(frame), "color_attachment");
+        renderable->render_node->addWriteDependency(Application::GetRenderer().getOutDepthImage(frame), "depth_attachment");
         renderable->render_node->finishRenderNode();
 
         m_renderables.push_back(renderable);

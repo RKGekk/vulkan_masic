@@ -4,6 +4,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #define GLFW_INCLUDE_VULKAN
@@ -37,15 +38,7 @@ public:
     const SwapchainSupportDetails& getSwapchainSupportDetails() const;
     const VkSwapchainCreateInfoKHR& getSwapchainParams() const;
     int getMaxFrames() const;
-    uint32_t getCurrentFrame() const;
-    const uint32_t* getCurrentFramePtr() const;
-    uint32_t getCurrentSync() const;
-    uint32_t fetchNextSync() const;
-    bool setNextFrame(VkFence wait_to);
-    VkSemaphore getImageAvailableSemaphore(uint32_t image_index = CURRENT_SYNC); // signaled when the presentation engine is finished using the image.
-    VkSemaphore* getImageAvailableSemaphorePtr(uint32_t image_index = CURRENT_SYNC); // signaled when the presentation engine is finished using the image.
-    VkFence getImageAvailableFence(uint32_t image_index = CURRENT_SYNC); // signaled when the presentation engine is finished using the image.
-    VkFence* getImageAvailableFencePtr(uint32_t image_index = CURRENT_SYNC); // signaled when the presentation engine is finished using the image.
+    
     const std::shared_ptr<WindowSurface>& getWindow() const;
     VkSwapchainKHR getSwapchain() const;
 
@@ -68,10 +61,5 @@ private:
     VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;
 
     std::vector<std::shared_ptr<VulkanImageBuffer>> m_swapchain_images;
-    std::vector<VkSemaphore> m_image_available_sem; // signaled when the presentation engine is finished using the image.
-    std::vector<VkFence> m_image_available_fen; // signaled when the presentation engine is finished using the image.
-
-    uint32_t m_current_frame = 0u;
-    uint32_t m_current_sync = 0u;
     uint32_t m_max_frames = 0u;
 };
