@@ -25,6 +25,7 @@
 #include <algorithm>
 
 bool PerFrame::init(std::shared_ptr<VulkanDevice> device, unsigned index) {
+    frame_index = index;
     return true;
 }
 

@@ -109,6 +109,9 @@ void BasicDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     ubo.proj[1][1] *= -1.0f;
 
     m_uniform_buffers[image_index]->update(&ubo, sizeof(UniformBufferObject));
+
+    //const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
+    //m_render_nodes[image_index]->changeWriteDependency(swapchain_images[image_index], "resolve_attachment");
 }
 
 int BasicDrawable::order() {

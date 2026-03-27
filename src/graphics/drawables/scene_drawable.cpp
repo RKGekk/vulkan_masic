@@ -45,6 +45,7 @@ void SceneDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     std::shared_ptr<BaseEngineLogic> game_logic = app.GetGameLogic();
     std::shared_ptr<CameraComponent> camera_component = game_logic->GetHumanView()->VGetCamera();
     std::shared_ptr<BasicCameraNode> camera_node = camera_component->VGetCameraNode();
+    const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
     for(size_t render_id = 0u; render_id < sz; ++render_id) {
         const std::shared_ptr<Renderable>& renderable = m_renderables.at(render_id);
         if(renderable->frame != image_index) continue;
@@ -59,6 +60,8 @@ void SceneDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
         //ubo.proj[1][1] *= -1.0f;
 
         renderable->uniform_buffer->update(&ubo, sizeof(SceneUniformBufferObject));
+
+        //renderable->render_node->changeWriteDependency(swapchain_images[image_index], "resolve_attachment");
     }
 }
 

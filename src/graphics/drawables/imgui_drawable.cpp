@@ -152,7 +152,7 @@ void ImGUIDrawable::destroy() {
 }
 
 void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
-    const std::shared_ptr<Renderable>& renderable = m_renderables.at(image_index);
+    std::shared_ptr<Renderable>& renderable = m_renderables.at(image_index);
 
     ImDrawData* dd = ImGui::GetDrawData();
     std::shared_ptr<VulkanShader> vertex_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
@@ -183,6 +183,9 @@ void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     }
     renderable->vertex_buffer->update(renderable->imgui_vtx.data(), vertex_sz);
     renderable->index_buffer->update(renderable->imgui_idx.data(), index_sz);
+
+    //const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
+    //renderable->render_node->changeWriteDependency(swapchain_images[image_index], "resolve_attachment");
 }
 
 int ImGUIDrawable::order() {

@@ -38,6 +38,7 @@ public:
 
     void addReadDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as, bool only_read = true);
     void addWriteDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as);
+    void changeWriteDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as);
 
     bool isReadGlobal(const GlobalName& name) const;
     bool isWrittenGlobal(const GlobalName& name) const;
