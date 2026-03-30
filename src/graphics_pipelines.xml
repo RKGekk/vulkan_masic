@@ -349,7 +349,7 @@
                     <Flag>transfer_dst</Flag>
                     <Flag>vertex_buffer</Flag>
                 </BufferUsageFlags>
-                <Size dynamic="true" deffered="true">0</Size>
+                <Size dynamic="false" deffered="true">0</Size>
                 <MemoryProperties>
                     <Property>device_local</Property>
                 </MemoryProperties>

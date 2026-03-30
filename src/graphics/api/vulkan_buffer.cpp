@@ -44,14 +44,14 @@ bool VulkanBuffer::init(const void* data, std::shared_ptr<BufferConfig> buffer_c
     }
     
     if(data) {
-        update(data, m_buffer_config->getBufferInfo().size);
+        update(data, m_buffer_config->getNotAlignedSize());
     }
  
     return true;
 }
 
 bool VulkanBuffer::init(CommandBatch& command_buffer, const void* data, std::shared_ptr<BufferConfig> buffer_config) {
-    VkDeviceSize data_size = m_buffer_config->getBufferInfo().size;
+    VkDeviceSize data_size = m_buffer_config->getNotAlignedSize();
     init(nullptr, std::move(buffer_config));
     update(command_buffer, data, data_size);
  

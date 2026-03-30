@@ -6,27 +6,6 @@
 
 #include "../../tools/string_tools.h"
 
-bool BufferConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::string& rg_file_path, const std::shared_ptr<VulkanFormatManager>& format_manager) {
-    pugi::xml_document xml_doc;
-	pugi::xml_parse_result parse_res = xml_doc.load_file(rg_file_path.c_str());
-	if (!parse_res) { return false;	}
-
-	pugi::xml_node root_node = xml_doc.root();
-	if (!root_node) { return false; }
-	root_node = root_node.child("RenderGraph");
-
-    pugi::xml_node type_of_resources_node = root_node.child("TypeOfResources");
-	if (!type_of_resources_node) return false;
-    
-	for (pugi::xml_node resource_type_node = type_of_resources_node.first_child(); resource_type_node; resource_type_node = resource_type_node.next_sibling()) {
-        pugi::xml_node buffer_node = resource_type_node.child("Buffer");
-	    if (!buffer_node) continue;
-	    return init(device, resource_type_node.attribute("name").as_string(), buffer_node, format_manager);
-	}
-
-    return true;
-}
-
 bool BufferConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::string& name, const pugi::xml_node& buffer_data, const std::shared_ptr<VulkanFormatManager>& format_manager) {
     using namespace std::literals;
 
@@ -151,6 +130,8 @@ std::shared_ptr<BufferConfig> BufferConfig::makeInstance(std::string name, VkDev
 
     if(m_deffered_size) {
         instance_ptr->m_buffer_info.size = buffer_size;
+        instance_ptr->m_alignment = 1u;
+        instance_ptr->m_not_aligned_size = buffer_size;
     }
 
     instance_ptr->m_dynamic_size = m_dynamic_size;

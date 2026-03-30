@@ -22,7 +22,6 @@ struct BufferViewConfig {
 
 class BufferConfig {
 public:
-    bool init(const std::shared_ptr<VulkanDevice>& device, const std::string& rg_file_path, const std::shared_ptr<VulkanFormatManager>& format_manager);
     bool init(const std::shared_ptr<VulkanDevice>& device, const std::string& name, const pugi::xml_node& buffer_data, const std::shared_ptr<VulkanFormatManager>& format_manager);
     void destroy();
 

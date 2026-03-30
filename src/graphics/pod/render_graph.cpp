@@ -48,6 +48,18 @@ void RenderGraph::topological_sort() {
         }
     }
 
+    if(m_adjency_list.size() == 0u) {
+        m_topologically_sorted_nodes.clear();
+        m_topologically_sorted_nodes.insert(m_topologically_sorted_nodes.end(), m_render_nodes.begin(), m_render_nodes.end());
+        m_render_node_sort_idx.clear();
+        for(size_t i = 0; i < m_topologically_sorted_nodes.size(); ++i) {
+            const RenderNodePtr& render_node = m_topologically_sorted_nodes.at(i);
+            m_render_node_sort_idx[render_node] = i;
+        }
+        m_sorted = true;
+        return;
+    }
+
     m_topologically_sorted_nodes.clear();
     m_render_node_sort_idx.clear();
     m_topologically_sorted_nodes.reserve(m_render_nodes.size());
