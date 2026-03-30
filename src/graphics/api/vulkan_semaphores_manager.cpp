@@ -6,15 +6,17 @@ bool VulkanSemaphoresManager::init(std::shared_ptr<VulkanDevice> device) {
     m_device = device;
 
     const int NUM_SEM = 32;
-    m_semaphores.resize(NUM_SEM);
     for (uint32_t i = 0u; i < NUM_SEM; ++i) {
 
+        VkSemaphore sem;
         VkSemaphoreCreateInfo sem_info{};
         sem_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-        VkResult result = vkCreateSemaphore(m_device->getDevice(), &sem_info, nullptr, &m_semaphores[i]);
+        VkResult result = vkCreateSemaphore(m_device->getDevice(), &sem_info, nullptr, &sem);
         if(result != VK_SUCCESS) {
             throw std::runtime_error("failed to create semaphore!");
         }
+
+        m_semaphores.push(sem);
     }
 
     return true;
@@ -22,7 +24,9 @@ bool VulkanSemaphoresManager::init(std::shared_ptr<VulkanDevice> device) {
 
 void VulkanSemaphoresManager::destroy() {
     for(size_t i = 0u; i < m_semaphores.size(); ++i) {
-        vkDestroySemaphore(m_device->getDevice(), m_semaphores[i], nullptr);
+        VkSemaphore sem = m_semaphores.back();
+        m_semaphores.pop();
+        vkDestroySemaphore(m_device->getDevice(), sem, nullptr);
     }
 }
 
@@ -40,14 +44,14 @@ VkSemaphore VulkanSemaphoresManager::getSemaphore() {
 	    return semaphore;
     }
     else {
-	    VkSemaphore sem = m_semaphores.back();
-	    m_semaphores.pop_back();
+	    VkSemaphore sem = m_semaphores.front();
+	    m_semaphores.pop();
 	    return sem;
     }
 }
 
 void VulkanSemaphoresManager::returnSemaphore(VkSemaphore sem) {
     if (sem != VK_NULL_HANDLE) {
-	    m_semaphores.push_back(sem);
+	    m_semaphores.push(sem);
     }
 }

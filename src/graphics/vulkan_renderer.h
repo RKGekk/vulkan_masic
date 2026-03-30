@@ -33,12 +33,14 @@ class VulkanFormatManager;
 class VulkanResourcesManager;
 class RenderNode;
 class RenderGraph;
+class VulkanRenderer;
 
 struct PerFrame {
     bool init(std::shared_ptr<VulkanDevice> device, unsigned index);
     void destroy();
 	
-	void begin();
+	void begin(VulkanRenderer& renderer, uint32_t image_index);
+    void end(VulkanRenderer& renderer);
 
 	unsigned frame_index;
 

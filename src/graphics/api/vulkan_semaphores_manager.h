@@ -6,6 +6,7 @@
 #include <pugixml.hpp>
 
 #include <memory>
+#include <queue>
 #include <vector>
 
 class VulkanDevice;
@@ -20,5 +21,5 @@ public:
 
 private:
     std::shared_ptr<VulkanDevice> m_device;
-    std::vector<VkSemaphore> m_semaphores;
+    std::queue<VkSemaphore> m_semaphores;
 };
