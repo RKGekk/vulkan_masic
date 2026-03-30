@@ -5,6 +5,7 @@
 #include "../../graphics/vulkan_renderer.h"
 #include "../../graphics/api/vulkan_image_buffer.h"
 #include "../../graphics/api/vulkan_device.h"
+#include "../../graphics/api/vulkan_swapchain.h"
 #include "../../graphics/drawables/scene_drawable.h"
 #include "../../events/cicadas/evt_data_new_model_component.h"
 #include "../../scene/nodes/scene_node.h"
@@ -12,6 +13,12 @@
 #include "../../graphics/pod/render_node.h"
 
 ScreenElementScene::ScreenElementScene() : Scene() {
+    VulkanRenderer& renderer = Application::GetRenderer();
+	std::shared_ptr<VulkanDevice> device = renderer.GetDevice();
+
+    m_scene_draw = std::make_shared<SceneDrawable>();
+    m_scene_draw->init(device, renderer.getSwapchain()->getMaxFrames());
+
     RegisterAllDelegates();
 };
 
@@ -28,7 +35,7 @@ bool ScreenElementScene::VOnLostDevice() {
 };
 
 void ScreenElementScene::VOnUpdate(const GameTimerDelta& delta, uint32_t image_index) {
-    
+    m_scene_draw->update(delta, image_index);
 };
 
 bool ScreenElementScene::VOnRender(const GameTimerDelta& delta, uint32_t image_index) {

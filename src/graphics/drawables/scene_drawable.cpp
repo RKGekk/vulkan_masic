@@ -20,7 +20,7 @@ struct SceneUniformBufferObject {
     glm::mat4 proj;
 };
 
-bool SceneDrawable::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<Managers>& managers, int max_frames) {
+bool SceneDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
     m_device = std::move(device);
     m_max_frames = max_frames;
     m_rt_aspect = Application::GetRenderer().getSwapchain()->getFormatConfig()->getAspect();
@@ -83,9 +83,16 @@ std::shared_ptr<RenderNodeConfig> getMeshRenderNodeConfig(const std::shared_ptr<
     pugi::xml_node render_nodes_node = root_node.child("RenderNodes");
 	if (!render_nodes_node) return nullptr;
 
-    render_node_config->init(device, Application::GetRenderer().getResourcesManager(), render_nodes_node.child("mesh_render"));
+    for (pugi::xml_node render_node = render_nodes_node.first_child(); render_node; render_node = render_node.next_sibling()) {
+        std::string node_name = render_node.attribute("name").as_string();
+        if(node_name == "mesh_render"s) {
+            std::shared_ptr<RenderNodeConfig> render_node_config = std::make_shared<RenderNodeConfig>();
+            render_node_config->init(device, Application::GetRenderer().getResourcesManager(), render_node);
+            return render_node_config;
+        }
+    }
 
-    return render_node_config;
+    return nullptr;
 }
 
 void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
@@ -114,11 +121,11 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             renderable->vertex_buffer = model_data->GetVertexBuffer();
             renderable->index_buffer = model_data->GetIndexBuffer();
 
-            std::shared_ptr<VulkanShader> vertex_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
-            std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames().at(0));
-
             renderable->render_node = std::make_shared<RenderNode>();
             renderable->render_node->init(m_device, render_node_config);
+
+            std::shared_ptr<VulkanShader> vertex_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
+            std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames().at(0));
             renderable->render_node->addReadDependency(renderable->vertex_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getVertexBufferBindingName());
             renderable->render_node->addReadDependency(renderable->index_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getIndexBufferBindingName());
             renderable->render_node->addReadDependency(renderable->uniform_buffer, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER));
