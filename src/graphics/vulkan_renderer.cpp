@@ -82,7 +82,7 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
         per_frame->out_depth_image = m_resources_manager->create_image("render_target_depth", "render_target_depth_resource");
 
         per_frame->swapchain_available_sem = m_semaphore_manager->getSemaphore();
-        per_frame->swapchain_available_fen = m_fence_manager->getFence();
+        //per_frame->swapchain_available_fen = m_fence_manager->getFence();
 
         per_frame->render_graph = std::make_shared<RenderGraph>();
         per_frame->render_graph->init(m_device);
@@ -336,8 +336,8 @@ void VulkanRenderer::drawFrame(unsigned image_index) {
     
     CommandBatch::BatchWaitInfo wait_info;
     wait_info.wait_for_semaphores.push_back(m_per_frame[m_prev_frame]->swapchain_available_sem);
-    if(m_per_frame[m_prev_frame]->cmd_submit_wait_sem.size()) {
-        wait_info.wait_for_semaphores.insert(wait_info.wait_for_semaphores.end(), m_per_frame[m_prev_frame]->cmd_submit_wait_sem.begin(), m_per_frame[m_prev_frame]->cmd_submit_wait_sem.end());
+    if(m_per_frame[image_index]->cmd_submit_wait_sem.size()) {
+        wait_info.wait_for_semaphores.insert(wait_info.wait_for_semaphores.end(), m_per_frame[image_index]->cmd_submit_wait_sem.begin(), m_per_frame[image_index]->cmd_submit_wait_sem.end());
     }
     wait_info.wait_for_stages.push_back(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
     VkSubmitInfo submit_info = m_per_frame[image_index]->command_buffer->getSubmitInfo(&wait_info);
@@ -372,15 +372,16 @@ void VulkanRenderer::addRenderNode(std::shared_ptr<RenderNode> render_node, unsi
 }
 
 std::pair<bool, uint32_t> VulkanRenderer::acquire_next_image() {
-    uint32_t m_prev_frame = m_frame;
-    vkWaitForFences(m_device->getDevice(), 1u, &(m_per_frame[m_frame]->swapchain_available_fen), VK_TRUE, UINT64_MAX);
-    vkResetFences(m_device->getDevice(), 1u, &(m_per_frame[m_frame]->swapchain_available_fen));
+    m_prev_frame = m_frame;
+    //vkWaitForFences(m_device->getDevice(), 1u, &(m_per_frame[m_frame]->swapchain_available_fen), VK_TRUE, UINT64_MAX);
+    //vkResetFences(m_device->getDevice(), 1u, &(m_per_frame[m_frame]->swapchain_available_fen));
     VkResult result = vkAcquireNextImageKHR(
         m_device->getDevice(),
         m_swapchain->getSwapchain(),
         UINT64_MAX,
         m_per_frame[m_prev_frame]->swapchain_available_sem,
-        m_per_frame[m_prev_frame]->swapchain_available_fen,
+        //m_per_frame[m_prev_frame]->swapchain_available_fen,
+        VK_NULL_HANDLE,
         &m_frame
     );
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {

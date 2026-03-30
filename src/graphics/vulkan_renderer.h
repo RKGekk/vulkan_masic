@@ -48,7 +48,7 @@ struct PerFrame {
     std::shared_ptr<VulkanImageBuffer> out_depth_image;
 
     VkSemaphore swapchain_available_sem;
-    VkFence swapchain_available_fen;
+    //VkFence swapchain_available_fen;
     std::vector<VkSemaphore> cmd_submit_wait_sem;
     VkSemaphore cmd_submit_finish_signal_sem;
     VkFence cmd_submit_finish_fence;
