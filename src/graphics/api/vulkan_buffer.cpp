@@ -12,7 +12,7 @@ VulkanBuffer::VulkanBuffer(std::shared_ptr<VulkanDevice> device, std::string nam
 VulkanBuffer::VulkanBuffer(std::shared_ptr<VulkanDevice> device) : m_device(std::move(device)), m_name(std::to_string(rand())) {};
 
 bool VulkanBuffer::init(const void* data, std::shared_ptr<BufferConfig> buffer_config) {
-    m_buffer_config = std::move(buffer_config);
+    m_buffer_config = buffer_config;
 
     if (m_buffer_config->isSizeDynamic()) return true;
 
@@ -59,6 +59,16 @@ bool VulkanBuffer::init(CommandBatch& command_buffer, const void* data, std::sha
 }
 
 void VulkanBuffer::destroy() {
+    if(m_buffer_config->getBufferInfo().size) {
+        if(m_buffer_config->getMemoryProperties() & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
+            vkUnmapMemory(m_device->getDevice(), m_memory);
+        }
+        vkDestroyBuffer(m_device->getDevice(), m_buffer, nullptr);
+        vkFreeMemory(m_device->getDevice(), m_memory, nullptr);
+        m_memory = VK_NULL_HANDLE;
+        m_buffer = VK_NULL_HANDLE;
+        m_mapped = nullptr;
+    }
 }
 
 VkBuffer VulkanBuffer::getBuffer() const {
