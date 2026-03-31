@@ -84,6 +84,19 @@ enum class PhysicalDeviceFeaturesFlag : uint64_t {
 
 class VulkanDevice {
 public:
+    enum class VulkanFormatComponentType {
+        SRGB, // uint to 1..0
+        UNSIGNED_NORMALIZED, // uint to 1..0
+        SIGNED_NORMALIZED, // int to 1.0
+        UNSIGNED_SCALED, // uint to float
+        SIGNED_SCALED, // int to float
+        UNSIGNED_INT,
+        SIGNED_INT,
+        SIGNED_FLOAT,
+        UNSIGNED_FLOAT,
+        SIGNED_FIXED
+    };
+
     bool init(const VulkanInstance& instance, VkSurfaceKHR surface, std::shared_ptr<ThreadPool> thread_pool);
     void destroy();
 
@@ -108,6 +121,8 @@ public:
     static bool isBGR(VkFormat format);
     static VkAccessFlags getDstAccessMask(VkBufferUsageFlags usage);
     static size_t getBytesCount(VkFormat format);
+    static size_t getNumComponents(VkFormat format);
+    static VulkanFormatComponentType getComponentType(VkFormat format);
 
 private:
     template<typename Container>

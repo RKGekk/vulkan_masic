@@ -620,7 +620,8 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element name="ConstantID" type="xs:unsignedInt"></xs:element>
-                        <xs:element name="Type" type="target:GLSLTypesSimpleType"></xs:element>
+                        <xs:element name="GLSLFormat" type="target:GLSLTypesSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="InternalFormat" type="target:ColorFormatSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
                         <xs:element name="Value"></xs:element>
                     </xs:sequence>
                     <xs:attribute name="name" type="xs:string"></xs:attribute>
@@ -685,7 +686,8 @@
     <xs:complexType name="InputAttributeComplexType">
         <xs:sequence>
             <xs:element name="Location" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
-            <xs:element name="Format" type="target:GLSLTypesSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="GLSLFormat" type="target:GLSLTypesSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="InternalFormat" type="target:ColorFormatSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="Semantic" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:simpleContent>
@@ -1098,7 +1100,8 @@
     <xs:complexType name="PushConstantComplexType">
         <xs:sequence>
             <xs:element name="ShaderStage" type="target:ShaderStageFlagsComplexType" minOccurs="0" maxOccurs="1"></xs:element>
-            <xs:element name="Format" type="target:GLSLTypesSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="GLSLFormat" type="target:GLSLTypesSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="InternalFormat" type="target:ColorFormatSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
         </xs:sequence>
     </xs:complexType>
 

@@ -150,45 +150,243 @@ int32_t MeshNodeLoader::GetNumPrimitives(const tinygltf::Primitive& primitive) c
 	}
 }
 
-VertexAttributeFormat getAttribFormat(const tinygltf::Accessor& gltf_accessor) {
+VertexAttributeGLSLFormat getAttribGLSLFormat(const tinygltf::Accessor& gltf_accessor) {
 	if(gltf_accessor.type == TINYGLTF_TYPE_SCALAR && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT) {
-		return VertexAttributeFormat::INT;
+		return VertexAttributeGLSLFormat::INT;
 	}
 	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC2 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT) {
-		return VertexAttributeFormat::INT_VEC2;
+		return VertexAttributeGLSLFormat::INT_VEC2;
 	}
 	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC3 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT) {
-		return VertexAttributeFormat::INT_VEC3;
+		return VertexAttributeGLSLFormat::INT_VEC3;
 	}
 	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC4 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT) {
-		return VertexAttributeFormat::INT_VEC4;
+		return VertexAttributeGLSLFormat::INT_VEC4;
 	}
-	if(gltf_accessor.type == TINYGLTF_TYPE_SCALAR && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
-		return VertexAttributeFormat::UINT;
+	else if(gltf_accessor.type == TINYGLTF_TYPE_SCALAR && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
+		return VertexAttributeGLSLFormat::UINT;
 	}
 	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC2 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
-		return VertexAttributeFormat::UINT_VEC2;
+		return VertexAttributeGLSLFormat::UINT_VEC2;
 	}
 	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC3 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
-		return VertexAttributeFormat::UINT_VEC3;
+		return VertexAttributeGLSLFormat::UINT_VEC3;
 	}
 	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC4 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
-		return VertexAttributeFormat::UINT_VEC4;
+		return VertexAttributeGLSLFormat::UINT_VEC4;
 	}
 	else if(gltf_accessor.type == TINYGLTF_TYPE_SCALAR && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
-		return VertexAttributeFormat::FLOAT;
+		return VertexAttributeGLSLFormat::FLOAT;
 	}
 	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC2 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
-		return VertexAttributeFormat::FLOAT_VEC2;
+		return VertexAttributeGLSLFormat::FLOAT_VEC2;
 	}
 	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC3 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
-		return VertexAttributeFormat::FLOAT_VEC3;
+		return VertexAttributeGLSLFormat::FLOAT_VEC3;
 	}
 	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC4 && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
-		return VertexAttributeFormat::FLOAT_VEC4;
+		return VertexAttributeGLSLFormat::FLOAT_VEC4;
 	}
 	else {
-		return VertexAttributeFormat::FLOAT;
+		return VertexAttributeGLSLFormat::FLOAT;
+	}
+}
+
+
+VkFormat getAttribVkFormat(const tinygltf::Accessor& gltf_accessor) {
+	if(gltf_accessor.type == TINYGLTF_TYPE_SCALAR) {
+		if(gltf_accessor.normalized) {
+			if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE) {
+				return VK_FORMAT_R8_UNORM;
+			}
+			if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_BYTE) {
+				return VK_FORMAT_R8_SNORM;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+				return VK_FORMAT_R16_UNORM;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_SHORT) {
+				return VK_FORMAT_R16_SNORM;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
+				return VK_FORMAT_R32_UINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT) {
+				return VK_FORMAT_R32_SINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
+				return VK_FORMAT_R32_SFLOAT;
+			}
+		}
+		else {
+			if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE) {
+			return VK_FORMAT_R8_UINT;
+			}
+			if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_BYTE) {
+				return VK_FORMAT_R8_SINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+				return VK_FORMAT_R16_UINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_SHORT) {
+				return VK_FORMAT_R16_SINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
+				return VK_FORMAT_R32_UINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT) {
+				return VK_FORMAT_R32_SINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
+				return VK_FORMAT_R32_SFLOAT;
+			}
+		}
+		
+	}
+	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC2) {
+		if(gltf_accessor.normalized) {
+			if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE) {
+				return VK_FORMAT_R8G8_UNORM;
+			}
+			if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_BYTE) {
+				return VK_FORMAT_R8G8_SNORM;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+				return VK_FORMAT_R16G16_UNORM;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_SHORT) {
+				return VK_FORMAT_R16G16_SNORM;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
+				return VK_FORMAT_R32G32_UINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT) {
+				return VK_FORMAT_R32G32_SINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
+				return VK_FORMAT_R32G32_SFLOAT;
+			}
+		}
+		else {
+			if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE) {
+				return VK_FORMAT_R8G8_UINT;
+			}
+			if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_BYTE) {
+				return VK_FORMAT_R8G8_SINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+				return VK_FORMAT_R16G16_UINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_SHORT) {
+				return VK_FORMAT_R16G16_SINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
+				return VK_FORMAT_R32G32_UINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT) {
+				return VK_FORMAT_R32G32_SINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
+				return VK_FORMAT_R32G32_SFLOAT;
+			}
+		}
+		
+	}
+	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC3) {
+		if(gltf_accessor.normalized) {
+			if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE) {
+				return VK_FORMAT_R8G8B8_UNORM;
+			}
+			if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_BYTE) {
+				return VK_FORMAT_R8G8B8_SNORM;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+				return VK_FORMAT_R16G16B16_UNORM;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_SHORT) {
+				return VK_FORMAT_R16G16B16_SNORM;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
+				return VK_FORMAT_R32G32B32_UINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT) {
+				return VK_FORMAT_R32G32B32_SINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
+				return VK_FORMAT_R32G32B32_SFLOAT;
+			}
+		}
+		else {
+			if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE) {
+				return VK_FORMAT_R8G8B8_UINT;
+			}
+			if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_BYTE) {
+				return VK_FORMAT_R8G8B8_SINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+				return VK_FORMAT_R16G16B16_UINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_SHORT) {
+				return VK_FORMAT_R16G16B16_SINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
+				return VK_FORMAT_R32G32B32_UINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT) {
+				return VK_FORMAT_R32G32B32_SINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
+				return VK_FORMAT_R32G32B32_SFLOAT;
+			}
+		}
+	}
+	else if(gltf_accessor.type == TINYGLTF_TYPE_VEC4) {
+		if(gltf_accessor.normalized) {
+			if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE) {
+				return VK_FORMAT_R8G8B8A8_UNORM;
+			}
+			if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_BYTE) {
+				return VK_FORMAT_R8G8B8A8_SNORM;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+				return VK_FORMAT_R16G16B16A16_UNORM;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_SHORT) {
+				return VK_FORMAT_R16G16B16A16_SNORM;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
+				return VK_FORMAT_R32G32B32A32_UINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT) {
+				return VK_FORMAT_R32G32B32A32_SINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
+				return VK_FORMAT_R32G32B32A32_SFLOAT;
+			}
+		}
+		else {
+			if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE) {
+				return VK_FORMAT_R8G8B8A8_UINT;
+			}
+			if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_BYTE) {
+				return VK_FORMAT_R8G8B8A8_SINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+				return VK_FORMAT_R16G16B16A16_UINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_SHORT) {
+				return VK_FORMAT_R16G16B16A16_SINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
+				return VK_FORMAT_R32G32B32A32_UINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT) {
+				return VK_FORMAT_R32G32B32A32_SINT;
+			}
+			else if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
+				return VK_FORMAT_R32G32B32A32_SFLOAT;
+			}
+		}
 	}
 }
 
@@ -198,10 +396,11 @@ VertexFormat MeshNodeLoader::GetVertexFormat(std::map<std::string, int> attribut
 	std::vector<std::string> attributes_seq(attributes.size());
 	for (const auto &[semantic_name_str, accessor] : attributes) {
 		const tinygltf::Accessor& pos_vertex_attrib_accessor = m_gltf_model.accessors.at(accessor);
-		VertexAttributeFormat attrib_format = getAttribFormat(pos_vertex_attrib_accessor);
+		VkFormat attrib_vk_format = getAttribVkFormat(pos_vertex_attrib_accessor);
+		VertexAttributeGLSLFormat attrib_glsl_format = getAttribGLSLFormat(pos_vertex_attrib_accessor);
 		SemanticName semantic_name;
 		semantic_name.init(semantic_name_str);
-		format.addVertexAttribute(semantic_name, attrib_format);
+		format.addVertexAttribute(semantic_name, attrib_glsl_format, attrib_vk_format);
 	}
 	return format;
 }

@@ -149,7 +149,7 @@ void writeFile(const std::string& file_name, size_t file_size, const void* data)
 VkShaderCreateFlagBitsEXT getShaderCreateFlagEXT(const std::string& flag_str);
 VkPipelineShaderStageCreateFlagBits getPipelineShaderStageCreateFlag(const std::string& flag_str);
 VkShaderStageFlagBits getShaderStageFlag(const std::string& stage_str);
-VertexAttributeFormat getInputAttributeFormat(const std::string& format_str);
+VertexAttributeGLSLFormat getInputAttributeGLSLFormat(const std::string& format_str);
 VertexAttributeSemantic getVertexAttributeSemantic(const std::string& semantic_str);
 VkDescriptorType getDescriptorType(const std::string& desc_str);
 VkSamplerCreateFlagBits getSamplerCreateFlag(const std::string& flag_str);
@@ -174,7 +174,7 @@ VkDynamicState getDynamicState(const std::string& dynamic_str);
 VkDescriptorSetLayoutCreateFlagBits getDescriptorSetLayoutCreateFlag(const std::string& flag_str);
 VkPipelineCreateFlagBits getPipelineCreateFlag(const std::string& flag_str);
 VkVertexInputRate getVertexInputRate(const std::string& rate_str);
-VkFormat getAttributeFormat(VertexAttributeFormat attrib_format);
+//VkFormat getAttributeFormat(VertexAttributeFormat attrib_format);
 VkDescriptorPoolCreateFlagBits getDescriptorPoolCreateFlag(const std::string& flag_str);
 VkPipelineBindPoint getPipelineBindPoint(const std::string& bp_str);
 VkSubpassDescriptionFlagBits getSubpassDescriptionFlag(const std::string& flag_str);

@@ -426,30 +426,30 @@ VkShaderStageFlagBits getShaderStageFlag(const std::string& stage_str) {
     return res;
 }
 
-VertexAttributeFormat getInputAttributeFormat(const std::string& format_str) {
+VertexAttributeGLSLFormat getInputAttributeGLSLFormat(const std::string& format_str) {
     using namespace std::literals;
-    VertexAttributeFormat res{};
+    VertexAttributeGLSLFormat res{};
 
-         if(format_str == "bool"s) {res = VertexAttributeFormat::BOOL;}
-    else if(format_str == "int"s) {res = VertexAttributeFormat::INT;}
-    else if(format_str == "uint"s) {res = VertexAttributeFormat::UINT;}
-    else if(format_str == "float"s) {res = VertexAttributeFormat::FLOAT;}
-    else if(format_str == "double"s) {res = VertexAttributeFormat::DOUBLE;}
-    else if(format_str == "bvec2"s) {res = VertexAttributeFormat::BOOL_VEC2;}
-    else if(format_str == "bvec3"s) {res = VertexAttributeFormat::BOOL_VEC3;}
-    else if(format_str == "bvec4"s) {res = VertexAttributeFormat::BOOL_VEC4;}
-    else if(format_str == "ivec2"s) {res = VertexAttributeFormat::INT_VEC2;}
-    else if(format_str == "ivec3"s) {res = VertexAttributeFormat::INT_VEC3;}
-    else if(format_str == "ivec4"s) {res = VertexAttributeFormat::INT_VEC4;}
-    else if(format_str == "uvec2"s) {res = VertexAttributeFormat::UINT_VEC2;}
-    else if(format_str == "uvec3"s) {res = VertexAttributeFormat::UINT_VEC3;}
-    else if(format_str == "uvec4"s) {res = VertexAttributeFormat::UINT_VEC4;}
-    else if(format_str == "vec2"s) {res = VertexAttributeFormat::FLOAT_VEC2;}
-    else if(format_str == "vec3"s) {res = VertexAttributeFormat::FLOAT_VEC3;}
-    else if(format_str == "vec4"s) {res = VertexAttributeFormat::FLOAT_VEC4;}
-    else if(format_str == "dvec2"s) {res = VertexAttributeFormat::DOUBLE_VEC2;}
-    else if(format_str == "dvec3"s) {res = VertexAttributeFormat::DOUBLE_VEC3;}
-    else if(format_str == "dvec4"s) {res = VertexAttributeFormat::DOUBLE_VEC4;}
+         if(format_str == "bool"s) {res = VertexAttributeGLSLFormat::BOOL;}
+    else if(format_str == "int"s) {res = VertexAttributeGLSLFormat::INT;}
+    else if(format_str == "uint"s) {res = VertexAttributeGLSLFormat::UINT;}
+    else if(format_str == "float"s) {res = VertexAttributeGLSLFormat::FLOAT;}
+    else if(format_str == "double"s) {res = VertexAttributeGLSLFormat::DOUBLE;}
+    else if(format_str == "bvec2"s) {res = VertexAttributeGLSLFormat::BOOL_VEC2;}
+    else if(format_str == "bvec3"s) {res = VertexAttributeGLSLFormat::BOOL_VEC3;}
+    else if(format_str == "bvec4"s) {res = VertexAttributeGLSLFormat::BOOL_VEC4;}
+    else if(format_str == "ivec2"s) {res = VertexAttributeGLSLFormat::INT_VEC2;}
+    else if(format_str == "ivec3"s) {res = VertexAttributeGLSLFormat::INT_VEC3;}
+    else if(format_str == "ivec4"s) {res = VertexAttributeGLSLFormat::INT_VEC4;}
+    else if(format_str == "uvec2"s) {res = VertexAttributeGLSLFormat::UINT_VEC2;}
+    else if(format_str == "uvec3"s) {res = VertexAttributeGLSLFormat::UINT_VEC3;}
+    else if(format_str == "uvec4"s) {res = VertexAttributeGLSLFormat::UINT_VEC4;}
+    else if(format_str == "vec2"s) {res = VertexAttributeGLSLFormat::FLOAT_VEC2;}
+    else if(format_str == "vec3"s) {res = VertexAttributeGLSLFormat::FLOAT_VEC3;}
+    else if(format_str == "vec4"s) {res = VertexAttributeGLSLFormat::FLOAT_VEC4;}
+    else if(format_str == "dvec2"s) {res = VertexAttributeGLSLFormat::DOUBLE_VEC2;}
+    else if(format_str == "dvec3"s) {res = VertexAttributeGLSLFormat::DOUBLE_VEC3;}
+    else if(format_str == "dvec4"s) {res = VertexAttributeGLSLFormat::DOUBLE_VEC4;}
 
     return res;
 }
@@ -978,23 +978,23 @@ VkVertexInputRate getVertexInputRate(const std::string& rate_str) {
     return res;
 }
 
-VkFormat getAttributeFormat(VertexAttributeFormat attrib_format) {
-    switch (attrib_format) {
-        case VertexAttributeFormat::FLOAT : return VK_FORMAT_R32_SFLOAT;
-        case VertexAttributeFormat::FLOAT_VEC2 : return VK_FORMAT_R32G32_SFLOAT;
-        case VertexAttributeFormat::FLOAT_VEC3 : return VK_FORMAT_R32G32B32_SFLOAT;
-        case VertexAttributeFormat::FLOAT_VEC4 : return VK_FORMAT_R32G32B32A32_SFLOAT;
-        case VertexAttributeFormat::INT : return VK_FORMAT_R32_SINT;
-        case VertexAttributeFormat::INT_VEC2 : return VK_FORMAT_R32G32_SINT;
-        case VertexAttributeFormat::INT_VEC3 : return VK_FORMAT_R32G32B32_SINT;
-        case VertexAttributeFormat::INT_VEC4 : return VK_FORMAT_R32G32B32A32_SINT;
-        case VertexAttributeFormat::UINT : return VK_FORMAT_R32_UINT;
-        case VertexAttributeFormat::UINT_VEC2 : return VK_FORMAT_R32G32_UINT;
-        case VertexAttributeFormat::UINT_VEC3 : return VK_FORMAT_R32G32B32_UINT;
-        case VertexAttributeFormat::UINT_VEC4 : return VK_FORMAT_R32G32B32A32_UINT;
-        default : return VK_FORMAT_R32_SFLOAT;
-    }
-}
+// VkFormat getAttributeFormat(VertexAttributeFormat attrib_format) {
+//     switch (attrib_format) {
+//         case VertexAttributeFormat::FLOAT : return VK_FORMAT_R32_SFLOAT;
+//         case VertexAttributeFormat::FLOAT_VEC2 : return VK_FORMAT_R32G32_SFLOAT;
+//         case VertexAttributeFormat::FLOAT_VEC3 : return VK_FORMAT_R32G32B32_SFLOAT;
+//         case VertexAttributeFormat::FLOAT_VEC4 : return VK_FORMAT_R32G32B32A32_SFLOAT;
+//         case VertexAttributeFormat::INT : return VK_FORMAT_R32_SINT;
+//         case VertexAttributeFormat::INT_VEC2 : return VK_FORMAT_R32G32_SINT;
+//         case VertexAttributeFormat::INT_VEC3 : return VK_FORMAT_R32G32B32_SINT;
+//         case VertexAttributeFormat::INT_VEC4 : return VK_FORMAT_R32G32B32A32_SINT;
+//         case VertexAttributeFormat::UINT : return VK_FORMAT_R32_UINT;
+//         case VertexAttributeFormat::UINT_VEC2 : return VK_FORMAT_R32G32_UINT;
+//         case VertexAttributeFormat::UINT_VEC3 : return VK_FORMAT_R32G32B32_UINT;
+//         case VertexAttributeFormat::UINT_VEC4 : return VK_FORMAT_R32G32B32A32_UINT;
+//         default : return VK_FORMAT_R32_SFLOAT;
+//     }
+// }
 
 VkDescriptorPoolCreateFlagBits getDescriptorPoolCreateFlag(const std::string& flag_str) {
 	using namespace std::literals;

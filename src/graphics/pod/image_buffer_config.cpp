@@ -122,6 +122,10 @@ VkImageLayout ImageBufferConfig::getAfterInitLayout() const {
     return m_after_init_layout;
 }
 
+void ImageBufferConfig::setAfterInitLayout(VkImageLayout new_layout) {
+    m_after_init_layout = new_layout;
+}
+
 const std::vector<std::shared_ptr<VulkanSampler>>& ImageBufferConfig::getSamplers() const {
     return m_samplers;
 }

@@ -36,7 +36,7 @@ namespace std {
     };
 }
 
-enum class VertexAttributeFormat : int32_t {
+enum class VertexAttributeGLSLFormat : int32_t {
     FLOAT = 0,
     FLOAT_VEC2 = 1,
     FLOAT_VEC3 = 2,
@@ -61,20 +61,21 @@ enum class VertexAttributeFormat : int32_t {
 
 class VertexFormat {
 public:
-    static size_t getBytesForType(VertexAttributeFormat format);
-    static size_t GetNumComponentsInType(VertexAttributeFormat format);
+    static size_t GetNumComponentsInGLSLType(VertexAttributeGLSLFormat glsl_format);
 
-    void addVertexAttribute(SemanticName semantic_name, VertexAttributeFormat format);
-    void setVertexAttribute(SemanticName semantic_name, VertexAttributeFormat format, int location);
+    void addVertexAttribute(SemanticName semantic_name, VertexAttributeGLSLFormat glsl_format, VkFormat internal_format);
+    void setVertexAttribute(SemanticName semantic_name, VertexAttributeGLSLFormat glsl_format, VkFormat internal_format, int location);
 
     bool checkVertexAttribExist(SemanticName semantic) const;
     size_t getVertexAttribPos(SemanticName semantic) const;
     SemanticName getPosSemantic(size_t pos) const;
 
-    VertexAttributeFormat getAttribFormat (size_t pos) const;
-    VertexAttributeFormat getAttribFormat (SemanticName semantic) const;
+    VertexAttributeGLSLFormat getAttribGLSLFormat (size_t pos) const;
+    VkFormat getAttribInternalFormat (size_t pos) const;
+    VertexAttributeGLSLFormat getAttribGLSLFormat (SemanticName semantic) const;
+    VkFormat getAttribInternalFormat (SemanticName semantic) const;
 
-    size_t GetNumComponentsInType(SemanticName semantic) const;
+    size_t GetNumComponentsInGLSLType(SemanticName semantic) const;
 
     size_t getOffset(SemanticName semantic) const;
     size_t getOffset(size_t pos) const;
@@ -130,6 +131,7 @@ private:
     std::string m_index_buffer_resource_type;
 
     std::vector<SemanticName> m_semantic_pos;
-    std::vector<VertexAttributeFormat> m_format_pos;
+    std::vector<VertexAttributeGLSLFormat> m_glsl_format_pos;
+    std::vector<VkFormat> m_internal_format_pos;
     std::unordered_map<SemanticName, size_t> m_semantic_pos_map;
 };

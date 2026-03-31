@@ -207,6 +207,7 @@ void VulkanRenderer::TransitionResourcesToProperState(const std::shared_ptr<Rend
             VkImageLayout write_image_layout = attach_desc.initialLayout;
             if(current_image_layout != write_image_layout) {
                 attached_write_resource->changeLayout(current_image_layout, write_image_layout);
+                attached_write_resource->getImageConfig()->setAfterInitLayout(write_image_layout);
             }
         }
 

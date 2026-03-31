@@ -27,8 +27,9 @@ bool VulkanBuffer::init(const void* data, std::shared_ptr<BufferConfig> buffer_c
     m_buffer_config->setAlignedSize(mem_req.size);
     m_buffer_config->setAlignment(mem_req.alignment);
   
-    VkMemoryAllocateInfo alloc_info{};
+    VkMemoryAllocateInfo alloc_info = {};
     alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    alloc_info.pNext = nullptr;
     alloc_info.allocationSize = mem_req.size;
     alloc_info.memoryTypeIndex = mem_type_idx;
  
