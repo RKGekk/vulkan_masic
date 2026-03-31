@@ -388,6 +388,7 @@ VkFormat getAttribVkFormat(const tinygltf::Accessor& gltf_accessor) {
 			}
 		}
 	}
+	return VK_FORMAT_R8G8B8A8_UNORM;
 }
 
 
@@ -1199,7 +1200,8 @@ std::vector<float> MeshNodeLoader::GetVertices(const tinygltf::Primitive& primit
 		int32_t element_size = tinygltf::GetComponentSizeInBytes(vertex_attrib_accessor.componentType);
 		int32_t num_of_elements_in_type = tinygltf::GetNumComponentsInType(vertex_attrib_accessor.type);
 		//int32_t num_of_elements_to_copy = num_of_elements_in_type;
-		int32_t num_of_elements_to_copy = uni_vertex_format.GetNumComponentsInType(semantic_name);
+		int32_t num_of_elements_to_copy = uni_vertex_format.GetNumComponentsInVkType(semantic_name);
+		//int32_t num_of_elements_to_copy = VulkanDevice::getNumComponents(semantic_name);
 
 		size_t vertex_attrib_view_idx = vertex_attrib_accessor.bufferView;
 		const tinygltf::BufferView& vertex_attrib_view = m_gltf_model.bufferViews[vertex_attrib_view_idx];

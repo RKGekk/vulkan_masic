@@ -61,6 +61,7 @@ enum class VertexAttributeGLSLFormat : int32_t {
 
 class VertexFormat {
 public:
+    static size_t getBytesForType(VkFormat format);
     static size_t GetNumComponentsInGLSLType(VertexAttributeGLSLFormat glsl_format);
 
     void addVertexAttribute(SemanticName semantic_name, VertexAttributeGLSLFormat glsl_format, VkFormat internal_format);
@@ -76,6 +77,7 @@ public:
     VkFormat getAttribInternalFormat (SemanticName semantic) const;
 
     size_t GetNumComponentsInGLSLType(SemanticName semantic) const;
+    size_t GetNumComponentsInVkType(SemanticName semantic) const;
 
     size_t getOffset(SemanticName semantic) const;
     size_t getOffset(size_t pos) const;
@@ -87,7 +89,7 @@ public:
         offset = 0u;
         size_t to = m_semantic_pos_map.at(semantic);
         for(size_t i = 0u; i < to; ++i) {
-            VertexAttributeFormat curr_format = m_format_pos.at(i);
+            VkFormat curr_format = m_internal_format_pos.at(i);
             size_t bytes_ct = getBytesForType(curr_format);
             size_t target_type_size = sizeof(ElementType);
             size_t size_in_target_type = bytes_ct / target_type_size;

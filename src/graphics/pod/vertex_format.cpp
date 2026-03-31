@@ -50,6 +50,10 @@ bool SemanticName::operator==(const SemanticName& other) const {
     return semantic == other.semantic && num == other.num;
 }
 
+size_t VertexFormat::getBytesForType(VkFormat format) {
+    return VulkanDevice::getBytesCount(format);
+}
+
 size_t VertexFormat::GetNumComponentsInGLSLType(VertexAttributeGLSLFormat glsl_format) {
     switch (glsl_format) {
         case VertexAttributeGLSLFormat::FLOAT : return 1;
@@ -115,7 +119,7 @@ VertexAttributeGLSLFormat VertexFormat::getAttribGLSLFormat (size_t pos) const {
 }
 
 VkFormat VertexFormat::getAttribInternalFormat (size_t pos) const {
-    m_internal_format_pos.at(pos);
+    return m_internal_format_pos.at(pos);
 }
 
 VertexAttributeGLSLFormat VertexFormat::getAttribGLSLFormat (SemanticName semantic) const {
@@ -131,6 +135,11 @@ VkFormat VertexFormat::getAttribInternalFormat (SemanticName semantic) const {
 size_t VertexFormat::GetNumComponentsInGLSLType(SemanticName semantic) const {
     if(!m_semantic_pos_map.count(semantic)) 1u;
     return GetNumComponentsInGLSLType(getAttribGLSLFormat(semantic));
+}
+
+size_t VertexFormat::GetNumComponentsInVkType(SemanticName semantic) const {
+    if(!m_semantic_pos_map.count(semantic)) 1u;
+    return VulkanDevice::getNumComponents(getAttribInternalFormat(semantic));
 }
 
 size_t VertexFormat::getOffset(SemanticName semantic) const {
