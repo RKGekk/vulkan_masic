@@ -179,6 +179,7 @@ void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
         vertex_sz += vtx_sz;
         index_sz += idx_sz;
     }
+
     renderable->vertex_buffer->update(renderable->imgui_vtx.data(), vertex_sz);
     renderable->index_buffer->update(renderable->imgui_idx.data(), index_sz);
 

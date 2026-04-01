@@ -230,6 +230,17 @@ std::shared_ptr<VulkanImageBuffer>& VulkanRenderer::getOutDepthImage(uint32_t im
     return m_per_frame[image_index]->out_depth_image;
 }
 
+void VulkanRenderer::beginFrame(unsigned image_index) {
+    m_per_frame[image_index]->begin(*this, image_index);
+
+    vkWaitForFences(m_device->getDevice(), 1u, &(m_per_frame[image_index]->cmd_submit_finish_fence), VK_TRUE, UINT64_MAX);
+    vkResetFences(m_device->getDevice(), 1u, &(m_per_frame[image_index]->cmd_submit_finish_fence));
+
+    m_per_frame[image_index]->command_buffer->reset();
+    m_per_frame[image_index]->cmd_submit_finish_signal_sem = m_per_frame[image_index]->command_buffer->getInProgressSemaphore();
+    m_per_frame[image_index]->cmd_submit_finish_fence = m_per_frame[image_index]->command_buffer->getRenderFence();
+}
+
 void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer, unsigned image_index) {
     VulkanCommandManager::beginCommandBuffer(command_buffer);
 
@@ -325,14 +336,6 @@ void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer, unsigned 
 }
 
 void VulkanRenderer::drawFrame(unsigned image_index) {
-    m_per_frame[image_index]->begin(*this, image_index);
-
-    vkWaitForFences(m_device->getDevice(), 1u, &(m_per_frame[image_index]->cmd_submit_finish_fence), VK_TRUE, UINT64_MAX);
-    vkResetFences(m_device->getDevice(), 1u, &(m_per_frame[image_index]->cmd_submit_finish_fence));
-
-    m_per_frame[image_index]->command_buffer->reset();
-    m_per_frame[image_index]->cmd_submit_finish_signal_sem = m_per_frame[image_index]->command_buffer->getInProgressSemaphore();
-    m_per_frame[image_index]->cmd_submit_finish_fence = m_per_frame[image_index]->command_buffer->getRenderFence();
     recordCommandBuffer(*m_per_frame[image_index]->command_buffer, image_index);
     
     CommandBatch::BatchWaitInfo wait_info;
@@ -362,6 +365,10 @@ void VulkanRenderer::drawFrame(unsigned image_index) {
     }
 
     m_per_frame[image_index]->end(*this);
+}
+
+std::shared_ptr<PerFrame>& VulkanRenderer::getFrameData(uint32_t image_index) {
+    return m_per_frame[image_index];
 }
 
 void VulkanRenderer::update_frame(const GameTimerDelta& delta, uint32_t image_index) {

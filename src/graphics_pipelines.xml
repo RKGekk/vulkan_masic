@@ -429,17 +429,20 @@
                 >
                     <Attribute name="inPosition">
                         <Location>0</Location>
-                        <Format>vec3</Format>
+                        <GLSLFormat>vec3</GLSLFormat>
+                        <InternalFormat>r32g32b32_sfloat</InternalFormat>
                         <Semantic num="0">POSITION</Semantic>
                     </Attribute>
                     <Attribute name="inColor">
                         <Location>1</Location>
-                        <Format>vec3</Format>
+                        <GLSLFormat>vec3</GLSLFormat>
+                        <InternalFormat>r32g32b32_sfloat</InternalFormat>
                         <Semantic num="0">COLOR</Semantic>
                     </Attribute>
                     <Attribute name="inTexCoords">
                         <Location>2</Location>
-                        <Format>vec2</Format>
+                        <GLSLFormat>vec2</GLSLFormat>
+                        <InternalFormat>r32g32_sfloat</InternalFormat>
                         <Semantic num="0">TEXCOORD</Semantic>
                     </Attribute>
                 </Binding>

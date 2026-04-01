@@ -138,6 +138,7 @@ void Application::mainLoop() {
     while(!exit) {
         auto [image_available, image_index] = m_renderer.acquire_next_image();
         if(!image_available) continue;
+        m_renderer.beginFrame(image_index);
         exit = update(image_index);
         if(m_window->SkipDraw()) continue;
         for (GameViewList::const_iterator i = m_game->GetViews().begin(), end = m_game->GetViews().end(); i != end; ++i) {
