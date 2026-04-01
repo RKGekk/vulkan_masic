@@ -22,7 +22,7 @@ enum class VertexAttributeSemantic : int32_t {
 struct SemanticName {
     VertexAttributeSemantic semantic;
     int num = 0;
-    bool init(std::string semantic_name);
+    bool init(const std::string& semantic_name);
 
     bool operator==(const SemanticName& other) const;
 };

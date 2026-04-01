@@ -4,10 +4,10 @@
 
 #include <regex>
 
-bool SemanticName::init(std::string semantic_name) {
+bool SemanticName::init(const std::string& semantic_name) {
     using namespace std::literals;
 
-    std::regex sem_reg(R"(^([A-Z]+)_(\d+)$)");
+    std::regex sem_reg(R"(^([A-Z]+)_*(\d+)*$)");
     std::smatch matches;
     if (!std::regex_search(semantic_name, matches, sem_reg)) return false;
     
