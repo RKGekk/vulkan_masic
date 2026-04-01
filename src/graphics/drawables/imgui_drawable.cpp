@@ -164,6 +164,9 @@ void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
 
     if(vertex_count < dd->TotalVtxCount) {
         renderable->imgui_vtx.resize(dd->TotalVtxCount);
+    }
+
+    if(index_count < dd->TotalIdxCount) {
         renderable->imgui_idx.resize(dd->TotalIdxCount);
     }
 
