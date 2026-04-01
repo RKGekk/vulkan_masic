@@ -159,7 +159,8 @@ void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     const float T = dd->DisplayPos.y;
     const float B = dd->DisplayPos.y + dd->DisplaySize.y;
     std::shared_ptr<VulkanShader> vertex_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
-    size_t vertex_count = renderable->index_buffer->getNotAlignedSize() / vertex_shader->getShaderSignature()->getVertexFormat().getIndexTypeBytesCount();
+    size_t index_count = renderable->index_buffer->getNotAlignedSize() / vertex_shader->getShaderSignature()->getVertexFormat().getIndexTypeBytesCount();
+    size_t vertex_count = renderable->vertex_buffer->getNotAlignedSize() / vertex_shader->getShaderSignature()->getVertexFormat().getVertexSize();
 
     if(vertex_count < dd->TotalVtxCount) {
         renderable->imgui_vtx.resize(dd->TotalVtxCount);
