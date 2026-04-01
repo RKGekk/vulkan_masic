@@ -6,6 +6,7 @@
 #include "../pod/render_node.h"
 #include "../pod/render_node_config.h"
 #include "../pod/pipeline_config.h"
+#include "../pod/basic_uniform.h"
 #include "../api/vulkan_pipelines_manager.h"
 #include "../api/vulkan_resources_manager.h"
 #include "../api/vulkan_descriptors_manager.h"
@@ -153,6 +154,10 @@ void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     std::shared_ptr<Renderable>& renderable = m_renderables.at(image_index);
 
     ImDrawData* dd = ImGui::GetDrawData();
+    const float L = dd->DisplayPos.x;
+    const float R = dd->DisplayPos.x + dd->DisplaySize.x;
+    const float T = dd->DisplayPos.y;
+    const float B = dd->DisplayPos.y + dd->DisplaySize.y;
     std::shared_ptr<VulkanShader> vertex_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
     size_t vertex_count = renderable->index_buffer->getNotAlignedSize() / vertex_shader->getShaderSignature()->getVertexFormat().getIndexTypeBytesCount();
 
@@ -182,6 +187,10 @@ void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
 
     renderable->vertex_buffer->update(renderable->imgui_vtx.data(), vertex_sz);
     renderable->index_buffer->update(renderable->imgui_idx.data(), index_sz);
+
+    ImGuiUniformBufferObject bindData;
+    bindData.LRTB = {L, R, T, B};
+    renderable->uniform_buffer->update(&bindData, sizeof(ImGuiUniformBufferObject));
 
     //const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
     //renderable->render_node->changeWriteDependency(swapchain_images[image_index], "resolve_attachment");
