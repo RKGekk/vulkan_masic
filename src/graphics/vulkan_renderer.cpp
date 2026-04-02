@@ -346,7 +346,7 @@ void VulkanRenderer::drawFrame(unsigned image_index) {
     wait_info.wait_for_stages.push_back(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
     VkSubmitInfo submit_info = m_per_frame[image_index]->command_buffer->getSubmitInfo(&wait_info);
 
-    m_command_manager->submitCommandBuffer(*m_per_frame[image_index]->command_buffer, VulkanCommandManager::SELECT_ALL_BUFFERS, &submit_info);
+    m_command_manager->submitCommandBuffer(m_per_frame[image_index]->command_buffer, VulkanCommandManager::SELECT_ALL_BUFFERS, &submit_info);
 
     m_per_frame[image_index]->present_wait_sem.push_back(m_per_frame[image_index]->cmd_submit_finish_signal_sem);
     

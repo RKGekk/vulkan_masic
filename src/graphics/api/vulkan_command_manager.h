@@ -33,7 +33,7 @@ public:
 	static void beginCommandBuffer(CommandBatch& command_buffer, size_t index = 0u, VkCommandBufferBeginInfo* p_begin_info = nullptr);
 	static void endCommandBuffer(CommandBatch& command_buffer, size_t index = 0u);
 
-    void submitCommandBuffer(CommandBatch& command_buffer, size_t index = 0u, VkSubmitInfo* p_submit_info = nullptr);
+    void submitCommandBuffer(std::shared_ptr<CommandBatch>& command_buffer, size_t index = 0u, VkSubmitInfo* p_submit_info = nullptr);
     void wait(PoolTypeEnum pool_type);
 
     void transitionImageLayout(VkCommandBuffer command_buffer, VkImage image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout, uint32_t mip_levels);
@@ -54,19 +54,11 @@ private:
     VkQueue m_compute_queue = VK_NULL_HANDLE;
     VkQueue m_transfer_queue = VK_NULL_HANDLE;
 
-    ThreadSafeQueue<CommandBatch> m_work_in_progress;
+    ThreadSafeQueue<std::shared_ptr<CommandBatch>> m_work_in_progress;
 
     std::vector<VkCommandBuffer> m_command_buffers;
     ThreadSafeLookupTable<unsigned int, std::vector<size_t>> m_submit_to_buf_id;
     ThreadSafeQueue<size_t> m_free_cmd_idx;
-
-    std::vector<VkSemaphore> m_semaphores;
-    ThreadSafeLookupTable<unsigned int, size_t> m_submit_to_sem_id;
-    ThreadSafeQueue<size_t> m_free_smp_idx;
-
-    std::vector<VkFence> m_fences;
-    ThreadSafeLookupTable<unsigned int, size_t> m_submit_to_fnc_id;
-    ThreadSafeQueue<size_t> m_free_fnc_idx;
 
     std::shared_ptr<ThreadPool> m_thread_pool;
     scope_thread m_cmd_buff_thread;

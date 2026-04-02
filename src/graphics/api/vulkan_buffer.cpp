@@ -139,9 +139,9 @@ void VulkanBuffer::update(const void* src_data, VkDeviceSize buffer_size) {
         return;
     }
     else {
-        CommandBatch command_buffer = m_device->getCommandManager()->allocCommandBuffer(PoolTypeEnum::TRANSFER);
-        update(command_buffer, src_data, buffer_size);
-        m_device->getCommandManager()->submitCommandBuffer(command_buffer);
+        std::shared_ptr<CommandBatch> command_buffer_ptr = m_device->getCommandManager()->allocCommandBufferPtr(PoolTypeEnum::TRANSFER);
+        update(*command_buffer_ptr, src_data, buffer_size);
+        m_device->getCommandManager()->submitCommandBuffer(command_buffer_ptr);
         m_device->getCommandManager()->wait(PoolTypeEnum::TRANSFER);
 
         return;

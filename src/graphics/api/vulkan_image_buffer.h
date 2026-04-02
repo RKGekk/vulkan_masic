@@ -23,8 +23,8 @@ public:
     bool init(unsigned char* pixels, std::shared_ptr<ImageBufferConfig> image_buffer_config);
     bool init(const std::shared_ptr<ImageBufferConfig>& image_buffer_config_template, const std::string& path_to_file);
     bool init(std::shared_ptr<ImageBufferConfig> image_buffer_config);
-    bool init(CommandBatch& command_buffer, unsigned char* pixels, std::shared_ptr<ImageBufferConfig> image_buffer_config);
-    bool init(CommandBatch& command_buffer, const std::shared_ptr<ImageBufferConfig>& image_buffer_config_template, const std::string& path_to_file);
+    bool init(std::shared_ptr<CommandBatch>& command_buffer, unsigned char* pixels, std::shared_ptr<ImageBufferConfig> image_buffer_config);
+    bool init(std::shared_ptr<CommandBatch>& command_buffer, const std::shared_ptr<ImageBufferConfig>& image_buffer_config_template, const std::string& path_to_file);
 
     void destroy() override;
 
@@ -41,7 +41,7 @@ public:
     std::shared_ptr<ImageBufferConfig>& getImageConfig();
 
     void changeLayout(VkImageLayout old_layout, VkImageLayout new_layout);
-    void changeLayout(CommandBatch& command_buffer, VkImageLayout old_layout, VkImageLayout new_layout);
+    void changeLayout(std::shared_ptr<CommandBatch>& command_buffer, VkImageLayout old_layout, VkImageLayout new_layout);
 
     const ResourceName& getName() const override;
     Type getType() const override;

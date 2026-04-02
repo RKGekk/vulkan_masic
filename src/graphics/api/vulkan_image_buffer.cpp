@@ -122,12 +122,12 @@ bool VulkanImageBuffer::init(unsigned char* pixels, std::shared_ptr<ImageBufferC
     }
 
     std::shared_ptr<VulkanBuffer> staging_buffer = Application::Get().GetRenderer().getResourcesManager()->create_buffer(pixels, m_image_config->getFormat()->getRawFormatBytesCount(), "basic_staging_buffer"s);
-    CommandBatch command_buffer = m_device->getCommandManager()->allocCommandBuffer(PoolTypeEnum::TRANSFER);
-    command_buffer.addResource(staging_buffer);
+    std::shared_ptr<CommandBatch> command_buffer = m_device->getCommandManager()->allocCommandBufferPtr(PoolTypeEnum::TRANSFER);
+    command_buffer->addResource(staging_buffer);
 
     if(m_image_config->getImageInfo().initialLayout != VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
         m_device->getCommandManager()->transitionImageLayout(
-            command_buffer.getCommandBufer(),
+            command_buffer->getCommandBufer(),
             m_image,
             m_image_config->getImageInfo().format,
             m_image_config->getImageInfo().initialLayout,
@@ -136,7 +136,7 @@ bool VulkanImageBuffer::init(unsigned char* pixels, std::shared_ptr<ImageBufferC
         );
     }
     m_device->getCommandManager()->copyBufferToImage(
-        command_buffer.getCommandBufer(),
+        command_buffer->getCommandBufer(),
         staging_buffer->getBuffer(),
         m_image,
         m_image_config->getImageInfo().extent,
@@ -145,7 +145,7 @@ bool VulkanImageBuffer::init(unsigned char* pixels, std::shared_ptr<ImageBufferC
 
     if(m_image_config->getImageInfo().mipLevels != 1u) {
         m_device->getCommandManager()->generateMipmaps(
-            command_buffer.getCommandBufer(),
+            command_buffer->getCommandBufer(),
             m_image,
             m_image_config->getImageInfo().format,
             m_image_config->getFormat()->getExtent2D(),
@@ -183,7 +183,7 @@ bool VulkanImageBuffer::init(std::shared_ptr<ImageBufferConfig> image_buffer_con
     return init((unsigned char*)nullptr, std::move(image_buffer_config));
 }
 
-bool VulkanImageBuffer::init(CommandBatch& command_buffer, unsigned char* pixels, std::shared_ptr<ImageBufferConfig> image_buffer_config) {
+bool VulkanImageBuffer::init(std::shared_ptr<CommandBatch>& command_buffer, unsigned char* pixels, std::shared_ptr<ImageBufferConfig> image_buffer_config) {
     m_image_config = std::move(image_buffer_config);
     
     VkResult result = vkCreateImage(m_device->getDevice(), &m_image_config->getImageInfo(), nullptr, &m_image);
@@ -240,11 +240,11 @@ bool VulkanImageBuffer::init(CommandBatch& command_buffer, unsigned char* pixels
     }
 
     std::shared_ptr<VulkanBuffer> staging_buffer = Application::Get().GetRenderer().getResourcesManager()->create_buffer(pixels, m_image_size, "basic_staging_buffer"s);
-    command_buffer.addResource(staging_buffer);
+    command_buffer->addResource(staging_buffer);
 
     if(m_image_config->getImageInfo().initialLayout != VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
         m_device->getCommandManager()->transitionImageLayout(
-            command_buffer.getCommandBufer(),
+            command_buffer->getCommandBufer(),
             m_image,
             m_image_config->getImageInfo().format,
             m_image_config->getImageInfo().initialLayout,
@@ -253,7 +253,7 @@ bool VulkanImageBuffer::init(CommandBatch& command_buffer, unsigned char* pixels
         );
     }
     m_device->getCommandManager()->copyBufferToImage(
-        command_buffer.getCommandBufer(),
+        command_buffer->getCommandBufer(),
         staging_buffer->getBuffer(),
         m_image,
         m_image_config->getImageInfo().extent,
@@ -262,7 +262,7 @@ bool VulkanImageBuffer::init(CommandBatch& command_buffer, unsigned char* pixels
 
     if(m_image_config->getImageInfo().mipLevels != 1u) {
         m_device->getCommandManager()->generateMipmaps(
-            command_buffer.getCommandBufer(),
+            command_buffer->getCommandBufer(),
             m_image,
             m_image_config->getImageInfo().format,
             m_image_config->getFormat()->getExtent2D(),
@@ -277,7 +277,7 @@ bool VulkanImageBuffer::init(CommandBatch& command_buffer, unsigned char* pixels
     return true;
 }
 
-bool VulkanImageBuffer::init(CommandBatch& command_buffer, const std::shared_ptr<ImageBufferConfig>& image_buffer_config_template, const std::string& path_to_file) {
+bool VulkanImageBuffer::init(std::shared_ptr<CommandBatch>& command_buffer, const std::shared_ptr<ImageBufferConfig>& image_buffer_config_template, const std::string& path_to_file) {
     using namespace std::literals;
 
     int tex_width;
@@ -345,13 +345,13 @@ std::shared_ptr<ImageBufferConfig>& VulkanImageBuffer::getImageConfig() {
 }
 
 void VulkanImageBuffer::changeLayout(VkImageLayout old_layout, VkImageLayout new_layout) {
-    CommandBatch command_buffer = m_device->getCommandManager()->allocCommandBuffer(PoolTypeEnum::TRANSFER);
+    std::shared_ptr<CommandBatch> command_buffer = m_device->getCommandManager()->allocCommandBufferPtr(PoolTypeEnum::TRANSFER);
     changeLayout(command_buffer, old_layout, new_layout);
 }
 
-void VulkanImageBuffer::changeLayout(CommandBatch& command_buffer, VkImageLayout old_layout, VkImageLayout new_layout) {
+void VulkanImageBuffer::changeLayout(std::shared_ptr<CommandBatch>& command_buffer, VkImageLayout old_layout, VkImageLayout new_layout) {
     m_device->getCommandManager()->transitionImageLayout(
-        command_buffer.getCommandBufer(),
+        command_buffer->getCommandBufer(),
         m_image,
         m_image_config->getImageInfo().format,
         old_layout,

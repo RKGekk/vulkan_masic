@@ -11,6 +11,9 @@
 #include "vulkan_command_pool_type.h"
 #include "../pod/render_resource.h"
 
+class VulkanSemaphoresManager;
+class VulkanFenceManager;
+
 class CommandBatch {
 public:
     struct BatchWaitInfo {
@@ -18,10 +21,11 @@ public:
         std::vector<VkPipelineStageFlags> wait_for_stages;
     };
 
-    bool init(VkDevice device, std::vector<VkCommandBuffer> command_buffers, PoolTypeEnum pool_type, uint32_t family_index, unsigned int submit_id, BatchWaitInfo wait_info = {});
-    bool init(VkDevice device, std::vector<VkCommandBuffer> command_buffers, VkSemaphore semaphore, VkFence fence, PoolTypeEnum pool_type, uint32_t family_index, unsigned int submit_id, BatchWaitInfo wait_info = {});
-    bool init(VkDevice device, size_t reserve, PoolTypeEnum pool_type, uint32_t family_index, unsigned int submit_id, BatchWaitInfo wait_info = {});
-    bool init(VkDevice device, size_t reserve, VkSemaphore semaphore, VkFence fence, PoolTypeEnum pool_type, uint32_t family_index, unsigned int submit_id, BatchWaitInfo wait_info = {});
+    CommandBatch(VkDevice device, std::shared_ptr<VulkanSemaphoresManager> semaphores_manager, std::shared_ptr<VulkanFenceManager> fence_manager);
+
+
+    bool init(std::vector<VkCommandBuffer> command_buffers, PoolTypeEnum pool_type, uint32_t family_index, unsigned int submit_id, BatchWaitInfo wait_info = {});
+    bool init(size_t reserve, PoolTypeEnum pool_type, uint32_t family_index, unsigned int submit_id, BatchWaitInfo wait_info = {});
     void destroy();
 
     VkCommandBuffer getCommandBufer(size_t index = 0u) const;
@@ -51,6 +55,8 @@ public:
 
 private:
     VkDevice m_device;
+    std::shared_ptr<VulkanSemaphoresManager> m_semaphores_manager;
+    std::shared_ptr<VulkanFenceManager> m_fence_manager;
 
     unsigned int m_submit_id;
 

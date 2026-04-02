@@ -1,6 +1,8 @@
 #include "vulkan_command_manager.h"
 #include "vulkan_device.h"
 #include "../pod/render_resource.h"
+#include "../../application.h"
+#include "../vulkan_renderer.h"
 
 unsigned int LAST_COMMAND_BUFFER_ID = 0u;
 
@@ -27,55 +29,27 @@ bool VulkanCommandManager::init(VkPhysicalDevice physical_device, VkDevice logic
         throw std::runtime_error("failed to allocate command buffers!");
     }
 
-    m_fences.resize(MAX_COMMAND_BUFFERS);
-    m_semaphores.resize(MAX_COMMAND_BUFFERS);
     for (uint32_t i = 0u; i < MAX_COMMAND_BUFFERS; ++i) {
         m_free_cmd_idx.Push(i);
-
-        VkFenceCreateInfo fen_info{};
-        fen_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        //fen_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-        result = vkCreateFence(m_device, &fen_info, nullptr, &m_fences[i]);
-        vkResetFences(m_device, 1u, &m_fences[i]);
-        if(result != VK_SUCCESS) {
-            throw std::runtime_error("failed to create fence!");
-        }
-        m_free_fnc_idx.Push(i);
-    
-        VkSemaphoreCreateInfo buffer_available_sema_info{};
-        buffer_available_sema_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-        result = vkCreateSemaphore(m_device, &buffer_available_sema_info, nullptr, &m_semaphores[i]);
-        if(result != VK_SUCCESS) {
-            throw std::runtime_error("failed to create semaphore!");
-        }
-        m_free_smp_idx.Push(i);
     }
 
     m_cmd_buff_thread = std::thread(
         [this]() {
             while(true) {
-                CommandBatch work_in_progress;
-                m_work_in_progress.WaitAndPop(work_in_progress);
-                if(work_in_progress.Noop()) break;
+                std::shared_ptr<CommandBatch> work_in_progress_ptr;
+                m_work_in_progress.WaitAndPop(work_in_progress_ptr);
+                if(work_in_progress_ptr->Noop()) break;
 
-                vkWaitForFences(m_device, 1u, work_in_progress.getRenderFencePtr(), VK_TRUE, UINT64_MAX);
-                work_in_progress.reset();
+                vkWaitForFences(m_device, 1u, work_in_progress_ptr->getRenderFencePtr(), VK_TRUE, UINT64_MAX);
+                work_in_progress_ptr->reset();
 
-                std::vector<size_t> cmd_idx = m_submit_to_buf_id.ValueFor(work_in_progress.getId(), {});
+                std::vector<size_t> cmd_idx = m_submit_to_buf_id.ValueFor(work_in_progress_ptr->getId(), {});
                 for (size_t i : cmd_idx) {
                     m_free_cmd_idx.Push(i);
                 }
-                m_submit_to_buf_id.RemoveMapping(work_in_progress.getId());
+                m_submit_to_buf_id.RemoveMapping(work_in_progress_ptr->getId());
 
-                size_t sem_id = m_submit_to_sem_id.ValueFor(work_in_progress.getId(), -1);
-                m_free_smp_idx.Push(sem_id);
-                m_submit_to_sem_id.RemoveMapping(work_in_progress.getId());
-
-                size_t fnc_id = m_submit_to_fnc_id.ValueFor(work_in_progress.getId(), -1);
-                m_free_fnc_idx.Push(fnc_id);
-                m_submit_to_fnc_id.RemoveMapping(work_in_progress.getId());
-
-                for(const std::shared_ptr<RenderResource>& resource : work_in_progress.getResources()) {
+                for(const std::shared_ptr<RenderResource>& resource : work_in_progress_ptr->getResources()) {
                     resource->destroy();
                 }
             }
@@ -87,20 +61,15 @@ bool VulkanCommandManager::init(VkPhysicalDevice physical_device, VkDevice logic
 }
 
 void VulkanCommandManager::destroy() {
-    CommandBatch noop;
-    noop.setNoop();
-    m_work_in_progress.Push(std::move(noop));
+    std::shared_ptr<CommandBatch> noop_ptr;
+    noop_ptr->setNoop();
+    m_work_in_progress.Push(std::move(noop_ptr));
     if(m_grapics_cmd_pool != m_transfer_cmd_pool) {
         vkDestroyCommandPool(m_device, m_grapics_cmd_pool, nullptr);
         vkDestroyCommandPool(m_device, m_transfer_cmd_pool, nullptr);
     }
     else {
         vkDestroyCommandPool(m_device, m_grapics_cmd_pool, nullptr);
-    }
-
-    for(size_t i = 0u; i < MAX_COMMAND_BUFFERS; ++i) {
-        vkDestroySemaphore(m_device, m_semaphores[i], nullptr);
-        vkDestroyFence(m_device, m_fences[i], nullptr);
     }
 }
 
@@ -136,6 +105,9 @@ CommandBatch VulkanCommandManager::allocCommandBuffer(PoolTypeEnum pool_type, si
     std::vector<VkCommandBuffer> command_buffers;
     command_buffers.resize(buffers_count);
 
+    std::shared_ptr<VulkanFenceManager>& fence_manager = Application::GetRenderer().getFenceManager();
+    std::shared_ptr<VulkanSemaphoresManager>& semaphores_manager = Application::GetRenderer().getSemaphoreManager();
+
     if(pool_type == PoolTypeEnum::TRANSFER) {
         std::vector<size_t> cmd_idx;
         cmd_idx.reserve(buffers_count);
@@ -145,20 +117,13 @@ CommandBatch VulkanCommandManager::allocCommandBuffer(PoolTypeEnum pool_type, si
             command_buffers[i] = m_command_buffers[command_buf_idx];
             cmd_idx.push_back(command_buf_idx);
         }
-        size_t semaphore_idx = -1;
-        m_free_smp_idx.WaitAndPop(semaphore_idx);
-        VkSemaphore semaphore = m_semaphores[semaphore_idx];
-        size_t fence_idx = -1;
-        m_free_fnc_idx.WaitAndPop(fence_idx);
-        VkFence fence = m_fences[fence_idx];
 
-        CommandBatch result_buffers;
-        result_buffers.init(m_device, std::move(command_buffers), semaphore, fence, pool_type, m_queue_family_indices.getFamilyIdx(pool_type).value(), LAST_COMMAND_BUFFER_ID++);
+        CommandBatch result_buffers(m_device, semaphores_manager, fence_manager);
+        result_buffers.init(std::move(command_buffers), pool_type, m_queue_family_indices.getFamilyIdx(pool_type).value(), LAST_COMMAND_BUFFER_ID++);
         result_buffers.reset();
         VulkanCommandManager::beginCommandBuffer(result_buffers);
         m_submit_to_buf_id.AddOrUpdateMapping(result_buffers.getId(), cmd_idx);
-        m_submit_to_sem_id.AddOrUpdateMapping(result_buffers.getId(), semaphore_idx);
-        m_submit_to_fnc_id.AddOrUpdateMapping(result_buffers.getId(), fence_idx);
+
         return result_buffers;
     }
 
@@ -168,8 +133,8 @@ CommandBatch VulkanCommandManager::allocCommandBuffer(PoolTypeEnum pool_type, si
         if(result != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate command buffers!");
         }
-        CommandBatch result_buffers;
-        result_buffers.init(m_device, std::move(command_buffers), pool_type, m_queue_family_indices.getFamilyIdx(pool_type).value(), LAST_COMMAND_BUFFER_ID++);
+        CommandBatch result_buffers(m_device, semaphores_manager, fence_manager);
+        result_buffers.init(std::move(command_buffers), pool_type, m_queue_family_indices.getFamilyIdx(pool_type).value(), LAST_COMMAND_BUFFER_ID++);
         return result_buffers;
 	}
 
@@ -184,8 +149,8 @@ CommandBatch VulkanCommandManager::allocCommandBuffer(PoolTypeEnum pool_type, si
         throw std::runtime_error("failed to allocate command buffers!");
     }
 
-    CommandBatch result_buffers;
-    result_buffers.init(m_device, std::move(command_buffers), pool_type, m_queue_family_indices.getFamilyIdx(pool_type).value(), LAST_COMMAND_BUFFER_ID++);
+    CommandBatch result_buffers(m_device, semaphores_manager, fence_manager);
+    result_buffers.init(std::move(command_buffers), pool_type, m_queue_family_indices.getFamilyIdx(pool_type).value(), LAST_COMMAND_BUFFER_ID++);
     return result_buffers;
 }
 
@@ -193,6 +158,9 @@ std::shared_ptr<CommandBatch> VulkanCommandManager::allocCommandBufferPtr(PoolTy
     std::vector<VkCommandBuffer> command_buffers;
     command_buffers.resize(buffers_count);
 
+    std::shared_ptr<VulkanFenceManager>& fence_manager = Application::GetRenderer().getFenceManager();
+    std::shared_ptr<VulkanSemaphoresManager>& semaphores_manager = Application::GetRenderer().getSemaphoreManager();
+
     if(pool_type == PoolTypeEnum::TRANSFER) {
         std::vector<size_t> cmd_idx;
         cmd_idx.reserve(buffers_count);
@@ -202,20 +170,13 @@ std::shared_ptr<CommandBatch> VulkanCommandManager::allocCommandBufferPtr(PoolTy
             command_buffers[i] = m_command_buffers[command_buf_idx];
             cmd_idx.push_back(command_buf_idx);
         }
-        size_t semaphore_idx = -1;
-        m_free_smp_idx.WaitAndPop(semaphore_idx);
-        VkSemaphore semaphore = m_semaphores[semaphore_idx];
-        size_t fence_idx = -1;
-        m_free_fnc_idx.WaitAndPop(fence_idx);
-        VkFence fence = m_fences[fence_idx];
 
-        std::shared_ptr<CommandBatch> result_buffers = std::make_shared<CommandBatch>();
-        result_buffers->init(m_device, std::move(command_buffers), semaphore, fence, pool_type, m_queue_family_indices.getFamilyIdx(pool_type).value(), LAST_COMMAND_BUFFER_ID++);
+        std::shared_ptr<CommandBatch> result_buffers = std::make_shared<CommandBatch>(m_device, semaphores_manager, fence_manager);
+        result_buffers->init(std::move(command_buffers), pool_type, m_queue_family_indices.getFamilyIdx(pool_type).value(), LAST_COMMAND_BUFFER_ID++);
         result_buffers->reset();
         VulkanCommandManager::beginCommandBuffer(*result_buffers);
         m_submit_to_buf_id.AddOrUpdateMapping(result_buffers->getId(), cmd_idx);
-        m_submit_to_sem_id.AddOrUpdateMapping(result_buffers->getId(), semaphore_idx);
-        m_submit_to_fnc_id.AddOrUpdateMapping(result_buffers->getId(), fence_idx);
+
         return result_buffers;
     }
 
@@ -225,8 +186,8 @@ std::shared_ptr<CommandBatch> VulkanCommandManager::allocCommandBufferPtr(PoolTy
         if(result != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate command buffers!");
         }
-        std::shared_ptr<CommandBatch> result_buffers = std::make_shared<CommandBatch>();
-        result_buffers->init(m_device, std::move(command_buffers), pool_type, m_queue_family_indices.getFamilyIdx(pool_type).value(), LAST_COMMAND_BUFFER_ID++);
+        std::shared_ptr<CommandBatch> result_buffers = std::make_shared<CommandBatch>(m_device, semaphores_manager, fence_manager);
+        result_buffers->init(std::move(command_buffers), pool_type, m_queue_family_indices.getFamilyIdx(pool_type).value(), LAST_COMMAND_BUFFER_ID++);
         return result_buffers;
 	}
 
@@ -241,8 +202,8 @@ std::shared_ptr<CommandBatch> VulkanCommandManager::allocCommandBufferPtr(PoolTy
         throw std::runtime_error("failed to allocate command buffers!");
     }
 
-    std::shared_ptr<CommandBatch> result_buffers = std::make_shared<CommandBatch>();
-    result_buffers->init(m_device, std::move(command_buffers), pool_type, m_queue_family_indices.getFamilyIdx(pool_type).value(), LAST_COMMAND_BUFFER_ID++);
+    std::shared_ptr<CommandBatch> result_buffers = std::make_shared<CommandBatch>(m_device, semaphores_manager, fence_manager);
+    result_buffers->init(std::move(command_buffers), pool_type, m_queue_family_indices.getFamilyIdx(pool_type).value(), LAST_COMMAND_BUFFER_ID++);
     return result_buffers;
 }
 
@@ -317,19 +278,19 @@ void VulkanCommandManager::endCommandBuffer(CommandBatch& command_buffer, size_t
     }
 }
 
-void VulkanCommandManager::submitCommandBuffer(CommandBatch& command_buffer, size_t index, VkSubmitInfo* p_submit_info) {
-    if(command_buffer.getPoolType() == PoolTypeEnum::TRANSFER) {
-        VulkanCommandManager::endCommandBuffer(command_buffer);
+void VulkanCommandManager::submitCommandBuffer(std::shared_ptr<CommandBatch>& command_buffer, size_t index, VkSubmitInfo* p_submit_info) {
+    if(command_buffer->getPoolType() == PoolTypeEnum::TRANSFER) {
+        VulkanCommandManager::endCommandBuffer(*command_buffer);
         if (p_submit_info) {
-            VkResult result = vkQueueSubmit(getQueue(command_buffer.getPoolType()), 1u, p_submit_info, command_buffer.getRenderFence());
+            VkResult result = vkQueueSubmit(getQueue(command_buffer->getPoolType()), 1u, p_submit_info, command_buffer->getRenderFence());
             if (result != VK_SUCCESS) {
                 throw std::runtime_error("failed to submit draw command buffer!");
             }
             return;
         }
         else {
-            VkSubmitInfo submit_info = command_buffer.getSubmitInfo();
-            VkResult result = vkQueueSubmit(getQueue(command_buffer.getPoolType()), 1u, &submit_info, command_buffer.getRenderFence());
+            VkSubmitInfo submit_info = command_buffer->getSubmitInfo();
+            VkResult result = vkQueueSubmit(getQueue(command_buffer->getPoolType()), 1u, &submit_info, command_buffer->getRenderFence());
             if (result != VK_SUCCESS) {
                 throw std::runtime_error("failed to submit draw command buffer!");
             }
@@ -339,20 +300,20 @@ void VulkanCommandManager::submitCommandBuffer(CommandBatch& command_buffer, siz
     }
 
     if (p_submit_info) {
-        VkResult result = vkQueueSubmit(getQueue(command_buffer.getPoolType()), 1u, p_submit_info, command_buffer.getRenderFence());
+        VkResult result = vkQueueSubmit(getQueue(command_buffer->getPoolType()), 1u, p_submit_info, command_buffer->getRenderFence());
         if (result != VK_SUCCESS) {
             throw std::runtime_error("failed to submit draw command buffer!");
         }
         return;
     }
 
-    VkSubmitInfo submit_info = command_buffer.getSubmitInfo();
+    VkSubmitInfo submit_info = command_buffer->getSubmitInfo();
     if(index != SELECT_ALL_BUFFERS) {
         submit_info.commandBufferCount = 1u;
-        submit_info.pCommandBuffers = command_buffer.getCommandBuferPtr(index);
+        submit_info.pCommandBuffers = command_buffer->getCommandBuferPtr(index);
     }
 
-    VkResult result = vkQueueSubmit(getQueue(command_buffer.getPoolType()), 1u, &submit_info, command_buffer.getRenderFence());
+    VkResult result = vkQueueSubmit(getQueue(command_buffer->getPoolType()), 1u, &submit_info, command_buffer->getRenderFence());
     if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to submit draw command buffer!");
     }
