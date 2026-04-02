@@ -69,6 +69,7 @@ void DescSetLayout::destroy() {
     for(std::shared_ptr<VulkanSampler>& sampler_ptr : m_immutable_samplers) {
         sampler_ptr->destroy();
     }
+    vkDestroyDescriptorSetLayout(m_device->getDevice(), m_desc_layout, nullptr);
 }
 
 const std::string& DescSetLayout::getName() const {

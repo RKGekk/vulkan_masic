@@ -5,7 +5,7 @@
 #include "vulkan_descriptor.h"
 
 bool VulkanDescriptorsManager::init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_name) {
-    m_device = device;
+    m_device = std::move(device);
 
     pugi::xml_document xml_doc;
 	pugi::xml_parse_result parse_res = xml_doc.load_file(rg_file_name.c_str());

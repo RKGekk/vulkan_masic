@@ -3,8 +3,8 @@
 #include "vulkan_device.h"
 
 bool DescriptorAllocatorPage::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<DescSetLayout> layout, VkDescriptorPoolCreateFlags flags, uint32_t num_descriptors_per_heap) {
-    m_device = device;
-    m_layout = layout;
+    m_device = std::move(device);
+    m_layout = std::move(layout);
     m_num_descriptors_per_heap = num_descriptors_per_heap;
 
     std::unordered_map<VkDescriptorType, size_t> types_map = getTypesCount();

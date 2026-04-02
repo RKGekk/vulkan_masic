@@ -9,7 +9,7 @@ bool VulkanDescriptor::init(VkDevice device, std::shared_ptr<DescSetLayout> layo
 }
 
 void VulkanDescriptor::destroy() {
-    
+    //m_layout->destroy();
 }
 
 const std::string& VulkanDescriptor::getName() const {
