@@ -113,6 +113,12 @@ bool ImageBufferConfig::init(const std::shared_ptr<VulkanDevice>& device, std::s
 
     return true;
 }
+
+void ImageBufferConfig::destroy() {
+    for (std::shared_ptr<VulkanSampler>& sampler : m_samplers) {
+        sampler->destroy();
+    }
+}
     
 const VkImageCreateInfo& ImageBufferConfig::getImageInfo() const {
     return m_image_info;

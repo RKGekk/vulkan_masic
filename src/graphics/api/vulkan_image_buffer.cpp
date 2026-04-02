@@ -297,6 +297,12 @@ bool VulkanImageBuffer::init(std::shared_ptr<CommandBatch>& command_buffer, cons
 }
 
 void VulkanImageBuffer::destroy() {
+    m_image_config->destroy();
+    for (auto&[view_name, vk_view] : m_image_view_map) {
+        vkDestroyImageView(m_device->getDevice(), vk_view, nullptr);
+    }
+    vkDestroyImage(m_device->getDevice(), m_image, nullptr);
+    vkFreeMemory(m_device->getDevice(), m_memory, nullptr);
 }
 
 VkImage VulkanImageBuffer::getImageBuffer() const {
