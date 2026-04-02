@@ -109,7 +109,13 @@ bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr
     return true;
 }
 
-void VulkanSwapChain::destroy() {}
+void VulkanSwapChain::destroy() {
+    size_t sz = m_swapchain_images.size();
+    for(size_t i = 0u; i < sz; ++i) {
+        m_swapchain_images[i]->destroy();
+    }
+    vkDestroySwapchainKHR(m_device->getDevice(), m_swapchain, nullptr);
+}
 
 void VulkanSwapChain::recreate() {
     destroy();

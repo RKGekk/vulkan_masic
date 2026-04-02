@@ -46,6 +46,10 @@ bool VulkanResourcesManager::init(const std::string& rg_file_path) {
     return true;
 }
 
+void destroy() {
+	
+}
+
 std::shared_ptr<VulkanImageBuffer> VulkanResourcesManager::create_image(const std::string& path_to_file) {
 	if(m_image_map.contains(path_to_file)) return m_image_map[path_to_file];
 

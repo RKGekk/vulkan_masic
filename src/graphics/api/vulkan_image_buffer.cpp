@@ -300,9 +300,13 @@ void VulkanImageBuffer::destroy() {
     m_image_config->destroy();
     for (auto&[view_name, vk_view] : m_image_view_map) {
         vkDestroyImageView(m_device->getDevice(), vk_view, nullptr);
+        vk_view = VK_NULL_HANDLE;
     }
     vkDestroyImage(m_device->getDevice(), m_image, nullptr);
+    m_image = VK_NULL_HANDLE;
+
     vkFreeMemory(m_device->getDevice(), m_memory, nullptr);
+    m_memory = VK_NULL_HANDLE;
 }
 
 VkImage VulkanImageBuffer::getImageBuffer() const {
