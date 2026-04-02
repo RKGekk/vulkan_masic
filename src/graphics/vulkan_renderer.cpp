@@ -29,8 +29,11 @@ bool PerFrame::init(std::shared_ptr<VulkanDevice> device, unsigned index) {
     return true;
 }
 
-void PerFrame::destroy() {
-
+void PerFrame::destroy(VulkanRenderer& renderer) {
+    renderer.getResourcesManager()->delete_image(out_color_image);
+    renderer.getResourcesManager()->delete_image(out_depth_image);
+    command_buffer->destroy();
+    render_graph->destroy();
 }
 	
 void PerFrame::begin(VulkanRenderer& renderer, uint32_t image_index) {
@@ -111,11 +114,21 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
 
 void VulkanRenderer::destroy() {
     vkDeviceWaitIdle(m_device->getDevice());
+
     size_t sz = m_swapchain->getMaxFrames();
     m_swapchain->destroy();
     for(size_t i = 0u; i < sz; ++i) {
-        m_per_frame[i]->command_buffer->destroy();
+        m_per_frame[i]->destroy(*this);
     }
+
+    m_fence_manager->destroy();
+    m_semaphore_manager->destroy();
+    m_resources_manager->destroy();
+    m_command_manager->destroy();
+    m_descriptors_manager->destroy();
+    m_shaders_manager->destroy();
+    m_pipelines_manager->destroy();
+    m_render_passes_manager->destroy();
 }
 
 const std::shared_ptr<VulkanSwapChain>& VulkanRenderer::getSwapchain() const {

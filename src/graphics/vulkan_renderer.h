@@ -37,7 +37,7 @@ class VulkanRenderer;
 
 struct PerFrame {
     bool init(std::shared_ptr<VulkanDevice> device, unsigned index);
-    void destroy();
+    void destroy(VulkanRenderer& renderer);
 	
 	void begin(VulkanRenderer& renderer, uint32_t image_index);
     void end(VulkanRenderer& renderer);

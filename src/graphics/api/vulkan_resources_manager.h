@@ -31,9 +31,13 @@ public:
     std::shared_ptr<VulkanImageBuffer> create_image(VkImage image, VkExtent2D extent, std::string image_name, std::string resource_type_name);
     std::shared_ptr<VulkanImageBuffer> create_image(unsigned char* pixels, VkExtent2D extent, std::string image_name, std::string resource_type_name);
     std::shared_ptr<VulkanImageBuffer> create_image(std::string image_name, std::string resource_type_name);
+    void delete_image(const std::string& image_name);
+    void delete_image(std::shared_ptr<VulkanImageBuffer> image_ptr);
 
     std::shared_ptr<VulkanBuffer> create_buffer(const void* data, VkDeviceSize buffer_size, std::string resource_type_name);
     std::shared_ptr<VulkanBuffer> create_buffer(const void* data, VkDeviceSize buffer_size, std::string buffer_name, std::string resource_type_name);
+    void delete_buffer(const std::string& buffer_name);
+    void delete_buffer(std::shared_ptr<VulkanBuffer> buffer_ptr);
 
     const std::shared_ptr<VulkanImageBuffer>& getImageResource(const std::string& resource_global_name);
     const std::shared_ptr<VulkanBuffer>& getBufferResource(const std::string& resource_global_name);

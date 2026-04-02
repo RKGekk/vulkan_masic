@@ -64,6 +64,10 @@ bool BufferConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::
 
     return true;
 }
+
+void BufferConfig::destroy() {
+
+}
     
 const std::string& BufferConfig::getName() const {
     return m_name;

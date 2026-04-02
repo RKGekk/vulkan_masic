@@ -46,8 +46,19 @@ bool VulkanResourcesManager::init(const std::string& rg_file_path) {
     return true;
 }
 
-void destroy() {
-	
+void VulkanResourcesManager::destroy() {
+	for (auto&[image_cfg_name, image_cfg] : m_image_buffer_config_map) {
+		image_cfg->destroy();
+	}
+	// for (auto&[image_name, image] : m_image_map) {
+	// 	image->destroy();
+	// }
+	for (auto&[buffer_cfg_name, buffer_cfg] : m_buffer_config_map) {
+		buffer_cfg->destroy();
+	}
+	// for (auto&[buffer_name, buffer] : m_buffer_map) {
+	// 	buffer->destroy();
+	// }
 }
 
 std::shared_ptr<VulkanImageBuffer> VulkanResourcesManager::create_image(const std::string& path_to_file) {
@@ -122,6 +133,21 @@ std::shared_ptr<VulkanImageBuffer> VulkanResourcesManager::create_image(std::str
 	return image;
 }
 
+void VulkanResourcesManager::delete_image(const std::string& image_name) {
+	m_image_map[image_name]->destroy();
+	m_image_map.erase(image_name);
+}
+
+void VulkanResourcesManager::delete_image(std::shared_ptr<VulkanImageBuffer> image_ptr) {
+	for (auto&[image_name, image] : m_image_map) {
+		if(image == image_ptr) {
+			image->destroy();
+			m_image_map.erase(image_name);
+			return;
+		}
+	}
+}
+
 std::shared_ptr<VulkanBuffer> VulkanResourcesManager::create_buffer(const void* data, VkDeviceSize buffer_size, std::string resource_type_name) {
 	using namespace std::literals;
 
@@ -160,6 +186,21 @@ std::shared_ptr<VulkanBuffer> VulkanResourcesManager::create_buffer(const void* 
 	m_buffer_map[buffer_name] = buffer;
 
 	return buffer;
+}
+
+void VulkanResourcesManager::delete_buffer(const std::string& buffer_name) {
+	m_buffer_map[buffer_name]->destroy();
+	m_buffer_map.erase(buffer_name);
+}
+
+void VulkanResourcesManager::delete_buffer(std::shared_ptr<VulkanBuffer> buffer_ptr) {
+	for (auto&[buffer_name, buffer] : m_buffer_map) {
+		if(buffer == buffer_ptr) {
+			buffer->destroy();
+			m_buffer_map.erase(buffer_name);
+			return;
+		}
+	}
 }
 
 const std::shared_ptr<VulkanImageBuffer>& VulkanResourcesManager::getImageResource(const std::string& resource_global_name) {

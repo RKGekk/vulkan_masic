@@ -112,7 +112,8 @@ bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr
 void VulkanSwapChain::destroy() {
     size_t sz = m_swapchain_images.size();
     for(size_t i = 0u; i < sz; ++i) {
-        m_swapchain_images[i]->destroy();
+        //m_swapchain_images[i]->destroy();
+        Application::GetRenderer().getResourcesManager()->delete_image(m_swapchain_images[i]);
     }
     vkDestroySwapchainKHR(m_device->getDevice(), m_swapchain, nullptr);
 }
