@@ -27,7 +27,6 @@ bool VulkanDevice::init(const VulkanInstance& instance, VkSurfaceKHR surface, st
 }
 
 void VulkanDevice::destroy() {
-    m_command_manager->destroy();
     vkDestroyDevice(m_device, nullptr);
 }
 

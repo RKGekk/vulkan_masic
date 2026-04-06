@@ -94,9 +94,15 @@
 
     <DescriptorAllocators>
         <DescriptorAllocator name="basic_alloc">
+            <Flags>
+                <Flag>free_descriptor_set</Flag>
+            </Flags>
             <PageSize>256</PageSize>
         </DescriptorAllocator>
         <DescriptorAllocator name="imgui_alloc">
+            <Flags>
+                <Flag>free_descriptor_set</Flag>
+            </Flags>
             <PageSize>8</PageSize>
         </DescriptorAllocator>
     </DescriptorAllocators>
@@ -152,6 +158,7 @@
                 <CreationLayout>undefined</CreationLayout>
                 <AfterInitLayout>undefined</AfterInitLayout>
                 <MemoryProperties get_by_memory_requirements="true"></MemoryProperties>
+                <ExternalMemoryControl>true</ExternalMemoryControl>
                 <Views>
                     <View name="basic_swapchain_resource_view">
                         <ViewType>2D</ViewType>
@@ -179,6 +186,7 @@
                 <MemoryProperties get_by_memory_requirements="false">
                     <Property>device_local</Property>
                 </MemoryProperties>
+                <ExternalMemoryControl>false</ExternalMemoryControl>
                 <Samplers>
                     <Sampler name="default_sampler">
                         <MagFilter>linear</MagFilter>
@@ -225,6 +233,7 @@
                 <MemoryProperties get_by_memory_requirements="false">
                     <Property>device_local</Property>
                 </MemoryProperties>
+                <ExternalMemoryControl>false</ExternalMemoryControl>
                 <Samplers>
                     <Sampler name="default_sampler">
                         <MagFilter>linear</MagFilter>
@@ -271,6 +280,7 @@
                 <MemoryProperties get_by_memory_requirements="false">
                     <Property>device_local</Property>
                 </MemoryProperties>
+                <ExternalMemoryControl>false</ExternalMemoryControl>
                 <Views>
                     <View name="render_target_color_resource_view">
                         <ViewType>2D</ViewType>
@@ -298,6 +308,7 @@
                 <MemoryProperties get_by_memory_requirements="false">
                     <Property>device_local</Property>
                 </MemoryProperties>
+                <ExternalMemoryControl>false</ExternalMemoryControl>
                 <Views>
                     <View name="render_target_depth_resource_view">
                         <ViewType>2D</ViewType>

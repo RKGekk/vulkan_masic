@@ -61,7 +61,7 @@ bool VulkanCommandManager::init(VkPhysicalDevice physical_device, VkDevice logic
 }
 
 void VulkanCommandManager::destroy() {
-    std::shared_ptr<CommandBatch> noop_ptr;
+    std::shared_ptr<CommandBatch> noop_ptr = std::make_shared<CommandBatch>(m_device, Application::GetRenderer().getSemaphoreManager(), Application::GetRenderer().getFenceManager());
     noop_ptr->setNoop();
     m_work_in_progress.Push(std::move(noop_ptr));
     if(m_grapics_cmd_pool != m_transfer_cmd_pool) {

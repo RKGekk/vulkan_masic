@@ -16,18 +16,17 @@ bool VulkanSemaphoresManager::init(std::shared_ptr<VulkanDevice> device) {
             throw std::runtime_error("failed to create semaphore!");
         }
 
-        m_semaphores.push(sem);
+        m_semaphores.push_back(sem);
     }
 
     return true;
 }
 
 void VulkanSemaphoresManager::destroy() {
-    for(size_t i = 0u; i < m_semaphores.size(); ++i) {
-        VkSemaphore sem = m_semaphores.back();
-        m_semaphores.pop();
+    for(VkSemaphore sem : m_semaphores) {
         vkDestroySemaphore(m_device->getDevice(), sem, nullptr);
     }
+    m_semaphores = {};
 }
 
 VkSemaphore VulkanSemaphoresManager::getSemaphore() {
@@ -45,13 +44,13 @@ VkSemaphore VulkanSemaphoresManager::getSemaphore() {
     }
     else {
 	    VkSemaphore sem = m_semaphores.front();
-	    m_semaphores.pop();
+	    m_semaphores.pop_front();
 	    return sem;
     }
 }
 
 void VulkanSemaphoresManager::returnSemaphore(VkSemaphore sem) {
     if (sem != VK_NULL_HANDLE) {
-	    m_semaphores.push(sem);
+	    m_semaphores.push_back(sem);
     }
 }

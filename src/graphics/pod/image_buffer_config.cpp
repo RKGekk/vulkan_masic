@@ -61,6 +61,8 @@ bool ImageBufferConfig::init(const std::shared_ptr<VulkanDevice>& device, std::s
         m_memory_properties |= getMemoryPropertyFlag(flag_node.text().as_string());
     }
 
+    m_external_memory_control = image_buffer_data.child("ExternalMemoryControl").text().as_bool();
+
     pugi::xml_node samplers_node = image_buffer_data.child("Samplers");
     for (pugi::xml_node sampler_node = samplers_node.first_child(); sampler_node; sampler_node = sampler_node.next_sibling()) {
         std::string sampler_name_str = sampler_node.attribute("name").as_string();
@@ -164,6 +166,10 @@ bool ImageBufferConfig::isMemoryPropertiesByMemoryRequirements() const {
     return m_memory_properties_by_memory_requirements;
 }
 
+bool ImageBufferConfig::isExternalMemoryControl() const {
+    return m_external_memory_control;
+}
+
 std::shared_ptr<ImageBufferConfig> ImageBufferConfig::makeInstance(std::string image_instance_name, VkExtent2D extent) const {
     using namespace std::literals;
 
@@ -182,6 +188,7 @@ std::shared_ptr<ImageBufferConfig> ImageBufferConfig::makeInstance(std::string i
 
     instance_ptr->m_memory_properties = m_memory_properties;
     instance_ptr->m_memory_properties_by_memory_requirements = m_memory_properties_by_memory_requirements;
+    instance_ptr->m_external_memory_control = m_external_memory_control;
     if(instance_ptr->m_format->getExtentSource() == FormatConfig::ExtentSource::AUTO) {
         instance_ptr->m_image_info.extent = {extent.width, extent.height, 1};
         instance_ptr->m_image_info.mipLevels = instance_ptr->m_format->getMipLevels();

@@ -21,5 +21,5 @@ public:
 
 private:
     std::shared_ptr<VulkanDevice> m_device;
-    std::queue<VkSemaphore> m_semaphores;
+    std::deque<VkSemaphore> m_semaphores;
 };

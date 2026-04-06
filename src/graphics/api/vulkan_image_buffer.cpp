@@ -302,10 +302,12 @@ void VulkanImageBuffer::destroy() {
         vkDestroyImageView(m_device->getDevice(), vk_view, nullptr);
         vk_view = VK_NULL_HANDLE;
     }
-    vkDestroyImage(m_device->getDevice(), m_image, nullptr);
-    m_image = VK_NULL_HANDLE;
 
-    vkFreeMemory(m_device->getDevice(), m_memory, nullptr);
+    if(!m_image_config->isExternalMemoryControl()) {
+        vkDestroyImage(m_device->getDevice(), m_image, nullptr);
+        vkFreeMemory(m_device->getDevice(), m_memory, nullptr);
+    }
+    m_image = VK_NULL_HANDLE;
     m_memory = VK_NULL_HANDLE;
 }
 

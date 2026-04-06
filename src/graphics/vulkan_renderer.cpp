@@ -115,17 +115,18 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
 void VulkanRenderer::destroy() {
     vkDeviceWaitIdle(m_device->getDevice());
 
+    m_command_manager->destroy();
+    m_descriptors_manager->destroy();
+
+    m_fence_manager->destroy();
+    m_semaphore_manager->destroy();
+
     size_t sz = m_swapchain->getMaxFrames();
     m_swapchain->destroy();
     for(size_t i = 0u; i < sz; ++i) {
         m_per_frame[i]->destroy(*this);
     }
-
-    m_fence_manager->destroy();
-    m_semaphore_manager->destroy();
     m_resources_manager->destroy();
-    m_command_manager->destroy();
-    m_descriptors_manager->destroy();
     m_shaders_manager->destroy();
     m_pipelines_manager->destroy();
     m_render_passes_manager->destroy();

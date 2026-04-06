@@ -36,6 +36,7 @@ public:
     VkMemoryPropertyFlags getMemoryProperties() const;
     void setMemoryProperties(VkMemoryPropertyFlags props);
     bool isMemoryPropertiesByMemoryRequirements() const;
+    bool isExternalMemoryControl() const;
 
     std::shared_ptr<ImageBufferConfig> makeInstance(std::string name, VkExtent2D extent = {0, 0}) const;
 
@@ -47,5 +48,6 @@ private:
     std::unordered_map<std::string, std::shared_ptr<ImageBufferViewConfig>> m_image_view_info_map;
     VkMemoryPropertyFlags m_memory_properties;
     bool m_memory_properties_by_memory_requirements;
+    bool m_external_memory_control;
     std::vector<std::shared_ptr<VulkanSampler>> m_samplers;
 };
