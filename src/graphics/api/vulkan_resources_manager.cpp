@@ -50,15 +50,15 @@ void VulkanResourcesManager::destroy() {
 	for (auto&[image_cfg_name, image_cfg] : m_image_buffer_config_map) {
 		image_cfg->destroy();
 	}
-	// for (auto&[image_name, image] : m_image_map) {
-	// 	image->destroy();
-	// }
+	for (auto&[image_name, image] : m_image_map) {
+		image->destroy();
+	}
 	for (auto&[buffer_cfg_name, buffer_cfg] : m_buffer_config_map) {
 		buffer_cfg->destroy();
 	}
-	// for (auto&[buffer_name, buffer] : m_buffer_map) {
-	// 	buffer->destroy();
-	// }
+	for (auto&[buffer_name, buffer] : m_buffer_map) {
+		buffer->destroy();
+	}
 }
 
 std::shared_ptr<VulkanImageBuffer> VulkanResourcesManager::create_image(const std::string& path_to_file) {

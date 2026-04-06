@@ -16,7 +16,7 @@ public:
     bool init(std::shared_ptr<VulkanDevice> device);
     void destroy();
 
-    VkSemaphore getSemaphore();
+    VkSemaphore getSemaphore(const std::string& new_name);
     void returnSemaphore(VkSemaphore sem);
 
 private:

@@ -5,8 +5,8 @@
 #include "vulkan_fence_manager.h"
 #include "vulkan_semaphores_manager.h"
 
-CommandBatch::CommandBatch(VkDevice device, std::shared_ptr<VulkanSemaphoresManager> semaphores_manager, std::shared_ptr<VulkanFenceManager> fence_manager) : m_device(device), m_semaphores_manager(std::move(semaphores_manager)), m_fence_manager(std::move(fence_manager)) {
-    m_buffer_in_use_semaphore = m_semaphores_manager->getSemaphore();
+CommandBatch::CommandBatch(VkDevice device, std::shared_ptr<VulkanSemaphoresManager> semaphores_manager, std::shared_ptr<VulkanFenceManager> fence_manager, std::string name) : m_device(device), m_semaphores_manager(std::move(semaphores_manager)), m_fence_manager(std::move(fence_manager)), m_name(name) {
+    m_buffer_in_use_semaphore = m_semaphores_manager->getSemaphore("buffer_in_use_semaphore");
     m_render_fence = m_fence_manager->getFence();
 }
 

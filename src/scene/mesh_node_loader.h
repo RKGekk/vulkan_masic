@@ -66,6 +66,7 @@ private:
     VkIndexType getIndexType(int accessor_component_type);
 
     tinygltf::Model m_gltf_model;
+    std::filesystem::path m_model_path;
     tinygltf::TinyGLTF m_gltf_ctx;
     std::unordered_map<NodeIdx, NodeIdx> m_node_parent;
 

@@ -27,8 +27,8 @@ public:
     VkCommandPool getCommandPool(PoolTypeEnum pool_type = PoolTypeEnum::GRAPICS) const;
     VkQueue getQueue(PoolTypeEnum pool_type = PoolTypeEnum::GRAPICS) const;
 
-    CommandBatch allocCommandBuffer(PoolTypeEnum pool_type = PoolTypeEnum::GRAPICS, size_t buffers_count = 1u, CommandBatch::BatchWaitInfo wait_info = {}, VkCommandBufferAllocateInfo* command_buffer_info = nullptr);
-    std::shared_ptr<CommandBatch> allocCommandBufferPtr(PoolTypeEnum pool_type = PoolTypeEnum::GRAPICS, size_t buffers_count = 1u, CommandBatch::BatchWaitInfo wait_info = {}, VkCommandBufferAllocateInfo* command_buffer_info = nullptr);
+    CommandBatch allocCommandBuffer(PoolTypeEnum pool_type = PoolTypeEnum::GRAPICS, size_t buffers_count = 1u, CommandBatch::BatchWaitInfo wait_info = {}, VkCommandBufferAllocateInfo* command_buffer_info = nullptr, std::string name = "no_name");
+    std::shared_ptr<CommandBatch> allocCommandBufferPtr(PoolTypeEnum pool_type = PoolTypeEnum::GRAPICS, size_t buffers_count = 1u, CommandBatch::BatchWaitInfo wait_info = {}, VkCommandBufferAllocateInfo* command_buffer_info = nullptr, std::string name = "no_name");
 
 	static void beginCommandBuffer(CommandBatch& command_buffer, size_t index = 0u, VkCommandBufferBeginInfo* p_begin_info = nullptr);
 	static void endCommandBuffer(CommandBatch& command_buffer, size_t index = 0u);

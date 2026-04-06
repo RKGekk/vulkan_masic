@@ -12,7 +12,19 @@ bool RenderGraph::init(std::shared_ptr<VulkanDevice> device) {
 }
 
 void RenderGraph::destroy() {
-
+    size_t sz = m_render_nodes.size();
+    for(size_t i = 0u; i < sz; ++i) {
+        RenderNodePtr& render_node = m_render_nodes[i];
+        render_node->destroy();
+    }
+    m_render_nodes.clear();
+    m_read_map.clear();
+    m_written_map.clear();
+    m_adjency_list.clear();
+    m_rev_adjency_list.clear();
+    m_topologically_sorted_nodes.clear();
+    m_render_node_sort_idx.clear();
+    m_dependency_levels.clear();
 }
 
 void RenderGraph::add_pass(std::shared_ptr<RenderNode> render_node) {

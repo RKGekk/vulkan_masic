@@ -21,7 +21,7 @@ public:
         std::vector<VkPipelineStageFlags> wait_for_stages;
     };
 
-    CommandBatch(VkDevice device, std::shared_ptr<VulkanSemaphoresManager> semaphores_manager, std::shared_ptr<VulkanFenceManager> fence_manager);
+    CommandBatch(VkDevice device, std::shared_ptr<VulkanSemaphoresManager> semaphores_manager, std::shared_ptr<VulkanFenceManager> fence_manager, std::string name);
 
     bool init(std::vector<VkCommandBuffer> command_buffers, PoolTypeEnum pool_type, uint32_t family_index, unsigned int submit_id, BatchWaitInfo wait_info = {});
     bool init(size_t reserve, PoolTypeEnum pool_type, uint32_t family_index, unsigned int submit_id, BatchWaitInfo wait_info = {});
@@ -54,6 +54,7 @@ public:
 
 private:
     VkDevice m_device;
+    std::string m_name;
     std::shared_ptr<VulkanSemaphoresManager> m_semaphores_manager;
     std::shared_ptr<VulkanFenceManager> m_fence_manager;
 

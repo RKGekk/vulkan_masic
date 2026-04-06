@@ -36,6 +36,10 @@ VulkanRenderer& Application::GetRenderer() {
     return Application::Get().m_renderer;
 }
 
+VulkanInstance& Application::GetInstance() {
+    return Application::Get().m_vulkan_instance;
+}
+
 void Application::run() {
     if (!glfwInit()) return;
     m_is_running = true;
@@ -95,6 +99,7 @@ bool Application::Initialize(ApplicationOptions opt) {
 
 Application::~Application() {
     m_renderer.destroy();
+    m_game.reset();
     m_vulkan_device->destroy();
     vkDestroySurfaceKHR(m_vulkan_instance.getInstance(), m_surface, nullptr);
     m_vulkan_instance.destroy();

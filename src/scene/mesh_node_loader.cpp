@@ -46,6 +46,7 @@ std::unordered_map<MeshNodeLoader::NodeIdx, MeshNodeLoader::NodeIdx> MeshNodeLoa
 }
 
 std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem::path& model_path, std::shared_ptr<VulkanShadersManager> shader_manager, std::shared_ptr<SceneNode> root_transform) {
+	m_model_path = model_path;
 	using namespace std::literals;
 
     Application& app = Application::Get();
@@ -460,13 +461,13 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& g
 
     	std::vector<float> vertices = GetVertices(primitive, m_pbr_shader_signature->getVertexFormat());
 		const void* vertices_data = vertices.data();
-		std::shared_ptr<VulkanBuffer> vertex_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(vertices_data, num_vertices * model_data->GetVertexFormat().getVertexSize(), mesh_name + "_vertex_buffer_primitive_"s + std::to_string(prim_idx), "basic_vertex_resource");
-		std::shared_ptr<VulkanBuffer> index_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(indices.data(), indices.size() * sizeof(uint32_t), mesh_name + "_index_buffer_primitive_"s + std::to_string(prim_idx), "basic_index_resource");
+		std::shared_ptr<VulkanBuffer> vertex_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(vertices_data, num_vertices * model_data->GetVertexFormat().getVertexSize(), m_model_path.string() + "/node"s + std::to_string(node) + "/"s + mesh_name + "_vertex_buffer_primitive_"s + std::to_string(prim_idx), "basic_vertex_resource");
+		std::shared_ptr<VulkanBuffer> index_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(indices.data(), indices.size() * sizeof(uint32_t), m_model_path.string() + "/node"s + std::to_string(node) + "/"s + mesh_name + "_index_buffer_primitive_"s + std::to_string(prim_idx), "basic_index_resource");
 
 		model_data->SetVertexBuffer(std::move(vertex_buffer));
 		model_data->SetIndexBuffer(std::move(index_buffer));
 		
-    	model_data->SetName(mesh_name);
+    	model_data->SetName(m_model_path.string() + "/node"s + std::to_string(node) + "/"s + mesh_name);
     	//model_data->calculateBoundingBox();
 
     	mesh_node->AddMesh(model_data);

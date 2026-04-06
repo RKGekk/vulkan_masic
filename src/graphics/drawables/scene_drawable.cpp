@@ -34,7 +34,15 @@ void SceneDrawable::reset() {
 }
 
 void SceneDrawable::destroy() {
-
+    // size_t sz = m_renderables.size();
+    // for(size_t i = 0u; i < sz; ++i) {
+    //     std::shared_ptr<Renderable>& renderable = m_renderables[i];
+    //     renderable->uniform_buffer->destroy();
+    //     renderable->vertex_buffer->destroy();
+    //     renderable->index_buffer->destroy();
+    //     renderable->texture->destroy();
+    //     //renderable->render_node->destroy();
+    // }
 }
 
 void SceneDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {

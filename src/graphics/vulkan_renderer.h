@@ -19,6 +19,7 @@
 #include "../engine/views/iengine_view.h"
 
 class VulkanDevice;
+class VulkanInstance;
 class VulkanImageBuffer;
 class CommandBatch;
 class VulkanSwapChain;

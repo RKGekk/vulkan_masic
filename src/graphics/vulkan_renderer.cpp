@@ -30,6 +30,10 @@ bool PerFrame::init(std::shared_ptr<VulkanDevice> device, unsigned index) {
 }
 
 void PerFrame::destroy(VulkanRenderer& renderer) {
+    renderer.getSemaphoreManager()->returnSemaphore(swapchain_available_sem);
+    for(VkSemaphore sem : cmd_submit_wait_sem) {
+        renderer.getSemaphoreManager()->returnSemaphore(sem);
+    }
     renderer.getResourcesManager()->delete_image(out_color_image);
     renderer.getResourcesManager()->delete_image(out_depth_image);
     command_buffer->destroy();
@@ -47,7 +51,7 @@ void PerFrame::begin(VulkanRenderer& renderer, uint32_t image_index) {
 
 void PerFrame::end(VulkanRenderer& renderer) {
     renderer.getSemaphoreManager()->returnSemaphore(swapchain_available_sem);
-    swapchain_available_sem = renderer.getSemaphoreManager()->getSemaphore();
+    swapchain_available_sem = renderer.getSemaphoreManager()->getSemaphore("swapchain_available_sem");
 }
 
 bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<WindowSurface> window, std::shared_ptr<ThreadPool> thread_pool) {
@@ -84,7 +88,7 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
         per_frame->out_color_image = m_resources_manager->create_image("render_target_color", "render_target_color_resource");
         per_frame->out_depth_image = m_resources_manager->create_image("render_target_depth", "render_target_depth_resource");
 
-        per_frame->swapchain_available_sem = m_semaphore_manager->getSemaphore();
+        per_frame->swapchain_available_sem = m_semaphore_manager->getSemaphore("swapchain_available_sem");
         //per_frame->swapchain_available_fen = m_fence_manager->getFence();
 
         per_frame->render_graph = std::make_shared<RenderGraph>();
@@ -115,17 +119,16 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
 void VulkanRenderer::destroy() {
     vkDeviceWaitIdle(m_device->getDevice());
 
-    m_command_manager->destroy();
     m_descriptors_manager->destroy();
-
-    m_fence_manager->destroy();
-    m_semaphore_manager->destroy();
 
     size_t sz = m_swapchain->getMaxFrames();
     m_swapchain->destroy();
     for(size_t i = 0u; i < sz; ++i) {
         m_per_frame[i]->destroy(*this);
     }
+    m_command_manager->destroy();
+    m_fence_manager->destroy();
+    m_semaphore_manager->destroy();
     m_resources_manager->destroy();
     m_shaders_manager->destroy();
     m_pipelines_manager->destroy();

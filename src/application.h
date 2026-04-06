@@ -25,6 +25,7 @@ public:
     static Application& Get();
     static std::shared_ptr<WindowSurface> GetRenderWindow();
     static VulkanRenderer& GetRenderer();
+    static VulkanInstance& GetInstance();
 
     void run();
     bool update(uint32_t image_index);

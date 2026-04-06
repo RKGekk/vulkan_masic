@@ -28,6 +28,18 @@ VulkanImageBuffer::VulkanImageBuffer(std::shared_ptr<VulkanDevice> device) : m_d
 
 
 bool VulkanImageBuffer::init(VkImage image, std::shared_ptr<ImageBufferConfig> image_buffer_config) {
+
+#ifndef NDEBUG
+    auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
+    VkDebugUtilsObjectNameInfoEXT name_info = {};
+    name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+    name_info.objectType = VK_OBJECT_TYPE_IMAGE;
+    name_info.objectHandle = (uint64_t)image;
+    name_info.pObjectName = m_name.c_str();
+
+    vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
+#endif
+
     m_image = image;
     m_image_config = std::move(image_buffer_config);
 
@@ -72,6 +84,17 @@ bool VulkanImageBuffer::init(unsigned char* pixels, std::shared_ptr<ImageBufferC
     if(result != VK_SUCCESS) {
         throw std::runtime_error("failed to create image!");
     }
+
+#ifndef NDEBUG
+    auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
+    VkDebugUtilsObjectNameInfoEXT name_info = {};
+    name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+    name_info.objectType = VK_OBJECT_TYPE_IMAGE;
+    name_info.objectHandle = (uint64_t)m_image;
+    name_info.pObjectName = m_name.c_str();
+
+    vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
+#endif
     
     VkMemoryRequirements mem_req{};
     vkGetImageMemoryRequirements(m_device->getDevice(), m_image, &mem_req);
@@ -156,6 +179,7 @@ bool VulkanImageBuffer::init(unsigned char* pixels, std::shared_ptr<ImageBufferC
     }
     m_device->getCommandManager()->submitCommandBuffer(command_buffer);
     m_device->getCommandManager()->wait(PoolTypeEnum::TRANSFER);
+    command_buffer->destroy();
 
     return true;
 }
@@ -190,6 +214,17 @@ bool VulkanImageBuffer::init(std::shared_ptr<CommandBatch>& command_buffer, unsi
     if(result != VK_SUCCESS) {
         throw std::runtime_error("failed to create image!");
     }
+
+#ifndef NDEBUG
+    auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
+    VkDebugUtilsObjectNameInfoEXT name_info = {};
+    name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+    name_info.objectType = VK_OBJECT_TYPE_IMAGE;
+    name_info.objectHandle = (uint64_t)m_image;
+    name_info.pObjectName = m_name.c_str();
+
+    vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
+#endif
     
     VkMemoryRequirements mem_req{};
     vkGetImageMemoryRequirements(m_device->getDevice(), m_image, &mem_req);
@@ -297,7 +332,7 @@ bool VulkanImageBuffer::init(std::shared_ptr<CommandBatch>& command_buffer, cons
 }
 
 void VulkanImageBuffer::destroy() {
-    m_image_config->destroy();
+    //m_image_config->destroy();
     for (auto&[view_name, vk_view] : m_image_view_map) {
         vkDestroyImageView(m_device->getDevice(), vk_view, nullptr);
         vk_view = VK_NULL_HANDLE;
@@ -359,6 +394,7 @@ std::shared_ptr<ImageBufferConfig>& VulkanImageBuffer::getImageConfig() {
 void VulkanImageBuffer::changeLayout(VkImageLayout old_layout, VkImageLayout new_layout) {
     std::shared_ptr<CommandBatch> command_buffer = m_device->getCommandManager()->allocCommandBufferPtr(PoolTypeEnum::TRANSFER);
     changeLayout(command_buffer, old_layout, new_layout);
+    command_buffer->destroy();
 }
 
 void VulkanImageBuffer::changeLayout(std::shared_ptr<CommandBatch>& command_buffer, VkImageLayout old_layout, VkImageLayout new_layout) {

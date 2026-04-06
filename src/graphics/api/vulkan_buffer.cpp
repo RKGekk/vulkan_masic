@@ -20,6 +20,17 @@ bool VulkanBuffer::init(const void* data, std::shared_ptr<BufferConfig> buffer_c
     if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to create buffer!");
     }
+
+#ifndef NDEBUG
+    auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
+    VkDebugUtilsObjectNameInfoEXT name_info = {};
+    name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+    name_info.objectType = VK_OBJECT_TYPE_BUFFER;
+    name_info.objectHandle = (uint64_t)m_buffer;
+    name_info.pObjectName = m_name.c_str();
+
+    vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
+#endif    
     
     VkMemoryRequirements mem_req;
     vkGetBufferMemoryRequirements(m_device->getDevice(), m_buffer, &mem_req);
@@ -55,7 +66,7 @@ bool VulkanBuffer::init(CommandBatch& command_buffer, const void* data, std::sha
     VkDeviceSize data_size = m_buffer_config->getNotAlignedSize();
     init(nullptr, std::move(buffer_config));
     update(command_buffer, data, data_size);
- 
+
     return true;
 }
 
@@ -143,6 +154,7 @@ void VulkanBuffer::update(const void* src_data, VkDeviceSize buffer_size) {
         update(*command_buffer_ptr, src_data, buffer_size);
         m_device->getCommandManager()->submitCommandBuffer(command_buffer_ptr);
         m_device->getCommandManager()->wait(PoolTypeEnum::TRANSFER);
+        command_buffer_ptr->destroy();
 
         return;
     }

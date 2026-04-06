@@ -93,7 +93,14 @@ bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
 }
 
 void BasicDrawable::destroy() {
-
+    // size_t sz = m_uniform_buffers.size();
+    // m_texture->destroy();
+    // for(size_t i = 0u; i < sz; ++i) {
+    //     m_uniform_buffers[i]->destroy();
+    //     m_vertex_buffers[i]->destroy();
+    //     m_index_buffers[i]->destroy();
+    //     //m_render_nodes[i]->destroy();
+    // }
 }
 
 void BasicDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {

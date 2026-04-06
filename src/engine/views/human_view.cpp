@@ -61,6 +61,8 @@ HumanView::HumanView(std::shared_ptr<ProcessManager> process_manager) {
 
 HumanView::~HumanView() {
 	RemoveAllDelegates();
+	m_scene.reset();
+	m_gui->destroy();
 }
 
 bool HumanView::LoadGame(const pugi::xml_node& pLevelData) {

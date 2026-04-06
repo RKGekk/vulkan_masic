@@ -24,6 +24,7 @@ ScreenElementScene::ScreenElementScene() : Scene() {
 
 ScreenElementScene::~ScreenElementScene() {
     RemoveAllDelegates();
+    m_scene_draw->destroy();
 };
 
 bool ScreenElementScene::VOnRestore() {
