@@ -121,6 +121,10 @@ void ImageBufferConfig::destroy() {
         sampler->destroy();
     }
 }
+
+const std::string& ImageBufferConfig::getName() const {
+    return m_name;
+}
     
 const VkImageCreateInfo& ImageBufferConfig::getImageInfo() const {
     return m_image_info;

@@ -65,12 +65,11 @@ std::shared_ptr<VulkanImageBuffer> VulkanResourcesManager::create_image(const st
 	if(m_image_map.contains(path_to_file)) return m_image_map[path_to_file];
 
 	std::shared_ptr<ImageBufferConfig> image_config_template = m_image_buffer_config_map.at("basic_image_resource"s);
-	std::shared_ptr<ImageBufferConfig> image_buffer_config = image_config_template->makeInstance("basic_image_resource"s + "_"s + get_uuid());
-
 	std::shared_ptr<VulkanImageBuffer> image = std::make_shared<VulkanImageBuffer>(m_device, path_to_file);
-	image->init(image_buffer_config, path_to_file);
+	image->init(image_config_template, path_to_file);
 
 	m_image_map[path_to_file] = image;
+	m_image_buffer_config_map[image->getImageConfig()->getName()] = image->getImageConfig();
 
 	return image;
 }
@@ -79,12 +78,14 @@ std::shared_ptr<VulkanImageBuffer> VulkanResourcesManager::create_image(unsigned
 	if(m_image_map.contains(image_name)) return m_image_map[image_name];
 
 	std::shared_ptr<ImageBufferConfig> image_config_template = m_image_buffer_config_map.at(resource_type_name);
-	std::shared_ptr<ImageBufferConfig> image_buffer_config = image_config_template->makeInstance(resource_type_name + "_"s + get_uuid(), extent);
+	std::string image_buffer_config_name = resource_type_name + "_"s + get_uuid();
+	std::shared_ptr<ImageBufferConfig> image_buffer_config = image_config_template->makeInstance(image_buffer_config_name, extent);
 
 	std::shared_ptr<VulkanImageBuffer> image = std::make_shared<VulkanImageBuffer>(m_device, image_name);
-	image->init(pixels, std::move(image_buffer_config));
+	image->init(pixels, image_buffer_config);
 
 	m_image_map[image_name] = image;
+	m_image_buffer_config_map[image_buffer_config_name] = std::move(image_buffer_config);
 
 	return image;
 }
@@ -93,12 +94,14 @@ std::shared_ptr<VulkanImageBuffer> VulkanResourcesManager::create_image(VkImage 
 	if(m_image_map.contains(image_name)) return m_image_map[image_name];
 
 	std::shared_ptr<ImageBufferConfig> image_config_template = m_image_buffer_config_map.at(resource_type_name);
-	std::shared_ptr<ImageBufferConfig> image_buffer_config = image_config_template->makeInstance(resource_type_name + "_"s + get_uuid());
+	std::string image_buffer_config_name = resource_type_name + "_"s + get_uuid();
+	std::shared_ptr<ImageBufferConfig> image_buffer_config = image_config_template->makeInstance(image_buffer_config_name);
 
 	std::shared_ptr<VulkanImageBuffer> image = std::make_shared<VulkanImageBuffer>(m_device, image_name);
-	image->init(vk_image, std::move(image_buffer_config));
+	image->init(vk_image, image_buffer_config);
 
 	m_image_map[image_name] = image;
+	m_image_buffer_config_map[image_buffer_config_name] = std::move(image_buffer_config);
 
 	return image;
 }
@@ -109,12 +112,14 @@ std::shared_ptr<VulkanImageBuffer> VulkanResourcesManager::create_image(VkImage 
 	if(m_image_map.contains(image_name)) return m_image_map[image_name];
 
 	std::shared_ptr<ImageBufferConfig> image_config_template = m_image_buffer_config_map.at(resource_type_name);
-	std::shared_ptr<ImageBufferConfig> image_buffer_config = image_config_template->makeInstance(resource_type_name + "_"s + get_uuid());
+	std::string image_buffer_config_name = resource_type_name + "_"s + get_uuid();
+	std::shared_ptr<ImageBufferConfig> image_buffer_config = image_config_template->makeInstance(image_buffer_config_name);
 
 	std::shared_ptr<VulkanImageBuffer> image = std::make_shared<VulkanImageBuffer>(m_device, image_name);
-	image->init(vk_image, std::move(image_buffer_config));
+	image->init(vk_image, image_buffer_config);
 
 	m_image_map[image_name] = image;
+	m_image_buffer_config_map[image_buffer_config_name] = std::move(image_buffer_config);
 
 	return image;
 }
@@ -123,12 +128,14 @@ std::shared_ptr<VulkanImageBuffer> VulkanResourcesManager::create_image(std::str
 	if(m_image_map.contains(image_name)) return m_image_map[image_name];
 
 	std::shared_ptr<ImageBufferConfig> image_config_template = m_image_buffer_config_map.at(resource_type_name);
-	std::shared_ptr<ImageBufferConfig> image_buffer_config = image_config_template->makeInstance(resource_type_name + "_"s + get_uuid());
+	std::string image_buffer_config_name = resource_type_name + "_"s + get_uuid();
+	std::shared_ptr<ImageBufferConfig> image_buffer_config = image_config_template->makeInstance(image_buffer_config_name);
 
 	std::shared_ptr<VulkanImageBuffer> image = std::make_shared<VulkanImageBuffer>(m_device, image_name);
-	image->init(std::move(image_buffer_config));
+	image->init(image_buffer_config);
 
 	m_image_map[image_name] = image;
+	m_image_buffer_config_map[image_buffer_config_name] = std::move(image_buffer_config);
 
 	return image;
 }

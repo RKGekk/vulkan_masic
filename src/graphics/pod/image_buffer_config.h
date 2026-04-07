@@ -25,6 +25,7 @@ public:
     bool init(const std::shared_ptr<VulkanDevice>& device, std::string name, const pugi::xml_node& image_buffer_data, const std::shared_ptr<VulkanFormatManager>& format_manager);
     void destroy();
 
+    const std::string& getName() const;
     const VkImageCreateInfo& getImageInfo() const;
     VkImageLayout getAfterInitLayout() const;
     void setAfterInitLayout(VkImageLayout new_layout);

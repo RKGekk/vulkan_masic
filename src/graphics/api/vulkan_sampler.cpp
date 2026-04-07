@@ -1,6 +1,7 @@
 #include "vulkan_sampler.h"
 
 #include "vulkan_device.h"
+#include "../../application.h"
 
 #include <stdexcept>
 
@@ -15,6 +16,17 @@ bool VulkanSampler::init(const VkSamplerCreateInfo& sampler_info) {
     if(result != VK_SUCCESS) {
         throw std::runtime_error("failed to create texture sampler!");
     }
+
+#ifndef NDEBUG
+    auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
+    VkDebugUtilsObjectNameInfoEXT name_info = {};
+    name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+    name_info.objectType = VK_OBJECT_TYPE_SAMPLER;
+    name_info.objectHandle = (uint64_t)m_sampler;
+    name_info.pObjectName = m_name.c_str();
+
+    vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
+#endif    
 
     return true;
 }
@@ -49,7 +61,10 @@ bool VulkanSampler::init(uint32_t mip_levels) {
 }
 
 void VulkanSampler::destroy() {
-    vkDestroySampler(m_device->getDevice(), m_sampler, nullptr);
+    if(m_sampler != VK_NULL_HANDLE) {
+        vkDestroySampler(m_device->getDevice(), m_sampler, nullptr);
+        m_sampler = VK_NULL_HANDLE;
+    }
 }
 
 const VkSamplerCreateInfo& VulkanSampler::getSamplerInfo() const {

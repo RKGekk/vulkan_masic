@@ -632,7 +632,9 @@ bool IsImageFileMime(const std::string& mime_type) {
 	return result;
 }
 
-std::shared_ptr<VulkanSampler> MeshNodeLoader::createTextureSampler(uint32_t mip_levels, const tinygltf::Sampler& gltf_texture_sampler) {
+std::shared_ptr<VulkanSampler> MeshNodeLoader::createTextureSampler(uint32_t mip_levels, const tinygltf::Sampler& gltf_texture_sampler, const std::string& sampler_subname) {
+	using namespace std::literals;
+
     VkPhysicalDeviceFeatures supported_features{};
     vkGetPhysicalDeviceFeatures(m_device->getDeviceAbilities().physical_device, &supported_features);
 
@@ -700,7 +702,7 @@ std::shared_ptr<VulkanSampler> MeshNodeLoader::createTextureSampler(uint32_t mip
     sampler_info.minLod = 0.0f;
     sampler_info.maxLod = static_cast<float>(mip_levels);;
     
-	std::shared_ptr<VulkanSampler> texture_sampler = std::make_shared<VulkanSampler>(m_device, gltf_texture_sampler.name);
+	std::shared_ptr<VulkanSampler> texture_sampler = std::make_shared<VulkanSampler>(m_device, m_model_path.string() + "/sampler/"s + sampler_subname + gltf_texture_sampler.name);
 	texture_sampler->init(sampler_info);
     
     return texture_sampler;
@@ -714,7 +716,7 @@ void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, M
 	int texture_sampler_idx = gltf_texture.sampler;
 	const tinygltf::Sampler& texture_sampler = m_gltf_model.samplers[texture_sampler_idx];
 	uint32_t mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(texture_image.width, texture_image.height))));
-	std::shared_ptr<VulkanSampler> sampler = createTextureSampler(mip_levels, texture_sampler);
+	std::shared_ptr<VulkanSampler> sampler = createTextureSampler(mip_levels, texture_sampler, material->GetName());
 
 	std::shared_ptr<VulkanImageBuffer> texture;
 	if (mime_is_file) {

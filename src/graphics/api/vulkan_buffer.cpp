@@ -80,6 +80,7 @@ void VulkanBuffer::destroy() {
         m_memory = VK_NULL_HANDLE;
         m_buffer = VK_NULL_HANDLE;
         m_mapped = nullptr;
+        //m_buffer_config->destroy();
     }
 }
 

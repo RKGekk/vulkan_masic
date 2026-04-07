@@ -2,6 +2,7 @@
 
 #include "vulkan_device.h"
 #include "../../tools/string_tools.h"
+#include "../../application.h"
 
 #include <filesystem>
 
@@ -31,6 +32,18 @@ bool VulkanShader::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<Sh
     std::vector<char> shader_buff = readFile(shader_file_path.string());
     VkShaderModule shader_module = CreateShaderModule(shader_buff);
 
+#ifndef NDEBUG
+    auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
+    VkDebugUtilsObjectNameInfoEXT name_info = {};
+    name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+    name_info.objectType = VK_OBJECT_TYPE_SHADER_MODULE;
+    name_info.objectHandle = (uint64_t)shader_module;
+    name_info.pObjectName = m_shader_signature->getName().c_str();
+
+    vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
+#endif    
+
+
     m_shader_info = VkPipelineShaderStageCreateInfo{};
     m_shader_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     m_shader_info.pNext = nullptr;
@@ -44,7 +57,7 @@ bool VulkanShader::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<Sh
 }
 
 void VulkanShader::destroy() {
-    
+    vkDestroyShaderModule(m_device->getDevice(), m_shader_info.module, nullptr);
 }
 
 const VkPipelineShaderStageCreateInfo& VulkanShader::getShaderInfo() const {

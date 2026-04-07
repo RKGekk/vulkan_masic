@@ -28,7 +28,7 @@ bool RenderNode::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<Rend
 }
 
 void RenderNode::destroy() {
-    
+    vkDestroyFramebuffer(m_device->getDevice(), m_frame_buffer, nullptr);
 }
 
 void RenderNode::addReadDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as, bool only_read) {
