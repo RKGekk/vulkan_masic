@@ -16,7 +16,7 @@ class VulkanDevice;
 class VulkanSampler;
 class VulkanResourcesManager;
 
-class RenderNodeConfig {
+class GraphicsRenderNodeConfig {
 public:
     struct FrameBufferAttachment {
         std::string attachment_name;
@@ -48,7 +48,7 @@ public:
     const std::unordered_map<std::string, std::shared_ptr<UpdateMetadata>>& getBindingsMetadata() const;
     const std::shared_ptr<UpdateMetadata>& getUpdateMetadata(const std::string& binding_name);
 
-    std::shared_ptr<RenderNodeConfig> makeInstance(std::string name) const;
+    std::shared_ptr<GraphicsRenderNodeConfig> makeInstance(std::string name) const;
 
 private:
     std::string m_name;

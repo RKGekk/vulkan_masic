@@ -1,4 +1,4 @@
-#include "render_node_config.h"
+#include "graphics_render_node_config.h"
 
 #include "../api/vulkan_device.h"
 #include "../api/vulkan_sampler.h"
@@ -6,7 +6,7 @@
 #include "image_buffer_config.h"
 #include "format_config.h"
 
-bool RenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanResourcesManager>& resources_manager, const pugi::xml_node& node_data) {
+bool GraphicsRenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanResourcesManager>& resources_manager, const pugi::xml_node& node_data) {
     using namespace std::literals;
 
     m_name = node_data.attribute("name").as_string();
@@ -69,38 +69,38 @@ bool RenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
 }
 
 
-const std::string& RenderNodeConfig::getName() const {
+const std::string& GraphicsRenderNodeConfig::getName() const {
     return m_name;
 }
 
-const std::string& RenderNodeConfig::getPipelineName() const {
+const std::string& GraphicsRenderNodeConfig::getPipelineName() const {
     return m_pipeline_name;
 }
 
-const std::string& RenderNodeConfig::getRenderPassName() const {
+const std::string& GraphicsRenderNodeConfig::getRenderPassName() const {
     return m_render_pass_name;
 }
 
-const std::vector<std::shared_ptr<RenderNodeConfig::FrameBufferAttachment>>& RenderNodeConfig::getAttachmentsConfig() const {
+const std::vector<std::shared_ptr<GraphicsRenderNodeConfig::FrameBufferAttachment>>& GraphicsRenderNodeConfig::getAttachmentsConfig() const {
     return m_attachments;
 }
 
-const std::shared_ptr<RenderNodeConfig::FrameBufferAttachment>& RenderNodeConfig::getAttachmentData(const std::string& attached_name) const {
+const std::shared_ptr<GraphicsRenderNodeConfig::FrameBufferAttachment>& GraphicsRenderNodeConfig::getAttachmentData(const std::string& attached_name) const {
     return m_attachments.at(m_name_attach_map.at(attached_name));
 }
 
-const std::unordered_map<std::string, std::shared_ptr<RenderNodeConfig::UpdateMetadata>>& RenderNodeConfig::getBindingsMetadata() const {
+const std::unordered_map<std::string, std::shared_ptr<GraphicsRenderNodeConfig::UpdateMetadata>>& GraphicsRenderNodeConfig::getBindingsMetadata() const {
     return m_bindings_metadata;
 }
 
-std::shared_ptr<RenderNodeConfig> RenderNodeConfig::makeInstance(std::string name) const {
-    std::shared_ptr<RenderNodeConfig> instance = std::make_shared<RenderNodeConfig>();
+std::shared_ptr<GraphicsRenderNodeConfig> GraphicsRenderNodeConfig::makeInstance(std::string name) const {
+    std::shared_ptr<GraphicsRenderNodeConfig> instance = std::make_shared<GraphicsRenderNodeConfig>();
     *instance = *this;
     instance->m_name = std::move(name);
 
     return instance;
 }
 
-const std::shared_ptr<RenderNodeConfig::UpdateMetadata>& RenderNodeConfig::getUpdateMetadata(const std::string& binding_name) {
+const std::shared_ptr<GraphicsRenderNodeConfig::UpdateMetadata>& GraphicsRenderNodeConfig::getUpdateMetadata(const std::string& binding_name) {
     return m_bindings_metadata.at(binding_name);
 }

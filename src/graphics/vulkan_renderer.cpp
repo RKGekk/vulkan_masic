@@ -18,7 +18,7 @@
 #include "api/vulkan_resources_manager.h"
 #include "pod/render_node.h"
 #include "pod/render_graph.h"
-#include "pod/render_node_config.h"
+#include "pod/graphics_render_node_config.h"
 #include "pod/image_buffer_config.h"
 #include "pod/render_pass_config.h"
 
@@ -179,66 +179,6 @@ std::shared_ptr<VulkanResourcesManager>& VulkanRenderer::getResourcesManager() {
     return m_resources_manager;
 }
 
-void VulkanRenderer::TransitionResourcesToProperState(const std::shared_ptr<RenderNode>& render_node_ptr, CommandBatch& command_buffer, unsigned image_index) {
-    const std::shared_ptr<VulkanPipeline>& pipeline_ptr = render_node_ptr->getPipeline();
-    const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = pipeline_ptr->getRenderPass();
-
-    for(const auto&[gloabal_name, att_slot] : render_node_ptr->getReadResourcesMap()){
-        RenderResource::Type att_slot_res_type = att_slot.resource->getType();
-        if(att_slot_res_type == RenderResource::Type::BUFFER) continue;
-
-        size_t last_written_by_node_id = m_per_frame[image_index]->render_graph->getLastWrittenIdentity(render_node_ptr, gloabal_name);
-        size_t last_read_by_node_id = m_per_frame[image_index]->render_graph->getLastReadIdentity(render_node_ptr, gloabal_name);
-
-        if(last_read_by_node_id == RenderGraph::NO_ID && last_written_by_node_id == RenderGraph::NO_ID) {
-            // std::shared_ptr<VulkanImageBuffer> attached_read_resource = render_node_ptr->getAttachedImageResource(att_slot.attached_as);
-            // VkImageLayout current_image_layout = attached_read_resource->getImageConfig()->getAfterInitLayout();
-            // VkImageLayout read_image_layout = render_node_ptr->getRenderNodeConfig()->getUpdateMetadata(att_slot.attached_as)->read_image_layout;
-            // if(current_image_layout != read_image_layout) {
-            //     attached_read_resource->changeLayout(current_image_layout, read_image_layout);
-            // }
-        }
-
-        if(last_read_by_node_id != RenderGraph::NO_ID && last_read_by_node_id > last_written_by_node_id) {
-            continue;
-        }
-
-        if(last_written_by_node_id != RenderGraph::NO_ID && last_written_by_node_id > last_read_by_node_id) {
-            const RenderGraph::RenderNodePtr& last_written_by_node = m_per_frame[image_index]->render_graph->getRenderNodeByID(last_read_by_node_id);
-            
-        }
-    }
-
-    for(const auto&[gloabal_name, att_slot] : render_node_ptr->getWrittenResourcesMap()){
-        RenderResource::Type att_slot_res_type = att_slot.resource->getType();
-        if(att_slot_res_type == RenderResource::Type::BUFFER) continue;
-
-        size_t last_written_by_node_id = m_per_frame[image_index]->render_graph->getLastWrittenIdentity(render_node_ptr, gloabal_name);
-        size_t last_read_by_node_id = m_per_frame[image_index]->render_graph->getLastReadIdentity(render_node_ptr, gloabal_name);
-
-        if(last_read_by_node_id == RenderGraph::NO_ID && last_written_by_node_id == RenderGraph::NO_ID) {
-            std::shared_ptr<VulkanImageBuffer> attached_write_resource = render_node_ptr->getAttachedImageResource(att_slot.attached_as);
-            VkImageLayout current_image_layout = attached_write_resource->getImageConfig()->getAfterInitLayout();
-            
-            const VkAttachmentDescription& attach_desc = render_node_ptr->getPipeline()->getRenderPass()->getRenderPassConfig()->getAttachmentDescription(att_slot.attached_as);
-            VkImageLayout write_image_layout = attach_desc.initialLayout;
-            if(current_image_layout != write_image_layout) {
-                attached_write_resource->changeLayout(current_image_layout, write_image_layout);
-                attached_write_resource->getImageConfig()->setAfterInitLayout(write_image_layout);
-            }
-        }
-
-        if(last_read_by_node_id != RenderGraph::NO_ID && last_read_by_node_id > last_written_by_node_id) {
-            continue;
-        }
-
-        if(last_written_by_node_id != RenderGraph::NO_ID && last_written_by_node_id > last_read_by_node_id) {
-            const RenderGraph::RenderNodePtr& last_written_by_node = m_per_frame[image_index]->render_graph->getRenderNodeByID(last_read_by_node_id);
-            
-        }
-    }
-}
-
 std::shared_ptr<VulkanImageBuffer>& VulkanRenderer::getOutColorImage(uint32_t image_index) {
     return m_per_frame[image_index]->out_color_image;
 }
@@ -261,92 +201,9 @@ void VulkanRenderer::beginFrame(unsigned image_index) {
 void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer, unsigned image_index) {
     VulkanCommandManager::beginCommandBuffer(command_buffer);
 
-    static std::array<VkClearValue, 2> clear_values{};
-    clear_values[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
-    clear_values[1].depthStencil = {1.0f, 0};
-
-    // return all RenderResources to initial state
-
     const RenderGraph::RenderNodeList& topologically_sorted_nodes = m_per_frame[image_index]->render_graph->getTopologicallySortedNodes();
-    for(const std::shared_ptr<RenderNode> render_node_ptr : topologically_sorted_nodes) {
-        const std::shared_ptr<VulkanPipeline>& pipeline_ptr = render_node_ptr->getPipeline();
-        const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = pipeline_ptr->getRenderPass();
-
-        TransitionResourcesToProperState(render_node_ptr, command_buffer, image_index);
-
-        VkRenderPassBeginInfo renderpass_info{};
-        renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderpass_info.renderPass = render_pass_ptr->getRenderPass();
-        renderpass_info.framebuffer = render_node_ptr->getFramebuffer();
-        renderpass_info.renderArea.offset = {0, 0};
-        renderpass_info.renderArea.extent = render_node_ptr->getViewportExtent();
-        renderpass_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
-        renderpass_info.pClearValues = clear_values.data();
-        
-        VkViewport view_port{};
-        view_port.x = 0.0f;
-        view_port.y = 0.0f;
-        view_port.width = static_cast<float>(render_node_ptr->getViewportExtent().width);
-        view_port.height = static_cast<float>(render_node_ptr->getViewportExtent().height);
-        view_port.minDepth = 0.0f;
-        view_port.maxDepth = 1.0f;
-        
-        VkRect2D scissor{};
-        scissor.offset = {0, 0};
-        scissor.extent = render_node_ptr->getViewportExtent();
-        
-        vkCmdBeginRenderPass(command_buffer.getCommandBufer(), &renderpass_info, VK_SUBPASS_CONTENTS_INLINE);
-
-        vkCmdSetViewport(command_buffer.getCommandBufer(), 0u, 1u, &view_port);
-        vkCmdSetScissor(command_buffer.getCommandBufer(), 0u, 1u, &scissor);
-        
-        for(const auto&[slot, desc] : render_node_ptr->getDescriptors()) {
-            vkCmdBindDescriptorSets(
-                command_buffer.getCommandBufer(), // commandBuffer
-                VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
-                render_node_ptr->getPipeline()->getPipelineLayout(), // pipeline layout
-                slot, // first set
-                1, // descriptor set count
-                desc->getDescriptorSetPtr(), // descriptor sets pointer
-                0, // dynamic offset count
-                nullptr // dynamic offsets pointer
-            );
-        }
-
-        vkCmdBindPipeline(command_buffer.getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_ptr->getPipeline());
-        
-        for (const VertexFormat& vf : pipeline_ptr->getShader(VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getInputAttributes()) {
-            const std::string& vertex_buffer_name = vf.getVertexBufferBindingName();
-            std::shared_ptr<VulkanBuffer> vertex_buffer = render_node_ptr->getReadAttachedBufferResource(vertex_buffer_name);
-            VkDeviceSize offsets[] = {0};
-            vkCmdBindVertexBuffers(
-                command_buffer.getCommandBufer(), // commandBuffer
-                vf.getBindingNum(), // firstBinding
-                1, // bindingCount
-                vertex_buffer->getBufferPtr(), // buffers pointer
-                offsets // offsets pointer
-            );
-        }
-        const std::string& index_buffer_name = pipeline_ptr->getShader(VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getVertexFormat().getIndexBufferBindingName();
-        std::shared_ptr<VulkanBuffer> index_buffer = render_node_ptr->getReadAttachedBufferResource(index_buffer_name);
-        vkCmdBindIndexBuffer(
-            command_buffer.getCommandBufer(), // commandBuffer
-            index_buffer->getBuffer(), // buffer
-            0u, // offset
-            pipeline_ptr->getShader(VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getVertexFormat().getIndexType() // indexType
-        );
-        
-        uint32_t index_count = index_buffer->getNotAlignedSize() / pipeline_ptr->getShader(VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getVertexFormat().getIndexTypeBytesCount();
-        vkCmdDrawIndexed(
-            command_buffer.getCommandBufer(), // commandBuffer
-            index_count, // indexCount
-            1u, // instanceCount
-            0u, // firstIndex
-            0u, // vertexOffset
-            0u // firstInstance
-        );
-        
-        vkCmdEndRenderPass(command_buffer.getCommandBufer());
+    for(const std::shared_ptr<RenderNode>& render_node_ptr : topologically_sorted_nodes) {
+        render_node_ptr->render(command_buffer);
     }
     
     VulkanCommandManager::endCommandBuffer(command_buffer);

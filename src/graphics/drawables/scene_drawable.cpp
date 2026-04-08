@@ -9,8 +9,8 @@
 #include "../api/vulkan_swapchain.h"
 #include "../api/vulkan_resources_manager.h"
 #include "../api/vulkan_descriptors_manager.h"
-#include "../pod/render_node.h"
-#include "../pod/render_node_config.h"
+#include "../pod/graphics_render_node.h"
+#include "../pod/graphics_render_node_config.h"
 #include "../pod/format_config.h"
 #include "../vulkan_renderer.h"
 
@@ -77,36 +77,9 @@ int SceneDrawable::order() {
     return 0;
 }
 
-std::shared_ptr<RenderNodeConfig> getMeshRenderNodeConfig(const std::shared_ptr<VulkanDevice>& device) {
-    std::shared_ptr<RenderNodeConfig> render_node_config = std::make_shared<RenderNodeConfig>();
-
-    pugi::xml_document xml_doc;
-	pugi::xml_parse_result parse_res = xml_doc.load_file("graphics_pipelines.xml");
-	if (!parse_res) { return nullptr;	}
-
-	pugi::xml_node root_node = xml_doc.root();
-	if (!root_node) { return nullptr; }
-	root_node = root_node.child("RenderGraph");
-
-    pugi::xml_node render_nodes_node = root_node.child("RenderNodes");
-	if (!render_nodes_node) return nullptr;
-
-    for (pugi::xml_node render_node = render_nodes_node.first_child(); render_node; render_node = render_node.next_sibling()) {
-        std::string node_name = render_node.attribute("name").as_string();
-        if(node_name == "mesh_render"s) {
-            std::shared_ptr<RenderNodeConfig> render_node_config = std::make_shared<RenderNodeConfig>();
-            render_node_config->init(device, Application::GetRenderer().getResourcesManager(), render_node);
-            return render_node_config;
-        }
-    }
-
-    return nullptr;
-}
-
 void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
     using namespace std::literals;
 
-    std::shared_ptr<RenderNodeConfig> render_node_config = getMeshRenderNodeConfig(m_device);
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
 
     const MeshNode::MeshList& mesh_list = model->GetMeshes();
@@ -129,8 +102,8 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             renderable->vertex_buffer = model_data->GetVertexBuffer();
             renderable->index_buffer = model_data->GetIndexBuffer();
 
-            renderable->render_node = std::make_shared<RenderNode>();
-            renderable->render_node->init(m_device, render_node_config);
+            renderable->render_node = std::make_shared<GraphicsRenderNode>();
+            renderable->render_node->init(m_device, "mesh_render"s, Application::GetRenderer().getFrameData(frame)->render_graph);
 
             std::shared_ptr<VulkanShader> vertex_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
             std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames().at(0));

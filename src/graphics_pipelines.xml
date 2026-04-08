@@ -761,7 +761,8 @@
     </Pipelines>
 
     <RenderNodes>
-        <RenderNode name="mesh_render">
+        
+        <GraphicsRenderNode name="mesh_render">
             <Pipeline>basic_diffuse_pipeline</Pipeline>
             <FrameBuffer>
                 <RenderPassName>basic_mulisample_render_pass</RenderPassName>
@@ -797,9 +798,9 @@
                     </Image>
                 </LayoutBinding>
             </DescriptorResourcesUpdate>
-        </RenderNode>
+        </GraphicsRenderNode>
 
-        <RenderNode name="imgui_renderer">
+        <GraphicsRenderNode name="imgui_renderer">
             <Pipeline>imgui_pipeline</Pipeline>
             <FrameBuffer>
                 <RenderPassName>basic_mulisample_render_pass</RenderPassName>
@@ -835,6 +836,7 @@
                     </Image>
                 </LayoutBinding>
             </DescriptorResourcesUpdate>
-        </RenderNode>
+        </GraphicsRenderNode>
+
     </RenderNodes>
 </RenderGraph>

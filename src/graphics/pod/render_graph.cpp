@@ -4,10 +4,42 @@
 #include "../api/vulkan_pipeline.h"
 #include "../api/vulkan_render_pass.h"
 #include "render_node.h"
+#include "graphics_render_node_config.h"
+#include "graphics_render_node.h"
+#include "../../application.h"
+
+#include <pugixml.hpp>
+
+#include <filesystem>
 
 bool RenderGraph::init(std::shared_ptr<VulkanDevice> device) {
+    using namespace std::literals;
+
     m_device = std::move(device);
     m_sorted = false;
+
+    pugi::xml_document xml_doc;
+	pugi::xml_parse_result parse_res = xml_doc.load_file("graphics_pipelines.xml");
+	if (!parse_res) { return false;	}
+
+	pugi::xml_node root_node = xml_doc.root();
+	if (!root_node) { return false; }
+	root_node = root_node.child("RenderGraph");
+
+    pugi::xml_node render_nodes_node = root_node.child("RenderNodes");
+	if (!render_nodes_node) return false;
+
+    for (pugi::xml_node render_node = render_nodes_node.first_child(); render_node; render_node = render_node.next_sibling()) {
+        std::string render_node_type = render_node.name();
+        std::string node_name = render_node.attribute("name").as_string();
+        
+        if(render_node_type == "GraphicsRenderNode"s) {
+            std::shared_ptr<GraphicsRenderNodeConfig> render_node_config = std::make_shared<GraphicsRenderNodeConfig>();
+            render_node_config->init(device, Application::GetRenderer().getResourcesManager(), render_node);
+            m_graphics_cfg_name_map[node_name] = std::move(render_node_config);
+        }
+    }
+
     return true;
 }
 
@@ -25,6 +57,10 @@ void RenderGraph::destroy() {
     m_topologically_sorted_nodes.clear();
     m_render_node_sort_idx.clear();
     m_dependency_levels.clear();
+}
+
+const std::shared_ptr<GraphicsRenderNodeConfig>& RenderGraph::getGraphicsRenderNodeConfig(const std::string& config_mame) const {
+    return m_graphics_cfg_name_map.at(config_mame);
 }
 
 void RenderGraph::add_pass(std::shared_ptr<RenderNode> render_node) {

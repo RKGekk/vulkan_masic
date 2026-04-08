@@ -27,7 +27,7 @@
 
 class VulkanImageBuffer;
 class VulkanBuffer;
-class RenderNode;
+class GraphicsRenderNode;
 
 class BasicDrawable : public IVulkanDrawable {
 public:
@@ -46,7 +46,7 @@ private:
     float m_rt_aspect = 1.0f;
 
     std::shared_ptr<VulkanPipeline> m_pipeline;
-    std::vector<std::shared_ptr<RenderNode>> m_render_nodes;
+    std::vector<std::shared_ptr<GraphicsRenderNode>> m_render_nodes;
 
     int m_max_frames;
 

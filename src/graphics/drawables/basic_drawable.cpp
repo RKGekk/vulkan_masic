@@ -2,9 +2,9 @@
 
 #include "../pod/basic_vertex.h"
 #include "../pod/basic_uniform.h"
-#include "../pod/render_node_config.h"
+#include "../pod/graphics_render_node_config.h"
 #include "../pod/format_config.h"
-#include "../pod/render_node.h"
+#include "../pod/graphics_render_node.h"
 #include "../vulkan_renderer.h"
 #include "../api/vulkan_swapchain.h"
 #include "../api/vulkan_resources_manager.h"
@@ -32,31 +32,12 @@ const std::vector<uint16_t> g_indices = {
     6, 7, 4
 };
 
-std::shared_ptr<RenderNodeConfig> getBasicMeshRenderNodeConfig(const std::shared_ptr<VulkanDevice>& device) {
-    std::shared_ptr<RenderNodeConfig> render_node_config = std::make_shared<RenderNodeConfig>();
-
-    pugi::xml_document xml_doc;
-	pugi::xml_parse_result parse_res = xml_doc.load_file("graphics_pipelines.xml");
-	if (!parse_res) { return nullptr;	}
-
-	pugi::xml_node root_node = xml_doc.root();
-	if (!root_node) { return nullptr; }
-	root_node = root_node.child("RenderGraph");
-
-    pugi::xml_node render_nodes_node = root_node.child("RenderNodes");
-	if (!render_nodes_node) return nullptr;
-
-    render_node_config->init(device, Application::GetRenderer().getResourcesManager(), render_nodes_node.child("mesh_render"));
-
-    return render_node_config;
-}
-
 bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
+    using namespace std::literals;
+
     m_device = std::move(device);
     m_rt_aspect = Application::GetRenderer().getSwapchain()->getFormatConfig()->getAspect();
     m_max_frames = max_frames;
-
-    std::shared_ptr<RenderNodeConfig> render_node_config = getBasicMeshRenderNodeConfig(device);
 
     m_texture = Application::GetRenderer().getResourcesManager()->create_image("textures/texture.jpg");
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
@@ -71,8 +52,8 @@ bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
         m_uniform_buffers[i] = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, "basic_uniform_resource");
 
 
-        m_render_nodes[i] = std::make_shared<RenderNode>();
-        m_render_nodes[i]->init(device, render_node_config);
+        m_render_nodes[i] = std::make_shared<GraphicsRenderNode>();
+        m_render_nodes[i]->init(device, "mesh_render"s, Application::GetRenderer().getFrameData(i)->render_graph);
 
         std::shared_ptr<VulkanShader> vertex_shader = m_render_nodes[i]->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
         std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames().at(0));

@@ -91,8 +91,6 @@ public:
     std::pair<bool, uint32_t> acquire_next_image();
 
 private:
-    void TransitionResourcesToProperState(const std::shared_ptr<RenderNode>& render_node, CommandBatch& command_buffer, unsigned image_index);
-
     std::shared_ptr<VulkanDevice> m_device;
     
     std::shared_ptr<VulkanSwapChain> m_swapchain;

@@ -3,8 +3,8 @@
 #include "../vulkan_renderer.h"
 #include "../pod/image_buffer_config.h"
 #include "../pod/format_config.h"
-#include "../pod/render_node.h"
-#include "../pod/render_node_config.h"
+#include "../pod/graphics_render_node.h"
+#include "../pod/graphics_render_node_config.h"
 #include "../pod/pipeline_config.h"
 #include "../pod/basic_uniform.h"
 #include "../api/vulkan_pipelines_manager.h"
@@ -18,7 +18,7 @@
 
 #include <filesystem>
 
-std::shared_ptr<VulkanImageBuffer> makeFontTexture(std::shared_ptr<VulkanDevice> device, const char* TTF_font_file_name, float fontSizePixels) {
+std::shared_ptr<VulkanImageBuffer> ImGUIDrawable::makeFontTexture(std::shared_ptr<VulkanDevice> device, const char* TTF_font_file_name, float fontSizePixels) {
     ImGuiIO& io = ImGui::GetIO();
 
     ImFontConfig cfg = ImFontConfig();
@@ -53,32 +53,6 @@ std::shared_ptr<VulkanImageBuffer> makeFontTexture(std::shared_ptr<VulkanDevice>
     return font_texture;
 }
 
-std::shared_ptr<RenderNodeConfig> getImguiRenderNodeConfig(const std::shared_ptr<VulkanDevice>& device) {
-    using namespace std::literals;
-
-    pugi::xml_document xml_doc;
-	pugi::xml_parse_result parse_res = xml_doc.load_file("graphics_pipelines.xml");
-	if (!parse_res) { return nullptr;	}
-
-	pugi::xml_node root_node = xml_doc.root();
-	if (!root_node) { return nullptr; }
-	root_node = root_node.child("RenderGraph");
-
-    pugi::xml_node render_nodes_node = root_node.child("RenderNodes");
-	if (!render_nodes_node) return nullptr;
-
-    for (pugi::xml_node render_node = render_nodes_node.first_child(); render_node; render_node = render_node.next_sibling()) {
-        std::string node_name = render_node.attribute("name").as_string();
-        if(node_name == "imgui_renderer"s) {
-            std::shared_ptr<RenderNodeConfig> render_node_config = std::make_shared<RenderNodeConfig>();
-            render_node_config->init(device, Application::GetRenderer().getResourcesManager(), render_node);
-            return render_node_config;
-        }
-    }
-
-    return nullptr;
-}
-
 bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
     using namespace std::literals;
 
@@ -101,9 +75,6 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
     ImGui::StyleColorsClassic();
 
     std::shared_ptr<VulkanImageBuffer> font_texture = makeFontTexture(m_device, TTF_font_file_name.c_str(), font_size_pixels);
-    
-    std::shared_ptr<RenderNodeConfig> render_node_config = getImguiRenderNodeConfig(m_device);
-
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
 
     for(size_t frame = 0u; frame < max_frames; ++frame) {
@@ -118,8 +89,8 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
         renderable->index_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, "imgui_index_buffer_frame_"s + std::to_string(frame), "imgui_index_resource");
         renderable->uniform_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, "imgui_uniform_buffer_frame_"s + std::to_string(frame), "imgui_uniform_resource");
 
-        renderable->render_node = std::make_shared<RenderNode>();
-        renderable->render_node->init(m_device, render_node_config);
+        renderable->render_node = std::make_shared<GraphicsRenderNode>();
+        renderable->render_node->init(m_device, "imgui_renderer"s, Application::GetRenderer().getFrameData(frame)->render_graph);
 
         std::shared_ptr<VulkanShader> vertex_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
         std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames().at(0));
@@ -137,7 +108,6 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
         Application::GetRenderer().addRenderNode(renderable->render_node, frame);
         
     }
-    
 
     return true;
 }

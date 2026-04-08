@@ -2400,7 +2400,9 @@
                 <xs:element name="RenderNodes">
                     <xs:complexType>
                         <xs:sequence>
-                            <xs:element name="RenderNode" type="target:RenderNodeComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                            <xs:element name="GraphicsRenderNode" type="target:RenderNodeComplexType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                            <xs:element name="PresentRenderNode" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                            <xs:element name="ComputeRenderNode" minOccurs="0" maxOccurs="unbounded"></xs:element>
                         </xs:sequence>
                     </xs:complexType>
                 </xs:element>

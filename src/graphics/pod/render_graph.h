@@ -16,6 +16,7 @@
 
 class VulkanDevice;
 class RenderNode;
+class GraphicsRenderNodeConfig;
 
 class RenderGraph {
 public:
@@ -26,6 +27,8 @@ public:
 
 	bool init(std::shared_ptr<VulkanDevice> device);
     void destroy();
+
+	const std::shared_ptr<GraphicsRenderNodeConfig>& getGraphicsRenderNodeConfig(const std::string& config_mame) const;
 
 	void add_pass(std::shared_ptr<RenderNode> render_node);
 	void topological_sort();
@@ -42,6 +45,9 @@ public:
 private:
 
 	std::shared_ptr<VulkanDevice> m_device;
+
+	std::unordered_map<std::string, std::shared_ptr<GraphicsRenderNodeConfig>> m_graphics_cfg_name_map;
+
 	RenderNodeList m_render_nodes;
 	std::unordered_map<std::string, RenderNodeSet> m_read_map;
 	std::unordered_map<std::string, RenderNodeSet> m_written_map;

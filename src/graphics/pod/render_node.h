@@ -14,13 +14,15 @@
 
 class VulkanDevice;
 class VulkanPipeline;
-class RenderNodeConfig;
+class GraphicsRenderNodeConfig;
 class VulkanImageBuffer;
 class VulkanBuffer;
 class VulkanDescriptor;
 class VulkanSampler;
+class RenderGraph;
+class CommandBatch;
 
-class RenderNode {
+class RenderNode : public std::enable_shared_from_this<RenderNode> {
 public:
     struct AttachmentSlot {
         std::shared_ptr<RenderResource> resource;
@@ -33,8 +35,10 @@ public:
     using ResourceMap = std::unordered_map<GlobalName, AttachmentSlot>;
     using AttachMap = std::unordered_map<LocalName, AttachmentSlot>;
 
-    bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<RenderNodeConfig> node_config);
-    void destroy();
+    virtual bool init(std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, std::weak_ptr<RenderGraph> render_graph) = 0;
+    virtual void destroy() = 0;
+
+    virtual void render(CommandBatch& command_buffer) = 0;
 
     void addReadDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as, bool only_read = true);
     void addWriteDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as);
@@ -51,37 +55,21 @@ public:
     const ResourceMap& getWrittenResourcesMap() const;
     const AttachMap& getWrittenAttachmentMap() const;
 
-    void finishRenderNode();
-
-    const std::shared_ptr<VulkanPipeline>& getPipeline();
-    VkFramebuffer getFramebuffer() const;
-    VkExtent2D getViewportExtent() const;
+    virtual void finishRenderNode() = 0;
 
     std::shared_ptr<RenderResource> getAttachedResource(const LocalName& attached_as) const;
-    std::shared_ptr<VulkanImageBuffer> getAttachedImageResource(const LocalName& attached_as);
-    std::shared_ptr<VulkanImageBuffer> getWrittenAttachedImageResource(const LocalName& name);
-    std::shared_ptr<VulkanImageBuffer> getReadAttachedImageResource(const LocalName& name);
-    std::shared_ptr<VulkanBuffer> getAttachedBufferResource(const LocalName& attached_as);
-    std::shared_ptr<VulkanBuffer> getWrittenAttachedBufferResource(const LocalName& name);
-    std::shared_ptr<VulkanBuffer> getReadAttachedBufferResource(const LocalName& name);
+    std::shared_ptr<VulkanImageBuffer> getAttachedImageResource(const LocalName& attached_as) const;
+    std::shared_ptr<VulkanImageBuffer> getWrittenAttachedImageResource(const LocalName& name) const;
+    std::shared_ptr<VulkanImageBuffer> getReadAttachedImageResource(const LocalName& name) const;
+    std::shared_ptr<VulkanBuffer> getAttachedBufferResource(const LocalName& attached_as) const;
+    std::shared_ptr<VulkanBuffer> getWrittenAttachedBufferResource(const LocalName& name) const;
+    std::shared_ptr<VulkanBuffer> getReadAttachedBufferResource(const LocalName& name) const;
 
-    const std::unordered_map<uint32_t, std::shared_ptr<VulkanDescriptor>>& getDescriptors() const;
-    const std::shared_ptr<RenderNodeConfig>& getRenderNodeConfig() const;
+    virtual void TransitionResourcesToProperState(CommandBatch& command_buffer) = 0;
 
 private:
-    std::vector<VkImageView> getAttachments() const;
-
     std::shared_ptr<VulkanDevice> m_device;
-    std::shared_ptr<VulkanPipeline> m_pipeline;
-
-    std::shared_ptr<RenderNodeConfig> m_node_config;
-
-    std::vector<VkImageView> m_framebuffers_attachments;
-    VkFramebufferCreateInfo m_framebuffer_info;
-    VkFramebuffer m_frame_buffer;
-    VkExtent2D m_viewport_extent;
-
-    std::unordered_map<uint32_t, std::shared_ptr<VulkanDescriptor>> m_descs;
+    std::weak_ptr<RenderGraph> m_render_graph;
 
     ResourceMap m_read_resources;
     AttachMap m_read_attached;

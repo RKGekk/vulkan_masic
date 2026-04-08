@@ -28,7 +28,7 @@
 #include <vector>
 
 struct Managers;
-class RenderNode;
+class GraphicsRenderNode;
 class VulkanBuffer;
 class VulkanImageBuffer;
 
@@ -41,7 +41,7 @@ public:
         std::shared_ptr<VulkanImageBuffer> font_texture;
         std::vector<ImDrawVert> imgui_vtx;
         std::vector<ImDrawIdx> imgui_idx;
-        std::shared_ptr<RenderNode> render_node;
+        std::shared_ptr<GraphicsRenderNode> render_node;
         int frame;
     };
 
@@ -57,6 +57,8 @@ public:
     void endFrame();
 
 private:
+    std::shared_ptr<VulkanImageBuffer> makeFontTexture(std::shared_ptr<VulkanDevice> device, const char* TTF_font_file_name, float fontSizePixels);
+
     std::shared_ptr<VulkanDevice> m_device;
     int m_max_frames;
 

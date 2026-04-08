@@ -30,7 +30,7 @@
 
 class VulkanBuffer;
 class VulkanImageBuffer;
-class RenderNode;
+class GraphicsRenderNode;
 
 class SceneDrawable : public IVulkanDrawable {
 public:
@@ -41,7 +41,7 @@ public:
         std::shared_ptr<VulkanBuffer> vertex_buffer;
         std::shared_ptr<VulkanBuffer> index_buffer;
         std::shared_ptr<VulkanImageBuffer> texture;
-        std::shared_ptr<RenderNode> render_node;
+        std::shared_ptr<GraphicsRenderNode> render_node;
         int frame;
     };
 
