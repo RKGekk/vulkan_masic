@@ -17,6 +17,8 @@
 #include "api/vulkan_format_manager.h"
 #include "api/vulkan_resources_manager.h"
 #include "pod/render_node.h"
+#include "pod/present_render_node.h"
+#include "pod/graphics_render_node.h"
 #include "pod/render_graph.h"
 #include "pod/graphics_render_node_config.h"
 #include "pod/image_buffer_config.h"
@@ -31,12 +33,14 @@ bool PerFrame::init(std::shared_ptr<VulkanDevice> device, unsigned index) {
 
 void PerFrame::destroy(VulkanRenderer& renderer) {
     renderer.getSemaphoreManager()->returnSemaphore(swapchain_available_sem);
+    renderer.getFenceManager()->returnFence(swapchain_available_fen);
     for(VkSemaphore sem : cmd_submit_wait_sem) {
         renderer.getSemaphoreManager()->returnSemaphore(sem);
     }
     renderer.getResourcesManager()->delete_image(out_color_image);
     renderer.getResourcesManager()->delete_image(out_depth_image);
     command_buffer->destroy();
+    present_render_node->destroy();
     render_graph->destroy();
 }
 	
@@ -46,7 +50,7 @@ void PerFrame::begin(VulkanRenderer& renderer, uint32_t image_index) {
         renderer.getSemaphoreManager()->returnSemaphore(sem);
     }
     cmd_submit_wait_sem.clear();
-    present_wait_sem.clear();
+    present_render_node->clearWaitSemaphores();
 }
 
 void PerFrame::end(VulkanRenderer& renderer) {
@@ -78,8 +82,9 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
     m_command_manager = m_device->getCommandManager();
 
     m_frame = 0u;
-    m_prev_frame = 0u;
+    //m_prev_frame = 0u;
 
+    const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = m_swapchain->getSwapchainImages();
     int max_frames = m_swapchain->getMaxFrames();
     m_per_frame.reserve(max_frames);
     for(int i = 0; i < max_frames; ++i) {
@@ -89,7 +94,8 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
         per_frame->out_depth_image = m_resources_manager->create_image("render_target_depth", "render_target_depth_resource");
 
         per_frame->swapchain_available_sem = m_semaphore_manager->getSemaphore("swapchain_available_sem");
-        //per_frame->swapchain_available_fen = m_fence_manager->getFence();
+        per_frame->swapchain_available_fen = m_fence_manager->getFence();
+        vkResetFences(m_device->getDevice(), 1u, &per_frame->swapchain_available_fen);
 
         per_frame->render_graph = std::make_shared<RenderGraph>();
         per_frame->render_graph->init(m_device);
@@ -97,6 +103,10 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
         per_frame->init(m_device, i);
         per_frame->command_buffer = m_command_manager->allocCommandBufferPtr(PoolTypeEnum::GRAPICS);
         per_frame->cmd_submit_finish_fence = per_frame->command_buffer->getRenderFence();
+        
+        per_frame->present_render_node = std::make_shared<PresentRenderNode>();
+        per_frame->present_render_node->init(m_device, "presenter"s, per_frame->render_graph);
+        per_frame->present_render_node->addReadDependency(swapchain_images.at(i), "swapchain_image"s);
 
         m_per_frame.push_back(std::move(per_frame));
     }
@@ -196,6 +206,8 @@ void VulkanRenderer::beginFrame(unsigned image_index) {
     m_per_frame[image_index]->command_buffer->reset();
     m_per_frame[image_index]->cmd_submit_finish_signal_sem = m_per_frame[image_index]->command_buffer->getInProgressSemaphore();
     m_per_frame[image_index]->cmd_submit_finish_fence = m_per_frame[image_index]->command_buffer->getRenderFence();
+
+    m_per_frame[image_index]->present_render_node->addWaitSemaphore(m_per_frame[image_index]->cmd_submit_finish_signal_sem);
 }
 
 void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer, unsigned image_index) {
@@ -203,17 +215,21 @@ void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer, unsigned 
 
     const RenderGraph::RenderNodeList& topologically_sorted_nodes = m_per_frame[image_index]->render_graph->getTopologicallySortedNodes();
     for(const std::shared_ptr<RenderNode>& render_node_ptr : topologically_sorted_nodes) {
-        render_node_ptr->render(command_buffer);
+        if(std::shared_ptr<GraphicsRenderNode> graphics_node = std::dynamic_pointer_cast<GraphicsRenderNode>(render_node_ptr)) {
+            graphics_node->render(command_buffer, image_index);
+        }
     }
     
     VulkanCommandManager::endCommandBuffer(command_buffer);
 }
 
 void VulkanRenderer::drawFrame(unsigned image_index) {
+    uint32_t prev_frame = getPrevFrame();
+
     recordCommandBuffer(*m_per_frame[image_index]->command_buffer, image_index);
     
     CommandBatch::BatchWaitInfo wait_info;
-    wait_info.wait_for_semaphores.push_back(m_per_frame[m_prev_frame]->swapchain_available_sem);
+    wait_info.wait_for_semaphores.push_back(m_per_frame[prev_frame]->swapchain_available_sem);
     if(m_per_frame[image_index]->cmd_submit_wait_sem.size()) {
         wait_info.wait_for_semaphores.insert(wait_info.wait_for_semaphores.end(), m_per_frame[image_index]->cmd_submit_wait_sem.begin(), m_per_frame[image_index]->cmd_submit_wait_sem.end());
     }
@@ -222,22 +238,7 @@ void VulkanRenderer::drawFrame(unsigned image_index) {
 
     m_command_manager->submitCommandBuffer(m_per_frame[image_index]->command_buffer, VulkanCommandManager::SELECT_ALL_BUFFERS, &submit_info);
 
-    m_per_frame[image_index]->present_wait_sem.push_back(m_per_frame[image_index]->cmd_submit_finish_signal_sem);
-    
-    VkSwapchainKHR swapchains[] = {m_swapchain->getSwapchain()};
-    VkPresentInfoKHR present_info{};
-    present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    present_info.waitSemaphoreCount = static_cast<uint32_t>(m_per_frame[image_index]->present_wait_sem.size());
-    present_info.pWaitSemaphores = m_per_frame[image_index]->present_wait_sem.data();
-    present_info.swapchainCount = 1u;
-    present_info.pSwapchains = swapchains;
-    present_info.pImageIndices = &image_index;
-    present_info.pResults = nullptr;
-    VkResult result = vkQueuePresentKHR(m_command_manager->getQueue(), &present_info);
-    if (result != VK_SUCCESS) {
-        throw std::runtime_error("failed to present swap chain image!");
-    }
-
+    m_per_frame[image_index]->present_render_node->render(*m_per_frame[image_index]->command_buffer, image_index);
     m_per_frame[image_index]->end(*this);
 }
 
@@ -254,23 +255,40 @@ void VulkanRenderer::addRenderNode(std::shared_ptr<RenderNode> render_node, unsi
 }
 
 std::pair<bool, uint32_t> VulkanRenderer::acquire_next_image() {
-    m_prev_frame = m_frame;
-    //vkWaitForFences(m_device->getDevice(), 1u, &(m_per_frame[m_frame]->swapchain_available_fen), VK_TRUE, UINT64_MAX);
-    //vkResetFences(m_device->getDevice(), 1u, &(m_per_frame[m_frame]->swapchain_available_fen));
+    if(m_prev_frame.size() >= m_swapchain->getSwapchainSupportDetails().capabilities.minImageCount) {
+        vkWaitForFences(m_device->getDevice(), 1u, &(m_per_frame[m_prev_frame.front()]->swapchain_available_fen), VK_TRUE, UINT64_MAX);
+        vkResetFences(m_device->getDevice(), 1u, &(m_per_frame[m_prev_frame.front()]->swapchain_available_fen));
+        m_prev_frame.erase(m_prev_frame.begin());
+    }
+
+    if(m_prev_frame.empty()) {
+        m_prev_frame.push_back(m_frame);
+    }
+    if(m_prev_frame.back() != m_frame) {
+        m_prev_frame.push_back(m_frame);
+    }
+
+    //vkResetFences(m_device->getDevice(), 1u, &(m_per_frame[m_prev_frame.back()]->swapchain_available_fen));
+    uint32_t prev_frame = getPrevFrame();
     VkResult result = vkAcquireNextImageKHR(
         m_device->getDevice(),
         m_swapchain->getSwapchain(),
         UINT64_MAX,
-        m_per_frame[m_prev_frame]->swapchain_available_sem,
-        //m_per_frame[m_prev_frame]->swapchain_available_fen,
-        VK_NULL_HANDLE,
+        m_per_frame[prev_frame]->swapchain_available_sem,
+        m_per_frame[prev_frame]->swapchain_available_fen,
+        //VK_NULL_HANDLE,
         &m_frame
     );
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || result == VK_NOT_READY) {
         return {false, m_frame};
     }
     else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
         throw std::runtime_error("failed to acquire swap chain image!");
     }
     return {true, m_frame};
+}
+
+uint32_t VulkanRenderer::getPrevFrame() const {
+    return m_prev_frame.empty() ? m_swapchain->getMaxFrames() - 1u : m_prev_frame.back();
+    //return m_prev_frame.empty() ? 0u : m_prev_frame.back();
 }

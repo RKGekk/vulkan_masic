@@ -41,6 +41,7 @@ public:
     
     const std::shared_ptr<WindowSurface>& getWindow() const;
     VkSwapchainKHR getSwapchain() const;
+    VkSwapchainKHR* getSwapchainPtr();
 
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& getSwapchainImages() const;
     const std::shared_ptr<FormatConfig>& getFormatConfig() const;

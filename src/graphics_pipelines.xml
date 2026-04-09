@@ -761,7 +761,8 @@
     </Pipelines>
 
     <RenderNodes>
-        
+        <PresentRenderNode name="presenter"></PresentRenderNode>
+
         <GraphicsRenderNode name="mesh_render">
             <Pipeline>basic_diffuse_pipeline</Pipeline>
             <FrameBuffer>

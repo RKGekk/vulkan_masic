@@ -340,6 +340,8 @@ set(APP_SOURCES
     "${SRC_DIR}/graphics/pod/graphics_render_node_config.cpp"
     "${SRC_DIR}/graphics/pod/graphics_render_node.h"
     "${SRC_DIR}/graphics/pod/graphics_render_node.cpp"
+    "${SRC_DIR}/graphics/pod/present_render_node.h"
+    "${SRC_DIR}/graphics/pod/present_render_node.cpp"
     "${SRC_DIR}/graphics/pod/render_graph.h"
     "${SRC_DIR}/graphics/pod/render_graph.cpp"
     "${SRC_DIR}/graphics/pod/buffer_config.h"

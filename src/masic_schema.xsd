@@ -2167,7 +2167,11 @@
         <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
     </xs:complexType>
 
-    <xs:complexType name="RenderNodeComplexType">
+    <xs:complexType name="PresentRenderNodeComplexType">
+        <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="GraphicsRenderNodeComplexType">
         <xs:sequence>
             <xs:element name="Pipeline" type="xs:string"></xs:element>
             <xs:element name="FrameBuffer" minOccurs="1" maxOccurs="1">
@@ -2399,11 +2403,11 @@
 
                 <xs:element name="RenderNodes">
                     <xs:complexType>
-                        <xs:sequence>
-                            <xs:element name="GraphicsRenderNode" type="target:RenderNodeComplexType" minOccurs="0" maxOccurs="unbounded"></xs:element>
-                            <xs:element name="PresentRenderNode" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                        <xs:choice minOccurs="1" maxOccurs="unbounded">
+                            <xs:element name="GraphicsRenderNode" type="target:GraphicsRenderNodeComplexType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+                            <xs:element name="PresentRenderNode" type="target:PresentRenderNodeComplexType" minOccurs="0" maxOccurs="unbounded"></xs:element>
                             <xs:element name="ComputeRenderNode" minOccurs="0" maxOccurs="unbounded"></xs:element>
-                        </xs:sequence>
+                        </xs:choice>
                     </xs:complexType>
                 </xs:element>
 

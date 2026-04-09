@@ -38,7 +38,7 @@ public:
     virtual bool init(std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, std::weak_ptr<RenderGraph> render_graph) = 0;
     virtual void destroy() = 0;
 
-    virtual void render(CommandBatch& command_buffer) = 0;
+    virtual void render(CommandBatch& command_buffer, unsigned image_index) = 0;
 
     void addReadDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as, bool only_read = true);
     void addWriteDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as);
@@ -67,10 +67,11 @@ public:
 
     virtual void TransitionResourcesToProperState(CommandBatch& command_buffer) = 0;
 
-private:
+protected:
     std::shared_ptr<VulkanDevice> m_device;
     std::weak_ptr<RenderGraph> m_render_graph;
 
+private:
     ResourceMap m_read_resources;
     AttachMap m_read_attached;
 

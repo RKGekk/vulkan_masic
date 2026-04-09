@@ -142,6 +142,10 @@ VkSwapchainKHR VulkanSwapChain::getSwapchain() const {
     return m_swapchain;
 }
 
+VkSwapchainKHR* VulkanSwapChain::getSwapchainPtr() {
+    return &m_swapchain;
+}
+
 const std::vector<std::shared_ptr<VulkanImageBuffer>>& VulkanSwapChain::getSwapchainImages() const {
     return m_swapchain_images;
 }

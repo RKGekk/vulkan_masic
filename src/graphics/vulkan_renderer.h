@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <memory>
 #include <stdexcept>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -35,6 +36,7 @@ class VulkanResourcesManager;
 class RenderNode;
 class RenderGraph;
 class VulkanRenderer;
+class PresentRenderNode;
 
 struct PerFrame {
     bool init(std::shared_ptr<VulkanDevice> device, unsigned index);
@@ -49,14 +51,13 @@ struct PerFrame {
     std::shared_ptr<VulkanImageBuffer> out_depth_image;
 
     VkSemaphore swapchain_available_sem;
-    //VkFence swapchain_available_fen;
+    VkFence swapchain_available_fen;
     std::vector<VkSemaphore> cmd_submit_wait_sem;
     VkSemaphore cmd_submit_finish_signal_sem;
     VkFence cmd_submit_finish_fence;
-    std::vector<VkSemaphore> present_wait_sem;
 
 	std::shared_ptr<CommandBatch> command_buffer;
-
+    std::shared_ptr<PresentRenderNode> present_render_node;
     std::shared_ptr<RenderGraph> render_graph;
 };
 
@@ -91,6 +92,8 @@ public:
     std::pair<bool, uint32_t> acquire_next_image();
 
 private:
+    uint32_t getPrevFrame() const;
+
     std::shared_ptr<VulkanDevice> m_device;
     
     std::shared_ptr<VulkanSwapChain> m_swapchain;
@@ -109,5 +112,5 @@ private:
 
     std::shared_ptr<ThreadPool> m_thread_pool;
     uint32_t m_frame;
-    uint32_t m_prev_frame;
+    std::vector<uint32_t> m_prev_frame;
 };

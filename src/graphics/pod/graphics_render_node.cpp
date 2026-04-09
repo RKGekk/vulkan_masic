@@ -15,9 +15,9 @@
 
 bool GraphicsRenderNode::init(std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, std::weak_ptr<RenderGraph> render_graph) {
     m_device = std::move(device);
-    m_node_config = render_graph.lock()->getGraphicsRenderNodeConfig(node_config_name);
-    m_pipeline = Application::Get().GetRenderer().getPipelinesManager()->getPipeline(m_node_config->getPipelineName());
     m_render_graph = std::move(render_graph);
+    m_node_config = m_render_graph.lock()->getGraphicsRenderNodeConfig(node_config_name);
+    m_pipeline = Application::Get().GetRenderer().getPipelinesManager()->getPipeline(m_node_config->getPipelineName());
 
     return true;
 }
@@ -26,7 +26,7 @@ void GraphicsRenderNode::destroy() {
     vkDestroyFramebuffer(m_device->getDevice(), m_frame_buffer, nullptr);
 }
 
-void GraphicsRenderNode::render(CommandBatch& command_buffer) {
+void GraphicsRenderNode::render(CommandBatch& command_buffer, unsigned image_index) {
     static std::array<VkClearValue, 2> clear_values{};
     clear_values[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
     clear_values[1].depthStencil = {1.0f, 0};

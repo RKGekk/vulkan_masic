@@ -17,7 +17,7 @@ public:
     virtual bool init(std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, std::weak_ptr<RenderGraph> render_graph) override;
     virtual void destroy() override;
 
-    virtual void render(CommandBatch& command_buffer) override;
+    virtual void render(CommandBatch& command_buffer, unsigned image_index) override;
     virtual void finishRenderNode() override;
 
     const std::shared_ptr<VulkanPipeline>& getPipeline();
@@ -32,10 +32,7 @@ public:
 private:
 
     std::vector<VkImageView> getAttachments() const;
-
-    std::shared_ptr<VulkanDevice> m_device;
     std::shared_ptr<VulkanPipeline> m_pipeline;
-    std::weak_ptr<RenderGraph> m_render_graph;
 
     std::shared_ptr<GraphicsRenderNodeConfig> m_node_config;
 
