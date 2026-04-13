@@ -204,6 +204,7 @@ VkPresentModeKHR getPresentMode(const std::string& mode_str);
 VkSurfaceTransformFlagBitsKHR getSurfaceTransformFlag(const std::string& flag_str);
 VkCompositeAlphaFlagBitsKHR getCompositeAlphaFlag(const std::string& flag_str);
 VkIndexType getIndexType(const std::string& type_str);
+VkFramebufferCreateFlags getFramebufferCreateFlag(const std::string& flag_str);
 
 VkComponentMapping getComponentMapping(const pugi::xml_node& mapping_node);
 VkSamplerCreateInfo getSamplerCreateInfo(const pugi::xml_node& sampler_node);

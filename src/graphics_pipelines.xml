@@ -760,28 +760,30 @@
         </GraphicsPipeline>
     </Pipelines>
 
+    <Framebuffers>
+        <FrameBuffer name="basic_mulisample_render_framebuffer">
+            <RenderPassName>basic_mulisample_render_pass</RenderPassName>
+            <Extent source="as_swapchain"></Extent>
+            <Attachments>
+                <Attachment name="color_attachment" name_type="local">
+                    <AttachmentResourceTypeView>render_target_color_resource_view</AttachmentResourceTypeView>
+                </Attachment>
+                <Attachment name="depth_attachment" name_type="local">
+                    <AttachmentResourceTypeView>render_target_depth_resource_view</AttachmentResourceTypeView>
+                </Attachment>
+                <Attachment name="resolve_attachment" name_type="local">
+                    <AttachmentResourceTypeView>basic_swapchain_resource_view</AttachmentResourceTypeView>
+                </Attachment>
+            </Attachments>
+        </FrameBuffer>
+    </Framebuffers>
+
     <RenderNodes>
         <PresentRenderNode name="presenter"></PresentRenderNode>
 
         <GraphicsRenderNode name="mesh_render">
             <Pipeline>basic_diffuse_pipeline</Pipeline>
-            <FrameBuffer>
-                <RenderPassName>basic_mulisample_render_pass</RenderPassName>
-                <Attachments>
-                    <Attachment name="color_attachment">
-                        <AttachmentResourceType>render_target_color_resource</AttachmentResourceType>
-                        <AttachmentResourceTypeView>render_target_color_resource_view</AttachmentResourceTypeView>
-                    </Attachment>
-                    <Attachment name="depth_attachment">
-                        <AttachmentResourceType>render_target_depth_resource</AttachmentResourceType>
-                        <AttachmentResourceTypeView>render_target_depth_resource_view</AttachmentResourceTypeView>
-                    </Attachment>
-                    <Attachment name="resolve_attachment">
-                        <AttachmentResourceType>basic_swap_chain_resource</AttachmentResourceType>
-                        <AttachmentResourceTypeView>basic_swapchain_resource_view</AttachmentResourceTypeView>
-                    </Attachment>
-                </Attachments>
-            </FrameBuffer>
+            <FrameBufferName>basic_mulisample_render_framebuffer</FrameBufferName>
             <DescriptorResourcesUpdate>
                 <LayoutBinding name="uniform">
                     <Buffer>
@@ -803,23 +805,7 @@
 
         <GraphicsRenderNode name="imgui_renderer">
             <Pipeline>imgui_pipeline</Pipeline>
-            <FrameBuffer>
-                <RenderPassName>basic_mulisample_render_pass</RenderPassName>
-                <Attachments>
-                    <Attachment name="color_attachment">
-                        <AttachmentResourceType>render_target_color_resource</AttachmentResourceType>
-                        <AttachmentResourceTypeView>render_target_color_resource_view</AttachmentResourceTypeView>
-                    </Attachment>
-                    <Attachment name="depth_attachment">
-                        <AttachmentResourceType>render_target_depth_resource</AttachmentResourceType>
-                        <AttachmentResourceTypeView>render_target_depth_resource_view</AttachmentResourceTypeView>
-                    </Attachment>
-                    <Attachment name="resolve_attachment">
-                        <AttachmentResourceType>basic_swap_chain_resource</AttachmentResourceType>
-                        <AttachmentResourceTypeView>basic_swapchain_resource_view</AttachmentResourceTypeView>
-                    </Attachment>
-                </Attachments>
-            </FrameBuffer>
+            <FrameBufferName>basic_mulisample_render_framebuffer</FrameBufferName>
             <DescriptorResourcesUpdate>
                 <LayoutBinding name="uniform">
                     <Buffer>

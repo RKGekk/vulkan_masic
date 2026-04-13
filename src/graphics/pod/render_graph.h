@@ -36,6 +36,8 @@ public:
 
 	const RenderNodeList& getTopologicallySortedNodes();
 	const RenderNodePtr& getRenderNodeByID(size_t id) const;
+	const std::vector<std::shared_ptr<DependencyLevel>>& getDependencyLevels();
+
 	RenderNodePtr getLastWritten(const RenderNodePtr& render_node, const std::string& global_resuotce_name) const;
 	size_t getLastWrittenIdentity(const RenderNodePtr& render_node, const std::string& global_resuotce_name) const;
 	RenderNodePtr getLastRead(const RenderNodePtr& render_node, const std::string& global_resuotce_name) const;

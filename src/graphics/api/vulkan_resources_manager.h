@@ -18,10 +18,12 @@ class VulkanImageBuffer;
 class VulkanBuffer;
 class VulkanSampler;
 class VulkanFormatManager;
+class FramebufferConfig;
+class WindowSurface;
 
 class VulkanResourcesManager {
 public:
-    VulkanResourcesManager(std::shared_ptr<VulkanDevice> device, std::shared_ptr<VulkanFormatManager> format_manager);
+    VulkanResourcesManager(std::shared_ptr<VulkanDevice> device, const std::shared_ptr<WindowSurface>& window, std::shared_ptr<VulkanFormatManager> format_manager);
 
     bool init(const std::string& rg_file_path);
     void destroy();
@@ -45,6 +47,8 @@ public:
     const std::shared_ptr<ImageBufferConfig> getImageBufferConfigTemplate(const std::string& template_name) const;
     const std::shared_ptr<BufferConfig> getBufferConfigTemplate(const std::string& template_name) const;
 
+    const std::shared_ptr<FramebufferConfig>& getFramebufferConfig(const std::string& framebuffer_name) const;
+
 protected:
     std::shared_ptr<VulkanDevice> m_device;
     std::shared_ptr<VulkanFormatManager> m_format_manager;
@@ -54,4 +58,6 @@ protected:
 
     std::unordered_map<std::string, std::shared_ptr<BufferConfig>> m_buffer_config_map;
     std::unordered_map<std::string, std::shared_ptr<VulkanBuffer>> m_buffer_map;
+
+    std::unordered_map<std::string, std::shared_ptr<FramebufferConfig>> m_framebuffer_config_map;
 };

@@ -1900,6 +1900,16 @@ VkIndexType getIndexType(const std::string& type_str) {
     return res;
 }
 
+VkFramebufferCreateFlags getFramebufferCreateFlag(const std::string& flag_str) {
+	using namespace std::literals;
+    VkFramebufferCreateFlags res{};
+
+	     if(flag_str == "imageless"s) {res = VK_FRAMEBUFFER_CREATE_IMAGELESS_BIT;}
+	else if(flag_str == "imageless_khr"s) {res = VK_FRAMEBUFFER_CREATE_IMAGELESS_BIT_KHR;}
+    
+    return res;
+}
+
 VkComponentMapping getComponentMapping(const pugi::xml_node& mapping_node) {
 	VkComponentMapping mapping{};
 

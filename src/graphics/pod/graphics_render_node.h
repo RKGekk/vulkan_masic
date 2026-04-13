@@ -12,6 +12,8 @@
 
 #include "render_node.h"
 
+class VulkanFramebuffer;
+
 class GraphicsRenderNode : public RenderNode {
 public:
     virtual bool init(std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, std::weak_ptr<RenderGraph> render_graph) override;
@@ -30,15 +32,10 @@ public:
     virtual void TransitionResourcesToProperState(CommandBatch& command_buffer) override;
 
 private:
-
-    std::vector<VkImageView> getAttachments() const;
     std::shared_ptr<VulkanPipeline> m_pipeline;
 
     std::shared_ptr<GraphicsRenderNodeConfig> m_node_config;
-
-    std::vector<VkImageView> m_framebuffers_attachments;
-    VkFramebufferCreateInfo m_framebuffer_info;
-    VkFramebuffer m_frame_buffer;
+    std::shared_ptr<VulkanFramebuffer> m_frame_buffer;
     VkExtent2D m_viewport_extent;
 
     std::unordered_map<uint32_t, std::shared_ptr<VulkanDescriptor>> m_descs;

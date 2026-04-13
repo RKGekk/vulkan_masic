@@ -10,6 +10,8 @@
 #include "../api/vulkan_pipelines_manager.h"
 #include "../api/vulkan_render_pass.h"
 #include "../api/vulkan_descriptors_manager.h"
+#include "../api/vulkan_framebuffer.h"
+#include "../api/vulkan_resources_manager.h"
 
 #include <utility>
 
@@ -23,7 +25,7 @@ bool GraphicsRenderNode::init(std::shared_ptr<VulkanDevice> device, const std::s
 }
 
 void GraphicsRenderNode::destroy() {
-    vkDestroyFramebuffer(m_device->getDevice(), m_frame_buffer, nullptr);
+    m_frame_buffer->destroy();
 }
 
 void GraphicsRenderNode::render(CommandBatch& command_buffer, unsigned image_index) {
@@ -37,15 +39,6 @@ void GraphicsRenderNode::render(CommandBatch& command_buffer, unsigned image_ind
 
     TransitionResourcesToProperState(command_buffer);
 
-    VkRenderPassBeginInfo renderpass_info{};
-    renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderpass_info.renderPass = render_pass_ptr->getRenderPass();
-    renderpass_info.framebuffer = m_frame_buffer;
-    renderpass_info.renderArea.offset = {0, 0};
-    renderpass_info.renderArea.extent = m_viewport_extent;
-    renderpass_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
-    renderpass_info.pClearValues = clear_values.data();
-        
     VkViewport view_port{};
     view_port.x = 0.0f;
     view_port.y = 0.0f;
@@ -58,8 +51,6 @@ void GraphicsRenderNode::render(CommandBatch& command_buffer, unsigned image_ind
     scissor.offset = {0, 0};
     scissor.extent = m_viewport_extent;
         
-    vkCmdBeginRenderPass(command_buffer.getCommandBufer(), &renderpass_info, VK_SUBPASS_CONTENTS_INLINE);
-
     vkCmdSetViewport(command_buffer.getCommandBufer(), 0u, 1u, &view_port);
     vkCmdSetScissor(command_buffer.getCommandBufer(), 0u, 1u, &scissor);
         
@@ -115,24 +106,9 @@ void GraphicsRenderNode::render(CommandBatch& command_buffer, unsigned image_ind
 void GraphicsRenderNode::finishRenderNode() {
     VulkanRenderer& renderer = Application::GetRenderer();
 
-    const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = m_pipeline->getRenderPass();
-    m_framebuffers_attachments = getAttachments();
-
     m_viewport_extent = getWrittenAttachedImageResource(m_node_config->getAttachmentsConfig().front()->attachment_name)->getImageConfig()->getFormat()->getExtent2D();
-
-    m_framebuffer_info = VkFramebufferCreateInfo{};
-    m_framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    m_framebuffer_info.renderPass = render_pass_ptr->getRenderPass();
-    m_framebuffer_info.attachmentCount = static_cast<uint32_t>(m_framebuffers_attachments.size());
-    m_framebuffer_info.pAttachments = m_framebuffers_attachments.data();
-    m_framebuffer_info.width = m_viewport_extent.width;
-    m_framebuffer_info.height = m_viewport_extent.height;
-    m_framebuffer_info.layers = 1u;
-
-    VkResult result = vkCreateFramebuffer(m_device->getDevice(), &m_framebuffer_info, nullptr, &m_frame_buffer);
-    if(result != VK_SUCCESS) {
-        throw std::runtime_error("failed to create framebuffer!");
-    }
+    const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = m_pipeline->getRenderPass();
+    m_frame_buffer = std::make_shared<VulkanFramebuffer>(m_device, m_node_config->getFramebufferConfig(), render_pass_ptr, getReadAttachmentMap());
 
     for (const auto&[slot, desc_set_layout] : m_pipeline->getDescLayouts()) {
         m_descs[slot] = renderer.getDescriptorsManager()->allocateDescriptorSet(desc_set_layout->getName());
@@ -162,7 +138,7 @@ const std::shared_ptr<VulkanPipeline>& GraphicsRenderNode::getPipeline() {
 }
 
 VkFramebuffer GraphicsRenderNode::getFramebuffer() const {
-    return m_frame_buffer;
+    return m_frame_buffer->getFramebuffer();
 }
 
 VkExtent2D GraphicsRenderNode::getViewportExtent() const {
@@ -175,21 +151,6 @@ const std::unordered_map<uint32_t, std::shared_ptr<VulkanDescriptor>>& GraphicsR
 
 const std::shared_ptr<GraphicsRenderNodeConfig>& GraphicsRenderNode::getGraphicsRenderNodeConfig() const {
     return m_node_config;
-}
-
-std::vector<VkImageView> GraphicsRenderNode::getAttachments() const {
-    std::vector<VkImageView> attachments;
-    const std::vector<std::shared_ptr<GraphicsRenderNodeConfig::FrameBufferAttachment>>& attachments_config = m_node_config->getAttachmentsConfig();
-    size_t attachments_count = attachments_config.size();
-    attachments.resize(attachments_count);
-    for(size_t attachment_idx = 0u; attachment_idx < attachments_count; ++attachment_idx) {
-        const std::shared_ptr<GraphicsRenderNodeConfig::FrameBufferAttachment>& frame_buffer_attachment = attachments_config.at(attachment_idx);
-        if(std::shared_ptr<VulkanImageBuffer> image_resource = getWrittenAttachedImageResource(frame_buffer_attachment->attachment_name)) {
-            attachments[attachment_idx] = image_resource->getImageBufferView(frame_buffer_attachment->attachment_resource_view);
-        }
-    }
-
-    return attachments;
 }
 
 void GraphicsRenderNode::TransitionResourcesToProperState(CommandBatch& command_buffer) {

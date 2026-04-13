@@ -2093,6 +2093,7 @@
 
     <xs:complexType name="RenderPassComplexType">
         <xs:sequence>
+            
             <xs:element name="Flags" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
@@ -2174,42 +2175,7 @@
     <xs:complexType name="GraphicsRenderNodeComplexType">
         <xs:sequence>
             <xs:element name="Pipeline" type="xs:string"></xs:element>
-            <xs:element name="FrameBuffer" minOccurs="1" maxOccurs="1">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element name="Flags" minOccurs="0" maxOccurs="1">
-                            <xs:complexType>
-                                <xs:sequence>
-                                    <xs:element name="Flag" minOccurs="1" maxOccurs="unbounded">
-                                        <xs:simpleType>
-                                            <xs:restriction base="xs:string">
-                                                <xs:enumeration value="imageless"></xs:enumeration>
-                                                <xs:enumeration value="imageless_khr"></xs:enumeration>
-                                            </xs:restriction>
-                                        </xs:simpleType>
-                                    </xs:element>
-                                </xs:sequence>
-                            </xs:complexType>
-                        </xs:element>
-                        <xs:element name="RenderPassName" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
-                        <xs:element name="Attachments" minOccurs="1" maxOccurs="1">
-                            <xs:complexType>
-                                <xs:sequence>
-                                    <xs:element name="Attachment" minOccurs="1" maxOccurs="unbounded">
-                                        <xs:complexType>
-                                            <xs:sequence>
-                                                <xs:element name="AttachmentResourceType" type="xs:string"></xs:element>
-                                                <xs:element name="AttachmentResourceTypeView" type="xs:string"></xs:element>
-                                            </xs:sequence>
-                                            <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
-                                        </xs:complexType>
-                                    </xs:element>
-                                </xs:sequence>
-                            </xs:complexType>
-                        </xs:element>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
+            <xs:element name="FrameBufferName" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="DescriptorResourcesUpdate" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
@@ -2299,6 +2265,56 @@
             <xs:element name="PreTransform" type="target:SurfaceTransformFlagSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="CompositeAlpha" type="target:CompositeAlphaFlagSimpleType"></xs:element>
             <xs:element name="Clipped" type="xs:boolean"></xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="FramebuffersComplexType">
+        <xs:sequence>
+            <xs:element name="FrameBuffer" minOccurs="1" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Flags" minOccurs="0" maxOccurs="1">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Flag" minOccurs="1" maxOccurs="unbounded">
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:string">
+                                                <xs:enumeration value="imageless"></xs:enumeration>
+                                                <xs:enumeration value="imageless_khr"></xs:enumeration>
+                                            </xs:restriction>
+                                        </xs:simpleType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="RenderPassName" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="Extent" type="target:Extent3DComplexType" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="Attachments" minOccurs="1" maxOccurs="1">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Attachment" minOccurs="1" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="AttachmentResourceTypeView" type="xs:string"></xs:element>
+                                            </xs:sequence>
+                                            <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+                                            <xs:attribute name="name_type" use="required">
+                                                <xs:simpleType>
+                                                    <xs:restriction base="xs:string">
+                                                        <xs:enumeration value="local"></xs:enumeration>
+                                                        <xs:enumeration value="global"></xs:enumeration>
+                                                    </xs:restriction>
+                                                </xs:simpleType>
+                                            </xs:attribute>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+                </xs:complexType>
+            </xs:element>
         </xs:sequence>
     </xs:complexType>
 
@@ -2400,6 +2416,8 @@
                 <xs:element name="Swapchain" type="target:SwapChainComplexType"></xs:element>
 
                 <xs:element name="Pipelines" type="target:PipelinesComplexType" minOccurs="1" maxOccurs="1"></xs:element>
+
+                <xs:element name="Framebuffers" type="target:FramebuffersComplexType" minOccurs="1" maxOccurs="1"></xs:element>
 
                 <xs:element name="RenderNodes">
                     <xs:complexType>

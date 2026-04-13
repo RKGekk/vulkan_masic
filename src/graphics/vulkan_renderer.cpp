@@ -213,13 +213,30 @@ void VulkanRenderer::beginFrame(unsigned image_index) {
 void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer, unsigned image_index) {
     VulkanCommandManager::beginCommandBuffer(command_buffer);
 
-    const RenderGraph::RenderNodeList& topologically_sorted_nodes = m_per_frame[image_index]->render_graph->getTopologicallySortedNodes();
-    for(const std::shared_ptr<RenderNode>& render_node_ptr : topologically_sorted_nodes) {
-        if(std::shared_ptr<GraphicsRenderNode> graphics_node = std::dynamic_pointer_cast<GraphicsRenderNode>(render_node_ptr)) {
+    const std::vector<std::shared_ptr<DependencyLevel>>& dependency_levels = m_per_frame[image_index]->render_graph->getDependencyLevels();
+    for (const std::shared_ptr<DependencyLevel>& dependency_lvl : dependency_levels) {
+        for (auto const&[framebuffer_name, graphics_node] : dependency_lvl->getFramebufferNodeMap()) {
+            static std::array<VkClearValue, 2> clear_values{};
+            clear_values[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+            clear_values[1].depthStencil = {1.0f, 0};
+
+            const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = graphics_node->getPipeline()->getRenderPass();
+
+            VkRenderPassBeginInfo renderpass_info{};
+            renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+            renderpass_info.renderPass = render_pass_ptr->getRenderPass();
+            renderpass_info.framebuffer = graphics_node->getFramebuffer();
+            renderpass_info.renderArea.offset = {0, 0};
+            renderpass_info.renderArea.extent = graphics_node->getViewportExtent();
+            renderpass_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
+            renderpass_info.pClearValues = clear_values.data();
+
+            vkCmdBeginRenderPass(command_buffer.getCommandBufer(), &renderpass_info, VK_SUBPASS_CONTENTS_INLINE);
+
             graphics_node->render(command_buffer, image_index);
         }
     }
-    
+
     VulkanCommandManager::endCommandBuffer(command_buffer);
 }
 
@@ -263,6 +280,7 @@ std::pair<bool, uint32_t> VulkanRenderer::acquire_next_image() {
 
     if(m_prev_frame.empty()) {
         m_prev_frame.push_back(m_frame);
+        //m_prev_frame.push_back(m_swapchain->getMaxFrames() - 1u);
     }
     if(m_prev_frame.back() != m_frame) {
         m_prev_frame.push_back(m_frame);
@@ -289,6 +307,7 @@ std::pair<bool, uint32_t> VulkanRenderer::acquire_next_image() {
 }
 
 uint32_t VulkanRenderer::getPrevFrame() const {
-    return m_prev_frame.empty() ? m_swapchain->getMaxFrames() - 1u : m_prev_frame.back();
+    return m_prev_frame.back();
+    //return m_prev_frame.empty() ? m_swapchain->getMaxFrames() - 1u : m_prev_frame.back();
     //return m_prev_frame.empty() ? 0u : m_prev_frame.back();
 }

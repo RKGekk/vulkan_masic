@@ -7,14 +7,17 @@
 #include "vulkan_sampler.h"
 #include "../pod/image_buffer_config.h"
 #include "../pod/buffer_config.h"
+#include "../pod/framebuffer_config.h"
 #include "vulkan_buffer.h"
 #include "vulkan_image_buffer.h"
+#include "vulkan_swapchain.h"
+#include "../../window_surface.h"
 
 #include "../../tools/string_tools.h"
 
 #include <utility>
 
-VulkanResourcesManager::VulkanResourcesManager(std::shared_ptr<VulkanDevice> device, std::shared_ptr<VulkanFormatManager> format_manager) : m_device(std::move(device)), m_format_manager(std::move(format_manager)) {}
+VulkanResourcesManager::VulkanResourcesManager(std::shared_ptr<VulkanDevice> device, const std::shared_ptr<WindowSurface>& window, std::shared_ptr<VulkanFormatManager> format_manager) : m_device(std::move(device)), m_format_manager(std::move(format_manager)) {}
 
 bool VulkanResourcesManager::init(const std::string& rg_file_path) {
     pugi::xml_document xml_doc;
@@ -41,6 +44,19 @@ bool VulkanResourcesManager::init(const std::string& rg_file_path) {
 			buffer_config_ptr->init(m_device, name, buffer_node, m_format_manager);
 			m_buffer_config_map[name] = std::move(buffer_config_ptr);
 		}
+	}
+
+	pugi::xml_node framebuffers_node = root_node.child("Framebuffers");
+	if (!framebuffers_node) return false;
+
+	SwapchainSupportDetails swapchain_support_details = VulkanSwapChain::querySwapChainSupport(m_device->getDeviceAbilities().physical_device, m_device->getSurface());
+    
+	for (pugi::xml_node framebuffer_node = framebuffers_node.first_child(); framebuffer_node; framebuffer_node = framebuffer_node.next_sibling()) {
+		std::string name = framebuffer_node.attribute("name").as_string();
+
+		std::shared_ptr<FramebufferConfig> frame_buffer_config_ptr = std::make_shared<FramebufferConfig>();
+		frame_buffer_config_ptr->init(window, swapchain_support_details, framebuffer_node);
+		m_framebuffer_config_map[name] = std::move(frame_buffer_config_ptr);
 	}
 
     return true;
@@ -234,4 +250,8 @@ const std::shared_ptr<ImageBufferConfig> VulkanResourcesManager::getImageBufferC
 
 const std::shared_ptr<BufferConfig> VulkanResourcesManager::getBufferConfigTemplate(const std::string& template_name) const {
 	return m_buffer_config_map.at(template_name);
+}
+
+const std::shared_ptr<FramebufferConfig>& VulkanResourcesManager::getFramebufferConfig(const std::string& framebuffer_name) const {
+	return m_framebuffer_config_map.at(framebuffer_name);
 }

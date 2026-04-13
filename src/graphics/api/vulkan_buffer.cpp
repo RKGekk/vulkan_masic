@@ -54,6 +54,14 @@ bool VulkanBuffer::init(const void* data, std::shared_ptr<BufferConfig> buffer_c
     if(m_buffer_config->getMemoryProperties() & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
         vkMapMemory(m_device->getDevice(), m_memory, 0, mem_req.size, 0u, &m_mapped);
     }
+
+    for(const auto&[view_type_name, view_cfg_ptr] : m_buffer_config->getViewMap()) {
+        view_cfg_ptr->view_info.buffer = m_buffer;
+        VkResult result = vkCreateBufferView(m_device->getDevice(), &view_cfg_ptr->view_info, nullptr, &m_buffer_view_map[view_type_name]);
+        if(result != VK_SUCCESS) {
+            throw std::runtime_error("failed to create texture image view!");
+        }
+    }
     
     if(data) {
         update(data, m_buffer_config->getNotAlignedSize());
@@ -72,6 +80,11 @@ bool VulkanBuffer::init(CommandBatch& command_buffer, const void* data, std::sha
 
 void VulkanBuffer::destroy() {
     if(m_buffer_config->getBufferInfo().size) {
+        for (auto&[view_name, vk_view] : m_buffer_view_map) {
+            vkDestroyBufferView(m_device->getDevice(), vk_view, nullptr);
+            vk_view = VK_NULL_HANDLE;
+        }
+
         if(m_buffer_config->getMemoryProperties() & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
             vkUnmapMemory(m_device->getDevice(), m_memory);
         }
@@ -117,6 +130,18 @@ VkMemoryPropertyFlags VulkanBuffer::getProperties() const {
 
 VkBufferUsageFlags VulkanBuffer::getUsage() const {
     return m_buffer_config->getBufferInfo().usage;
+}
+
+VkBufferView VulkanBuffer::getBufferView() const {
+    return (*m_buffer_view_map.begin()).second;
+};
+
+VkBufferView VulkanBuffer::getBufferView(const std::string& view_name) const {
+    return m_buffer_view_map.at(view_name);
+}
+
+const std::unordered_map<std::string, VkBufferView>& VulkanBuffer::getBufferViewMap() const {
+    return m_buffer_view_map;
 }
 
 void VulkanBuffer::update(const void* src_data, VkDeviceSize buffer_size) {

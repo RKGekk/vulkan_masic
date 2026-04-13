@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "render_resource.h"
+#include "framebuffer_config.h"
 
 class VulkanDevice;
 class VulkanSampler;
@@ -18,12 +19,6 @@ class VulkanResourcesManager;
 
 class GraphicsRenderNodeConfig {
 public:
-    struct FrameBufferAttachment {
-        std::string attachment_name;
-        std::string attachment_resource_type;
-        std::string attachment_resource_view;
-    };
-
     struct UpdateMetadata {
         std::string name;
         enum class SamplerType { NONE, INLINE, DEFAULT, FROM_IMAGEBUFFER };
@@ -38,13 +33,16 @@ public:
         VkImageLayout read_image_layout;
     };
 
-    bool init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanResourcesManager>& resources_manager, const pugi::xml_node& node_data);
+    bool init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanResourcesManager>& resources_manager, FramebufferConfig framebuffer_config, const pugi::xml_node& node_data);
 
     const std::string& getName() const;
     const std::string& getPipelineName() const;
     const std::string& getRenderPassName() const;
-    const std::vector<std::shared_ptr<FrameBufferAttachment>>& getAttachmentsConfig() const;
-    const std::shared_ptr<FrameBufferAttachment>& getAttachmentData(const std::string& attached_name) const;
+
+    const FramebufferConfig& getFramebufferConfig() const;
+    const std::vector<std::shared_ptr<FramebufferConfig::FrameBufferAttachment>>& getAttachmentsConfig() const;
+    const std::shared_ptr<FramebufferConfig::FrameBufferAttachment>& getAttachmentData(const std::string& attached_name) const;
+
     const std::unordered_map<std::string, std::shared_ptr<UpdateMetadata>>& getBindingsMetadata() const;
     const std::shared_ptr<UpdateMetadata>& getUpdateMetadata(const std::string& binding_name);
 
@@ -54,7 +52,6 @@ private:
     std::string m_name;
     std::string m_pipeline_name;
     std::string m_render_pass_name;
-    std::unordered_map<std::string, size_t> m_name_attach_map;
-    std::vector<std::shared_ptr<FrameBufferAttachment>> m_attachments;
+    FramebufferConfig m_framebuffer_config;
     std::unordered_map<std::string, std::shared_ptr<UpdateMetadata>> m_bindings_metadata;
 };

@@ -6,28 +6,14 @@
 #include "image_buffer_config.h"
 #include "format_config.h"
 
-bool GraphicsRenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanResourcesManager>& resources_manager, const pugi::xml_node& node_data) {
+bool GraphicsRenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanResourcesManager>& resources_manager, FramebufferConfig framebuffer_config, const pugi::xml_node& node_data) {
     using namespace std::literals;
 
     m_name = node_data.attribute("name").as_string();
-
+    m_framebuffer_config = std::move(framebuffer_config);
     m_pipeline_name = node_data.child("Pipeline").text().as_string();
     m_render_pass_name = node_data.child("FrameBuffer").child("RenderPassName").text().as_string();
 
-    pugi::xml_node attachments_node = node_data.child("FrameBuffer").child("Attachments");
-    if(attachments_node) {
-        for (pugi::xml_node attachment_node = attachments_node.first_child(); attachment_node; attachment_node = attachment_node.next_sibling()) {
-            std::shared_ptr<FrameBufferAttachment> attachment = std::make_shared<FrameBufferAttachment>();
-            attachment->attachment_name = attachment_node.attribute("name").as_string();
-            attachment->attachment_resource_type = attachment_node.child("AttachmentResourceType").text().as_string();
-            attachment->attachment_resource_view = attachment_node.child("AttachmentResourceTypeView").text().as_string();
-
-            size_t attach_idx = m_attachments.size();
-            m_name_attach_map[attachment->attachment_name] = attach_idx;
-            m_attachments.push_back(std::move(attachment));
-		}
-    }
-    
     pugi::xml_node update_metadata_node = node_data.child("DescriptorResourcesUpdate");
     if(update_metadata_node) {
         for (pugi::xml_node layout_binding_node = update_metadata_node.first_child(); layout_binding_node; layout_binding_node = layout_binding_node.next_sibling()) {
@@ -81,12 +67,16 @@ const std::string& GraphicsRenderNodeConfig::getRenderPassName() const {
     return m_render_pass_name;
 }
 
-const std::vector<std::shared_ptr<GraphicsRenderNodeConfig::FrameBufferAttachment>>& GraphicsRenderNodeConfig::getAttachmentsConfig() const {
-    return m_attachments;
+const FramebufferConfig& GraphicsRenderNodeConfig::getFramebufferConfig() const {
+    return m_framebuffer_config;
 }
 
-const std::shared_ptr<GraphicsRenderNodeConfig::FrameBufferAttachment>& GraphicsRenderNodeConfig::getAttachmentData(const std::string& attached_name) const {
-    return m_attachments.at(m_name_attach_map.at(attached_name));
+const std::vector<std::shared_ptr<FramebufferConfig::FrameBufferAttachment>>& GraphicsRenderNodeConfig::getAttachmentsConfig() const {
+    return m_framebuffer_config.getAttachmentsConfig();
+}
+
+const std::shared_ptr<FramebufferConfig::FrameBufferAttachment>& GraphicsRenderNodeConfig::getAttachmentData(const std::string& attached_name) const {
+    return m_framebuffer_config.getAttachmentData(attached_name);
 }
 
 const std::unordered_map<std::string, std::shared_ptr<GraphicsRenderNodeConfig::UpdateMetadata>>& GraphicsRenderNodeConfig::getBindingsMetadata() const {

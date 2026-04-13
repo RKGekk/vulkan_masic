@@ -51,5 +51,4 @@ private:
     bool m_deffered_size;
     VkMemoryPropertyFlags m_memory_properties;
     std::unordered_map<std::string, std::shared_ptr<BufferViewConfig>> m_view_info_map;
-    
 };

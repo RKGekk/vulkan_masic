@@ -33,6 +33,10 @@ public:
     VkMemoryPropertyFlags getProperties() const;
     VkBufferUsageFlags getUsage() const;
 
+    VkBufferView getBufferView() const;
+    VkBufferView getBufferView(const std::string& view_name) const;
+    const std::unordered_map<std::string, VkBufferView>& getBufferViewMap() const;
+
     void update(CommandBatch& command_buffer, const void* src_data, VkDeviceSize buffer_size, VkAccessFlags dstAccessMask);
     void update(CommandBatch& command_buffer, const void* src_data, VkDeviceSize buffer_size);
     void update(const void* src_data, VkDeviceSize buffer_size);
@@ -51,5 +55,6 @@ protected:
     VkDeviceMemory m_memory;
     void* m_mapped;
 
+    std::unordered_map<std::string, VkBufferView> m_buffer_view_map;
     std::shared_ptr<BufferConfig> m_buffer_config;
 };
