@@ -123,6 +123,7 @@ bool PipelineConfig::init(const std::shared_ptr<VulkanDevice>& device, const pug
         m_depth_stencil_info.maxDepthBounds = depth_stencil_state_node.child("MaxDepthBounds").text().as_float();
     }
 
+    m_has_blend_enable = false;
     m_color_blend_info = VkPipelineColorBlendStateCreateInfo{};
     m_color_blend_info.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
     pugi::xml_node color_blend_state_node = pipeline_data.child("ColorBlendState");
@@ -138,12 +139,16 @@ bool PipelineConfig::init(const std::shared_ptr<VulkanDevice>& device, const pug
         m_color_blend_info.logicOpEnable = color_blend_state_node.child("LogicOpEnable").text().as_bool();
         m_color_blend_info.logicOp = getLogicOp(color_blend_state_node.child("LogicOp").text().as_string());
 
+        
         pugi::xml_node attachments_node = color_blend_state_node.child("Attachments");
         if(attachments_node) {
             for (pugi::xml_node attachment_node = attachments_node.first_child(); attachment_node; attachment_node = attachment_node.next_sibling()) {
 			    VkPipelineColorBlendAttachmentState attachment{};
 
                 attachment.blendEnable = attachment_node.child("BlendEnable").text().as_bool();
+                if(attachment.blendEnable) {
+                    m_has_blend_enable = true;
+                }
                 attachment.srcColorBlendFactor = getBlendFactor(attachment_node.child("SrcColorBlendFactor").text().as_string());
                 attachment.dstColorBlendFactor = getBlendFactor(attachment_node.child("DstColorBlendFactor").text().as_string());
                 attachment.colorBlendOp = getBlendOp(attachment_node.child("ColorBlendOp").text().as_string());
@@ -235,4 +240,8 @@ const VkPipelineDynamicStateCreateInfo& PipelineConfig::getDynamicInfo() const {
 
 const std::vector<VkDynamicState>& PipelineConfig::getDynamicStates() const {
     return m_dynamic_states;
+}
+
+bool PipelineConfig::haveBlendEnableAttachments() {
+    return has_blend_enable;
 }

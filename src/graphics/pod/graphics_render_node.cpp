@@ -29,14 +29,8 @@ void GraphicsRenderNode::destroy() {
 }
 
 void GraphicsRenderNode::render(CommandBatch& command_buffer, unsigned image_index) {
-    static std::array<VkClearValue, 2> clear_values{};
-    clear_values[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
-    clear_values[1].depthStencil = {1.0f, 0};
-
     // return all RenderResources to initial state
     
-    const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = m_pipeline->getRenderPass();
-
     TransitionResourcesToProperState(command_buffer);
 
     VkViewport view_port{};
@@ -67,8 +61,6 @@ void GraphicsRenderNode::render(CommandBatch& command_buffer, unsigned image_ind
         );
     }
 
-    vkCmdBindPipeline(command_buffer.getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->getPipeline());
-        
     for (const VertexFormat& vf : m_pipeline->getShader(VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getInputAttributes()) {
         const std::string& vertex_buffer_name = vf.getVertexBufferBindingName();
         std::shared_ptr<VulkanBuffer> vertex_buffer = getReadAttachedBufferResource(vertex_buffer_name);
@@ -100,7 +92,7 @@ void GraphicsRenderNode::render(CommandBatch& command_buffer, unsigned image_ind
         0u // firstInstance
     );
         
-    vkCmdEndRenderPass(command_buffer.getCommandBufer());
+    
 }
 
 void GraphicsRenderNode::finishRenderNode() {

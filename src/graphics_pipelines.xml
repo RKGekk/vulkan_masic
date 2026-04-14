@@ -532,6 +532,12 @@
                     <StencilStoreOp>dont_care</StencilStoreOp>
                     <InitialLayout>color_attachment_optimal</InitialLayout>
                     <FinalLayout>color_attachment_optimal</FinalLayout>
+                    <ClearValue>
+                        <AspectFlags>
+                            <AspectMask>color</AspectMask>
+                        </AspectFlags>
+                        <ClearColorValue r="0.0" g="0.0" b="0.0" a="0.0"/>
+                    </ClearValue>
                 </AttachmentDescription>
                 <AttachmentDescription name="depth_attachment">
                     <FormatName>render_target_depth_format</FormatName>
@@ -541,6 +547,16 @@
                     <StencilStoreOp>dont_care</StencilStoreOp>
                     <InitialLayout>auto_depth_stencil_attachment_optimal</InitialLayout>
                     <FinalLayout>auto_depth_stencil_attachment_optimal</FinalLayout>
+                    <ClearValue>
+                        <AspectFlags>
+                            <AspectMask>depth</AspectMask>
+                            <AspectMask>stencil</AspectMask>
+                        </AspectFlags>
+                        <ClearDepthStencilValue>
+                            <Depth>1.0</Depth>
+                            <Stencil>0</Stencil>
+                        </ClearDepthStencilValue>
+                    </ClearValue>
                 </AttachmentDescription>
                 <AttachmentDescription name="resolve_attachment">
                     <FormatName>swap_chain_format</FormatName>
@@ -550,6 +566,12 @@
                     <StencilStoreOp>dont_care</StencilStoreOp>
                     <InitialLayout>present_src_khr</InitialLayout>
                     <FinalLayout>present_src_khr</FinalLayout>
+                    <ClearValue>
+                        <AspectFlags>
+                            <AspectMask>color</AspectMask>
+                        </AspectFlags>
+                        <ClearColorValue r="0.0" g="0.0" b="0.0" a="0.0"/>
+                    </ClearValue>
                 </AttachmentDescription>
             </AttachmentDescriptions>
             <SubpassDescriptions>
@@ -653,7 +675,7 @@
                 <LogicOpEnable>false</LogicOpEnable>
                 <LogicOp>copy</LogicOp>
                 <Attachments>
-                    <Attachment>
+                    <Attachment name="color_attachment">
                         <BlendEnable>false</BlendEnable>
                         <SrcColorBlendFactor>one</SrcColorBlendFactor>
                         <DstColorBlendFactor>zero</DstColorBlendFactor>
@@ -728,7 +750,7 @@
                 <LogicOpEnable>false</LogicOpEnable>
                 <LogicOp>copy</LogicOp>
                 <Attachments>
-                    <Attachment>
+                    <Attachment name="color_attachment">
                         <BlendEnable>true</BlendEnable>
                         <SrcColorBlendFactor>src_alpha</SrcColorBlendFactor>
                         <DstColorBlendFactor>one_minus_src_alpha</DstColorBlendFactor>
@@ -764,6 +786,10 @@
         <FrameBuffer name="basic_mulisample_render_framebuffer">
             <RenderPassName>basic_mulisample_render_pass</RenderPassName>
             <Extent source="as_swapchain"></Extent>
+            <Offset source="exact">
+                <Width>0</Width>
+                <Height>0</Height>
+            </Offset>
             <Attachments>
                 <Attachment name="color_attachment" name_type="local">
                     <AttachmentResourceTypeView>render_target_color_resource_view</AttachmentResourceTypeView>

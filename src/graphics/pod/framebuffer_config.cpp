@@ -18,6 +18,9 @@ bool FramebufferConfig::init(const std::shared_ptr<WindowSurface>& window, const
     }
 
     pugi::xml_node extent_node = node_data.child("Extent");
+    pugi::xml_node offset_node = node_data.child("Offset");
+    m_offset_2D.x = offset_node.child("Width").text().as_uint();
+    m_offset_2D.y = offset_node.child("Height").text().as_uint();
     std::string extent_source = extent_node.attribute("source").as_string();
     if(extent_source == "auto") m_extent_source = ExtentSource::AUTO;
     else if(extent_source == "as_swapchain") m_extent_source = ExtentSource::AS_SWAPCHAIN;
@@ -49,7 +52,7 @@ bool FramebufferConfig::init(const std::shared_ptr<WindowSurface>& window, const
         m_extent_2D = {1u, 1u};
         m_extent_3D = {1u, 1u, 1u};
     }
-    m_aspect = ((float)m_extent_2D.width) / ((float)m_extent_2D.height);
+    m_aspect = ((float)(m_extent_2D.width - m_offset_2D.x)) / ((float)(m_extent_2D.height - m_offset_2D.y));
 
     pugi::xml_node attachments_node = node_data.child("FrameBuffer").child("Attachments");
     if(attachments_node) {
@@ -94,6 +97,14 @@ void FramebufferConfig::setExtent3D(VkExtent3D extent) {
     m_extent_2D.height = m_extent_3D.height;
 
     m_aspect = ((float)m_extent_2D.width) / ((float)m_extent_2D.height);
+}
+
+VkOffset2D FramebufferConfig::getOffset2D() const {
+    return m_offset_2D;
+}
+
+VkImageCreateFlags FramebufferConfig::getFlags() const {
+    return m_frame_buffer_flags;
 }
 
 FramebufferConfig::ExtentSource FramebufferConfig::getExtentSource() const {

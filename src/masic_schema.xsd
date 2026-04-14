@@ -9,6 +9,7 @@
         <xs:attribute name="r" type="xs:float"></xs:attribute>
         <xs:attribute name="g" type="xs:float"></xs:attribute>
         <xs:attribute name="b" type="xs:float"></xs:attribute>
+        <xs:attribute name="a" type="xs:float"></xs:attribute>
     </xs:complexType>
 
     <xs:complexType name="Vec3ComplexType">
@@ -1001,6 +1002,7 @@
                 </xs:complexType>
             </xs:element>
         </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
     </xs:complexType>
 
     <xs:simpleType name="DynamicStateSimpleType">
@@ -1429,6 +1431,28 @@
             <xs:element name="StencilStoreOp" type="target:AttachmentStoreOpSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="InitialLayout" type="target:ImageLayoutSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="FinalLayout" type="target:ImageLayoutSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="ClearValue" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="AspectFlags" minOccurs="1" maxOccurs="1">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="AspectMask" type="target:ImageAspectFlagsSimpleType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="ClearColorValue" type="target:ColorAsAttrComplexType" minOccurs="0" maxOccurs="1"></xs:element>
+                        <xs:element name="ClearDepthStencilValue" minOccurs="0" maxOccurs="1">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Depth" type="xs:float" minOccurs="0" maxOccurs="1"></xs:element>
+                                    <xs:element name="Stencil" type="xs:unsignedInt" minOccurs="0" maxOccurs="1"></xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
         </xs:sequence>
         <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
     </xs:complexType>
@@ -2289,6 +2313,7 @@
                         </xs:element>
                         <xs:element name="RenderPassName" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
                         <xs:element name="Extent" type="target:Extent3DComplexType" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="Offset" type="target:Extent3DComplexType" minOccurs="1" maxOccurs="1"></xs:element>
                         <xs:element name="Attachments" minOccurs="1" maxOccurs="1">
                             <xs:complexType>
                                 <xs:sequence>

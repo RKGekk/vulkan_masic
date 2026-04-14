@@ -190,9 +190,17 @@ void RenderGraph::build_dependency_levels() {
     }
 
     m_dependency_levels.resize(dependency_level_count);
-    for (const auto&[node_ptr, level] : node_dist_to_start) {
+    for (int level = 0; level < dependency_level_count; ++level) {
         std::shared_ptr<DependencyLevel> dependency_level = std::make_shared<DependencyLevel>(level);
         m_dependency_levels[level] = std::move(dependency_level);
+    }
+
+    for (const auto&[node_ptr, level] : node_dist_to_start) {
+        m_dependency_levels[level]->addNode(node_ptr);
+    }
+
+    for (int level = 0; level < dependency_level_count; ++level) {
+        m_dependency_levels[level]->sortPipelines();
     }
 }
 

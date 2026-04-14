@@ -29,6 +29,8 @@ public:
     const VkPipelineDynamicStateCreateInfo& getDynamicInfo() const;
     const std::vector<VkDynamicState>& getDynamicStates() const;
 
+    bool haveBlendEnableAttachments();
+
 private:
     std::string m_name;
     VkFlags m_pipeline_create_flags; // VkPipelineCreateFlagBits
@@ -39,6 +41,7 @@ private:
     VkPipelineMultisampleStateCreateInfo m_multisample_info;
     VkPipelineDepthStencilStateCreateInfo m_depth_stencil_info;
     VkPipelineColorBlendStateCreateInfo m_color_blend_info;
+    bool m_has_blend_enable;
     std::vector<VkPipelineColorBlendAttachmentState> m_color_blend_attachments;
     VkPipelineDynamicStateCreateInfo m_dynamic_info;
     std::vector<VkDynamicState> m_dynamic_states;

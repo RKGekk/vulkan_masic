@@ -21,12 +21,16 @@ class RenderPassConfig {
 public:
     bool init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanFormatManager>& format_manager, const pugi::xml_node& render_pass_data);
 
+    const std::string& getName();
     const VkRenderPassCreateInfo& getRenderPassCreateInfo() const;
 
     const std::unordered_map<std::string, size_t>& getAttachmentNameToIdxMap() const;
     size_t getAttachmentIdx(const std::string& attachment_name) const;
     const VkAttachmentDescription& getAttachmentDescription(const std::string& attachment_name) const;
     const VkAttachmentDescription& getAttachmentDescription(size_t attachment_idx) const;
+
+    const std::vector<VkClearValue>& getClearValues() const;
+    const std::vector<VkClearAttachment>& getClearAttachment() const;
 
     const std::unordered_map<std::string, std::shared_ptr<FormatConfig>>& getAttachmentNameToFormatMap() const;
     const std::shared_ptr<FormatConfig>& getAttachmentFormat(const std::string& attachment_name) const;
@@ -42,6 +46,8 @@ private:
     VkRenderPassCreateFlags m_create_flags;
 
     std::vector<VkAttachmentDescription> m_attachment_descriptions;
+    std::vector<VkClearValue> m_clear_values;
+    std::vector<VkClearAttachment> m_clear_attachment;
     std::unordered_map<std::string, size_t> m_attachment_name_to_attach_idx_map;
     std::unordered_map<std::string, std::shared_ptr<FormatConfig>> m_attachment_name_to_format_map;
 

@@ -35,6 +35,8 @@ public:
     VkExtent3D getExtent3D() const;
     void setExtent3D(VkExtent3D extent);
 
+    VkOffset2D getOffset2D() const;
+
     VkImageCreateFlags getFlags() const;
 
     const std::vector<std::shared_ptr<FramebufferConfig::FrameBufferAttachment>>& getAttachmentsConfig() const;
@@ -47,6 +49,7 @@ private:
     ExtentSource m_extent_source;
     VkExtent2D m_extent_2D;
     VkExtent3D m_extent_3D;
+    VkOffset2D m_offset_2D;
     float m_aspect;
     std::unordered_map<std::string, size_t> m_name_attach_map;
     std::vector<std::shared_ptr<FrameBufferAttachment>> m_attachments;

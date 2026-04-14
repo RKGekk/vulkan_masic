@@ -30,6 +30,12 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
 	if (attachment_descriptions_node) {
         for (pugi::xml_node attachment_desc_node = attachment_descriptions_node.first_child(); attachment_desc_node; attachment_desc_node = attachment_desc_node.next_sibling()) {
 			VkAttachmentDescription attachment_desc{};
+            VkClearValue clear_value{};
+            clear_value.color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+            clear_value.depthStencil = {1.0f, 0};
+
+            VkClearAttachment clear_attachment{};
+            clear_attachment.clearValue = clear_value;
 
             pugi::xml_node attachment_flags_node = attachment_desc_node.child("AttachmentDescFlags");
 	        if (attachment_flags_node) {
@@ -87,12 +93,47 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
                 }
             }
 
+            pugi::xml_node clear_value_node = attachment_desc_node.child("ClearValue");
+	        if (clear_value_node) {
+                for (pugi::xml_node flag_node = clear_value_node.child("AspectFlags").first_child(); flag_node; flag_node = flag_node.next_sibling()) {
+                    clear_attachment.aspectMask |= getImageAspectFlag(flag_node.text().as_string());
+                }
+
+                pugi::xml_node clear_color_node = attachment_desc_node.child("ClearColorValue");
+	            if (clear_color_node) {
+                    static glm::vec4 default_color = { 0.0f, 0.0f, 0.0f, 0.0 };
+                    glm::vec4 clear_color = colorfromattr4f(clear_color_node.child("ClearColorValue"), default_color);
+                    clear_value.color.float32[0] = clear_color.r;
+                    clear_value.color.float32[1] = clear_color.g;
+                    clear_value.color.float32[2] = clear_color.b;
+                    clear_value.color.float32[3] = clear_color.a;
+                }
+
+                pugi::xml_node clear_depth_node = attachment_desc_node.child("ClearDepthStencilValue");
+	            if (clear_depth_node) {
+                    pugi::xml_node depth_node = clear_depth_node.child("Depth");
+	                if (depth_node) {
+                        clear_value.depthStencil.depth = depth_node.text().as_float();
+                    }
+                    pugi::xml_node stencil_node = clear_depth_node.child("Stencil");
+	                if (stencil_node) {
+                        clear_value.depthStencil.stencil = stencil_node.text().as_uint();
+                    }
+                }
+
+                clear_attachment.clearValue = clear_value;
+            }
+
             std::string attachment_desc_name = attachment_desc_node.attribute("name").as_string();
 
             size_t attachment_desc_idx = m_attachment_descriptions.size();
+            clear_attachment.colorAttachment = attachment_desc_idx;
             m_attachment_descriptions.push_back(attachment_desc);
             m_attachment_name_to_attach_idx_map.insert({attachment_desc_name, attachment_desc_idx});
             m_attachment_name_to_format_map.insert({attachment_desc_name, std::move(format_config)});
+
+            m_clear_values.push_back(clear_value);
+            m_clear_attachment.push_back(clear_attachment);
 		}
     }
 
@@ -279,6 +320,10 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
     return true;
 }
 
+const std::string& RenderPassConfig::getName() {
+    return m_name;
+}
+
 const VkRenderPassCreateInfo& RenderPassConfig::getRenderPassCreateInfo() const {
     return m_render_pass_create_info;
 }
@@ -301,6 +346,14 @@ const VkAttachmentDescription& RenderPassConfig::getAttachmentDescription(const 
 
 const VkAttachmentDescription& RenderPassConfig::getAttachmentDescription(size_t attachment_idx) const {
     return m_attachment_descriptions.at(attachment_idx);
+}
+
+const std::vector<VkClearValue>& RenderPassConfig::getClearValues() const {
+    return m_clear_values;
+}
+
+const std::vector<VkClearAttachment>& RenderPassConfig::getClearAttachment() const {
+    return m_clear_attachment;
 }
 
 const std::shared_ptr<FormatConfig>& RenderPassConfig::getAttachmentFormat(const std::string& attachment_name) const {
