@@ -243,5 +243,5 @@ const std::vector<VkDynamicState>& PipelineConfig::getDynamicStates() const {
 }
 
 bool PipelineConfig::haveBlendEnableAttachments() {
-    return has_blend_enable;
+    return m_has_blend_enable;
 }

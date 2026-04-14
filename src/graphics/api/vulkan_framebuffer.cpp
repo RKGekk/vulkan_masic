@@ -6,15 +6,14 @@
 #include "vulkan_image_buffer.h"
 #include "vulkan_buffer.h"
 
-bool VulkanFramebuffer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<FramebufferConfig> framebuffer_config, std::shared_ptr<VulkanRenderPass> render_pass_ptr, const VulkanFramebuffer::LocalAttachMap& attach_map) {
+bool VulkanFramebuffer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<FramebufferConfig> framebuffer_config, std::shared_ptr<VulkanRenderPass> render_pass_ptr, std::function<const std::shared_ptr<RenderResource>&(const LocalName&)> attach_map) {
     m_device = std::move(device);
     m_framebuffer_config = std::move(framebuffer_config);
     m_render_pass_ptr = std::move(render_pass_ptr);
+    m_framebuffers_attachments = getAttachments(attach_map);
 
     m_framebuffer_info = VkFramebufferCreateInfo{};
     m_framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    
-    
     m_framebuffer_info.renderPass = m_render_pass_ptr->getRenderPass();
     m_framebuffer_info.attachmentCount = static_cast<uint32_t>(m_framebuffers_attachments.size());
     m_framebuffer_info.pAttachments = m_framebuffers_attachments.data();
@@ -48,14 +47,14 @@ const VkFramebufferCreateInfo& VulkanFramebuffer::getFramebufferInfo() const {
     return m_framebuffer_info;
 }
 
-std::vector<VkImageView> VulkanFramebuffer::getAttachments(const VulkanFramebuffer::LocalAttachMap& attach_map) const {
+std::vector<VkImageView> VulkanFramebuffer::getAttachments(std::function<const std::shared_ptr<RenderResource>&(const LocalName&)> attach_map) const {
     std::vector<VkImageView> attachments;
     const std::vector<std::shared_ptr<FramebufferConfig::FrameBufferAttachment>>& attachments_config = m_framebuffer_config->getAttachmentsConfig();
     size_t attachments_count = attachments_config.size();
     attachments.resize(attachments_count);
     for(size_t attachment_idx = 0u; attachment_idx < attachments_count; ++attachment_idx) {
         const std::shared_ptr<FramebufferConfig::FrameBufferAttachment>& frame_buffer_attachment = attachments_config.at(attachment_idx);
-        if(std::shared_ptr<VulkanImageBuffer> image_resource = std::dynamic_pointer_cast<VulkanImageBuffer>(attach_map.at(frame_buffer_attachment->attachment_name))) {
+        if(std::shared_ptr<VulkanImageBuffer> image_resource = std::dynamic_pointer_cast<VulkanImageBuffer>(attach_map(frame_buffer_attachment->attachment_name))) {
             attachments[attachment_idx] = image_resource->getImageBufferView(frame_buffer_attachment->attachment_resource_view);
         }
     }

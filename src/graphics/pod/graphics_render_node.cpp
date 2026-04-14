@@ -100,7 +100,9 @@ void GraphicsRenderNode::finishRenderNode() {
 
     m_viewport_extent = getWrittenAttachedImageResource(m_node_config->getAttachmentsConfig().front()->attachment_name)->getImageConfig()->getFormat()->getExtent2D();
     const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = m_pipeline->getRenderPass();
-    m_frame_buffer = std::make_shared<VulkanFramebuffer>(m_device, m_node_config->getFramebufferConfig(), render_pass_ptr, getReadAttachmentMap());
+    m_frame_buffer = std::make_shared<VulkanFramebuffer>();
+    auto map_fn = [this](const LocalName& local_name)->const std::shared_ptr<RenderResource>&{ return getReadAttachmentMap().at(local_name).resource;};
+    m_frame_buffer->init(m_device, m_node_config->getFramebufferConfig(), render_pass_ptr, map_fn);
 
     for (const auto&[slot, desc_set_layout] : m_pipeline->getDescLayouts()) {
         m_descs[slot] = renderer.getDescriptorsManager()->allocateDescriptorSet(desc_set_layout->getName());

@@ -3,6 +3,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <functional>
 #include <memory>
 #include <unordered_map>
 
@@ -10,13 +11,14 @@
 
 class VulkanDevice;
 class FramebufferConfig;
+class VulkanRenderPass;
 
 class VulkanFramebuffer {
 public:
     using LocalName = RenderResource::ResourceName;
-    using LocalAttachMap = std::unordered_map<LocalName, std::shared_ptr<RenderResource>>;
+    //using LocalAttachMap = std::unordered_map<LocalName, std::shared_ptr<RenderResource>>;
 
-	bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<FramebufferConfig> framebuffer_config, std::shared_ptr<VulkanRenderPass> render_pass_ptr, const LocalAttachMap& attach_map);
+	bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<FramebufferConfig> framebuffer_config, std::shared_ptr<VulkanRenderPass> render_pass_ptr, std::function<const std::shared_ptr<RenderResource>&(const LocalName&)> attach_map);
 	void destroy();
 
     VkFramebuffer getFramebuffer() const;
@@ -25,7 +27,7 @@ public:
     const VkFramebufferCreateInfo& getFramebufferInfo() const;
 
 private:
-    std::vector<VkImageView> getAttachments(const LocalAttachMap& attach_map) const;
+    std::vector<VkImageView> getAttachments(std::function<const std::shared_ptr<RenderResource>&(const LocalName&)> attach_map) const;
 
 	std::shared_ptr<VulkanDevice> m_device;
 	std::shared_ptr<FramebufferConfig> m_framebuffer_config;

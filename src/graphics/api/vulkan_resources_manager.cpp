@@ -17,9 +17,9 @@
 
 #include <utility>
 
-VulkanResourcesManager::VulkanResourcesManager(std::shared_ptr<VulkanDevice> device, const std::shared_ptr<WindowSurface>& window, std::shared_ptr<VulkanFormatManager> format_manager) : m_device(std::move(device)), m_format_manager(std::move(format_manager)) {}
+VulkanResourcesManager::VulkanResourcesManager(std::shared_ptr<VulkanDevice> device, std::shared_ptr<VulkanFormatManager> format_manager) : m_device(std::move(device)), m_format_manager(std::move(format_manager)) {}
 
-bool VulkanResourcesManager::init(const std::string& rg_file_path) {
+bool VulkanResourcesManager::init(const std::shared_ptr<WindowSurface>& window, const std::string& rg_file_path) {
     pugi::xml_document xml_doc;
 	pugi::xml_parse_result parse_res = xml_doc.load_file(rg_file_path.c_str());
 	if (!parse_res) { return false;	}

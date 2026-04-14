@@ -3,6 +3,7 @@
 #include "../api/vulkan_device.h"
 #include "../api/vulkan_pipeline.h"
 #include "../api/vulkan_render_pass.h"
+#include "../api/vulkan_resources_manager.h"
 #include "render_node.h"
 #include "graphics_render_node_config.h"
 #include "graphics_render_node.h"
@@ -35,7 +36,7 @@ bool RenderGraph::init(std::shared_ptr<VulkanDevice> device) {
         
         if(render_node_type == "GraphicsRenderNode"s) {
             std::shared_ptr<GraphicsRenderNodeConfig> render_node_config = std::make_shared<GraphicsRenderNodeConfig>();
-            render_node_config->init(device, Application::GetRenderer().getResourcesManager(), render_node);
+            render_node_config->init(device, Application::GetRenderer().getResourcesManager(), render_node_config->getFramebufferConfig(), render_node);
             m_graphics_cfg_name_map[node_name] = std::move(render_node_config);
         }
     }
@@ -214,6 +215,10 @@ const RenderGraph::RenderNodeList& RenderGraph::getTopologicallySortedNodes() {
 
 const RenderGraph::RenderNodePtr& RenderGraph::getRenderNodeByID(size_t id) const {
     return m_topologically_sorted_nodes.at(id);
+}
+
+const std::vector<std::shared_ptr<DependencyLevel>>& RenderGraph::getDependencyLevels() {
+    return m_dependency_levels;
 }
 
 RenderGraph::RenderNodePtr RenderGraph::getLastWritten(const RenderNodePtr& render_node, const std::string& gloabal_resuorce_name) const {

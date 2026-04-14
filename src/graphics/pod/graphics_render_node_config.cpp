@@ -6,7 +6,7 @@
 #include "image_buffer_config.h"
 #include "format_config.h"
 
-bool GraphicsRenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanResourcesManager>& resources_manager, FramebufferConfig framebuffer_config, const pugi::xml_node& node_data) {
+bool GraphicsRenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanResourcesManager>& resources_manager, std::shared_ptr<FramebufferConfig> framebuffer_config, const pugi::xml_node& node_data) {
     using namespace std::literals;
 
     m_name = node_data.attribute("name").as_string();
@@ -67,16 +67,16 @@ const std::string& GraphicsRenderNodeConfig::getRenderPassName() const {
     return m_render_pass_name;
 }
 
-const FramebufferConfig& GraphicsRenderNodeConfig::getFramebufferConfig() const {
+const std::shared_ptr<FramebufferConfig>& GraphicsRenderNodeConfig::getFramebufferConfig() const {
     return m_framebuffer_config;
 }
 
 const std::vector<std::shared_ptr<FramebufferConfig::FrameBufferAttachment>>& GraphicsRenderNodeConfig::getAttachmentsConfig() const {
-    return m_framebuffer_config.getAttachmentsConfig();
+    return m_framebuffer_config->getAttachmentsConfig();
 }
 
 const std::shared_ptr<FramebufferConfig::FrameBufferAttachment>& GraphicsRenderNodeConfig::getAttachmentData(const std::string& attached_name) const {
-    return m_framebuffer_config.getAttachmentData(attached_name);
+    return m_framebuffer_config->getAttachmentData(attached_name);
 }
 
 const std::unordered_map<std::string, std::shared_ptr<GraphicsRenderNodeConfig::UpdateMetadata>>& GraphicsRenderNodeConfig::getBindingsMetadata() const {

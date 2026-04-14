@@ -37,7 +37,7 @@ int DependencyLevel::getLevel() const {
 void DependencyLevel::addNode(std::shared_ptr<RenderNode> node) {
     m_nodes.push_back(node);
     if(std::shared_ptr<GraphicsRenderNode> graphics_node = std::dynamic_pointer_cast<GraphicsRenderNode>(node)) {
-        const FramebufferName& framebuffer_name = graphics_node->getGraphicsRenderNodeConfig()->getFramebufferConfig().getName();
+        const FramebufferName& framebuffer_name = graphics_node->getGraphicsRenderNodeConfig()->getFramebufferConfig()->getName();
         m_framebuffer_node_map[framebuffer_name].push_back(graphics_node);
 
         const PipelineName& pipeline_name = graphics_node->getPipeline()->getPipelineConfig()->getName();

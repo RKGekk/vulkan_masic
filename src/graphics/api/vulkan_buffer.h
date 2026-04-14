@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <string>
 #include <memory>
+#include <unordered_map>
 
 #include "../pod/render_resource.h"
 #include "vulkan_command_buffer.h"

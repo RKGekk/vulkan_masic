@@ -23,9 +23,9 @@ class WindowSurface;
 
 class VulkanResourcesManager {
 public:
-    VulkanResourcesManager(std::shared_ptr<VulkanDevice> device, const std::shared_ptr<WindowSurface>& window, std::shared_ptr<VulkanFormatManager> format_manager);
+    VulkanResourcesManager(std::shared_ptr<VulkanDevice> device, std::shared_ptr<VulkanFormatManager> format_manager);
 
-    bool init(const std::string& rg_file_path);
+    bool init(const std::shared_ptr<WindowSurface>& window, const std::string& rg_file_path);
     void destroy();
 
     std::shared_ptr<VulkanImageBuffer> create_image(const std::string& path_to_file);

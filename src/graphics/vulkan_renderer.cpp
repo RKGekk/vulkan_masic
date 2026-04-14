@@ -75,7 +75,7 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
     m_semaphore_manager->init(m_device);
 
     m_resources_manager = std::make_shared<VulkanResourcesManager>(m_device, m_format_manager);
-    m_resources_manager->init("graphics_pipelines.xml"s);
+    m_resources_manager->init(window, "graphics_pipelines.xml"s);
 
     m_swapchain = std::make_shared<VulkanSwapChain>();
     m_swapchain->init(m_device, std::move(window), "graphics_pipelines.xml"s);
@@ -227,8 +227,8 @@ void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer, unsigned 
                 renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
                 renderpass_info.renderPass = render_pass_ptr->getRenderPass();
                 renderpass_info.framebuffer = node_params->getFramebuffer();
-                renderpass_info.renderArea.offset = node_params->getGraphicsRenderNodeConfig()->getFramebufferConfig().getOffset2D();
-                renderpass_info.renderArea.extent = node_params->getGraphicsRenderNodeConfig()->getFramebufferConfig().getExtent2D();
+                renderpass_info.renderArea.offset = node_params->getGraphicsRenderNodeConfig()->getFramebufferConfig()->getOffset2D();
+                renderpass_info.renderArea.extent = node_params->getGraphicsRenderNodeConfig()->getFramebufferConfig()->getExtent2D();
                 renderpass_info.clearValueCount = render_pass_ptr->getRenderPassConfig()->getClearValues().size();
                 renderpass_info.pClearValues = render_pass_ptr->getRenderPassConfig()->getClearValues().data();
 
