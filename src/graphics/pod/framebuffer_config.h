@@ -27,6 +27,7 @@ public:
     bool init(const std::shared_ptr<WindowSurface>& window, const SwapchainSupportDetails& swapchain_support_details, const pugi::xml_node& format_data);
 
     const std::string& getName() const;
+    const std::string& getRenderpassName() const;
 
     VkExtent2D getExtent2D() const;
     void setExtent2D(VkExtent2D extent);

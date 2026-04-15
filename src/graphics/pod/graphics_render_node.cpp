@@ -7,6 +7,7 @@
 #include "format_config.h"
 #include "render_pass_config.h"
 #include "../../application.h"
+#include "../vulkan_renderer.h"
 #include "../api/vulkan_pipelines_manager.h"
 #include "../api/vulkan_render_pass.h"
 #include "../api/vulkan_descriptors_manager.h"
@@ -101,7 +102,9 @@ void GraphicsRenderNode::finishRenderNode() {
     m_viewport_extent = getWrittenAttachedImageResource(m_node_config->getAttachmentsConfig().front()->attachment_name)->getImageConfig()->getFormat()->getExtent2D();
     const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = m_pipeline->getRenderPass();
     m_frame_buffer = std::make_shared<VulkanFramebuffer>();
-    auto map_fn = [this](const LocalName& local_name)->const std::shared_ptr<RenderResource>&{ return getReadAttachmentMap().at(local_name).resource;};
+    auto map_fn = [this](const LocalName& local_name)->const std::shared_ptr<RenderResource>&{
+        return getWrittenAttachmentMap().at(local_name).resource;
+    };
     m_frame_buffer->init(m_device, m_node_config->getFramebufferConfig(), render_pass_ptr, map_fn);
 
     for (const auto&[slot, desc_set_layout] : m_pipeline->getDescLayouts()) {

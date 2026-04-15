@@ -6,13 +6,13 @@
 #include "image_buffer_config.h"
 #include "format_config.h"
 
-bool GraphicsRenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanResourcesManager>& resources_manager, std::shared_ptr<FramebufferConfig> framebuffer_config, const pugi::xml_node& node_data) {
+bool GraphicsRenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanResourcesManager>& resources_manager, const pugi::xml_node& node_data) {
     using namespace std::literals;
 
     m_name = node_data.attribute("name").as_string();
-    m_framebuffer_config = std::move(framebuffer_config);
+    m_framebuffer_config = resources_manager->getFramebufferConfig(node_data.child("FrameBufferName").text().as_string());
     m_pipeline_name = node_data.child("Pipeline").text().as_string();
-    m_render_pass_name = node_data.child("FrameBuffer").child("RenderPassName").text().as_string();
+    m_render_pass_name = m_framebuffer_config->getRenderpassName();
 
     pugi::xml_node update_metadata_node = node_data.child("DescriptorResourcesUpdate");
     if(update_metadata_node) {

@@ -54,7 +54,7 @@ bool FramebufferConfig::init(const std::shared_ptr<WindowSurface>& window, const
     }
     m_aspect = ((float)(m_extent_2D.width - m_offset_2D.x)) / ((float)(m_extent_2D.height - m_offset_2D.y));
 
-    pugi::xml_node attachments_node = node_data.child("FrameBuffer").child("Attachments");
+    pugi::xml_node attachments_node = node_data.child("Attachments");
     if(attachments_node) {
         for (pugi::xml_node attachment_node = attachments_node.first_child(); attachment_node; attachment_node = attachment_node.next_sibling()) {
             std::shared_ptr<FrameBufferAttachment> attachment = std::make_shared<FrameBufferAttachment>();
@@ -73,6 +73,10 @@ bool FramebufferConfig::init(const std::shared_ptr<WindowSurface>& window, const
 
 const std::string& FramebufferConfig::getName() const {
     return m_name;
+}
+
+const std::string& FramebufferConfig::getRenderpassName() const {
+    return m_renderpass_name;
 }
 
 VkExtent2D FramebufferConfig::getExtent2D() const {
