@@ -47,14 +47,47 @@ void DependencyLevel::addNode(std::shared_ptr<RenderNode> node) {
     }
 }
 
-void DependencyLevel::sortPipelines() {
-    for(auto&[pipeline_name, render_nodes] : m_pipeline_node_map) {
-        std::sort(
-            render_nodes.begin(),
-            render_nodes.end(),
-            [](const auto& a, const auto& b) {
-                return !a->getPipeline()->getPipelineConfig()->haveBlendEnableAttachments();
-            }
-        );
-    }
-}
+//void DependencyLevel::sortPipelines() {
+    // for(auto&[pipeline_name, render_nodes] : m_pipeline_node_map) {
+    //     if(render_nodes.size() <= 1) {
+    //         continue;
+    //     }
+    //     std::sort(
+    //         render_nodes.begin(),
+    //         render_nodes.end(),
+    //         [](const auto& a, const auto& b) {
+    //             return !a->getPipeline()->getPipelineConfig()->haveBlendEnableAttachments();
+    //         }
+    //     );
+    // }
+
+    // for(auto&[pipeline_name, render_nodes] : m_pipeline_node_map) {
+    //     if(!render_nodes[0]->getPipeline()->getPipelineConfig()->haveBlendEnableAttachments()) {
+    //         m_pipeline_order.push_back(pipeline_name);
+    //     }
+    // }
+
+    // for(auto&[pipeline_name, render_nodes] : m_pipeline_node_map) {
+    //     if(render_nodes[0]->getPipeline()->getPipelineConfig()->haveBlendEnableAttachments()) {
+    //         m_pipeline_order.push_back(pipeline_name);
+    //     }
+    // }
+
+    // if(m_nodes.size() <= 1) {
+    //     return;
+    // }
+    // std::sort(
+    //     m_nodes.begin(),
+    //     m_nodes.end(),
+    //     [](auto& a, const auto& b) {
+    //         if(std::shared_ptr<GraphicsRenderNode> graphics_node = std::dynamic_pointer_cast<GraphicsRenderNode>(a)) {
+    //             return !graphics_node->getPipeline()->getPipelineConfig()->haveBlendEnableAttachments();
+    //         }
+    //         return false;
+    //     }
+    // );
+//}
+
+//const std::vector<DependencyLevel::PipelineName>& DependencyLevel::getOrderedPipelineNames() const {
+//    return m_pipeline_order;
+//}

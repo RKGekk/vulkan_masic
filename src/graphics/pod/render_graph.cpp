@@ -191,8 +191,8 @@ void RenderGraph::build_dependency_levels() {
         const RenderNodePtr& node_ptr = *it;
         int max_neighbor_dist = -1;
 
-        if(!m_adjency_list.contains(node_ptr)) continue;
-        for (const RenderNodePtr& adj_node_ptr : m_adjency_list.at(node_ptr)) {
+        if(!m_rev_adjency_list.contains(node_ptr)) continue;
+        for (const RenderNodePtr& adj_node_ptr : m_rev_adjency_list.at(node_ptr)) {
             max_neighbor_dist = std::max(max_neighbor_dist, node_dist_to_start[adj_node_ptr]);
         }
 
@@ -212,9 +212,9 @@ void RenderGraph::build_dependency_levels() {
         m_dependency_levels[level]->addNode(node_ptr);
     }
 
-    for (int level = 0; level < (dependency_level_count + 1); ++level) {
-        m_dependency_levels[level]->sortPipelines();
-    }
+    // for (int level = 0; level < (dependency_level_count + 1); ++level) {
+    //     m_dependency_levels[level]->sortPipelines();
+    // }
 }
 
 const RenderGraph::RenderNodeList& RenderGraph::getTopologicallySortedNodes() {

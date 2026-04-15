@@ -25,12 +25,14 @@ public:
     int getLevel() const;
     void addNode(std::shared_ptr<RenderNode> node);
 
-    void sortPipelines();
+    //void sortPipelines();
+    //const std::vector<PipelineName>& getOrderedPipelineNames() const;
 
 private:
     std::vector<std::shared_ptr<RenderNode>> m_nodes;
     std::unordered_map<FramebufferName, std::vector<std::shared_ptr<GraphicsRenderNode>>> m_framebuffer_node_map;
     std::unordered_map<PipelineName, std::vector<std::shared_ptr<GraphicsRenderNode>>> m_pipeline_node_map;
     std::unordered_map<FramebufferName, std::vector<PipelineName>> m_framebuffer_to_pipeline_map;
+    //std::vector<PipelineName> m_pipeline_order;
     int m_level;
 };

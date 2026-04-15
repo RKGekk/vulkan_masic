@@ -24,6 +24,7 @@
 #include "pod/graphics_render_node_config.h"
 #include "pod/image_buffer_config.h"
 #include "pod/render_pass_config.h"
+#include "pod/pipeline_config.h"
 
 #include <algorithm>
 
@@ -216,30 +217,38 @@ void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer, unsigned 
     VulkanCommandManager::beginCommandBuffer(command_buffer);
 
     const std::vector<std::shared_ptr<DependencyLevel>>& dependency_levels = m_per_frame[image_index]->render_graph->getDependencyLevels();
-    for (auto dependency_it = dependency_levels.rbegin(); dependency_it != dependency_levels.rend(); ++dependency_it) {
+    for (auto dependency_it = dependency_levels.begin(); dependency_it != dependency_levels.end(); ++dependency_it) {
         const std::shared_ptr<DependencyLevel>& dependency_lvl = *dependency_it;
-        for (auto const&[framebuffer_name, graphics_nodes] : dependency_lvl->getFramebufferNodeMap()) {
-            for(const DependencyLevel::PipelineName& pipeline_name : dependency_lvl->getFramebufferToPipelineMap().at(framebuffer_name)) {
 
-                const std::shared_ptr<GraphicsRenderNode>& node_params = dependency_lvl->getPipelineNodeMap().at(pipeline_name)[0];
-                const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = node_params->getPipeline()->getRenderPass();
+        for(int blend_pass = 0; blend_pass <= 1; ++blend_pass) {
 
-                VkRenderPassBeginInfo renderpass_info{};
-                renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-                renderpass_info.renderPass = render_pass_ptr->getRenderPass();
-                renderpass_info.framebuffer = node_params->getFramebuffer();
-                renderpass_info.renderArea.offset = node_params->getGraphicsRenderNodeConfig()->getFramebufferConfig()->getOffset2D();
-                renderpass_info.renderArea.extent = node_params->getGraphicsRenderNodeConfig()->getFramebufferConfig()->getExtent2D();
-                renderpass_info.clearValueCount = render_pass_ptr->getRenderPassConfig()->getClearValues().size();
-                renderpass_info.pClearValues = render_pass_ptr->getRenderPassConfig()->getClearValues().data();
+            for (auto const&[framebuffer_name, graphics_nodes] : dependency_lvl->getFramebufferNodeMap()) {
+                for(const DependencyLevel::PipelineName& pipeline_name : dependency_lvl->getFramebufferToPipelineMap().at(framebuffer_name)) {
 
-                vkCmdBeginRenderPass(command_buffer.getCommandBufer(), &renderpass_info, VK_SUBPASS_CONTENTS_INLINE);
-                vkCmdBindPipeline(command_buffer.getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, node_params->getPipeline()->getPipeline());
+                    const std::shared_ptr<GraphicsRenderNode>& node_params = dependency_lvl->getPipelineNodeMap().at(pipeline_name)[0];
+                    if(node_params->getPipeline()->getPipelineConfig()->haveBlendEnableAttachments() && blend_pass == 0){
+                        break;
+                    }
 
-                for(const std::shared_ptr<GraphicsRenderNode>& graphics_node : dependency_lvl->getPipelineNodeMap().at(pipeline_name)) {
-                    graphics_node->render(command_buffer, image_index);
+                    const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = node_params->getPipeline()->getRenderPass();
+
+                    VkRenderPassBeginInfo renderpass_info{};
+                    renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+                    renderpass_info.renderPass = render_pass_ptr->getRenderPass();
+                    renderpass_info.framebuffer = node_params->getFramebuffer();
+                    renderpass_info.renderArea.offset = node_params->getGraphicsRenderNodeConfig()->getFramebufferConfig()->getOffset2D();
+                    renderpass_info.renderArea.extent = node_params->getGraphicsRenderNodeConfig()->getFramebufferConfig()->getExtent2D();
+                    renderpass_info.clearValueCount = render_pass_ptr->getRenderPassConfig()->getClearValues().size();
+                    renderpass_info.pClearValues = render_pass_ptr->getRenderPassConfig()->getClearValues().data();
+
+                    vkCmdBeginRenderPass(command_buffer.getCommandBufer(), &renderpass_info, VK_SUBPASS_CONTENTS_INLINE);
+                    vkCmdBindPipeline(command_buffer.getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, node_params->getPipeline()->getPipeline());
+
+                    for(const std::shared_ptr<GraphicsRenderNode>& graphics_node : dependency_lvl->getPipelineNodeMap().at(pipeline_name)) {
+                        graphics_node->render(command_buffer, image_index);
+                    }
+                    vkCmdEndRenderPass(command_buffer.getCommandBufer());
                 }
-                vkCmdEndRenderPass(command_buffer.getCommandBufer());
             }
         }
     }
