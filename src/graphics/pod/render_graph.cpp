@@ -87,14 +87,32 @@ void RenderGraph::topological_sort() {
         return;
     }
 
+    std::unordered_map<RenderNodePtr, int> count_edges_to_node;
+    std::unordered_map<RenderNodePtr, int> count_edges_from_node;
+
     for(const RenderNodePtr& render_node : m_render_nodes) {
+        if(!count_edges_to_node.contains(render_node)) {
+            count_edges_to_node[render_node] = 0;
+        }
+        if(!count_edges_from_node.contains(render_node)) {
+            count_edges_from_node[render_node] = 0;
+        }
         for(const auto&[written_resource_name, written_resource_ptr] : render_node->getWrittenResourcesMap()) {
             if(!m_read_map.contains(written_resource_name)) continue;
             for(const RenderNodePtr& reader_node : m_read_map.at(written_resource_name)) {
                 m_adjency_list[render_node].insert(reader_node);
                 m_rev_adjency_list[reader_node].insert(render_node);
+                count_edges_to_node[reader_node]++;
+                count_edges_from_node[render_node]++;
             }
         }
+        // for(const auto&[read_resource_name, read_resource_ptr] : render_node->getReadResourcesMap()) {
+        //     if(!m_written_map.contains(read_resource_name)) continue;
+        //     for(const RenderNodePtr& write_node : m_written_map.at(read_resource_name)) {
+        //         m_adjency_list[write_node].insert(render_node);
+        //         m_rev_adjency_list[render_node].insert(write_node);
+        //     }
+        // }
     }
 
     if(m_adjency_list.size() == 0u) {
@@ -113,16 +131,8 @@ void RenderGraph::topological_sort() {
     m_render_node_sort_idx.clear();
     m_topologically_sorted_nodes.reserve(m_render_nodes.size());
 
-    std::unordered_map<RenderNodePtr, int> count_edges_to_node;
-    count_edges_to_node.reserve(m_render_nodes.size());
-    for (const auto&[node_ptr, adj_nodes_set] : m_adjency_list) {
-        for (const RenderNodePtr& adj_node_ptr : adj_nodes_set) {
-            count_edges_to_node[adj_node_ptr]++;
-        }
-    }
-
     std::stack<std::pair<RenderNodePtr, bool>> stack;
-    for (const auto&[node_ptr, ct] : count_edges_to_node) {
+    for (const auto&[node_ptr, ct] : count_edges_from_node) {
         if (!ct) {
             stack.push({ node_ptr, false });
         }
@@ -218,6 +228,10 @@ const RenderGraph::RenderNodePtr& RenderGraph::getRenderNodeByID(size_t id) cons
 }
 
 const std::vector<std::shared_ptr<DependencyLevel>>& RenderGraph::getDependencyLevels() {
+    if(!m_sorted) {
+        topological_sort();
+        build_dependency_levels();
+    }
     return m_dependency_levels;
 }
 

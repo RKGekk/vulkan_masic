@@ -108,6 +108,7 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
         per_frame->present_render_node = std::make_shared<PresentRenderNode>();
         per_frame->present_render_node->init(m_device, "presenter"s, per_frame->render_graph);
         per_frame->present_render_node->addReadDependency(swapchain_images.at(i), "swapchain_image"s);
+        per_frame->render_graph->add_pass(per_frame->present_render_node);
 
         m_per_frame.push_back(std::move(per_frame));
     }
