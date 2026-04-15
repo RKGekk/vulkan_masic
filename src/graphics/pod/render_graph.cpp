@@ -154,15 +154,17 @@ void RenderGraph::topological_sort() {
             visited_set.insert(node_ptr);
             stack.push({node_ptr, true});
 
-            std::for_each(
-                m_adjency_list.at(node_ptr).begin(),
-                m_adjency_list.at(node_ptr).end(),
-                [&stack, &visited_set](const RenderNodePtr& new_node_ptr) {
-                    if (!visited_set.count(new_node_ptr)) {
-                        stack.push({ new_node_ptr, false });
+            if(m_rev_adjency_list.contains(node_ptr)){
+                std::for_each(
+                    m_rev_adjency_list.at(node_ptr).begin(),
+                    m_rev_adjency_list.at(node_ptr).end(),
+                    [&stack, &visited_set](const RenderNodePtr& new_node_ptr) {
+                        if (!visited_set.count(new_node_ptr)) {
+                            stack.push({ new_node_ptr, false });
+                        }
                     }
-                }
-            );
+                );
+            }
         }
     }
 
@@ -185,7 +187,7 @@ void RenderGraph::build_dependency_levels() {
 
     int dependency_level_count = 1;
 
-    for (RenderNodeList::reverse_iterator it = m_topologically_sorted_nodes.rbegin(); it != m_topologically_sorted_nodes.rend(); ++it) {
+    for (RenderNodeList::iterator it = m_topologically_sorted_nodes.begin(); it != m_topologically_sorted_nodes.end(); ++it) {
         const RenderNodePtr& node_ptr = *it;
         int max_neighbor_dist = -1;
 
@@ -200,8 +202,8 @@ void RenderGraph::build_dependency_levels() {
         }
     }
 
-    m_dependency_levels.resize(dependency_level_count);
-    for (int level = 0; level < dependency_level_count; ++level) {
+    m_dependency_levels.resize(dependency_level_count + 1);
+    for (int level = 0; level < (dependency_level_count + 1); ++level) {
         std::shared_ptr<DependencyLevel> dependency_level = std::make_shared<DependencyLevel>(level);
         m_dependency_levels[level] = std::move(dependency_level);
     }
@@ -210,7 +212,7 @@ void RenderGraph::build_dependency_levels() {
         m_dependency_levels[level]->addNode(node_ptr);
     }
 
-    for (int level = 0; level < dependency_level_count; ++level) {
+    for (int level = 0; level < (dependency_level_count + 1); ++level) {
         m_dependency_levels[level]->sortPipelines();
     }
 }
