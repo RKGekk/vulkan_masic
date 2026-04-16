@@ -31,8 +31,8 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
         for (pugi::xml_node attachment_desc_node = attachment_descriptions_node.first_child(); attachment_desc_node; attachment_desc_node = attachment_desc_node.next_sibling()) {
 			VkAttachmentDescription attachment_desc{};
             VkClearValue clear_value{};
-            clear_value.color = {{0.0f, 0.0f, 0.0f, 1.0f}};
-            clear_value.depthStencil = {1.0f, 0};
+            clear_value.color = {{0.0f, 0.0f, 0.0f, 0.0f}};
+            //clear_value.depthStencil = {1.0f, 0};
 
             VkClearAttachment clear_attachment{};
             clear_attachment.clearValue = clear_value;
@@ -99,7 +99,7 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
                     clear_attachment.aspectMask |= getImageAspectFlag(flag_node.text().as_string());
                 }
 
-                pugi::xml_node clear_color_node = attachment_desc_node.child("ClearColorValue");
+                pugi::xml_node clear_color_node = clear_value_node.child("ClearColorValue");
 	            if (clear_color_node) {
                     static glm::vec4 default_color = { 0.0f, 0.0f, 0.0f, 0.0 };
                     glm::vec4 clear_color = colorfromattr4f(clear_color_node.child("ClearColorValue"), default_color);
@@ -109,7 +109,7 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
                     clear_value.color.float32[3] = clear_color.a;
                 }
 
-                pugi::xml_node clear_depth_node = attachment_desc_node.child("ClearDepthStencilValue");
+                pugi::xml_node clear_depth_node = clear_value_node.child("ClearDepthStencilValue");
 	            if (clear_depth_node) {
                     pugi::xml_node depth_node = clear_depth_node.child("Depth");
 	                if (depth_node) {
