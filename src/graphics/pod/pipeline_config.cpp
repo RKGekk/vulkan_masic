@@ -91,7 +91,7 @@ bool PipelineConfig::init(const std::shared_ptr<VulkanDevice>& device, const pug
 		    }
         }
 
-        m_depth_stencil_info.depthBoundsTestEnable = depth_stencil_state_node.child("DepthTestEnable").text().as_bool();
+        m_depth_stencil_info.depthTestEnable = depth_stencil_state_node.child("DepthTestEnable").text().as_bool();
         m_depth_stencil_info.depthWriteEnable = depth_stencil_state_node.child("DepthWriteEnable").text().as_bool();
         m_depth_stencil_info.depthCompareOp = getCompareOp(depth_stencil_state_node.child("DepthCompareOp").text().as_string());
         m_depth_stencil_info.depthBoundsTestEnable = depth_stencil_state_node.child("DepthBoundsTestEnable").text().as_bool();
