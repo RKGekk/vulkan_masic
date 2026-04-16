@@ -24,7 +24,6 @@ public:
 
     const std::shared_ptr<VulkanPipeline>& getPipeline();
     VkFramebuffer getFramebuffer() const;
-    VkExtent2D getViewportExtent() const;
 
     const std::unordered_map<uint32_t, std::shared_ptr<VulkanDescriptor>>& getDescriptors() const;
     const std::shared_ptr<GraphicsRenderNodeConfig>& getGraphicsRenderNodeConfig() const;
@@ -36,7 +35,6 @@ private:
 
     std::shared_ptr<GraphicsRenderNodeConfig> m_node_config;
     std::shared_ptr<VulkanFramebuffer> m_frame_buffer;
-    VkExtent2D m_viewport_extent;
 
     std::unordered_map<uint32_t, std::shared_ptr<VulkanDescriptor>> m_descs;
 };

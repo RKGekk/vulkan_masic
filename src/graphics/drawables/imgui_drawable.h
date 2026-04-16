@@ -34,16 +34,20 @@ class VulkanImageBuffer;
 
 class ImGUIDrawable : public IVulkanDrawable {
 public:
-    struct Renderable {
+    struct PerFrameData {
         std::shared_ptr<VulkanBuffer> uniform_buffer;
         std::shared_ptr<VulkanBuffer> vertex_buffer;
         std::shared_ptr<VulkanBuffer> index_buffer;
-        std::shared_ptr<VulkanImageBuffer> font_texture;
         std::vector<ImDrawVert> imgui_vtx;
         std::vector<ImDrawIdx> imgui_idx;
+    };
+
+    struct Renderable {
         std::shared_ptr<GraphicsRenderNode> render_node;
         int frame;
     };
+
+    using FrameRenderables = std::vector<std::shared_ptr<Renderable>>;
 
     bool init(std::shared_ptr<VulkanDevice> device, int max_frames);
 
@@ -63,6 +67,8 @@ private:
     int m_max_frames;
 
     std::vector<std::shared_ptr<Renderable>> m_renderables;
+    std::vector<std::shared_ptr<PerFrameData>> m_per_frame;
+    std::shared_ptr<VulkanImageBuffer> m_font_texture;
 
     ImGuiContext* m_pImgui_ctx;
 };

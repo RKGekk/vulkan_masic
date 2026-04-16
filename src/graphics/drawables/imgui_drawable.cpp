@@ -74,7 +74,7 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
     io.KeyRepeatRate = 0.2f;
     ImGui::StyleColorsClassic();
 
-    std::shared_ptr<VulkanImageBuffer> font_texture = makeFontTexture(m_device, TTF_font_file_name.c_str(), font_size_pixels);
+    m_font_texture = makeFontTexture(m_device, TTF_font_file_name.c_str(), font_size_pixels);
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
 
     for(size_t frame = 0u; frame < max_frames; ++frame) {

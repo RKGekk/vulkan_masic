@@ -1664,37 +1664,39 @@
         </xs:restriction>
     </xs:simpleType>
 
+    <xs:simpleType name="ExtentSourceSimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="auto"></xs:enumeration>
+            <xs:enumeration value="as_swapchain"></xs:enumeration>
+            <xs:enumeration value="exact"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:complexType name="Extent2DComplexType">
         <xs:sequence>
-            <xs:element name="width" minOccurs="0" maxOccurs="1"></xs:element>
-            <xs:element name="height" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="Width" type="xs:float" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="Height" type="xs:float" minOccurs="0" maxOccurs="1"></xs:element>
         </xs:sequence>
-        <xs:attribute name="source">
-            <xs:simpleType>
-                <xs:restriction base="xs:string">
-                    <xs:enumeration value="auto"></xs:enumeration>
-                    <xs:enumeration value="as_swapchain"></xs:enumeration>
-                    <xs:enumeration value="exact"></xs:enumeration>
-                </xs:restriction>
-            </xs:simpleType>
-        </xs:attribute>
+        <xs:attribute name="source" type="target:ExtentSourceSimpleType" use="required"></xs:attribute>
     </xs:complexType>
 
     <xs:complexType name="Extent3DComplexType">
         <xs:sequence>
-            <xs:element name="Width" minOccurs="0" maxOccurs="1"></xs:element>
-            <xs:element name="Height" minOccurs="0" maxOccurs="1"></xs:element>
-            <xs:element name="Depth" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="Width" type="xs:float" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="Height" type="xs:float" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="Depth" type="xs:float" minOccurs="0" maxOccurs="1"></xs:element>
         </xs:sequence>
-        <xs:attribute name="source" use="required">
-            <xs:simpleType>
-                <xs:restriction base="xs:string">
-                    <xs:enumeration value="auto"></xs:enumeration>
-                    <xs:enumeration value="as_swapchain"></xs:enumeration>
-                    <xs:enumeration value="exact"></xs:enumeration>
-                </xs:restriction>
-            </xs:simpleType>
-        </xs:attribute>
+        <xs:attribute name="source" type="target:ExtentSourceSimpleType" use="required"></xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="Rect2DComplexType">
+        <xs:sequence>
+            <xs:element name="OffsetX" type="xs:float" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="OffsetY" type="xs:float" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="Width" type="xs:float" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="Height" type="xs:float" minOccurs="0" maxOccurs="1"></xs:element>
+        </xs:sequence>
+        <xs:attribute name="source" type="target:ExtentSourceSimpleType" use="required"></xs:attribute>
     </xs:complexType>
 
     <xs:simpleType name="ImageTilingSimpleType">
@@ -2196,10 +2198,55 @@
         <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
     </xs:complexType>
 
+    <xs:complexType name="ViewportComplexType">
+        <xs:sequence>
+            <xs:element name="x" type="xs:float" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="y" type="xs:float" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="width" type="xs:float" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="height" type="xs:float" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="minDepth" type="xs:float" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="maxDepth" type="xs:float" minOccurs="0" maxOccurs="1"></xs:element>
+        </xs:sequence>
+        <xs:attribute name="source" use="required">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="auto"></xs:enumeration>
+                    <xs:enumeration value="as_swapchain"></xs:enumeration>
+                    <xs:enumeration value="exact"></xs:enumeration>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+
     <xs:complexType name="GraphicsRenderNodeComplexType">
         <xs:sequence>
             <xs:element name="Pipeline" type="xs:string"></xs:element>
             <xs:element name="FrameBufferName" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
+            <xs:element name="DynamicStates" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Viewport" minOccurs="0" maxOccurs="1" type="target:ViewportComplexType"></xs:element>
+                        <xs:element name="Scissor" minOccurs="0" maxOccurs="1" type="target:Rect2DComplexType"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="IndexCountType" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="IndexCount" type="xs:unsignedInt" minOccurs="0" maxOccurs="1"></xs:element>
+                        <xs:element name="FirstIndex" type="xs:unsignedInt" minOccurs="0" maxOccurs="1"></xs:element>
+                        <xs:element name="VertexOffset" type="xs:integer" minOccurs="0" maxOccurs="1"></xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="type" use="required">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:enumeration value="all"></xs:enumeration>
+                                <xs:enumeration value="exact"></xs:enumeration>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:attribute>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="DescriptorResourcesUpdate" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
@@ -2319,7 +2366,7 @@
                             </xs:complexType>
                         </xs:element>
                         <xs:element name="Extent" type="target:Extent3DComplexType" minOccurs="1" maxOccurs="1"></xs:element>
-                        <xs:element name="Offset" type="target:Extent3DComplexType" minOccurs="1" maxOccurs="1"></xs:element>
+                        <xs:element name="Offset" type="target:Extent2DComplexType" minOccurs="1" maxOccurs="1"></xs:element>
                         <xs:element name="Attachments" minOccurs="1" maxOccurs="1">
                             <xs:complexType>
                                 <xs:sequence>

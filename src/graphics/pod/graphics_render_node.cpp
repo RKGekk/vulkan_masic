@@ -34,17 +34,8 @@ void GraphicsRenderNode::render(CommandBatch& command_buffer, unsigned image_ind
     
     TransitionResourcesToProperState(command_buffer);
 
-    VkViewport view_port{};
-    view_port.x = 0.0f;
-    view_port.y = 0.0f;
-    view_port.width = static_cast<float>(m_viewport_extent.width);
-    view_port.height = static_cast<float>(m_viewport_extent.height);
-    view_port.minDepth = 0.0f;
-    view_port.maxDepth = 1.0f;
-        
-    VkRect2D scissor{};
-    scissor.offset = {0, 0};
-    scissor.extent = m_viewport_extent;
+    VkViewport view_port = m_node_config->getViewport();
+    VkRect2D scissor = m_node_config->getScissor();
         
     vkCmdSetViewport(command_buffer.getCommandBufer(), 0u, 1u, &view_port);
     vkCmdSetScissor(command_buffer.getCommandBufer(), 0u, 1u, &scissor);
@@ -83,23 +74,47 @@ void GraphicsRenderNode::render(CommandBatch& command_buffer, unsigned image_ind
         m_pipeline->getShader(VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getVertexFormat().getIndexType() // indexType
     );
         
-    uint32_t index_count = index_buffer->getNotAlignedSize() / m_pipeline->getShader(VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getVertexFormat().getIndexTypeBytesCount();
-    vkCmdDrawIndexed(
-        command_buffer.getCommandBufer(), // commandBuffer
-        index_count, // indexCount
-        1u, // instanceCount
-        0u, // firstIndex
-        0u, // vertexOffset
-        0u // firstInstance
-    );
-        
-    
+    if(m_node_config->getIndexCountType() == GraphicsRenderNodeConfig::IndexCountType::ALL) {
+        uint32_t index_count = index_buffer->getNotAlignedSize() / m_pipeline->getShader(VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getVertexFormat().getIndexTypeBytesCount();
+        vkCmdDrawIndexed(
+            command_buffer.getCommandBufer(), // commandBuffer
+            index_count, // indexCount
+            1u, // instanceCount
+            0u, // firstIndex
+            0u, // vertexOffset
+            0u // firstInstance
+        );
+    }
+    else {
+        uint32_t index_count = m_node_config->getIndexCount();
+        vkCmdDrawIndexed(
+            command_buffer.getCommandBufer(), // commandBuffer
+            index_count, // indexCount
+            1u, // instanceCount
+            m_node_config->getFirstIndex(), // firstIndex
+            m_node_config->getVertexOffset(), // vertexOffset
+            0u // firstInstance
+        );
+    }
 }
 
 void GraphicsRenderNode::finishRenderNode() {
     VulkanRenderer& renderer = Application::GetRenderer();
 
-    m_viewport_extent = getWrittenAttachedImageResource(m_node_config->getAttachmentsConfig().front()->attachment_name)->getImageConfig()->getFormat()->getExtent2D();
+    VkExtent2D extent = getWrittenAttachedImageResource(m_node_config->getAttachmentsConfig().front()->attachment_name)->getImageConfig()->getFormat()->getExtent2D();
+    if(m_node_config->getViewportSource() == GraphicsRenderNodeConfig::ExtentSource::AUTO) {
+        VkViewport viewport = m_node_config->getViewport();
+        viewport.width = extent.width;
+        viewport.height = extent.height;
+        m_node_config->setViewport(viewport);
+    }
+    if(m_node_config->getScissorSource() == GraphicsRenderNodeConfig::ExtentSource::AUTO) {
+        VkRect2D scissor = m_node_config->getScissor();
+        scissor.extent.width = extent.width;
+        scissor.extent.height = extent.height;
+        m_node_config->setScissor(scissor);
+    }
+
     const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = m_pipeline->getRenderPass();
     m_frame_buffer = std::make_shared<VulkanFramebuffer>();
     auto map_fn = [this](const LocalName& local_name)->const std::shared_ptr<RenderResource>&{
@@ -136,10 +151,6 @@ const std::shared_ptr<VulkanPipeline>& GraphicsRenderNode::getPipeline() {
 
 VkFramebuffer GraphicsRenderNode::getFramebuffer() const {
     return m_frame_buffer->getFramebuffer();
-}
-
-VkExtent2D GraphicsRenderNode::getViewportExtent() const {
-    return m_viewport_extent;
 }
 
 const std::unordered_map<uint32_t, std::shared_ptr<VulkanDescriptor>>& GraphicsRenderNode::getDescriptors() const {
