@@ -27,7 +27,7 @@ public:
     bool init(const std::shared_ptr<WindowSurface>& window, const SwapchainSupportDetails& swapchain_support_details, const pugi::xml_node& format_data);
 
     const std::string& getName() const;
-    const std::string& getRenderpassName() const;
+    const std::vector<std::string>& getRenderpassNames() const;
 
     VkExtent2D getExtent2D() const;
     void setExtent2D(VkExtent2D extent);
@@ -45,7 +45,7 @@ public:
 
 private:
     std::string m_name;
-    std::string m_renderpass_name;
+    std::vector<std::string> m_renderpass_names;
     VkFramebufferCreateFlags m_frame_buffer_flags;
     ExtentSource m_extent_source;
     VkExtent2D m_extent_2D;

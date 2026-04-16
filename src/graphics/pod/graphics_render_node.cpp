@@ -20,7 +20,7 @@ bool GraphicsRenderNode::init(std::shared_ptr<VulkanDevice> device, const std::s
     m_device = std::move(device);
     m_render_graph = std::move(render_graph);
     m_node_config = m_render_graph.lock()->getGraphicsRenderNodeConfig(node_config_name);
-    m_pipeline = Application::Get().GetRenderer().getPipelinesManager()->getPipeline(m_node_config->getPipelineName());
+    m_pipeline = m_node_config->getPipeline();
 
     return true;
 }

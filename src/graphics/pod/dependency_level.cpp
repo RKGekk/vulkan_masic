@@ -26,7 +26,7 @@ const std::unordered_map<DependencyLevel::PipelineName, std::vector<std::shared_
     return m_pipeline_node_map;
 }
 
-const std::unordered_map<DependencyLevel::FramebufferName, std::vector<DependencyLevel::PipelineName>>& DependencyLevel::getFramebufferToPipelineMap() const {
+const std::unordered_map<DependencyLevel::FramebufferName, std::unordered_set<DependencyLevel::PipelineName>>& DependencyLevel::getFramebufferToPipelineMap() const {
     return m_framebuffer_to_pipeline_map;
 }
 
@@ -43,7 +43,7 @@ void DependencyLevel::addNode(std::shared_ptr<RenderNode> node) {
         const PipelineName& pipeline_name = graphics_node->getPipeline()->getPipelineConfig()->getName();
         m_pipeline_node_map[pipeline_name].push_back(graphics_node);
 
-        m_framebuffer_to_pipeline_map[framebuffer_name].push_back(pipeline_name);
+        m_framebuffer_to_pipeline_map[framebuffer_name].insert(pipeline_name);
     }
 }
 

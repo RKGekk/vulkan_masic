@@ -8,7 +8,13 @@ bool FramebufferConfig::init(const std::shared_ptr<WindowSurface>& window, const
     using namespace std::literals;
 
     m_name = node_data.attribute("name").as_string();
-    m_renderpass_name = node_data.child("RenderPassName").text().as_string();
+
+    pugi::xml_node renderpass_names_node = node_data.child("RenderPassNames");
+    if(renderpass_names_node) {
+        for (pugi::xml_node name_node = renderpass_names_node.first_child(); name_node; name_node = name_node.next_sibling()) {
+		    m_renderpass_names.push_back(name_node.text().as_string());
+		}
+    }
 
     pugi::xml_node frame_buffer_flags_node = node_data.child("Falgs");
     if(frame_buffer_flags_node) {
@@ -75,8 +81,8 @@ const std::string& FramebufferConfig::getName() const {
     return m_name;
 }
 
-const std::string& FramebufferConfig::getRenderpassName() const {
-    return m_renderpass_name;
+const std::vector<std::string>& FramebufferConfig::getRenderpassNames() const {
+    return m_renderpass_names;
 }
 
 VkExtent2D FramebufferConfig::getExtent2D() const {

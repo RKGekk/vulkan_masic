@@ -83,6 +83,18 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
 
     m_command_manager = m_device->getCommandManager();
 
+    m_descriptors_manager = std::make_shared<VulkanDescriptorsManager>();
+    m_descriptors_manager->init(m_device, "graphics_pipelines.xml"s);
+
+    m_render_passes_manager = std::make_shared<VulkanRenderPassesManager>();
+    m_render_passes_manager->init(m_device, "graphics_pipelines.xml"s, m_swapchain);
+
+    m_shaders_manager = std::make_shared<VulkanShadersManager>();
+    m_shaders_manager->init(m_device, "graphics_pipelines.xml"s);
+
+    m_pipelines_manager = std::make_shared<VulkanPipelinesManager>();
+    m_pipelines_manager->init(m_device, "graphics_pipelines.xml"s);
+
     m_frame = 0u;
     //m_prev_frame = 0u;
 
@@ -113,18 +125,6 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
 
         m_per_frame.push_back(std::move(per_frame));
     }
-
-    m_descriptors_manager = std::make_shared<VulkanDescriptorsManager>();
-    m_descriptors_manager->init(m_device, "graphics_pipelines.xml"s);
-
-    m_render_passes_manager = std::make_shared<VulkanRenderPassesManager>();
-    m_render_passes_manager->init(m_device, "graphics_pipelines.xml"s, m_swapchain);
-
-    m_shaders_manager = std::make_shared<VulkanShadersManager>();
-    m_shaders_manager->init(m_device, "graphics_pipelines.xml"s);
-
-    m_pipelines_manager = std::make_shared<VulkanPipelinesManager>();
-    m_pipelines_manager->init(m_device, "graphics_pipelines.xml"s);
 
     return true;
 }
@@ -227,7 +227,10 @@ void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer, unsigned 
 
                     const std::shared_ptr<GraphicsRenderNode>& node_params = dependency_lvl->getPipelineNodeMap().at(pipeline_name)[0];
                     if(node_params->getPipeline()->getPipelineConfig()->haveBlendEnableAttachments() && blend_pass == 0){
-                        break;
+                        continue;
+                    }
+                    if(!node_params->getPipeline()->getPipelineConfig()->haveBlendEnableAttachments() && blend_pass == 1){
+                        continue;
                     }
 
                     const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = node_params->getPipeline()->getRenderPass();

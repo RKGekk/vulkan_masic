@@ -36,7 +36,7 @@ bool RenderGraph::init(std::shared_ptr<VulkanDevice> device) {
         
         if(render_node_type == "GraphicsRenderNode"s) {
             std::shared_ptr<GraphicsRenderNodeConfig> render_node_config = std::make_shared<GraphicsRenderNodeConfig>();
-            render_node_config->init(device, Application::GetRenderer().getResourcesManager(), render_node);
+            render_node_config->init(device, Application::GetRenderer().getResourcesManager(), Application::GetRenderer().getPipelinesManager(), render_node);
             m_graphics_cfg_name_map[node_name] = std::move(render_node_config);
         }
     }

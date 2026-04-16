@@ -3,16 +3,17 @@
 #include "../api/vulkan_device.h"
 #include "../api/vulkan_sampler.h"
 #include "../api/vulkan_resources_manager.h"
+#include "../api/vulkan_pipeline.h"
+#include "../api/vulkan_pipelines_manager.h"
 #include "image_buffer_config.h"
 #include "format_config.h"
 
-bool GraphicsRenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanResourcesManager>& resources_manager, const pugi::xml_node& node_data) {
+bool GraphicsRenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanResourcesManager>& resources_manager, const std::shared_ptr<VulkanPipelinesManager>& pipelines_manager, const pugi::xml_node& node_data) {
     using namespace std::literals;
 
     m_name = node_data.attribute("name").as_string();
     m_framebuffer_config = resources_manager->getFramebufferConfig(node_data.child("FrameBufferName").text().as_string());
-    m_pipeline_name = node_data.child("Pipeline").text().as_string();
-    m_render_pass_name = m_framebuffer_config->getRenderpassName();
+    m_pipeline = pipelines_manager->getPipeline(node_data.child("Pipeline").text().as_string());
 
     pugi::xml_node update_metadata_node = node_data.child("DescriptorResourcesUpdate");
     if(update_metadata_node) {
@@ -59,12 +60,8 @@ const std::string& GraphicsRenderNodeConfig::getName() const {
     return m_name;
 }
 
-const std::string& GraphicsRenderNodeConfig::getPipelineName() const {
-    return m_pipeline_name;
-}
-
-const std::string& GraphicsRenderNodeConfig::getRenderPassName() const {
-    return m_render_pass_name;
+const std::shared_ptr<VulkanPipeline>& GraphicsRenderNodeConfig::getPipeline() const {
+    return m_pipeline;
 }
 
 const std::shared_ptr<FramebufferConfig>& GraphicsRenderNodeConfig::getFramebufferConfig() const {

@@ -522,7 +522,108 @@
 
     <RenderPases>
 
-        <RenderPass name="basic_mulisample_render_pass">
+        <RenderPass name="basic_mulisample_render_pass_opaque">
+            <AttachmentDescriptions>
+                <AttachmentDescription name="color_attachment">
+                    <FormatName>render_target_color_format</FormatName>
+                    <LoadOp>clear</LoadOp>
+                    <StoreOp>store</StoreOp>
+                    <StencilLoadOp>clear</StencilLoadOp>
+                    <StencilStoreOp>dont_care</StencilStoreOp>
+                    <InitialLayout>color_attachment_optimal</InitialLayout>
+                    <FinalLayout>color_attachment_optimal</FinalLayout>
+                    <ClearValue>
+                        <AspectFlags>
+                            <AspectMask>color</AspectMask>
+                        </AspectFlags>
+                        <ClearColorValue r="0.0" g="0.0" b="0.0" a="0.0"/>
+                    </ClearValue>
+                </AttachmentDescription>
+                <AttachmentDescription name="depth_attachment">
+                    <FormatName>render_target_depth_format</FormatName>
+                    <LoadOp>clear</LoadOp>
+                    <StoreOp>store</StoreOp>
+                    <StencilLoadOp>clear</StencilLoadOp>
+                    <StencilStoreOp>dont_care</StencilStoreOp>
+                    <InitialLayout>auto_depth_stencil_attachment_optimal</InitialLayout>
+                    <FinalLayout>auto_depth_stencil_attachment_optimal</FinalLayout>
+                    <ClearValue>
+                        <AspectFlags>
+                            <AspectMask>depth</AspectMask>
+                            <AspectMask>stencil</AspectMask>
+                        </AspectFlags>
+                        <ClearDepthStencilValue>
+                            <Depth>1.0</Depth>
+                            <Stencil>0</Stencil>
+                        </ClearDepthStencilValue>
+                    </ClearValue>
+                </AttachmentDescription>
+                <AttachmentDescription name="resolve_attachment">
+                    <FormatName>swap_chain_format</FormatName>
+                    <LoadOp>dont_care</LoadOp>
+                    <StoreOp>store</StoreOp>
+                    <StencilLoadOp>clear</StencilLoadOp>
+                    <StencilStoreOp>dont_care</StencilStoreOp>
+                    <InitialLayout>present_src_khr</InitialLayout>
+                    <FinalLayout>present_src_khr</FinalLayout>
+                    <ClearValue>
+                        <AspectFlags>
+                            <AspectMask>color</AspectMask>
+                        </AspectFlags>
+                        <ClearColorValue r="0.0" g="0.0" b="0.0" a="0.0"/>
+                    </ClearValue>
+                </AttachmentDescription>
+            </AttachmentDescriptions>
+            <SubpassDescriptions>
+                <Subpass name="only_subpass">
+                    <PipelineBindPoint>graphics</PipelineBindPoint>
+                    <OutputAttachments>
+                        <AttachmentReferences>
+                            <AttachmentReference>
+                                <ColorAttachment attachment_unused="false">
+                                    <AttachmentName>color_attachment</AttachmentName>
+                                    <Layout>color_attachment_optimal</Layout>
+                                </ColorAttachment>
+                                <ResolveAttachment attachment_unused="false">
+                                    <AttachmentName>resolve_attachment</AttachmentName>
+                                    <Layout>color_attachment_optimal</Layout>
+                                </ResolveAttachment>
+                            </AttachmentReference>
+                        </AttachmentReferences>
+                        <DepthStencilAttachmen attachment_unused="false">
+                            <AttachmentName>depth_attachment</AttachmentName>
+                            <Layout>auto_depth_stencil_attachment_optimal</Layout>
+                        </DepthStencilAttachmen>
+                    </OutputAttachments>
+                </Subpass>
+            </SubpassDescriptions>
+            <SubpassDependenciesSynchronization>
+                <Dependency>
+                    <srcSubpass>
+                        <SubpassType>External</SubpassType>
+                    </srcSubpass>
+                    <dstSubpass>
+                        <SubpassType>Internal</SubpassType>
+                        <SubpassName>only_subpass</SubpassName>
+                    </dstSubpass>
+                    <srcStageMask>
+                        <Mask>color_attachment_output</Mask>
+                        <Mask>early_fragment_tests</Mask>
+                    </srcStageMask>
+                    <dstStageMask>
+                        <Mask>color_attachment_output</Mask>
+                        <Mask>early_fragment_tests</Mask>
+                    </dstStageMask>
+                    <srcAccessMask></srcAccessMask>
+                    <dstAccessMask>
+                        <Mask>color_attachment_write</Mask>
+                        <Mask>depth_stencil_attachment_write</Mask>
+                    </dstAccessMask>
+                </Dependency>
+            </SubpassDependenciesSynchronization>
+        </RenderPass>
+
+        <RenderPass name="basic_mulisample_render_pass_blend">
             <AttachmentDescriptions>
                 <AttachmentDescription name="color_attachment">
                     <FormatName>render_target_color_format</FormatName>
@@ -622,6 +723,7 @@
                 </Dependency>
             </SubpassDependenciesSynchronization>
         </RenderPass>
+
     </RenderPases>
 
     <Swapchain>
@@ -701,7 +803,7 @@
                 <Dynamic>scissor</Dynamic>
             </DynamicState>
             <RenderPass>
-                <RenderPassName>basic_mulisample_render_pass</RenderPassName>
+                <RenderPassName>basic_mulisample_render_pass_opaque</RenderPassName>
                 <SubpassName>only_subpass</SubpassName>
             </RenderPass>
         </GraphicsPipeline>
@@ -776,7 +878,7 @@
                 <Dynamic>scissor</Dynamic>
             </DynamicState>
             <RenderPass>
-                <RenderPassName>basic_mulisample_render_pass</RenderPassName>
+                <RenderPassName>basic_mulisample_render_pass_blend</RenderPassName>
                 <SubpassName>only_subpass</SubpassName>
             </RenderPass>
         </GraphicsPipeline>
@@ -784,7 +886,10 @@
 
     <Framebuffers>
         <FrameBuffer name="basic_mulisample_render_framebuffer">
-            <RenderPassName>basic_mulisample_render_pass</RenderPassName>
+            <RenderPassNames>
+                <RenderPassName>basic_mulisample_render_pass_opaque</RenderPassName>
+                <RenderPassName>basic_mulisample_render_pass_blend</RenderPassName>
+            </RenderPassNames>
             <Extent source="as_swapchain"></Extent>
             <Offset source="exact">
                 <Width>0</Width>

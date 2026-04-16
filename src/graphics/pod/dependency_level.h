@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 class RenderNode;
@@ -21,7 +22,7 @@ public:
     const std::vector<std::shared_ptr<RenderNode>>& getNodes() const;
     const std::unordered_map<FramebufferName, std::vector<std::shared_ptr<GraphicsRenderNode>>>& getFramebufferNodeMap() const;
     const std::unordered_map<PipelineName, std::vector<std::shared_ptr<GraphicsRenderNode>>>& getPipelineNodeMap() const;
-    const std::unordered_map<FramebufferName, std::vector<PipelineName>>& getFramebufferToPipelineMap() const;
+    const std::unordered_map<FramebufferName, std::unordered_set<PipelineName>>& getFramebufferToPipelineMap() const;
     int getLevel() const;
     void addNode(std::shared_ptr<RenderNode> node);
 
@@ -32,7 +33,7 @@ private:
     std::vector<std::shared_ptr<RenderNode>> m_nodes;
     std::unordered_map<FramebufferName, std::vector<std::shared_ptr<GraphicsRenderNode>>> m_framebuffer_node_map;
     std::unordered_map<PipelineName, std::vector<std::shared_ptr<GraphicsRenderNode>>> m_pipeline_node_map;
-    std::unordered_map<FramebufferName, std::vector<PipelineName>> m_framebuffer_to_pipeline_map;
+    std::unordered_map<FramebufferName, std::unordered_set<PipelineName>> m_framebuffer_to_pipeline_map;
     //std::vector<PipelineName> m_pipeline_order;
     int m_level;
 };

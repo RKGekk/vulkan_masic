@@ -25,6 +25,8 @@ bool VulkanFramebuffer::init(std::shared_ptr<VulkanDevice> device, std::shared_p
     if(result != VK_SUCCESS) {
         throw std::runtime_error("failed to create framebuffer!");
     }
+
+    return true;
 }
 
 void VulkanFramebuffer::destroy() {
