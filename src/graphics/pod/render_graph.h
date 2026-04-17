@@ -40,11 +40,16 @@ public:
 	const RenderNodePtr& getRenderNodeByID(size_t id) const;
 	const std::vector<std::shared_ptr<DependencyLevel>>& getDependencyLevels();
 
-	RenderNodePtr getLastWritten(const RenderNodePtr& render_node, const std::string& global_resuotce_name) const;
-	size_t getLastWrittenIdentity(const RenderNodePtr& render_node, const std::string& global_resuotce_name) const;
-	RenderNodePtr getLastRead(const RenderNodePtr& render_node, const std::string& global_resuotce_name) const;
-	size_t getLastReadIdentity(const RenderNodePtr& render_node, const std::string& global_resuotce_name) const;
+	RenderNodePtr getLastWritten(const RenderNodePtr& render_node, const std::string& global_resource_name) const;
+	size_t getLastWrittenIdentity(const RenderNodePtr& render_node, const std::string& global_resource_name) const;
+	bool isWrittenInGraph(const std::string& gloabal_resuorce_name) const;
+	const RenderNodeSet& getWrittenBy(const std::string& global_resource_name) const;
+
+	RenderNodePtr getLastRead(const RenderNodePtr& render_node, const std::string& global_resource_name) const;
+	size_t getLastReadIdentity(const RenderNodePtr& render_node, const std::string& global_resource_name) const;
 	size_t getTopologicalIdentity(const RenderNodePtr& render_node) const;
+	bool isReadInGraph(const std::string& global_resource_name) const;
+	const RenderNodeSet& getReadBy(const std::string& global_resource_name) const;
 
 private:
 

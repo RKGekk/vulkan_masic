@@ -104,8 +104,8 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
     for(int i = 0; i < max_frames; ++i) {
         std::shared_ptr<PerFrame> per_frame = std::make_shared<PerFrame>();
 
-        per_frame->out_color_image = m_resources_manager->create_image("render_target_color", "render_target_color_resource");
-        per_frame->out_depth_image = m_resources_manager->create_image("render_target_depth", "render_target_depth_resource");
+        per_frame->out_color_image = m_resources_manager->create_image("render_target_color"s + std::to_string(i), "render_target_color_resource");
+        per_frame->out_depth_image = m_resources_manager->create_image("render_target_depth"s + std::to_string(i), "render_target_depth_resource");
 
         per_frame->swapchain_available_sem = m_semaphore_manager->getSemaphore("swapchain_available_sem");
         per_frame->swapchain_available_fen = m_fence_manager->getFence();

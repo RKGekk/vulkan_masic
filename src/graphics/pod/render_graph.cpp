@@ -269,37 +269,32 @@ RenderGraph::RenderNodePtr RenderGraph::getLastWritten(const RenderNodePtr& rend
     }
 }
 
-size_t RenderGraph::getLastWrittenIdentity(const RenderNodePtr& render_node, const std::string& gloabal_resuorce_name) const {
+size_t RenderGraph::getLastWrittenIdentity(const RenderNodePtr& render_node, const std::string& global_resource_name) const {
     int current_idx = NO_ID;
     int my_render_node_pos = m_render_node_sort_idx.at(render_node);
 
-    if(!m_written_map.contains(gloabal_resuorce_name)) return NO_ID;
-
-    for(const std::shared_ptr<RenderNode>& write_node : m_written_map.at(gloabal_resuorce_name)) {
+    for(const std::shared_ptr<RenderNode>& write_node : m_written_map.at(global_resource_name)) {
         int write_node_idx = m_render_node_sort_idx.at(write_node);
         int distance_to_my = write_node_idx - my_render_node_pos;
         int distance_to_current = write_node_idx - current_idx;
-        if(distance_to_my > 0 && distance_to_current > distance_to_my) {
+        if(distance_to_my >= 0 && distance_to_current > distance_to_my) {
             current_idx = write_node_idx;
         }
     }
 
     return current_idx;
-    // size_t current_idx = NO_ID;
-    // if(!m_rev_adjency_list.contains(render_node)) return NO_ID;
-    // for (const RenderNodePtr& write_node : m_rev_adjency_list.at(render_node)) {
-    //     if(!write_node->isWrittenGlobal(gloabal_resuorce_name)) continue;
-    //     if(write_node->getExecutionBypass()) continue;
-    //     size_t write_node_idx = m_render_node_sort_idx.at(write_node);
-    //     if(current_idx > write_node_idx) {
-    //         current_idx = write_node_idx;
-    //     }
-    // }
-    // return current_idx;
 }
 
-RenderGraph::RenderNodePtr RenderGraph::getLastRead(const RenderNodePtr& render_node, const std::string& gloabal_resuorce_name) const {
-    size_t current_idx = getLastReadIdentity(render_node, gloabal_resuorce_name);
+bool RenderGraph::isWrittenInGraph(const std::string& global_resource_name) const {
+    return m_written_map.contains(global_resource_name);
+}
+
+const RenderGraph::RenderNodeSet& RenderGraph::getWrittenBy(const std::string& global_resource_name) const {
+    return m_written_map.at(global_resource_name);
+}
+
+RenderGraph::RenderNodePtr RenderGraph::getLastRead(const RenderNodePtr& render_node, const std::string& global_resource_name) const {
+    size_t current_idx = getLastReadIdentity(render_node, global_resource_name);
     if(current_idx == NO_ID) {
         return nullptr;
     }
@@ -308,34 +303,28 @@ RenderGraph::RenderNodePtr RenderGraph::getLastRead(const RenderNodePtr& render_
     }
 }
 
-size_t RenderGraph::getLastReadIdentity(const RenderNodePtr& render_node, const std::string& gloabal_resuorce_name) const {
+size_t RenderGraph::getLastReadIdentity(const RenderNodePtr& render_node, const std::string& global_resource_name) const {
     int current_idx = NO_ID;
     int my_render_node_pos = m_render_node_sort_idx.at(render_node);
 
-    if(!m_read_map.contains(gloabal_resuorce_name)) return NO_ID;
-
-    for(const std::shared_ptr<RenderNode>& read_node : m_read_map.at(gloabal_resuorce_name)) {
+    for(const std::shared_ptr<RenderNode>& read_node : m_read_map.at(global_resource_name)) {
         int write_node_idx = m_render_node_sort_idx.at(read_node);
         int distance_to_my = write_node_idx - my_render_node_pos;
         int distance_to_current = write_node_idx - current_idx;
-        if(distance_to_my > 0 && distance_to_current > distance_to_my) {
+        if(distance_to_my >= 0 && distance_to_current > distance_to_my) {
             current_idx = write_node_idx;
         }
     }
 
     return current_idx;
+}
 
-    // size_t current_idx = NO_ID;
-    // if(!m_adjency_list.contains(render_node)) return NO_ID;
-    // for (const RenderNodePtr& read_node : m_adjency_list.at(render_node)) {
-    //     if(!read_node->isReadGlobal(gloabal_resuorce_name)) continue;
-    //     if(read_node->getExecutionBypass()) continue;
-    //     size_t read_node_idx = m_render_node_sort_idx.at(read_node);
-    //     if(current_idx > read_node_idx) {
-    //         current_idx = read_node_idx;
-    //     }
-    // }
-    // return current_idx;
+bool RenderGraph::isReadInGraph(const std::string& global_resource_name) const {
+    return m_read_map.contains(global_resource_name);
+}
+
+const RenderGraph::RenderNodeSet& RenderGraph::getReadBy(const std::string& global_resource_name) const {
+    return m_read_map.at(global_resource_name);
 }
 
 size_t RenderGraph::getTopologicalIdentity(const RenderNodePtr& render_node) const {
