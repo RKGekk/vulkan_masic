@@ -26,6 +26,7 @@ public:
     int getLevel() const;
     void addNode(std::shared_ptr<RenderNode> node);
 
+    void sortPipelineNodes();
     //void sortPipelines();
     //const std::vector<PipelineName>& getOrderedPipelineNames() const;
 

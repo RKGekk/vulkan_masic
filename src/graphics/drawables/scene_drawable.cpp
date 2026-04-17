@@ -103,7 +103,7 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             renderable->index_buffer = model_data->GetIndexBuffer();
 
             renderable->render_node = std::make_shared<GraphicsRenderNode>();
-            renderable->render_node->init(m_device, "mesh_render"s, Application::GetRenderer().getFrameData(frame)->render_graph);
+            renderable->render_node->init(m_device, "mesh_render"s, false, Application::GetRenderer().getFrameData(frame)->render_graph);
 
             std::shared_ptr<VulkanShader> vertex_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
             std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames().at(0));

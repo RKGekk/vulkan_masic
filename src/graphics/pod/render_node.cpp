@@ -123,3 +123,19 @@ std::shared_ptr<VulkanBuffer> RenderNode::getWrittenAttachedBufferResource(const
 std::shared_ptr<VulkanBuffer> RenderNode::getReadAttachedBufferResource(const RenderNode::LocalName& name) const {
     return std::dynamic_pointer_cast<VulkanBuffer>(m_read_attached.at(name).resource);
 }
+
+void RenderNode::setExecutionBypass(bool bypass) {
+    m_bypass_execution = bypass;
+}
+
+bool RenderNode::getExecutionBypass() const {
+    return m_bypass_execution;
+}
+
+void RenderNode::setExecutionOrder(size_t order) {
+    m_execution_order = order;
+}
+
+size_t RenderNode::getExecutionOrder() const {
+    return m_execution_order;
+}

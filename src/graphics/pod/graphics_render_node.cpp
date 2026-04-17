@@ -16,11 +16,13 @@
 
 #include <utility>
 
-bool GraphicsRenderNode::init(std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, std::weak_ptr<RenderGraph> render_graph) {
+bool GraphicsRenderNode::init(std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) {
     m_device = std::move(device);
     m_render_graph = std::move(render_graph);
-    m_node_config = m_render_graph.lock()->getGraphicsRenderNodeConfig(node_config_name);
+    m_node_config = instance_config ? m_render_graph.lock()->makeGraphicsRenderNodeCfgInstance(node_config_name, std::to_string(rand())) : m_render_graph.lock()->getGraphicsRenderNodeConfig(node_config_name);
     m_pipeline = m_node_config->getPipeline();
+    setExecutionBypass(false);
+    setExecutionOrder(0u);
 
     return true;
 }
@@ -30,7 +32,7 @@ void GraphicsRenderNode::destroy() {
 }
 
 void GraphicsRenderNode::render(CommandBatch& command_buffer, unsigned image_index) {
-    // return all RenderResources to initial state
+    if(getExecutionBypass()) return;
     
     TransitionResourcesToProperState(command_buffer);
 
@@ -157,7 +159,7 @@ const std::unordered_map<uint32_t, std::shared_ptr<VulkanDescriptor>>& GraphicsR
     return m_descs;
 }
 
-const std::shared_ptr<GraphicsRenderNodeConfig>& GraphicsRenderNode::getGraphicsRenderNodeConfig() const {
+std::shared_ptr<GraphicsRenderNodeConfig>& GraphicsRenderNode::getGraphicsRenderNodeConfig() {
     return m_node_config;
 }
 

@@ -17,6 +17,7 @@
 class VulkanDevice;
 class RenderNode;
 class GraphicsRenderNodeConfig;
+class WindowSurface;
 
 class RenderGraph {
 public:
@@ -25,10 +26,11 @@ public:
 	using RenderNodeSet = std::unordered_set<RenderNodePtr>;
 	static const size_t NO_ID = -1;
 
-	bool init(std::shared_ptr<VulkanDevice> device);
+	bool init(std::shared_ptr<VulkanDevice> device, const std::shared_ptr<WindowSurface>& window);
     void destroy();
 
-	const std::shared_ptr<GraphicsRenderNodeConfig>& getGraphicsRenderNodeConfig(const std::string& config_mame) const;
+	const std::shared_ptr<GraphicsRenderNodeConfig>& getGraphicsRenderNodeConfig(const std::string& config_name) const;
+	std::shared_ptr<GraphicsRenderNodeConfig> makeGraphicsRenderNodeCfgInstance(const std::string& config_name, const std::string& config_extension);
 
 	void add_pass(std::shared_ptr<RenderNode> render_node);
 	void topological_sort();

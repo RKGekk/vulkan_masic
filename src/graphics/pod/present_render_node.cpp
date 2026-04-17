@@ -3,7 +3,7 @@
 #include "../../application.h"
 #include "../api/vulkan_swapchain.h"
 
-bool PresentRenderNode::init(std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, std::weak_ptr<RenderGraph> render_graph) {
+bool PresentRenderNode::init(std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) {
     m_device = std::move(device);
     m_render_graph = std::move(render_graph);
     
@@ -15,6 +15,9 @@ bool PresentRenderNode::init(std::shared_ptr<VulkanDevice> device, const std::st
     m_present_info.pSwapchains = m_swapchain->getSwapchainPtr();
     m_present_info.pResults = nullptr;
 
+    setExecutionBypass(false);
+    setExecutionOrder(0u);
+
     return true;
 }
 
@@ -23,6 +26,8 @@ void PresentRenderNode::destroy() {
 }
 
 void PresentRenderNode::render(CommandBatch& command_buffer, unsigned image_index) {
+    TransitionResourcesToProperState(command_buffer);
+
     m_present_info.waitSemaphoreCount = static_cast<uint32_t>(m_present_wait_sem.size());
     m_present_info.pWaitSemaphores = m_present_wait_sem.data();
     m_present_info.swapchainCount = 1u;

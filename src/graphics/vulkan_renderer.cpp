@@ -79,7 +79,7 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
     m_resources_manager->init(window, "graphics_pipelines.xml"s);
 
     m_swapchain = std::make_shared<VulkanSwapChain>();
-    m_swapchain->init(m_device, std::move(window), "graphics_pipelines.xml"s);
+    m_swapchain->init(m_device, window, "graphics_pipelines.xml"s);
 
     m_command_manager = m_device->getCommandManager();
 
@@ -112,14 +112,14 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
         vkResetFences(m_device->getDevice(), 1u, &per_frame->swapchain_available_fen);
 
         per_frame->render_graph = std::make_shared<RenderGraph>();
-        per_frame->render_graph->init(m_device);
+        per_frame->render_graph->init(m_device, window);
 
         per_frame->init(m_device, i);
         per_frame->command_buffer = m_command_manager->allocCommandBufferPtr(PoolTypeEnum::GRAPICS);
         per_frame->cmd_submit_finish_fence = per_frame->command_buffer->getRenderFence();
         
         per_frame->present_render_node = std::make_shared<PresentRenderNode>();
-        per_frame->present_render_node->init(m_device, "presenter"s, per_frame->render_graph);
+        per_frame->present_render_node->init(m_device, "presenter"s, false, per_frame->render_graph);
         per_frame->present_render_node->addReadDependency(swapchain_images.at(i), "swapchain_image"s);
         per_frame->render_graph->add_pass(per_frame->present_render_node);
 

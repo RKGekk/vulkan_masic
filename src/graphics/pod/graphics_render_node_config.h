@@ -19,7 +19,7 @@ class VulkanResourcesManager;
 class VulkanPipelinesManager;
 class VulkanPipeline;
 class WindowSurface;
-class SwapchainSupportDetails;
+struct SwapchainSupportDetails;
 
 class GraphicsRenderNodeConfig {
 public:
@@ -40,7 +40,7 @@ public:
         VkImageLayout read_image_layout;
     };
 
-    bool init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<WindowSurface>& window, const SwapchainSupportDetails& swapchain_support_details, const std::shared_ptr<VulkanResourcesManager>& resources_manager, const std::shared_ptr<VulkanPipelinesManager>& pipelines_manager, const pugi::xml_node& node_data);
+    bool init(const std::shared_ptr<VulkanDevice>& device, uint32_t fb_image_index, const std::shared_ptr<WindowSurface>& window, const SwapchainSupportDetails& swapchain_support_details, const std::shared_ptr<VulkanResourcesManager>& resources_manager, const std::shared_ptr<VulkanPipelinesManager>& pipelines_manager, const pugi::xml_node& node_data);
 
     const std::string& getName() const;
     const std::shared_ptr<VulkanPipeline>& getPipeline() const;
@@ -73,6 +73,7 @@ public:
     std::shared_ptr<GraphicsRenderNodeConfig> makeInstance(std::string name) const;
 
 private:
+    uint32_t m_fb_image_index;
     std::string m_name;
     std::shared_ptr<FramebufferConfig> m_framebuffer_config;
     std::shared_ptr<VulkanPipeline> m_pipeline;

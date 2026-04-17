@@ -16,7 +16,7 @@ class VulkanFramebuffer;
 
 class GraphicsRenderNode : public RenderNode {
 public:
-    virtual bool init(std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, std::weak_ptr<RenderGraph> render_graph) override;
+    virtual bool init(std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) override;
     virtual void destroy() override;
 
     virtual void render(CommandBatch& command_buffer, unsigned image_index) override;
@@ -26,7 +26,7 @@ public:
     VkFramebuffer getFramebuffer() const;
 
     const std::unordered_map<uint32_t, std::shared_ptr<VulkanDescriptor>>& getDescriptors() const;
-    const std::shared_ptr<GraphicsRenderNodeConfig>& getGraphicsRenderNodeConfig() const;
+    std::shared_ptr<GraphicsRenderNodeConfig>& getGraphicsRenderNodeConfig();
 
     virtual void TransitionResourcesToProperState(CommandBatch& command_buffer) override;
 

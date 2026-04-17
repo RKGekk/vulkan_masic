@@ -13,7 +13,7 @@
 class VulkanDevice;
 class VulkanSampler;
 class WindowSurface;
-class SwapchainSupportDetails;
+struct SwapchainSupportDetails;
 
 class FormatConfig {
 public:

@@ -4,16 +4,18 @@
 #include "../api/vulkan_pipeline.h"
 #include "../api/vulkan_render_pass.h"
 #include "../api/vulkan_resources_manager.h"
+#include "../api/vulkan_swapchain.h"
 #include "render_node.h"
 #include "graphics_render_node_config.h"
 #include "graphics_render_node.h"
 #include "../../application.h"
+#include "../../window_surface.h"
 
 #include <pugixml.hpp>
 
 #include <filesystem>
 
-bool RenderGraph::init(std::shared_ptr<VulkanDevice> device) {
+bool RenderGraph::init(std::shared_ptr<VulkanDevice> device, const std::shared_ptr<WindowSurface>& window) {
     using namespace std::literals;
 
     m_device = std::move(device);
@@ -36,7 +38,14 @@ bool RenderGraph::init(std::shared_ptr<VulkanDevice> device) {
         
         if(render_node_type == "GraphicsRenderNode"s) {
             std::shared_ptr<GraphicsRenderNodeConfig> render_node_config = std::make_shared<GraphicsRenderNodeConfig>();
-            render_node_config->init(device, Application::GetRenderer().getResourcesManager(), Application::GetRenderer().getPipelinesManager(), render_node);
+            render_node_config->init(
+                device,
+                0u,
+                window,
+                VulkanSwapChain::querySwapChainSupport(m_device->getDeviceAbilities().physical_device, m_device->getSurface()),
+                Application::GetRenderer().getResourcesManager(), Application::GetRenderer().getPipelinesManager(),
+                render_node
+            );
             m_graphics_cfg_name_map[node_name] = std::move(render_node_config);
         }
     }
@@ -60,8 +69,12 @@ void RenderGraph::destroy() {
     m_dependency_levels.clear();
 }
 
-const std::shared_ptr<GraphicsRenderNodeConfig>& RenderGraph::getGraphicsRenderNodeConfig(const std::string& config_mame) const {
-    return m_graphics_cfg_name_map.at(config_mame);
+const std::shared_ptr<GraphicsRenderNodeConfig>& RenderGraph::getGraphicsRenderNodeConfig(const std::string& config_name) const {
+    return m_graphics_cfg_name_map.at(config_name);
+}
+
+std::shared_ptr<GraphicsRenderNodeConfig> RenderGraph::makeGraphicsRenderNodeCfgInstance(const std::string& config_name, const std::string& config_extension) {
+    return m_graphics_cfg_name_map.at(config_name)->makeInstance(config_name + config_extension);
 }
 
 void RenderGraph::add_pass(std::shared_ptr<RenderNode> render_node) {
@@ -106,6 +119,15 @@ void RenderGraph::topological_sort() {
                 count_edges_from_node[render_node]++;
             }
         }
+        // for(const auto&[written_resource_name, written_resource_ptr] : render_node->getWrittenResourcesMap()) {
+        //     if(!m_read_map.contains(written_resource_name)) continue;
+        //     for(const RenderNodePtr& reader_node : m_read_map.at(written_resource_name)) {
+        //         m_adjency_list[render_node].insert(reader_node);
+        //         m_rev_adjency_list[reader_node].insert(render_node);
+        //         count_edges_to_node[reader_node]++;
+        //         count_edges_from_node[render_node]++;
+        //     }
+        // }
         // for(const auto&[read_resource_name, read_resource_ptr] : render_node->getReadResourcesMap()) {
         //     if(!m_written_map.contains(read_resource_name)) continue;
         //     for(const RenderNodePtr& write_node : m_written_map.at(read_resource_name)) {
@@ -212,9 +234,9 @@ void RenderGraph::build_dependency_levels() {
         m_dependency_levels[level]->addNode(node_ptr);
     }
 
-    // for (int level = 0; level < (dependency_level_count + 1); ++level) {
-    //     m_dependency_levels[level]->sortPipelines();
-    // }
+    for (int level = 0; level < (dependency_level_count + 1); ++level) {
+        m_dependency_levels[level]->sortPipelineNodes();
+    }
 }
 
 const RenderGraph::RenderNodeList& RenderGraph::getTopologicallySortedNodes() {
@@ -248,16 +270,32 @@ RenderGraph::RenderNodePtr RenderGraph::getLastWritten(const RenderNodePtr& rend
 }
 
 size_t RenderGraph::getLastWrittenIdentity(const RenderNodePtr& render_node, const std::string& gloabal_resuorce_name) const {
-    size_t current_idx = NO_ID;
-    if(!m_rev_adjency_list.contains(render_node)) return NO_ID;
-    for (const RenderNodePtr& write_node : m_rev_adjency_list.at(render_node)) {
-        if(!write_node->isWrittenGlobal(gloabal_resuorce_name)) continue;
-        size_t write_node_idx = m_render_node_sort_idx.at(write_node);
-        if(current_idx > write_node_idx) {
+    int current_idx = NO_ID;
+    int my_render_node_pos = m_render_node_sort_idx.at(render_node);
+
+    if(!m_written_map.contains(gloabal_resuorce_name)) return NO_ID;
+
+    for(const std::shared_ptr<RenderNode>& write_node : m_written_map.at(gloabal_resuorce_name)) {
+        int write_node_idx = m_render_node_sort_idx.at(write_node);
+        int distance_to_my = write_node_idx - my_render_node_pos;
+        int distance_to_current = write_node_idx - current_idx;
+        if(distance_to_my > 0 && distance_to_current > distance_to_my) {
             current_idx = write_node_idx;
         }
     }
+
     return current_idx;
+    // size_t current_idx = NO_ID;
+    // if(!m_rev_adjency_list.contains(render_node)) return NO_ID;
+    // for (const RenderNodePtr& write_node : m_rev_adjency_list.at(render_node)) {
+    //     if(!write_node->isWrittenGlobal(gloabal_resuorce_name)) continue;
+    //     if(write_node->getExecutionBypass()) continue;
+    //     size_t write_node_idx = m_render_node_sort_idx.at(write_node);
+    //     if(current_idx > write_node_idx) {
+    //         current_idx = write_node_idx;
+    //     }
+    // }
+    // return current_idx;
 }
 
 RenderGraph::RenderNodePtr RenderGraph::getLastRead(const RenderNodePtr& render_node, const std::string& gloabal_resuorce_name) const {
@@ -271,16 +309,33 @@ RenderGraph::RenderNodePtr RenderGraph::getLastRead(const RenderNodePtr& render_
 }
 
 size_t RenderGraph::getLastReadIdentity(const RenderNodePtr& render_node, const std::string& gloabal_resuorce_name) const {
-    size_t current_idx = NO_ID;
-    if(!m_rev_adjency_list.contains(render_node)) return NO_ID;
-    for (const RenderNodePtr& write_node : m_rev_adjency_list.at(render_node)) {
-        if(!write_node->isWrittenGlobal(gloabal_resuorce_name)) continue;
-        size_t write_node_idx = m_render_node_sort_idx.at(write_node);
-        if(current_idx > write_node_idx) {
+    int current_idx = NO_ID;
+    int my_render_node_pos = m_render_node_sort_idx.at(render_node);
+
+    if(!m_read_map.contains(gloabal_resuorce_name)) return NO_ID;
+
+    for(const std::shared_ptr<RenderNode>& read_node : m_read_map.at(gloabal_resuorce_name)) {
+        int write_node_idx = m_render_node_sort_idx.at(read_node);
+        int distance_to_my = write_node_idx - my_render_node_pos;
+        int distance_to_current = write_node_idx - current_idx;
+        if(distance_to_my > 0 && distance_to_current > distance_to_my) {
             current_idx = write_node_idx;
         }
     }
+
     return current_idx;
+
+    // size_t current_idx = NO_ID;
+    // if(!m_adjency_list.contains(render_node)) return NO_ID;
+    // for (const RenderNodePtr& read_node : m_adjency_list.at(render_node)) {
+    //     if(!read_node->isReadGlobal(gloabal_resuorce_name)) continue;
+    //     if(read_node->getExecutionBypass()) continue;
+    //     size_t read_node_idx = m_render_node_sort_idx.at(read_node);
+    //     if(current_idx > read_node_idx) {
+    //         current_idx = read_node_idx;
+    //     }
+    // }
+    // return current_idx;
 }
 
 size_t RenderGraph::getTopologicalIdentity(const RenderNodePtr& render_node) const {

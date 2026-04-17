@@ -35,7 +35,7 @@ public:
     using ResourceMap = std::unordered_map<GlobalName, AttachmentSlot>;
     using AttachMap = std::unordered_map<LocalName, AttachmentSlot>;
 
-    virtual bool init(std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, std::weak_ptr<RenderGraph> render_graph) = 0;
+    virtual bool init(std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) = 0;
     virtual void destroy() = 0;
 
     virtual void render(CommandBatch& command_buffer, unsigned image_index) = 0;
@@ -67,6 +67,12 @@ public:
 
     virtual void TransitionResourcesToProperState(CommandBatch& command_buffer) = 0;
 
+    void setExecutionBypass(bool bypass);
+    bool getExecutionBypass() const;
+
+    void setExecutionOrder(size_t order);
+    size_t getExecutionOrder() const;
+
 protected:
     std::shared_ptr<VulkanDevice> m_device;
     std::weak_ptr<RenderGraph> m_render_graph;
@@ -77,4 +83,7 @@ private:
 
     ResourceMap m_written_resources;
     AttachMap m_written_attached;
+
+    bool m_bypass_execution;
+    size_t m_execution_order;
 };

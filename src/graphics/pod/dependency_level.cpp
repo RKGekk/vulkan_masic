@@ -47,6 +47,23 @@ void DependencyLevel::addNode(std::shared_ptr<RenderNode> node) {
     }
 }
 
+void DependencyLevel::sortPipelineNodes() {
+    for(auto&[pipeline_name, render_nodes] : m_pipeline_node_map) {
+        if(render_nodes.size() <= 1) {
+            continue;
+        }
+        if(render_nodes[0]->getPipeline()->getPipelineConfig()->haveBlendEnableAttachments()) {
+            std::sort(
+                render_nodes.begin(),
+                render_nodes.end(),
+                [](const auto& a, const auto& b) {
+                    return a->getExecutionOrder() < b->getExecutionOrder();
+                }
+            );
+        }
+    }
+}
+
 //void DependencyLevel::sortPipelines() {
     // for(auto&[pipeline_name, render_nodes] : m_pipeline_node_map) {
     //     if(render_nodes.size() <= 1) {

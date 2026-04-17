@@ -62,6 +62,7 @@ public:
 
 private:
     std::shared_ptr<VulkanImageBuffer> makeFontTexture(std::shared_ptr<VulkanDevice> device, const char* TTF_font_file_name, float fontSizePixels);
+    std::shared_ptr<Renderable> makeRenderable(uint32_t image_index);
 
     std::shared_ptr<VulkanDevice> m_device;
     int m_max_frames;

@@ -75,38 +75,17 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
     ImGui::StyleColorsClassic();
 
     m_font_texture = makeFontTexture(m_device, TTF_font_file_name.c_str(), font_size_pixels);
-    const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
 
     for(size_t frame = 0u; frame < max_frames; ++frame) {
-        std::shared_ptr<Renderable> renderable = std::make_shared<Renderable>();
+        std::shared_ptr<PerFrameData> per_frame = std::make_shared<PerFrameData>();
 
-        renderable->frame = frame;
-        renderable->font_texture = font_texture;
+        per_frame->imgui_vtx.resize(max_frames);
+        per_frame->imgui_idx.resize(max_frames);
+        per_frame->vertex_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, "imgui_vertex_buffer_frame_"s + std::to_string(frame), "imgui_vertex_resource");
+        per_frame->index_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, "imgui_index_buffer_frame_"s + std::to_string(frame), "imgui_index_resource");
+        per_frame->uniform_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, "imgui_uniform_buffer_frame_"s + std::to_string(frame), "imgui_uniform_resource");
 
-        renderable->imgui_vtx.resize(max_frames);
-        renderable->imgui_idx.resize(max_frames);
-        renderable->vertex_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, "imgui_vertex_buffer_frame_"s + std::to_string(frame), "imgui_vertex_resource");
-        renderable->index_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, "imgui_index_buffer_frame_"s + std::to_string(frame), "imgui_index_resource");
-        renderable->uniform_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, "imgui_uniform_buffer_frame_"s + std::to_string(frame), "imgui_uniform_resource");
-
-        renderable->render_node = std::make_shared<GraphicsRenderNode>();
-        renderable->render_node->init(m_device, "imgui_renderer"s, Application::GetRenderer().getFrameData(frame)->render_graph);
-
-        std::shared_ptr<VulkanShader> vertex_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
-        std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames().at(0));
-
-        renderable->render_node->addReadDependency(renderable->vertex_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getVertexBufferBindingName());
-        renderable->render_node->addReadDependency(renderable->index_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getIndexBufferBindingName());
-        renderable->render_node->addReadDependency(renderable->uniform_buffer, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER));
-        renderable->render_node->addReadDependency(renderable->font_texture, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
-        renderable->render_node->addWriteDependency(swapchain_images[frame], "resolve_attachment");
-        renderable->render_node->addWriteDependency(Application::GetRenderer().getOutColorImage(frame), "color_attachment");
-        renderable->render_node->addWriteDependency(Application::GetRenderer().getOutDepthImage(frame), "depth_attachment");
-        renderable->render_node->finishRenderNode();
-
-        m_renderables.push_back(renderable);
-        Application::GetRenderer().addRenderNode(renderable->render_node, frame);
-        
+        m_per_frame.push_back(per_frame);
     }
 
     return true;
@@ -128,32 +107,59 @@ void ImGUIDrawable::destroy() {
     // }
 }
 
+
+std::shared_ptr<ImGUIDrawable::Renderable> ImGUIDrawable::makeRenderable(uint32_t image_index) {
+    const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
+
+    std::shared_ptr<Renderable> renderable = std::make_shared<ImGUIDrawable::Renderable>();
+
+    renderable->frame = image_index;
+
+    renderable->render_node = std::make_shared<GraphicsRenderNode>();
+    renderable->render_node->init(m_device, "imgui_renderer"s, true, Application::GetRenderer().getFrameData(image_index)->render_graph);
+
+    std::shared_ptr<VulkanShader> vertex_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
+    std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames().at(0));
+
+    renderable->render_node->addReadDependency(m_per_frame[image_index]->vertex_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getVertexBufferBindingName());
+    renderable->render_node->addReadDependency(m_per_frame[image_index]->index_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getIndexBufferBindingName());
+    renderable->render_node->addReadDependency(m_per_frame[image_index]->uniform_buffer, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER));
+    renderable->render_node->addReadDependency(m_font_texture, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
+    renderable->render_node->addWriteDependency(swapchain_images[image_index], "resolve_attachment");
+    renderable->render_node->addWriteDependency(Application::GetRenderer().getOutColorImage(image_index), "color_attachment");
+    renderable->render_node->addWriteDependency(Application::GetRenderer().getOutDepthImage(image_index), "depth_attachment");
+    renderable->render_node->finishRenderNode();
+
+    return renderable;
+}
+
 void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
-    std::shared_ptr<Renderable>& renderable = m_renderables.at(image_index);
+    std::shared_ptr<PerFrameData>& per_frame = m_per_frame.at(image_index);
 
     ImDrawData* dd = ImGui::GetDrawData();
     const float L = dd->DisplayPos.x;
     const float R = dd->DisplayPos.x + dd->DisplaySize.x;
     const float T = dd->DisplayPos.y;
     const float B = dd->DisplayPos.y + dd->DisplaySize.y;
-    std::shared_ptr<VulkanShader> vertex_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
-    size_t index_count = renderable->index_buffer->getNotAlignedSize() / vertex_shader->getShaderSignature()->getVertexFormat().getIndexTypeBytesCount();
-    size_t vertex_count = renderable->vertex_buffer->getNotAlignedSize() / vertex_shader->getShaderSignature()->getVertexFormat().getVertexSize();
+    const ImVec2 clip_off = dd->DisplayPos;
+    const ImVec2 clip_scale = dd->FramebufferScale;
+    const float fb_width = dd->DisplaySize.x * dd->FramebufferScale.x;
+    const float fb_height = dd->DisplaySize.y * dd->FramebufferScale.y;
 
-    if(vertex_count < dd->TotalVtxCount) {
-        renderable->imgui_vtx.resize(dd->TotalVtxCount);
+    if(per_frame->imgui_vtx.size() < dd->TotalVtxCount) {
+        per_frame->imgui_vtx.resize(dd->TotalVtxCount);
     }
 
-    if(index_count < dd->TotalIdxCount) {
-        renderable->imgui_idx.resize(dd->TotalIdxCount);
+    if(per_frame->imgui_idx.size() < dd->TotalIdxCount) {
+        per_frame->imgui_idx.resize(dd->TotalIdxCount);
     }
 
     int vertex_sz = 0;
     int index_sz = 0;
     uint32_t vtxOffset = 0;
     uint32_t idxOffset = 0;
-    ImDrawVert* vtx = (ImDrawVert*)renderable->imgui_vtx.data();
-    uint16_t* idx = (uint16_t*)renderable->imgui_idx.data();
+    ImDrawVert* vtx = (ImDrawVert*)per_frame->imgui_vtx.data();
+    uint16_t* idx = (uint16_t*)per_frame->imgui_idx.data();
     for (const ImDrawList* cmdList : dd->CmdLists) {
         size_t vtx_sz = cmdList->VtxBuffer.Size * sizeof(ImDrawVert);
         size_t idx_sz = cmdList->IdxBuffer.Size * sizeof(ImDrawIdx);
@@ -167,12 +173,54 @@ void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
         index_sz += idx_sz;
     }
 
-    renderable->vertex_buffer->update(renderable->imgui_vtx.data(), vertex_sz);
-    renderable->index_buffer->update(renderable->imgui_idx.data(), index_sz);
+    per_frame->vertex_buffer->update(per_frame->imgui_vtx.data(), vertex_sz);
+    per_frame->index_buffer->update(per_frame->imgui_idx.data(), index_sz);
 
     ImGuiUniformBufferObject bindData;
     bindData.LRTB = {L, R, T, B};
-    renderable->uniform_buffer->update(&bindData, sizeof(ImGuiUniformBufferObject));
+    per_frame->uniform_buffer->update(&bindData, sizeof(ImGuiUniformBufferObject));
+
+    size_t cmd_ct = 0u;
+    for (const ImDrawList* cmdList : dd->CmdLists) {
+        for (int cmd_i = 0; cmd_i < cmdList->CmdBuffer.Size; cmd_i++) {
+            const ImDrawCmd cmd = cmdList->CmdBuffer[cmd_i];
+
+            ImVec2 clipMin((cmd.ClipRect.x - clip_off.x) * clip_scale.x, (cmd.ClipRect.y - clip_off.y) * clip_scale.y);
+            ImVec2 clipMax((cmd.ClipRect.z - clip_off.x) * clip_scale.x, (cmd.ClipRect.w - clip_off.y) * clip_scale.y);
+            
+            if (clipMin.x < 0.0f) clipMin.x = 0.0f;
+            if (clipMin.y < 0.0f) clipMin.y = 0.0f;
+            if (clipMax.x > fb_width ) clipMax.x = fb_width;
+            if (clipMax.y > fb_height) clipMax.y = fb_height;
+            if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y)  continue;
+
+            while(m_renderables.size() <= cmd_ct) {
+                std::shared_ptr<Renderable> renderable = makeRenderable(image_index);
+                m_renderables.push_back(renderable);
+                Application::GetRenderer().addRenderNode(renderable->render_node, image_index);
+            }
+            std::shared_ptr<Renderable> renderable = m_renderables[cmd_ct];
+            renderable->render_node->setExecutionBypass(false);
+            renderable->render_node->setExecutionOrder(cmd_ct);
+            
+            VkRect2D scissor{};
+            scissor.offset = VkOffset2D{(int32_t)clipMin.x, (int32_t)clipMin.y};
+            scissor.extent = VkExtent2D{uint32_t(clipMax.x - clipMin.x), uint32_t(clipMax.y - clipMin.y)};
+
+            renderable->render_node->getGraphicsRenderNodeConfig()->setScissor(scissor);
+            renderable->render_node->getGraphicsRenderNodeConfig()->setIndexCount(cmd.ElemCount);
+            renderable->render_node->getGraphicsRenderNodeConfig()->setFirstIndex(idxOffset + cmd.IdxOffset);
+            renderable->render_node->getGraphicsRenderNodeConfig()->setVertexOffset(int32_t(vtxOffset + cmd.VtxOffset));
+
+            ++cmd_ct;
+        }
+        idxOffset += cmdList->IdxBuffer.Size;
+        vtxOffset += cmdList->VtxBuffer.Size;
+    }
+
+    for(size_t i = m_renderables.size(); i < cmd_ct; ++i) {
+        m_renderables[i]->render_node->setExecutionBypass(true);
+    }
 
     //const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
     //renderable->render_node->changeWriteDependency(swapchain_images[image_index], "resolve_attachment");

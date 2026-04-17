@@ -12,7 +12,7 @@
 
 class VulkanDevice;
 class WindowSurface;
-class SwapchainSupportDetails;
+struct SwapchainSupportDetails;
 
 class FramebufferConfig {
 public:

@@ -51,9 +51,8 @@ bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
         m_index_buffers[i] = Application::GetRenderer().getResourcesManager()->create_buffer(g_indices.data(), g_indices.size() * sizeof(uint16_t), "basic_index_resource");
         m_uniform_buffers[i] = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, "basic_uniform_resource");
 
-
         m_render_nodes[i] = std::make_shared<GraphicsRenderNode>();
-        m_render_nodes[i]->init(device, "mesh_render"s, Application::GetRenderer().getFrameData(i)->render_graph);
+        m_render_nodes[i]->init(device, "mesh_render"s, false, Application::GetRenderer().getFrameData(i)->render_graph);
 
         std::shared_ptr<VulkanShader> vertex_shader = m_render_nodes[i]->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
         std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames().at(0));

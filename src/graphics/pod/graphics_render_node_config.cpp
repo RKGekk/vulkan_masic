@@ -10,9 +10,10 @@
 #include "image_buffer_config.h"
 #include "format_config.h"
 
-bool GraphicsRenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<WindowSurface>& window, const SwapchainSupportDetails& swapchain_support_details, const std::shared_ptr<VulkanResourcesManager>& resources_manager, const std::shared_ptr<VulkanPipelinesManager>& pipelines_manager, const pugi::xml_node& node_data) {
+bool GraphicsRenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device, uint32_t fb_image_index, const std::shared_ptr<WindowSurface>& window, const SwapchainSupportDetails& swapchain_support_details, const std::shared_ptr<VulkanResourcesManager>& resources_manager, const std::shared_ptr<VulkanPipelinesManager>& pipelines_manager, const pugi::xml_node& node_data) {
     using namespace std::literals;
 
+    m_fb_image_index = fb_image_index;
     m_name = node_data.attribute("name").as_string();
     m_framebuffer_config = resources_manager->getFramebufferConfig(node_data.child("FrameBufferName").text().as_string());
     m_pipeline = pipelines_manager->getPipeline(node_data.child("Pipeline").text().as_string());
@@ -219,6 +220,7 @@ uint32_t GraphicsRenderNodeConfig::getIndexCount() const {
 }
 
 void GraphicsRenderNodeConfig::setIndexCount(uint32_t index_count) {
+    m_index_count_type = IndexCountType::EXACT;
     m_index_count = index_count;
 }
 
