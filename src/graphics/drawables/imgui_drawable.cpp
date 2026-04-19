@@ -108,29 +108,26 @@ void ImGUIDrawable::destroy() {
 }
 
 
-std::shared_ptr<ImGUIDrawable::Renderable> ImGUIDrawable::makeRenderable(uint32_t image_index) {
+std::shared_ptr<GraphicsRenderNode> ImGUIDrawable::makeRenderable(uint32_t image_index) {
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
 
-    std::shared_ptr<Renderable> renderable = std::make_shared<ImGUIDrawable::Renderable>();
+    std::shared_ptr<GraphicsRenderNode> render_node;
+    render_node = std::make_shared<GraphicsRenderNode>();
+    render_node->init(m_device, "imgui_renderer"s, true, Application::GetRenderer().getFrameData(image_index)->render_graph);
 
-    renderable->frame = image_index;
-
-    renderable->render_node = std::make_shared<GraphicsRenderNode>();
-    renderable->render_node->init(m_device, "imgui_renderer"s, true, Application::GetRenderer().getFrameData(image_index)->render_graph);
-
-    std::shared_ptr<VulkanShader> vertex_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
+    std::shared_ptr<VulkanShader> vertex_shader = render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
     std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames().at(0));
 
-    renderable->render_node->addReadDependency(m_per_frame[image_index]->vertex_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getVertexBufferBindingName());
-    renderable->render_node->addReadDependency(m_per_frame[image_index]->index_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getIndexBufferBindingName());
-    renderable->render_node->addReadDependency(m_per_frame[image_index]->uniform_buffer, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER));
-    renderable->render_node->addReadDependency(m_font_texture, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
-    renderable->render_node->addWriteDependency(swapchain_images[image_index], "resolve_attachment");
-    renderable->render_node->addWriteDependency(Application::GetRenderer().getOutColorImage(image_index), "color_attachment");
-    renderable->render_node->addWriteDependency(Application::GetRenderer().getOutDepthImage(image_index), "depth_attachment");
-    renderable->render_node->finishRenderNode();
+    render_node->addReadDependency(m_per_frame[image_index]->vertex_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getVertexBufferBindingName());
+    render_node->addReadDependency(m_per_frame[image_index]->index_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getIndexBufferBindingName());
+    render_node->addReadDependency(m_per_frame[image_index]->uniform_buffer, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER));
+    render_node->addReadDependency(m_font_texture, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
+    render_node->addWriteDependency(swapchain_images[image_index], "resolve_attachment");
+    render_node->addWriteDependency(Application::GetRenderer().getOutColorImage(image_index), "color_attachment");
+    render_node->addWriteDependency(Application::GetRenderer().getOutDepthImage(image_index), "depth_attachment");
+    render_node->finishRenderNode();
 
-    return renderable;
+    return render_node;
 }
 
 void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
@@ -194,23 +191,23 @@ void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
             if (clipMax.y > fb_height) clipMax.y = fb_height;
             if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y)  continue;
 
-            while(m_renderables.size() <= cmd_ct) {
-                std::shared_ptr<Renderable> renderable = makeRenderable(image_index);
-                m_renderables.push_back(renderable);
-                Application::GetRenderer().addRenderNode(renderable->render_node, image_index);
+            while(per_frame->renderables.size() <= cmd_ct) {
+                std::shared_ptr<GraphicsRenderNode> renderable = makeRenderable(image_index);
+                per_frame->renderables.push_back(renderable);
+                Application::GetRenderer().addRenderNode(renderable, image_index);
             }
-            std::shared_ptr<Renderable> renderable = m_renderables[cmd_ct];
-            renderable->render_node->setExecutionBypass(false);
-            renderable->render_node->setExecutionOrder(cmd_ct);
+            std::shared_ptr<GraphicsRenderNode>& renderable = per_frame->renderables[cmd_ct];
+            renderable->setExecutionBypass(false);
+            renderable->setExecutionOrder(cmd_ct);
             
             VkRect2D scissor{};
             scissor.offset = VkOffset2D{(int32_t)clipMin.x, (int32_t)clipMin.y};
             scissor.extent = VkExtent2D{uint32_t(clipMax.x - clipMin.x), uint32_t(clipMax.y - clipMin.y)};
 
-            renderable->render_node->getGraphicsRenderNodeConfig()->setScissor(scissor);
-            renderable->render_node->getGraphicsRenderNodeConfig()->setIndexCount(cmd.ElemCount);
-            renderable->render_node->getGraphicsRenderNodeConfig()->setFirstIndex(idxOffset + cmd.IdxOffset);
-            renderable->render_node->getGraphicsRenderNodeConfig()->setVertexOffset(int32_t(vtxOffset + cmd.VtxOffset));
+            renderable->getGraphicsRenderNodeConfig()->setScissor(scissor);
+            renderable->getGraphicsRenderNodeConfig()->setIndexCount(cmd.ElemCount);
+            renderable->getGraphicsRenderNodeConfig()->setFirstIndex(idxOffset + cmd.IdxOffset);
+            renderable->getGraphicsRenderNodeConfig()->setVertexOffset(int32_t(vtxOffset + cmd.VtxOffset));
 
             ++cmd_ct;
         }
@@ -218,8 +215,8 @@ void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
         vtxOffset += cmdList->VtxBuffer.Size;
     }
 
-    for(size_t i = m_renderables.size(); i < cmd_ct; ++i) {
-        m_renderables[i]->render_node->setExecutionBypass(true);
+    for(size_t i = cmd_ct; i < per_frame->renderables.size(); ++i) {
+        per_frame->renderables[i]->setExecutionBypass(true);
     }
 
     //const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();

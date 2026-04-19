@@ -111,9 +111,9 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             renderable->render_node->addReadDependency(renderable->index_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getIndexBufferBindingName());
             renderable->render_node->addReadDependency(renderable->uniform_buffer, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER));
             renderable->render_node->addReadDependency(renderable->texture, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
-            renderable->render_node->addWriteDependency(swapchain_images[i], "resolve_attachment");
-            renderable->render_node->addWriteDependency(Application::GetRenderer().getOutColorImage(i), "color_attachment");
-            renderable->render_node->addWriteDependency(Application::GetRenderer().getOutDepthImage(i), "depth_attachment");
+            renderable->render_node->addWriteDependency(swapchain_images[frame], "resolve_attachment");
+            renderable->render_node->addWriteDependency(Application::GetRenderer().getOutColorImage(frame), "color_attachment");
+            renderable->render_node->addWriteDependency(Application::GetRenderer().getOutDepthImage(frame), "depth_attachment");
             renderable->render_node->finishRenderNode();
 
             m_renderables.push_back(renderable);
