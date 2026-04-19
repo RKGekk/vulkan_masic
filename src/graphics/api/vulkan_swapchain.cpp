@@ -104,6 +104,19 @@ bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr
     m_swapchain_images.resize(sz);
     for(size_t i = 0u; i < sz; ++i) {
         m_swapchain_images[i] = Application::GetRenderer().getResourcesManager()->create_image(swapchain_images[i], "swap_chain_"s + std::to_string(i), resource_type_name);
+
+#ifndef NDEBUG
+        std::string buffer_name = "image_"s + m_swapchain_images[i]->getName();
+        auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
+        VkDebugUtilsObjectNameInfoEXT name_info = {};
+        name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+        name_info.objectType = VK_OBJECT_TYPE_IMAGE;
+        name_info.objectHandle = (uint64_t)swapchain_images[i];
+        name_info.pObjectName = buffer_name.c_str();
+
+        vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
+#endif    
+
     }
 
     return true;

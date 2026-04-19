@@ -18,12 +18,13 @@ bool VulkanSampler::init(const VkSamplerCreateInfo& sampler_info) {
     }
 
 #ifndef NDEBUG
+    std::string sampler_name = "sampler_"s + m_name;
     auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
     VkDebugUtilsObjectNameInfoEXT name_info = {};
     name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
     name_info.objectType = VK_OBJECT_TYPE_SAMPLER;
     name_info.objectHandle = (uint64_t)m_sampler;
-    name_info.pObjectName = m_name.c_str();
+    name_info.pObjectName = sampler_name.c_str();
 
     vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
 #endif    

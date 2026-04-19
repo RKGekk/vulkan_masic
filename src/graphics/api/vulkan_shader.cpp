@@ -33,12 +33,13 @@ bool VulkanShader::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<Sh
     VkShaderModule shader_module = CreateShaderModule(shader_buff);
 
 #ifndef NDEBUG
+    std::string shader_name = "shader_"s + m_shader_signature->getName();
     auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
     VkDebugUtilsObjectNameInfoEXT name_info = {};
     name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
     name_info.objectType = VK_OBJECT_TYPE_SHADER_MODULE;
     name_info.objectHandle = (uint64_t)shader_module;
-    name_info.pObjectName = m_shader_signature->getName().c_str();
+    name_info.pObjectName = shader_name.c_str();
 
     vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
 #endif    

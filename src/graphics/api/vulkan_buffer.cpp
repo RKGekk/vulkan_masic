@@ -12,6 +12,8 @@ VulkanBuffer::VulkanBuffer(std::shared_ptr<VulkanDevice> device, std::string nam
 VulkanBuffer::VulkanBuffer(std::shared_ptr<VulkanDevice> device) : m_device(std::move(device)), m_name(std::to_string(rand())) {};
 
 bool VulkanBuffer::init(const void* data, std::shared_ptr<BufferConfig> buffer_config) {
+    using namespace std::literals;
+
     m_buffer_config = buffer_config;
 
     if (m_buffer_config->isSizeDynamic()) return true;
@@ -22,12 +24,13 @@ bool VulkanBuffer::init(const void* data, std::shared_ptr<BufferConfig> buffer_c
     }
 
 #ifndef NDEBUG
+    std::string buffer_name = "buffer_"s + m_name;
     auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
     VkDebugUtilsObjectNameInfoEXT name_info = {};
     name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
     name_info.objectType = VK_OBJECT_TYPE_BUFFER;
     name_info.objectHandle = (uint64_t)m_buffer;
-    name_info.pObjectName = m_name.c_str();
+    name_info.pObjectName = buffer_name.c_str();
 
     vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
 #endif    
@@ -61,6 +64,19 @@ bool VulkanBuffer::init(const void* data, std::shared_ptr<BufferConfig> buffer_c
         if(result != VK_SUCCESS) {
             throw std::runtime_error("failed to create texture image view!");
         }
+
+#ifndef NDEBUG
+        std::string buffer_view_name = "buffer_view_"s + view_type_name;
+        auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
+        VkDebugUtilsObjectNameInfoEXT name_info = {};
+        name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+        name_info.objectType = VK_OBJECT_TYPE_BUFFER_VIEW;
+        name_info.objectHandle = (uint64_t)m_buffer_view_map[view_type_name];
+        name_info.pObjectName = buffer_view_name.c_str();
+
+        vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
+#endif    
+
     }
     
     if(data) {

@@ -18,6 +18,8 @@
 #include <unordered_set>
 
 bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& pipeline_data, VkExtent2D viewport_extent, std::shared_ptr<VulkanRenderPass> render_pass, uint32_t subpass, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager) {
+    using namespace std::literals;
+    
     m_device = std::move(device);
     m_render_pass = std::move(render_pass);
 
@@ -116,12 +118,13 @@ bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_
     }
 
 #ifndef NDEBUG
+    std::string pipeline_name = "pipeline_"s + m_name;
     auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
     VkDebugUtilsObjectNameInfoEXT name_info = {};
     name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
     name_info.objectType = VK_OBJECT_TYPE_PIPELINE;
     name_info.objectHandle = (uint64_t)m_pipeline;
-    name_info.pObjectName = m_name.c_str();
+    name_info.pObjectName = pipeline_name.c_str();
 
     vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
 #endif

@@ -47,12 +47,13 @@ VkSemaphore VulkanSemaphoresManager::getSemaphore(const std::string& new_name) {
     }
 
 #ifndef NDEBUG
+    std::string semaphore_name = "sampler_"s + new_name;    
     auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
     VkDebugUtilsObjectNameInfoEXT name_info = {};
     name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
     name_info.objectType = VK_OBJECT_TYPE_SEMAPHORE;
     name_info.objectHandle = (uint64_t)semaphore;
-    name_info.pObjectName = new_name.c_str();
+    name_info.pObjectName = semaphore_name.c_str();
 
     vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
 #endif
