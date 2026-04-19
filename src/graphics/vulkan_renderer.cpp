@@ -96,7 +96,8 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
     m_pipelines_manager->init(m_device, "graphics_pipelines.xml"s);
 
     m_frame = 0u;
-    //m_prev_frame = 0u;
+    //m_prev_frame.push_back(m_swapchain->getMaxFrames() - 1u);
+    //m_prev_frame.push_back(0u);
 
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = m_swapchain->getSwapchainImages();
     int max_frames = m_swapchain->getMaxFrames();
@@ -298,10 +299,10 @@ std::pair<bool, uint32_t> VulkanRenderer::acquire_next_image() {
     }
 
     if(m_prev_frame.empty()) {
-        m_prev_frame.push_back(m_frame);
-        //m_prev_frame.push_back(m_swapchain->getMaxFrames() - 1u);
+        //m_prev_frame.push_back(m_frame);
+        m_prev_frame.push_back(m_swapchain->getMaxFrames() - 1u);
     }
-    if(m_prev_frame.back() != m_frame) {
+    else if(m_prev_frame.back() != m_frame) {
         m_prev_frame.push_back(m_frame);
     }
 
