@@ -1,17 +1,33 @@
 #include "vulkan_descriptor_allocator_page.h"
 
 #include "vulkan_device.h"
+#include "../../application.h"
+
+#include <numeric>
 
 bool DescriptorAllocatorPage::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<DescSetLayout> layout, VkDescriptorPoolCreateFlags flags, uint32_t num_descriptors_per_heap) {
+    using namespace std::literals;
+
     m_device = std::move(device);
     m_layout = std::move(layout);
     m_num_descriptors_per_heap = num_descriptors_per_heap;
 
     std::unordered_map<VkDescriptorType, size_t> types_map = getTypesCount();
+    size_t total_desc_in_one_layout = std::accumulate(
+        types_map.begin(),
+        types_map.end(),
+        (size_t)0u,
+        [](size_t sum, const auto& item){
+            auto const& [desc_type, ct] = item;
+            return sum + ct;
+        }
+    );
+
     for (const auto&[desc_type, ct] : types_map) {
+        float type_ct_part_in_total = ((float)ct) / ((float)total_desc_in_one_layout);
         VkDescriptorPoolSize pool_size{};
         pool_size.type = desc_type;
-        pool_size.descriptorCount = static_cast<uint32_t>(ct) * num_descriptors_per_heap;
+        pool_size.descriptorCount = static_cast<uint32_t>(ct) * static_cast<uint32_t>(type_ct_part_in_total * ((float)num_descriptors_per_heap));
         m_pool_sizes.push_back(pool_size);
     }
     
@@ -27,6 +43,19 @@ bool DescriptorAllocatorPage::init(std::shared_ptr<VulkanDevice> device, std::sh
         throw std::runtime_error("failed to create descriptor pool!");
     }
 
+#ifndef NDEBUG
+    std::string descset_alloc_name = "desc_pool_"s + m_layout->getAllocatorName();
+    auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
+    VkDebugUtilsObjectNameInfoEXT debug_name_info = {};
+    debug_name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+    debug_name_info.objectType = VK_OBJECT_TYPE_DESCRIPTOR_POOL;
+    debug_name_info.objectHandle = (uint64_t)m_descriptor_pool;
+    debug_name_info.pObjectName = descset_alloc_name.c_str();
+
+    vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &debug_name_info);
+#endif
+
+
     m_desc_sets.resize(num_descriptors_per_heap);
 
     std::vector<VkDescriptorSetLayout> layouts(num_descriptors_per_heap, m_layout->getDescriptorSetLayout());
@@ -40,6 +69,19 @@ bool DescriptorAllocatorPage::init(std::shared_ptr<VulkanDevice> device, std::sh
     if(result != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate descriptor sets!");
     }
+
+#ifndef NDEBUG
+    for(size_t desc_set_idx = 0u; desc_set_idx < num_descriptors_per_heap; ++desc_set_idx) {
+        std::string descset_name = "desc_set_"s + m_layout->getName() + "_"s + std::to_string(desc_set_idx) + "_from_"s + m_layout->getAllocatorName();
+        VkDebugUtilsObjectNameInfoEXT name_info = {};
+        name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+        name_info.objectType = VK_OBJECT_TYPE_DESCRIPTOR_SET;
+        name_info.objectHandle = (uint64_t)m_desc_sets[desc_set_idx];
+        name_info.pObjectName = descset_name.c_str();
+
+        vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
+    }
+#endif
 
     return true;
 }

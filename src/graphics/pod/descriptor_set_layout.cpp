@@ -2,6 +2,7 @@
 
 #include "../api/vulkan_device.h"
 #include "../api/vulkan_sampler.h"
+#include "../../application.h"
 
 bool DescSetLayout::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& descriptor_sets_node) {
     using namespace std::literals;
@@ -61,6 +62,18 @@ bool DescSetLayout::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_n
     if(result != VK_SUCCESS) {
         throw std::runtime_error("failed to create descriptor set layout!");
     }
+
+#ifndef NDEBUG
+    std::string descset_layout_name = "descset_layout_"s + m_name;
+    auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
+    VkDebugUtilsObjectNameInfoEXT name_info = {};
+    name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+    name_info.objectType = VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT;
+    name_info.objectHandle = (uint64_t)m_desc_layout;
+    name_info.pObjectName = descset_layout_name.c_str();
+
+    vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
+#endif
 
     return true;
 }

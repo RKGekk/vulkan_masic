@@ -93,21 +93,25 @@
     </Formats>
 
     <DescriptorAllocators>
+
         <DescriptorAllocator name="basic_alloc">
             <Flags>
                 <Flag>free_descriptor_set</Flag>
             </Flags>
             <PageSize>256</PageSize>
         </DescriptorAllocator>
+
         <DescriptorAllocator name="imgui_alloc">
             <Flags>
                 <Flag>free_descriptor_set</Flag>
             </Flags>
-            <PageSize>8</PageSize>
+            <PageSize>64</PageSize>
         </DescriptorAllocator>
+
     </DescriptorAllocators>
     
     <Descriptors>
+
         <DescriptorSet name="basic_diffuse_descriptor_set" allocator="basic_alloc">
             <Layout>
                 <LayoutBinding name="uniform">
@@ -149,6 +153,7 @@
                 </LayoutBinding>
             </Layout>
         </DescriptorSet>
+
     </Descriptors>
 
     <TypeOfResources>

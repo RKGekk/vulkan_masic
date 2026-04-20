@@ -22,12 +22,8 @@ bool VulkanDescriptorsManager::init(std::shared_ptr<VulkanDevice> device, const 
             std::shared_ptr<DescSetLayout> layout = std::make_shared<DescSetLayout>();
 			layout->init(m_device, descriptor_node);
             m_name_layout_map.insert({layout->getName(), layout});
-            if(!alloc_desc_layout_map.contains(layout->getAllocatorName())) {
-                alloc_desc_layout_map.insert({layout->getAllocatorName(), {std::move(layout)}});
-            }
-            else {
-                alloc_desc_layout_map[layout->getAllocatorName()].push_back(std::move(layout));
-            }
+            
+            alloc_desc_layout_map[layout->getAllocatorName()].push_back(std::move(layout));
 		}
 	}
 
