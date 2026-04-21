@@ -24,10 +24,14 @@ bool DescriptorAllocatorPage::init(std::shared_ptr<VulkanDevice> device, std::sh
     );
 
     for (const auto&[desc_type, ct] : types_map) {
-        float type_ct_part_in_total = ((float)ct) / ((float)total_desc_in_one_layout);
+        // float type_ct_part_in_total = ((float)ct) / ((float)total_desc_in_one_layout);
+        // VkDescriptorPoolSize pool_size{};
+        // pool_size.type = desc_type;
+        // pool_size.descriptorCount = static_cast<uint32_t>(ct) * static_cast<uint32_t>(type_ct_part_in_total * ((float)num_descriptors_per_heap));
+        // m_pool_sizes.push_back(pool_size);
         VkDescriptorPoolSize pool_size{};
         pool_size.type = desc_type;
-        pool_size.descriptorCount = static_cast<uint32_t>(ct) * static_cast<uint32_t>(type_ct_part_in_total * ((float)num_descriptors_per_heap));
+        pool_size.descriptorCount = static_cast<uint32_t>(ct) * num_descriptors_per_heap;
         m_pool_sizes.push_back(pool_size);
     }
     
