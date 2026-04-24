@@ -76,7 +76,8 @@ public:
 
     template <class ComponentType>
     std::weak_ptr<ComponentType> GetComponent(const char* name) {
-        unsigned int id = ActorComponent::GetIdFromName(name);
+        //unsigned int id = ActorComponent::GetIdFromName(name);
+        ComponentId id = static_cast<ComponentId>(std::hash<std::string>{}(name));
         auto findIt = m_components.find(id);
         if (findIt != m_components.end()) {
             StrongActorComponentPtr pBase(findIt->second);
@@ -91,7 +92,8 @@ public:
 
     template <class ComponentType>
     std::weak_ptr<ComponentType> GetComponent() {
-        unsigned int id = ActorComponent::GetIdFromName(ComponentType::g_name.c_str());
+        //unsigned int id = ActorComponent::GetIdFromName(ComponentType::g_name.c_str());
+        ComponentId id = static_cast<ComponentId>(std::hash<std::string>{}(ComponentType::g_name.c_str()));
         auto findIt = m_components.find(id);
         if (findIt != m_components.end()) {
             StrongActorComponentPtr pBase(findIt->second);

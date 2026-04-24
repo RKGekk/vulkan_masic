@@ -11,8 +11,8 @@ class EvtData_Restore_Window : public BaseEventData {
     ResizeEventArgs m_state;
 
 public:
-    static const EventTypeId sk_EventType = 0x0a6229aa;
-    static const std::string sk_EventName;
+    inline static const EventTypeId sk_EventType = 0x0a6229aa;
+    //inline static const std::string sk_EventName = "EvtData_Restore_Window";
 
     EvtData_Restore_Window();
     EvtData_Restore_Window(ResizeEventArgs e);
@@ -22,7 +22,7 @@ public:
     virtual void VSerialize(std::ostream& out) const override;
     virtual void VDeserialize(std::istream& in) override;
     virtual IEventDataPtr VCopy() const override;
-    virtual const std::string& GetName() const override;
+    //virtual const std::string& GetName() const override;
 
     // The new width of the window
     int GetWindowWidth() const;

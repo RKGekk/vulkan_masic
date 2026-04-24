@@ -23,7 +23,7 @@ void BoundingSphere::Transform(BoundingSphere& Out, const glm::mat4x4& M) const 
     Out.Center = glm::vec3(C);
 
     // Scale the radius of the pshere.
-    float Scale = std::sqrtf(d);
+    float Scale = std::sqrt(d);
     Out.Radius = Radius * Scale;
 }
 

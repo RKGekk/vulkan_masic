@@ -11,8 +11,8 @@ class EvtData_Sphere_Particle_Contact : public BaseEventData {
 	ActorId m_actorId_2;
 
 public:
-	static const EventTypeId sk_EventType = 0xbd210ebb;
-	static const std::string sk_EventName;
+	inline static const EventTypeId sk_EventType = 0xbd210ebb;
+	inline static const std::string sk_EventName = "EvtData_Sphere_Particle_Contact";
 
 	EvtData_Sphere_Particle_Contact();
 	explicit EvtData_Sphere_Particle_Contact(ActorId actorId_1, ActorId actorId_2);
@@ -21,7 +21,7 @@ public:
 	virtual EventTypeId VGetEventType() const override;
 	virtual IEventDataPtr VCopy() const override;
 	virtual void VSerialize(std::ostream& out) const override;
-	virtual const std::string& GetName() const override;
+	//virtual const std::string& GetName() const override;
 
 	const ActorId GetActorId1() const;
 	const ActorId GetActorId2() const;

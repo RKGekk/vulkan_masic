@@ -15,8 +15,8 @@ class EvtData_Destroy_Scene_Component : public BaseEventData {
     std::weak_ptr<SceneNode> m_pSceneNode;
 
 public:
-    static const EventTypeId sk_EventType = 0xd7a57113;
-    static const std::string sk_EventName;
+    inline static const EventTypeId sk_EventType = 0xd7a57113;
+    //inline static const std::string sk_EventName = "EvtData_Destroy_Scene_Component";
 
     EvtData_Destroy_Scene_Component();
     explicit EvtData_Destroy_Scene_Component(ActorId actorId, ComponentId componentId, std::weak_ptr<SceneNode> pSceneNode);
@@ -25,7 +25,7 @@ public:
     virtual void VDeserialize(std::istream& in) override;
     virtual EventTypeId VGetEventType() const override;
     virtual IEventDataPtr VCopy() const override;
-    virtual const std::string& GetName() const override;
+    //virtual const std::string& GetName() const override;
 
     ActorId GetActorId() const;
     ComponentId GetComponentId() const;

@@ -1,6 +1,6 @@
 #include "evt_data_mouse_motion.h"
 
-const std::string EvtData_Mouse_Motion::sk_EventName = "EvtData_Mouse_Motion";
+//const std::string EvtData_Mouse_Motion::sk_EventName = "EvtData_Mouse_Motion";
 
 EventTypeId EvtData_Mouse_Motion::VGetEventType() const {
     return sk_EventType;
@@ -20,9 +20,9 @@ IEventDataPtr EvtData_Mouse_Motion::VCopy() const {
     return IEventDataPtr(new EvtData_Mouse_Motion(m_state));
 }
 
-const std::string& EvtData_Mouse_Motion::GetName() const {
-    return sk_EventName;
-}
+// const std::string& EvtData_Mouse_Motion::GetName() const {
+//     return sk_EventName;
+// }
 
 bool EvtData_Mouse_Motion::GetLeftButton() const {
     return m_state.LeftButton;
@@ -67,7 +67,7 @@ int EvtData_Mouse_Motion::GetRelY() const {
 std::ostream& operator<<(std::ostream& os, const EvtData_Mouse_Motion& evt) {
     std::ios::fmtflags oldFlag = os.flags();
     os << "Event type id: " << evt.sk_EventType << std::endl;
-    os << "Event name: " << evt.sk_EventName << std::endl;
+    //os << "Event name: " << evt.sk_EventName << std::endl;
     os << "Event time stamp: " << evt.GetTimeStamp().time_since_epoch().count() << "ns" << std::endl;
     os << "Event left button pressed: " << evt.m_state.LeftButton << std::endl;
     os << "Event right button pressed: " << evt.m_state.RightButton << std::endl;

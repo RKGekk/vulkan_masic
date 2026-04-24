@@ -19,7 +19,7 @@
 
 #include <pugixml.hpp>
 
-#include "Actor.h"
+#include "actor.h"
 #include "actor_component.h"
 #include "../tools/generic_object_factory.h"
 #include "../tools/memory_utility.h"

@@ -1,6 +1,6 @@
 #include "evt_data_resize_window.h"
 
-const std::string EvtData_Resize_Window::sk_EventName = "EvtData_Resize_Window";
+//const std::string EvtData_Resize_Window::sk_EventName = "EvtData_Resize_Window";
 
 EventTypeId EvtData_Resize_Window::VGetEventType() const {
     return sk_EventType;
@@ -20,9 +20,9 @@ IEventDataPtr EvtData_Resize_Window::VCopy() const {
     return IEventDataPtr(new EvtData_Resize_Window(m_state));
 }
 
-const std::string& EvtData_Resize_Window::GetName() const {
-    return sk_EventName;
-}
+// const std::string& EvtData_Resize_Window::GetName() const {
+//     return sk_EventName;
+// }
 
 int EvtData_Resize_Window::GetWindowWidth() const {
     return m_state.Width;
@@ -39,7 +39,7 @@ WindowState EvtData_Resize_Window::GetWindowState() const {
 std::ostream& operator<<(std::ostream& os, const EvtData_Resize_Window& evt) {
     std::ios::fmtflags oldFlag = os.flags();
     os << "Event type id: " << evt.sk_EventType << std::endl;
-    os << "Event name: " << evt.sk_EventName << std::endl;
+    //os << "Event name: " << evt.sk_EventName << std::endl;
     os << "Event time stamp: " << evt.GetTimeStamp().time_since_epoch().count() << "ns" << std::endl;
     switch (evt.m_state.State) {
         case WindowState::Restored: os << "Event window state: restored" << std::endl; break;

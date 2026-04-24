@@ -4,41 +4,43 @@
 #include "mt_random.h"
 #include "chrono"
 
-std::wstring ConvertString(const std::string& string) {
-    static std::locale loc("");
-    auto& facet = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
-    return std::wstring_convert<std::remove_reference<decltype(facet)>::type, wchar_t>(&facet).from_bytes(string);
-}
+//#include <codecvt>
 
-std::string ConvertString(const std::wstring& wstring) {
-    static std::locale loc("");
-    auto& facet = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
-    return std::wstring_convert<std::remove_reference<decltype(facet)>::type, wchar_t>(&facet).to_bytes(wstring);
-}
+// std::wstring ConvertString(const std::string& string) {
+//     std::locale loc("");
+//     auto& facet = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
+//     return std::wstring_convert<std::remove_reference<decltype(facet)>::type, wchar_t>(&facet).from_bytes(string);
+// }
 
-std::wstring to_wstring(const std::string& s) {
-    return ConvertString(s);
-}
+// std::string ConvertString(const std::wstring& wstring) {
+//     std::locale loc("");
+//     auto& facet = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
+//     return std::wstring_convert<std::remove_reference<decltype(facet)>::type, wchar_t>(&facet).to_bytes(wstring);
+// }
 
-const std::wstring& to_wstring(const std::wstring& s) {
-    return s;
-}
+// std::wstring to_wstring(const std::string& s) {
+//     return ConvertString(s);
+// }
 
-std::wstring to_wstring(char c) {
-    return to_wstring(std::string(1, c));
-}
+// const std::wstring& to_wstring(const std::wstring& s) {
+//     return s;
+// }
 
-std::string w2s(const std::wstring& var) {
-	static std::locale loc("");
-	auto& facet = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
-	return std::wstring_convert<std::remove_reference<decltype(facet)>::type, wchar_t>(&facet).to_bytes(var);
-}
+// std::wstring to_wstring(char c) {
+//     return to_wstring(std::string(1, c));
+// }
 
-std::wstring s2w(const std::string& var) {
-	static std::locale loc("");
-	auto& facet = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
-	return std::wstring_convert<std::remove_reference<decltype(facet)>::type, wchar_t>(&facet).from_bytes(var);
-}
+// std::string w2s(const std::wstring& var) {
+// 	static std::locale loc("");
+// 	auto& facet = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
+// 	return std::wstring_convert<std::remove_reference<decltype(facet)>::type, wchar_t>(&facet).to_bytes(var);
+// }
+
+// std::wstring s2w(const std::string& var) {
+// 	static std::locale loc("");
+// 	auto& facet = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
+// 	return std::wstring_convert<std::remove_reference<decltype(facet)>::type, wchar_t>(&facet).from_bytes(var);
+// }
 
 std::string fixedfloat(float value, int precision) {
 	std::ostringstream strout;

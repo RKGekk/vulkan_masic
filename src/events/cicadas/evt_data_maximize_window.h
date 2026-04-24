@@ -3,8 +3,6 @@
 #include <iostream>
 #include <iomanip>
 
-#include <DirectXMath.h>
-
 #include "../base_event_data.h"
 #include "resize_event_args.h"
 #include "../../tools/string_tools.h"
@@ -13,8 +11,8 @@ class EvtData_Maximize_Window : public BaseEventData {
     ResizeEventArgs m_state;
 
 public:
-    static const EventTypeId sk_EventType = 0xe811911b;
-    static const std::string sk_EventName;
+    inline static const EventTypeId sk_EventType = 0xe811911b;
+    //inline static const std::string sk_EventName = "EvtData_Maximize_Window";
 
     EvtData_Maximize_Window();
     EvtData_Maximize_Window(ResizeEventArgs e);
@@ -24,7 +22,7 @@ public:
     virtual void VSerialize(std::ostream& out) const override;
     virtual void VDeserialize(std::istream& in) override;
     virtual IEventDataPtr VCopy() const override;
-    virtual const std::string& GetName() const override;
+    //virtual const std::string& GetName() const override;
 
     // The new width of the window
     int GetWindowWidth() const;

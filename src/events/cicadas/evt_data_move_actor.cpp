@@ -1,6 +1,6 @@
 #include "evt_data_move_actor.h"
 
-const std::string EvtData_Move_Actor::sk_EventName = "EvtData_Move_Actor";
+//const std::string EvtData_Move_Actor::sk_EventName = "EvtData_Move_Actor";
 
 EventTypeId EvtData_Move_Actor::VGetEventType() const {
     return sk_EventType;
@@ -38,9 +38,9 @@ IEventDataPtr EvtData_Move_Actor::VCopy() const {
     return IEventDataPtr(new EvtData_Move_Actor(m_id, m_matrix));
 }
 
-const std::string& EvtData_Move_Actor::GetName() const {
-    return sk_EventName;
-}
+// const std::string& EvtData_Move_Actor::GetName() const {
+//     return sk_EventName;
+// }
 
 ActorId EvtData_Move_Actor::GetId() const {
     return m_id;
@@ -53,7 +53,7 @@ const glm::mat4x4& EvtData_Move_Actor::GetMatrix() const {
 std::ostream& operator<<(std::ostream& os, const EvtData_Move_Actor& evt) {
     std::ios::fmtflags oldFlag = os.flags();
     os << "Event type id: " << evt.sk_EventType << std::endl;
-    os << "Event name: " << evt.sk_EventName << std::endl;
+    //os << "Event name: " << evt.sk_EventName << std::endl;
     os << "Event time stamp: " << evt.GetTimeStamp().time_since_epoch().count() << "ns" << std::endl;
     os << "Event actor id: " << evt.m_id << std::endl;
     os << "Event matrix: " << std::endl << evt.m_matrix << std::endl;

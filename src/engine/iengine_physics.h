@@ -3,8 +3,6 @@
 #include <vector>
 #include <memory>
 
-#include <DirectXMath.h>
-
 #include "../actors/actor.h"
 #include "../physics/particle.h"
 #include "../physics/particle_contact_generator.h"

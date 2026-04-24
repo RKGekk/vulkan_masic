@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <numeric>
 
-const std::string Scene::NO_NAME = "NO NAME";
+//const std::string Scene::NO_NAME = "NO NAME";
 const Material NO_MATERIAL = Material("NO MATERIAL");
 
 Scene::Scene() {

@@ -83,11 +83,11 @@ namespace opt {
 		template<typename T>
 		class optional_base : public optional_tag {
 		private:
-			using storage_type = typename std::aligned_storage<sizeof(T), alignof(T)>::type;
+			//using storage_type = typename std::aligned_storage<sizeof(T), alignof(T)>::type;
 			using this_type = optional_base<T>;
 
 			bool m_initialized;
-			storage_type m_storage;
+			alignas(T) std::byte m_storage[sizeof(T)];
 
 		protected:
 			using value_type = T;

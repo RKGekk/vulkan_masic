@@ -59,13 +59,13 @@ bool AnimationMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_inde
 						std::string rkf_name = "YPRc "s + std::to_string(ct);
 						if (ImGui::SliderFloat("R Time Point", ((float*)&rkf.TimePos), 0.0f, total_animation_time, "%.4f")) {}
 						glm::vec3 pyr = glm::eulerAngles(rkf.RotationQuat);
-						pyr.x = DirectX::XMConvertToDegrees(pyr.x);
-						pyr.y = DirectX::XMConvertToDegrees(pyr.y);
-						pyr.z = DirectX::XMConvertToDegrees(pyr.z);
+						pyr.x = glm::degrees(pyr.x);
+						pyr.y = glm::degrees(pyr.y);
+						pyr.z = glm::degrees(pyr.z);
 						if (ImGui::SliderFloat3(rkf_name.c_str(), ((float*)&pyr), -180.0f, 180.0f)) {
-							pyr.x = DirectX::XMConvertToRadians(pyr.x);
-							pyr.y = DirectX::XMConvertToRadians(pyr.y);
-							pyr.z = DirectX::XMConvertToRadians(pyr.z);
+							pyr.x = glm::radians(pyr.x);
+							pyr.y = glm::radians(pyr.y);
+							pyr.z = glm::radians(pyr.z);
 							rkf.RotationQuat = glm::eulerAngleXYZ(pyr.x, pyr.y, pyr.z);
 						}
 						++ct;

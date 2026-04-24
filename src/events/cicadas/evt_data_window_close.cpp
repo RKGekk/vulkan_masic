@@ -1,6 +1,6 @@
 #include "evt_data_window_close.h"
 
-const std::string EvtData_Window_Close::sk_EventName = "EvtData_Window_Close";
+//const std::string EvtData_Window_Close::sk_EventName = "EvtData_Window_Close";
 
 EventTypeId EvtData_Window_Close::VGetEventType() const {
     return sk_EventType;
@@ -20,9 +20,9 @@ IEventDataPtr EvtData_Window_Close::VCopy() const {
     return IEventDataPtr(new EvtData_Window_Close(m_window_name, m_confirm_close));
 }
 
-const std::string& EvtData_Window_Close::GetName() const {
-    return sk_EventName;
-}
+// const std::string& EvtData_Window_Close::GetName() const {
+//     return sk_EventName;
+// }
 
 bool EvtData_Window_Close::GetConfirmation() const {
     return m_confirm_close;
@@ -35,7 +35,7 @@ const std::string& EvtData_Window_Close::GetWindowName() {
 std::ostream& operator<<(std::ostream& os, const EvtData_Window_Close& evt) {
     std::ios::fmtflags oldFlag = os.flags();
     os << "Event type id: " << evt.sk_EventType << std::endl;
-    os << "Event name: " << evt.sk_EventName << std::endl;
+    //os << "Event name: " << evt.sk_EventName << std::endl;
     os << "Event time stamp: " << evt.GetTimeStamp().time_since_epoch().count() << "ns" << std::endl;
     os << "Event confirmation: " << evt.m_confirm_close << std::endl;
     os.flags(oldFlag);

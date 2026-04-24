@@ -34,7 +34,7 @@ void BoundingFrustum::Transform(BoundingFrustum& Out, const glm::mat4x4& M) cons
     float dZ = glm::dot(M[2], M[2]);
 
     float d = glm::max(dX, glm::max(dY, dZ));
-    float Scale = std::sqrtf(d);
+    float Scale = std::sqrt(d);
 
     Out.Near = Near * Scale;
     Out.Far = Far * Scale;

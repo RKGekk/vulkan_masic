@@ -43,8 +43,8 @@ public:
 	using PropertyIndex = uint32_t;
 	using Properties = std::unordered_map<NodeType, std::shared_ptr<SceneNode>>;
 
-    static const NodeIndex NO_INDEX = -1;
-	static const std::string NO_NAME;
+    inline static const NodeIndex NO_INDEX = -1;
+	inline static const std::string NO_NAME = "NO NAME";
 
 	struct Hierarchy {
 		NodeIndex parent = NO_INDEX;

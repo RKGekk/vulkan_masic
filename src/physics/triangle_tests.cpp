@@ -8,7 +8,7 @@ glm::vec4 PlaneTransform(const glm::vec4& Plane, const glm::quat& Rotation, cons
 }
 
 glm::vec4 PlaneNormalize(const glm::vec4& P) noexcept {
-    float fLengthSq = std::sqrtf((P.x * P.x) + (P.y * P.y) + (P.z * P.z));
+    float fLengthSq = std::sqrt((P.x * P.x) + (P.y * P.y) + (P.z * P.z));
     // Prevent divide by zero
     if (fLengthSq > 0.0f) {
         fLengthSq = 1.0f / fLengthSq;

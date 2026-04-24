@@ -22,8 +22,8 @@ class EvtData_Move_Actor : public BaseEventData {
     glm::mat4x4 m_matrix;
 
 public:
-    static const EventTypeId sk_EventType = 0xeeaa0a40;
-    static const std::string sk_EventName;
+    inline static const EventTypeId sk_EventType = 0xeeaa0a40;
+    //inline static const std::string sk_EventName = "EvtData_Move_Actor";
 
     EvtData_Move_Actor();
     EvtData_Move_Actor(ActorId id, const glm::mat4x4& matrix);
@@ -32,7 +32,7 @@ public:
     virtual void VSerialize(std::ostream& out) const override;
     virtual void VDeserialize(std::istream& in) override;
     virtual IEventDataPtr VCopy() const override;
-    virtual const std::string& GetName() const override;
+    //virtual const std::string& GetName() const override;
 
     ActorId GetId() const;
     const glm::mat4x4& GetMatrix() const;

@@ -12,8 +12,8 @@ class EvtData_Request_New_Actor : public BaseEventData {
 	ActorId m_serverActorId;
 
 public:
-	static const EventTypeId sk_EventType = 0x40378c64;
-	static const std::string sk_EventName;
+	inline static const EventTypeId sk_EventType = 0x40378c64;
+	//inline static const std::string sk_EventName = "EvtData_Request_New_Actor";
 
 	EvtData_Request_New_Actor();
 	explicit EvtData_Request_New_Actor(std::string actor_name, const ActorId serverActorId = 0);
@@ -22,7 +22,7 @@ public:
 	virtual void VDeserialize(std::istream& in) override;
 	virtual IEventDataPtr VCopy() const override;
 	virtual void VSerialize(std::ostream& out) const override;
-	virtual const std::string& GetName() const override;
+	//virtual const std::string& GetName() const override;
 
 	const std::string& GetActorName() const;
 	const ActorId GetServerActorId() const;

@@ -1,6 +1,6 @@
 #include "evt_data_mouse_button_pressed.h"
 
-const std::string EvtData_Mouse_Button_Pressed::sk_EventName = "EvtData_Mouse_Button_Pressed";
+//const std::string EvtData_Mouse_Button_Pressed::sk_EventName = "EvtData_Mouse_Button_Pressed";
 
 EventTypeId EvtData_Mouse_Button_Pressed::VGetEventType() const {
     return sk_EventType;
@@ -20,9 +20,9 @@ IEventDataPtr EvtData_Mouse_Button_Pressed::VCopy() const {
     return IEventDataPtr(new EvtData_Mouse_Button_Pressed(m_state));
 }
 
-const std::string& EvtData_Mouse_Button_Pressed::GetName() const {
-    return sk_EventName;
-}
+// const std::string& EvtData_Mouse_Button_Pressed::GetName() const {
+//     return sk_EventName;
+// }
 
 MouseButtonSide EvtData_Mouse_Button_Pressed::GetMouseButton() const {
     return m_state.Button;
@@ -69,7 +69,7 @@ int EvtData_Mouse_Button_Pressed::GetY() const {
 std::ostream& operator<<(std::ostream& os, const EvtData_Mouse_Button_Pressed& evt) {
     std::ios::fmtflags oldFlag = os.flags();
     os << "Event type id: " << evt.sk_EventType << std::endl;
-    os << "Event name: " << evt.sk_EventName << std::endl;
+    //os << "Event name: " << evt.sk_EventName << std::endl;
     os << "Event time stamp: " << evt.GetTimeStamp().time_since_epoch().count() << "ns" << std::endl;
     switch (evt.m_state.Button) {
         case MouseButtonSide::None: os << "Event button pressed: none" << std::endl; break;

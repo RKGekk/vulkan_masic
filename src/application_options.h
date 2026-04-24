@@ -7,7 +7,7 @@
 #include "engine/renderer_enum.h"
 
 struct ApplicationOptions {
-	Renderer Renderer = Renderer::Renderer_Vulkan;
+	Renderer Render = Renderer::Renderer_Vulkan;
     RendererColorSpace ColorSpace = RendererColorSpace::SRGB_NONLINEAR;
 	bool RunFullSpeed = false;
 	bool FullScreen = false;

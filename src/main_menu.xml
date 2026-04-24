@@ -23,7 +23,7 @@
         <Scale x="1.000000" y="1.000000" z="1.000000" />
       </TransformComponent>
       <ModelComponent>
-        <FilePath>objects\arrow.gltf</FilePath>
+        <FilePath>objects/arrow.gltf</FilePath>
       </ModelComponent>
     </Actor>
 
@@ -34,7 +34,7 @@
         <Scale x="1.000000" y="1.000000" z="1.000000" />
       </TransformComponent>
       <ModelComponent>
-        <FilePath>objects\cube.gltf</FilePath>
+        <FilePath>objects/cube.gltf</FilePath>
       </ModelComponent>
     </Actor>
 
@@ -45,7 +45,7 @@
         <Scale x="1.000000" y="1.000000" z="1.000000" />
       </TransformComponent>
       <ModelComponent>
-        <FilePath>objects\tank.gltf</FilePath>
+        <FilePath>objects/tank.gltf</FilePath>
       </ModelComponent>
     </Actor>
 

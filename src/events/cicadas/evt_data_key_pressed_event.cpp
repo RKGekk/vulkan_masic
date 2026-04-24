@@ -2,7 +2,7 @@
 
 #include "../../tools/memory_utility.h"
 
-const std::string EvtData_Key_Pressed_Event::sk_EventName = "EvtData_Key_Pressed_Event";
+//const std::string EvtData_Key_Pressed_Event::sk_EventName = "EvtData_Key_Pressed_Event";
 
 EventTypeId EvtData_Key_Pressed_Event::VGetEventType() const {
     return sk_EventType;
@@ -22,9 +22,9 @@ IEventDataPtr EvtData_Key_Pressed_Event::VCopy() const {
     return IEventDataPtr(new EvtData_Key_Pressed_Event(m_state));
 }
 
-const std::string& EvtData_Key_Pressed_Event::GetName() const {
-    return sk_EventName;
-}
+// const std::string& EvtData_Key_Pressed_Event::GetName() const {
+//     return sk_EventName;
+// }
 
 int EvtData_Key_Pressed_Event::GetNativeKey() const {
     return m_state.NativeKey;
@@ -57,7 +57,7 @@ bool EvtData_Key_Pressed_Event::GetAltButtonPressed() const {
 std::ostream& operator<<(std::ostream& os, const EvtData_Key_Pressed_Event& evt) {
     std::ios::fmtflags oldFlag = os.flags();
     os << "Event type id: " << evt.sk_EventType << std::endl;
-    os << "Event name: " << evt.sk_EventName << std::endl;
+    //os << "Event name: " << evt.sk_EventName << std::endl;
     os << "Event time stamp: " << evt.GetTimeStamp().time_since_epoch().count() << "ns" << std::endl;
     os << "Event key: " << to_underlying(evt.m_state.Key) << std::endl;
     os << "Event char: " << evt.m_state.Char << std::endl;

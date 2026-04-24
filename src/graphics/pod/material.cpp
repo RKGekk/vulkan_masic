@@ -2,15 +2,25 @@
 
 #include <utility>
 
+#if defined(_WIN32) || defined(_WIN64)
+    #include <malloc.h>
+    #define aligned_malloc(size, alignment) _aligned_malloc(size, alignment)
+    #define aligned_free(ptr) _aligned_free(ptr)
+#else
+    #include <stdlib.h>
+    #define aligned_malloc(size, alignment) aligned_alloc(alignment, size)
+    #define aligned_free(ptr) free(ptr)
+#endif
+
 static MaterialProperties* NewMaterialProperties(const MaterialProperties& props) {
-    MaterialProperties* material_properties = (MaterialProperties*)_aligned_malloc(sizeof(MaterialProperties), 16);
+    MaterialProperties* material_properties = (MaterialProperties*)aligned_malloc(sizeof(MaterialProperties), 16);
     *material_properties = props;
 
     return material_properties;
 }
 
 static void DeleteMaterialProperties(MaterialProperties* p) {
-    _aligned_free(p);
+    aligned_free(p);
 }
 
 Material::Material(std::string name, const MaterialProperties& material_properties) : m_name(std::move(name)), m_material_properties(NewMaterialProperties(material_properties), &DeleteMaterialProperties) {}

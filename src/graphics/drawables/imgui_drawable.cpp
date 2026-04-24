@@ -47,7 +47,7 @@ std::shared_ptr<VulkanImageBuffer> ImGUIDrawable::makeFontTexture(std::shared_pt
 
     std::shared_ptr<VulkanImageBuffer> font_texture = Application::GetRenderer().getResourcesManager()->create_image(pixels, {(uint32_t)width, (uint32_t)height}, TTF_font_file_name, "imgui_font_resource");
 
-    io.Fonts->TexID = 0u;
+    //io.Fonts->TexID = 0u;
     io.FontDefault = font;
 
     return font_texture;

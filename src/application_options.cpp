@@ -29,11 +29,11 @@ bool ApplicationOptions::Init(const std::string& xml_file_name) {
 		pugi::xml_node renderer_node = graphics_node.child("Renderer");
 		if (renderer_node) {
 			std::string sRenderer(renderer_node.first_child().value());
-			if (sRenderer == "Direct3D 11"s) Renderer = Renderer::Renderer_D3D11;
-			else if (sRenderer == "Direct3D 12"s) Renderer = Renderer::Renderer_D3D12;
-			else if (sRenderer == "Direct3D 9"s) Renderer = Renderer::Renderer_D3D9;
-			else if (sRenderer == "OpenGL"s) Renderer = Renderer::Renderer_OpenGL;
-			else if (sRenderer == "Vulkan"s) Renderer = Renderer::Renderer_Vulkan;
+			if (sRenderer == "Direct3D 11"s) Render = Renderer::Renderer_D3D11;
+			else if (sRenderer == "Direct3D 12"s) Render = Renderer::Renderer_D3D12;
+			else if (sRenderer == "Direct3D 9"s) Render = Renderer::Renderer_D3D9;
+			else if (sRenderer == "OpenGL"s) Render = Renderer::Renderer_OpenGL;
+			else if (sRenderer == "Vulkan"s) Render = Renderer::Renderer_Vulkan;
 		}
 
         pugi::xml_node color_space_node = graphics_node.child("ColorSpace");

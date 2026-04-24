@@ -8,7 +8,7 @@ typedef std::string Level;
 class LevelManager {
 public:
 	const std::vector<Level>& GetLevels() const {
-		return {};
+		return m_Levels;
 	};
 	const int GetCurrentLevel() const {
 		return 0;

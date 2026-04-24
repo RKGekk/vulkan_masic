@@ -1,7 +1,6 @@
 #pragma once
 
 #include <algorithm>
-#include <codecvt>
 #include <cstdint>
 #include <fstream>
 #include <iomanip>
@@ -37,15 +36,15 @@
 #pragma warning( push )
 #pragma warning( disable : 4996)
 
-std::string w2s(const std::wstring& var);
-std::wstring s2w(const std::string& var);
+// std::string w2s(const std::wstring& var);
+// std::wstring s2w(const std::string& var);
 
-std::wstring ConvertString(const std::string& string);
-std::string ConvertString(const std::wstring& wstring);
+// std::wstring ConvertString(const std::string& string);
+// std::string ConvertString(const std::wstring& wstring);
 
-std::wstring to_wstring(const std::string& s);
-const std::wstring& to_wstring(const std::wstring& s);
-std::wstring to_wstring(char c);
+// std::wstring to_wstring(const std::string& s);
+// const std::wstring& to_wstring(const std::wstring& s);
+// std::wstring to_wstring(char c);
 
 #pragma warning( pop )
 

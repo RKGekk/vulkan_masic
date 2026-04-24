@@ -3,8 +3,6 @@
 #include <iostream>
 #include <iomanip>
 
-#include <DirectXMath.h>
-
 #include "../base_event_data.h"
 #include "../../tools/string_tools.h"
 #include "mouse_motion_event_args.h"
@@ -13,8 +11,8 @@ class EvtData_Mouse_Motion : public BaseEventData {
     MouseMotionEventArgs m_state;
 
 public:
-    static const EventTypeId sk_EventType = 0xf612a105;
-    static const std::string sk_EventName;
+    inline static const EventTypeId sk_EventType = 0xf612a105;
+    //inline static const std::string sk_EventName = "EvtData_Mouse_Motion";
 
     EvtData_Mouse_Motion();
     EvtData_Mouse_Motion(MouseMotionEventArgs e);
@@ -24,7 +22,7 @@ public:
     virtual void VSerialize(std::ostream& out) const override;
     virtual void VDeserialize(std::istream& in) override;
     virtual IEventDataPtr VCopy() const override;
-    virtual const std::string& GetName() const override;
+    //virtual const std::string& GetName() const override;
 
     // Is the left mouse button down?
     bool GetLeftButton() const;

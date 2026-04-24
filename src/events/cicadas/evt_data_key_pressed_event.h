@@ -11,8 +11,8 @@ class EvtData_Key_Pressed_Event : public BaseEventData {
     KeyEventArgs m_state;
 
 public:
-    static const EventTypeId sk_EventType = 0x57dbe096;
-    static const std::string sk_EventName;
+    inline static const EventTypeId sk_EventType = 0x57dbe096;
+    //inline static const std::string sk_EventName = "EvtData_Key_Pressed_Event";
 
     EvtData_Key_Pressed_Event();
     EvtData_Key_Pressed_Event(KeyEventArgs e);
@@ -22,7 +22,7 @@ public:
     virtual void VSerialize(std::ostream& out) const override;
     virtual void VDeserialize(std::istream& in) override;
     virtual IEventDataPtr VCopy() const override;
-    virtual const std::string& GetName() const override;
+    //virtual const std::string& GetName() const override;
 
     int GetNativeKey() const;
 

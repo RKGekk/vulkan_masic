@@ -33,7 +33,7 @@ bool ActorMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index) {
     		std::shared_ptr<BaseEngineLogic> game_logic = app.GetGameLogic();
             std::shared_ptr<Actor> act = game_logic->VGetActor(m_actor_id).lock();
 			if (act) {
-				ImGui::Text(act->GetName().c_str());
+				ImGui::Text("%s", act->GetName().c_str());
 				std::shared_ptr<TransformComponent> tc = act->GetComponent<TransformComponent>().lock();
 				if (tc) {
 					ImGui::SeparatorText("TransformComponent");
@@ -81,7 +81,7 @@ bool ActorMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index) {
 					ImGui::SeparatorText("ModelComponent");
 
 					const std::string& resource_name = mc->GetResourceName();
-					ImGui::Text(resource_name.c_str());
+					ImGui::Text("%s", resource_name.c_str());
 				}
 			}
 			

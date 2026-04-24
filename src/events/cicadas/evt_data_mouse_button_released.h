@@ -11,8 +11,8 @@ class EvtData_Mouse_Button_Released : public BaseEventData {
     MBEventArgs m_state;
 
 public:
-    static const EventTypeId sk_EventType = 0x90e19bfd;
-    static const std::string sk_EventName;
+    inline static const EventTypeId sk_EventType = 0x90e19bfd;
+    //inline static const std::string sk_EventName = "EvtData_Mouse_Button_Released";
 
     EvtData_Mouse_Button_Released();
     EvtData_Mouse_Button_Released(MBEventArgs e);
@@ -22,7 +22,7 @@ public:
     virtual void VSerialize(std::ostream& out) const override;
     virtual void VDeserialize(std::istream& in) override;
     virtual IEventDataPtr VCopy() const override;
-    virtual const std::string& GetName() const override;
+    //virtual const std::string& GetName() const override;
 
     // The mouse button that was pressed or released.
     MouseButtonSide GetMouseButton() const;

@@ -122,10 +122,10 @@ struct BoundingFrustum {
     
     ContainmentType Contains(const glm::vec3& Point) const noexcept;
     ContainmentType Contains(const glm::vec3& V0, const glm::vec3& V1, const glm::vec3& V2) const noexcept;
-    ContainmentType Contains(_In_ const BoundingSphere& sp) const noexcept;
-    ContainmentType Contains(_In_ const BoundingBox& box) const noexcept;
-    ContainmentType Contains(_In_ const BoundingOrientedBox& box) const noexcept;
-    ContainmentType Contains(_In_ const BoundingFrustum& fr) const noexcept;
+    ContainmentType Contains(const BoundingSphere& sp) const noexcept;
+    ContainmentType Contains(const BoundingBox& box) const noexcept;
+    ContainmentType Contains(const BoundingOrientedBox& box) const noexcept;
+    ContainmentType Contains(const BoundingFrustum& fr) const noexcept;
     // Frustum-Frustum test
 
     bool Intersects(const BoundingSphere& sh) const noexcept;

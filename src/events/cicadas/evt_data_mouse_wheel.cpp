@@ -1,6 +1,6 @@
 #include "evt_data_mouse_wheel.h"
 
-const std::string EvtData_Mouse_Wheel::sk_EventName = "EvtData_Mouse_Wheel";
+//const std::string EvtData_Mouse_Wheel::sk_EventName = "EvtData_Mouse_Wheel";
 
 EventTypeId EvtData_Mouse_Wheel::VGetEventType() const {
     return sk_EventType;
@@ -20,9 +20,9 @@ IEventDataPtr EvtData_Mouse_Wheel::VCopy() const {
     return IEventDataPtr(new EvtData_Mouse_Wheel(m_stat));
 }
 
-const std::string& EvtData_Mouse_Wheel::GetName() const {
-    return sk_EventName;
-}
+// const std::string& EvtData_Mouse_Wheel::GetName() const {
+//     return sk_EventName;
+// }
 
 float EvtData_Mouse_Wheel::GetWheelDelta() const {
     return m_stat.WheelDelta;
@@ -63,7 +63,7 @@ int EvtData_Mouse_Wheel::GetY() const {
 std::ostream& operator<<(std::ostream& os, const EvtData_Mouse_Wheel& evt) {
     std::ios::fmtflags oldFlag = os.flags();
     os << "Event type id: " << evt.sk_EventType << std::endl;
-    os << "Event name: " << evt.sk_EventName << std::endl;
+    //os << "Event name: " << evt.sk_EventName << std::endl;
     os << "Event time stamp: " << evt.GetTimeStamp().time_since_epoch().count() << "ns" << std::endl;
     os << "Event wheel delta: " << evt.m_stat.WheelDelta << std::endl;
     os << "Event left button pressed: " << evt.m_stat.LeftButton << std::endl;

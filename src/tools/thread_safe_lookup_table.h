@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <list>
 #include <memory>
 #include <map>
@@ -45,7 +46,7 @@ public:
         }
         std::map<KeyType, ValueType> res;
         for(unsigned i = 0; i < sz; ++i) {
-            const bucket_type::bucke_data& bucket_data = m_buckets[i]->get_data();
+            const typename bucket_type::bucke_data& bucket_data = m_buckets[i]->get_data();
             for(auto it = bucket_data.cbegin(); it != bucket_data.cend(); ++it) {
                 res.insert(*it);
             }
@@ -62,7 +63,7 @@ public:
         std::unordered_map<KeyType, ValueType> res;
         res.reserve(sz);
         for(unsigned i = 0; i < sz; ++i) {
-            const bucket_type::bucke_data& bucket_data = m_buckets[i]->get_data();
+            const typename bucket_type::bucke_data& bucket_data = m_buckets[i]->get_data();
             for(auto it = bucket_data.cbegin(); it != bucket_data.cend(); ++it) {
                 res.insert(*it);
             }

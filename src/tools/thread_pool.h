@@ -93,17 +93,17 @@ public:
         m_work_queue.Push(std::function<void()>(fn));
     }
 
-    template<typename FunctionType>
-    using submit_result_type = std::invoke_result<FunctionType()>::type;
+    // template<typename FunctionType>
+    // using submit_result_type = std::invoke_result<FunctionType()>::type;
 
-    template<typename FunctionType>
-    std::future<submit_result_type<FunctionType>> SubmitAsync(FunctionType f) {
-        submit_result_type<FunctionType> result_type;
-        std::packaged_task<result_type()> task(std::move(f));
-        std::future<result_type> res(task.get_future());
-        m_work_queue.Push(std::move(task));
-        return res;
-    }
+    // template<typename FunctionType>
+    // std::future<submit_result_type<FunctionType>> SubmitAsync(FunctionType f) {
+    //     submit_result_type<FunctionType> result_type;
+    //     std::packaged_task<result_type()> task(std::move(f));
+    //     std::future<result_type> res(task.get_future());
+    //     m_work_queue.Push(std::move(task));
+    //     return res;
+    // }
 
 private:
     std::atomic_bool m_done;

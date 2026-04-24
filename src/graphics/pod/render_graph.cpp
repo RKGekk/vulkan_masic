@@ -270,13 +270,13 @@ RenderGraph::RenderNodePtr RenderGraph::getLastWritten(const RenderNodePtr& rend
 }
 
 size_t RenderGraph::getLastWrittenIdentity(const RenderNodePtr& render_node, const std::string& global_resource_name) const {
-    int current_idx = NO_ID;
-    int my_render_node_pos = m_render_node_sort_idx.at(render_node);
+    size_t current_idx = NO_ID;
+    size_t my_render_node_pos = m_render_node_sort_idx.at(render_node);
 
     for(const std::shared_ptr<RenderNode>& write_node : m_written_map.at(global_resource_name)) {
-        int write_node_idx = m_render_node_sort_idx.at(write_node);
-        int distance_to_my = write_node_idx - my_render_node_pos;
-        int distance_to_current = write_node_idx - current_idx;
+        size_t write_node_idx = m_render_node_sort_idx.at(write_node);
+        size_t distance_to_my = write_node_idx - my_render_node_pos;
+        size_t distance_to_current = write_node_idx - current_idx;
         if(distance_to_my >= 0 && distance_to_current > distance_to_my) {
             current_idx = write_node_idx;
         }
@@ -304,13 +304,13 @@ RenderGraph::RenderNodePtr RenderGraph::getLastRead(const RenderNodePtr& render_
 }
 
 size_t RenderGraph::getLastReadIdentity(const RenderNodePtr& render_node, const std::string& global_resource_name) const {
-    int current_idx = NO_ID;
-    int my_render_node_pos = m_render_node_sort_idx.at(render_node);
+    size_t current_idx = NO_ID;
+    size_t my_render_node_pos = m_render_node_sort_idx.at(render_node);
 
     for(const std::shared_ptr<RenderNode>& read_node : m_read_map.at(global_resource_name)) {
-        int write_node_idx = m_render_node_sort_idx.at(read_node);
-        int distance_to_my = write_node_idx - my_render_node_pos;
-        int distance_to_current = write_node_idx - current_idx;
+        size_t write_node_idx = m_render_node_sort_idx.at(read_node);
+        size_t distance_to_my = write_node_idx - my_render_node_pos;
+        size_t distance_to_current = write_node_idx - current_idx;
         if(distance_to_my >= 0 && distance_to_current > distance_to_my) {
             current_idx = write_node_idx;
         }

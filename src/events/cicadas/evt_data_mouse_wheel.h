@@ -11,8 +11,8 @@ class EvtData_Mouse_Wheel : public BaseEventData {
     MouseWheelEventArgs m_stat;
 
 public:
-    static const EventTypeId sk_EventType = 0xc368f0fd;
-    static const std::string sk_EventName;
+    inline static const EventTypeId sk_EventType = 0xc368f0fd;
+    //inline static const std::string sk_EventName = "EvtData_Mouse_Wheel";
 
     EvtData_Mouse_Wheel();
     EvtData_Mouse_Wheel(MouseWheelEventArgs e);
@@ -22,7 +22,7 @@ public:
     virtual void VSerialize(std::ostream& out) const override;
     virtual void VDeserialize(std::istream& in) override;
     virtual IEventDataPtr VCopy() const override;
-    virtual const std::string& GetName() const override;
+    //virtual const std::string& GetName() const override;
 
     // How much the mouse wheel has moved. A positive value indicates that the wheel was moved to the right. A negative value indicates the wheel was moved to the left.
     float GetWheelDelta() const;

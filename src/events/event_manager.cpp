@@ -147,7 +147,8 @@ std::ostream& operator<<(std::ostream& os, const EventManager& mgr) {
 	for (const auto& currentQueue : mgr.m_queues) {
 		std::cout << queueCounter++ << ") queue ->" << std::endl;
 		for (const auto& currentEvent : currentQueue) {
-			std::cout << "\t" << ++eventCounter << ") event id: " << currentEvent->VGetEventType() << " with name: " << currentEvent->GetName() << std::endl;
+			//std::cout << "\t" << ++eventCounter << ") event id: " << currentEvent->VGetEventType() << " with name: " << currentEvent->GetName() << std::endl;
+			std::cout << "\t" << ++eventCounter << ") event id: " << currentEvent->VGetEventType() << std::endl;
 		}
 	}
 

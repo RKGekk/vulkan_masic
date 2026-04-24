@@ -1,6 +1,6 @@
 #include "evt_data_sphere_particle_contact.h"
 
-const std::string EvtData_Sphere_Particle_Contact::sk_EventName = "EvtData_Sphere_Particle_Contact";
+//const std::string EvtData_Sphere_Particle_Contact::sk_EventName = "EvtData_Sphere_Particle_Contact";
 
 EvtData_Sphere_Particle_Contact::EvtData_Sphere_Particle_Contact() {
 	m_actorId_1 = 0;
@@ -30,9 +30,9 @@ void EvtData_Sphere_Particle_Contact::VSerialize(std::ostream& out) const {
 	out << m_actorId_2 << " ";
 }
 
-const std::string& EvtData_Sphere_Particle_Contact::GetName() const {
-	return sk_EventName;
-}
+// const std::string& EvtData_Sphere_Particle_Contact::GetName() const {
+// 	return sk_EventName;
+// }
 
 const ActorId EvtData_Sphere_Particle_Contact::GetActorId1() const {
 	return m_actorId_1;

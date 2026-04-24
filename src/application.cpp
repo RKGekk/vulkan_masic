@@ -80,13 +80,19 @@ bool Application::Initialize(ApplicationOptions opt) {
         return false;
     }
     
-    m_vulkan_instance.init("Masic"s);
+    if(!m_vulkan_instance.init("Masic"s)) {
+        return false;
+    }
     m_surface = VulkanSwapChain::createSurface(m_vulkan_instance.getInstance(), m_window->GetWindow());
 
     m_vulkan_device = std::make_shared<VulkanDevice>();
-    m_vulkan_device->init(m_vulkan_instance, m_surface, m_thread_pool);
+    if(!m_vulkan_device->init(m_vulkan_instance, m_surface, m_thread_pool)) {
+        return false;
+    }
 
-    m_renderer.init(m_vulkan_device, m_window, m_thread_pool);
+    if(!m_renderer.init(m_vulkan_device, m_window, m_thread_pool)) {
+        return false;
+    }
 
     VRegisterEvents();
     RegisterAllDelegates();

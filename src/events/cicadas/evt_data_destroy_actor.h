@@ -10,8 +10,8 @@ class EvtData_Destroy_Actor : public BaseEventData {
     ActorId m_id;
 
 public:
-    static const EventTypeId sk_EventType = 0x77dd2b3a;
-    static const std::string sk_EventName;
+    inline static const EventTypeId sk_EventType = 0x77dd2b3a;
+    //inline static const std::string sk_EventName = "EvtData_Destroy_Actor";
 
     explicit EvtData_Destroy_Actor(ActorId id = 0);
 
@@ -19,7 +19,7 @@ public:
     virtual void VSerialize(std::ostream& out) const override;
     virtual void VDeserialize(std::istream& in) override;
     virtual IEventDataPtr VCopy() const override;
-    virtual const std::string& GetName() const override;
+    //virtual const std::string& GetName() const override;
 
     ActorId GetId() const;
 
