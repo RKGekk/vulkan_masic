@@ -61,6 +61,9 @@ void WindowSurface::Hide() {
 }
 
 bool WindowSurface::ProcessMessages() {
+    /* needed for Wayland - BEFORE event polling */
+    glfwSwapBuffers(m_window);
+
     glfwPollEvents();
     return glfwWindowShouldClose(m_window);
 }
@@ -91,6 +94,9 @@ bool WindowSurface::Initialize(const ApplicationOptions& cfg) {
     if(!m_window) {
         return false;
     }
+
+    /* needed for Wayland to show window */
+    glfwMakeContextCurrent(m_window);
 
     float xscale;
     float yscale;
