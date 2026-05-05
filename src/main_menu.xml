@@ -14,6 +14,7 @@
         <Near>1.0</Near>
         <Far>11.0</Far>
       </CameraComponent>
+
     </Actor>
 
     <Actor name="arrow1">
@@ -25,6 +26,7 @@
       <ModelComponent>
         <FilePath>objects/arrow.gltf</FilePath>
       </ModelComponent>
+      <CoordArrowComponent/>
     </Actor>
 
     <Actor name="cube1">

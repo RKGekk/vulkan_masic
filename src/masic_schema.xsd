@@ -2192,6 +2192,7 @@
             </xs:element>
         </xs:sequence>
         <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+        <xs:attribute name="priority" type="xs:unsignedInt" use="required"></xs:attribute>
     </xs:complexType>
 
     <xs:complexType name="PresentRenderNodeComplexType">
@@ -2545,6 +2546,7 @@
                                                 </xs:sequence>
                                             </xs:complexType>
                                         </xs:element>
+                                        <xs:element name="CoordArrowComponent" minOccurs="0" maxOccurs="1"></xs:element>
                                     </xs:sequence>
                                     <xs:attribute name="name" type="xs:string"></xs:attribute>
                                 </xs:complexType>

@@ -29,6 +29,7 @@ public:
 	bool init(std::shared_ptr<VulkanDevice> device, const std::shared_ptr<WindowSurface>& window);
     void destroy();
 
+	bool hasGraphicsRenderNodeConfig(const std::string& config_name) const;
 	const std::shared_ptr<GraphicsRenderNodeConfig>& getGraphicsRenderNodeConfig(const std::string& config_name) const;
 	std::shared_ptr<GraphicsRenderNodeConfig> makeGraphicsRenderNodeCfgInstance(const std::string& config_name, const std::string& config_extension);
 

@@ -88,6 +88,10 @@ bool WindowSurface::Initialize(const ApplicationOptions& cfg) {
     m_client_height_px = cfg.ScreenHeight;
     m_is_fullscreen = cfg.FullScreen;
 
+    if (!glfwVulkanSupported()) {
+        return false;
+    }
+
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     m_window = glfwCreateWindow(m_client_width_px, m_client_height_px, m_title.c_str(), nullptr, nullptr);
@@ -97,6 +101,7 @@ bool WindowSurface::Initialize(const ApplicationOptions& cfg) {
 
     /* needed for Wayland to show window */
     glfwMakeContextCurrent(m_window);
+    //glfwSwapInterval(1);
 
     float xscale;
     float yscale;
@@ -104,6 +109,7 @@ bool WindowSurface::Initialize(const ApplicationOptions& cfg) {
     m_dpi_scaling = xscale;
 
     glfwSetInputMode(m_window, GLFW_LOCK_KEY_MODS, GLFW_TRUE);
+    //glfwSetWindowUserPointer(m_window, &Application::Get());
 
     VRegisterEvents();
 

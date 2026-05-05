@@ -151,8 +151,12 @@ const std::shared_ptr<VulkanPipeline>& GraphicsRenderNode::getPipeline() {
     return m_pipeline;
 }
 
-VkFramebuffer GraphicsRenderNode::getFramebuffer() const {
+VkFramebuffer GraphicsRenderNode::getVkFramebuffer() const {
     return m_frame_buffer->getFramebuffer();
+}
+
+const std::shared_ptr<VulkanFramebuffer>& GraphicsRenderNode::getFB() const {
+    return m_frame_buffer;
 }
 
 const std::unordered_map<uint32_t, std::shared_ptr<VulkanDescriptor>>& GraphicsRenderNode::getDescriptors() const {

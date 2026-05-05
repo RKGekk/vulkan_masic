@@ -3,47 +3,6 @@
 #include "../api/vulkan_device.h"
 #include "../../tools/string_tools.h"
 
-std::vector<char> getDataFromXmlValue(pugi::xml_node value_data, VkFormat value_format) {
-    std::vector<char> data;
-
-    size_t bytes_count = VulkanDevice::getBytesCount(value_format);
-    size_t num_components = VulkanDevice::getNumComponents(value_format);
-    VulkanDevice::VulkanFormatComponentType component_type = VulkanDevice::getComponentType(value_format);
-
-    if(bytes_count == 1) {
-        char value = value_data.text().as_uint();
-        data.resize(4);
-        *(char*)(data.data()) = value;
-    }
-    else if(bytes_count == 2) {
-        uint16_t value = value_data.text().as_uint();
-        data.resize(4);
-        *(uint16_t*)(data.data()) = value;
-    }
-    else if(bytes_count == 3) {
-        
-    }
-    else if(bytes_count == 4) {
-        uint32_t value = value_data.text().as_float();
-        data.resize(4);
-        *(uint32_t*)(data.data()) = value;
-    }
-    else if(bytes_count == 6) {
-        
-    }
-    else if(bytes_count == 8) {
-        
-    }
-    else if(bytes_count == 12) {
-        
-    }
-    else if(bytes_count == 16) {
-        
-    }
-
-    return data;
-}
-
 bool ShaderSignature::init(const pugi::xml_node& shader_data) {
     using namespace std::literals;
 
@@ -99,7 +58,7 @@ bool ShaderSignature::init(const pugi::xml_node& shader_data) {
                 int num = attribute_node.child("Semantic").attribute("num").as_int(0);
                 VertexAttributeSemantic semantic = getVertexAttributeSemantic(attribute_node.child("Semantic").text().as_string());
                 std::string name = attribute_node.attribute("name").as_string();
-                vf.setVertexAttribute({semantic, num}, attr_glsl_format, attr_format, location);
+                vf.setVertexAttribute({semantic, num}, attr_glsl_format, attr_format, location, name);
             }
             m_input_attributes.push_back(std::move(vf));
 		}
@@ -137,14 +96,20 @@ bool ShaderSignature::init(const pugi::xml_node& shader_data) {
             map_entry.offset = offset;
 
             VkFormat vk_format = getFormat(constant_node.child("InternalFormat").text().as_string());
+            VertexAttributeGLSLFormat glsl_format = getInputAttributeGLSLFormat(constant_node.child("GLSLFormat").text().as_string());
             size_t bytes_for_type = VulkanDevice::getBytesCount(vk_format);
             map_entry.size = bytes_for_type;
 
             offset += bytes_for_type;
-            
 			m_specialization_constants.push_back(map_entry);
 
-            std::vector<char> data = getDataFromXmlValue(constant_node.child("Value"), vk_format);
+            std::vector<char> data;
+            if(glsl_format == VertexAttributeGLSLFormat::BOOL) {
+                VkBool32 value = ntobool(constant_node.child("Value"));
+                data.resize(sizeof(VkBool32));
+                *(VkBool32*)(data.data()) = value;
+            }
+
             m_specialization_constants_data.insert(m_specialization_constants_data.end(), data.begin(), data.end());
 		}
         m_specialization_info = VkSpecializationInfo{};

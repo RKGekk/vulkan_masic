@@ -203,6 +203,7 @@ bool VulkanImageBuffer::init(const std::shared_ptr<ImageBufferConfig>& image_buf
     int tex_width;
     int tex_height;
     int tex_channels;
+    //stbi_set_flip_vertically_on_load(true);
     stbi_uc* pixels = stbi_load(path_to_file.c_str(), &tex_width, &tex_height, &tex_channels, STBI_rgb_alpha);
     if (!pixels) {
         throw std::runtime_error("failed to load texture image!");
@@ -331,6 +332,7 @@ bool VulkanImageBuffer::init(std::shared_ptr<CommandBatch>& command_buffer, cons
     int tex_width;
     int tex_height;
     int tex_channels;
+    //stbi_set_flip_vertically_on_load(true);
     stbi_uc* pixels = stbi_load(path_to_file.c_str(), &tex_width, &tex_height, &tex_channels, STBI_rgb_alpha);
     if (!pixels) {
         throw std::runtime_error("failed to load texture image!");

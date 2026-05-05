@@ -25,6 +25,7 @@ public:
     const std::shared_ptr<FramebufferConfig>& getFramebufferConfig() const;
     const std::vector<VkImageView>& getFramebufferAttachments() const;
     const VkFramebufferCreateInfo& getFramebufferInfo() const;
+    const std::shared_ptr<VulkanRenderPass>& getRenderpass() const;
 
 private:
     std::vector<VkImageView> getAttachments(std::function<const std::shared_ptr<RenderResource>&(const LocalName&)> attach_map) const;

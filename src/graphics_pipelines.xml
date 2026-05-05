@@ -112,6 +112,19 @@
     
     <Descriptors>
 
+        <DescriptorSet name="basic_mvp_descriptor_set" allocator="basic_alloc">
+            <Layout>
+                <LayoutBinding name="uniform">
+                    <Binding>0</Binding>
+                    <DescriptorType>uniform_buffer</DescriptorType>
+                    <DescriptorCount>1</DescriptorCount>
+                    <ShaderStageFlags>
+                        <Flag>vertex</Flag>
+                    </ShaderStageFlags>
+                </LayoutBinding>
+            </Layout>
+        </DescriptorSet>
+
         <DescriptorSet name="basic_diffuse_descriptor_set" allocator="basic_alloc">
             <Layout>
                 <LayoutBinding name="uniform">
@@ -429,6 +442,53 @@
     </TypeOfResources>
 
     <Shaders>
+        <Shader name="basic_color_vertex_shader">
+            <FilePath file_name="color.vert"></FilePath>
+            <EntryPointName>main</EntryPointName>
+            <Stage>vertex</Stage>
+            <InputAttributeDescription>
+                <Binding
+                    num="0"
+                    vertex_buffer_bind_name="basic_color_vertex_buffer"
+                    index_buffer_bind_name="basic_color_index_buffer"
+                    input_rate="vertex"
+                    vertex_buffer_resource_type="basic_vertex_resource"
+                    index_buffer_resource_type="basic_index_resource"
+                    index_type="uint32"
+                >
+                    <Attribute name="inPosition">
+                        <Location>0</Location>
+                        <GLSLFormat>vec3</GLSLFormat>
+                        <InternalFormat>r32g32b32_sfloat</InternalFormat>
+                        <Semantic num="0">POSITION</Semantic>
+                    </Attribute>
+                    <Attribute name="inColor">
+                        <Location>1</Location>
+                        <GLSLFormat>vec3</GLSLFormat>
+                        <InternalFormat>r32g32b32_sfloat</InternalFormat>
+                        <Semantic num="0">COLOR</Semantic>
+                    </Attribute>
+                </Binding>
+            </InputAttributeDescription>
+            <DescriptorSet>
+                <Set slot="0">basic_mvp_descriptor_set</Set>
+            </DescriptorSet>
+        </Shader>
+        
+        <Shader name="basic_color_pixel_shader">
+            <FilePath file_name="color.frag"></FilePath>
+            <EntryPointName>main</EntryPointName>
+            <Stage>fragment</Stage>
+            <SpecializationConstants>
+                <Constant name="kNonLinearColorSpace">
+                    <ConstantID>0</ConstantID>
+                    <GLSLFormat>bool</GLSLFormat>
+                    <InternalFormat>r8g8b8a8_uint</InternalFormat>
+                    <Value>true</Value>
+                </Constant>
+            </SpecializationConstants>
+        </Shader>
+
         <Shader name="basic_diffuse_vertex_shader">
             <FilePath file_name="shader.vert"></FilePath>
             <EntryPointName>main</EntryPointName>
@@ -527,7 +587,7 @@
 
     <RenderPases>
 
-        <RenderPass name="basic_mulisample_render_pass_opaque">
+        <RenderPass name="basic_mulisample_render_pass_opaque_clear" priority="0">
             <AttachmentDescriptions>
                 <AttachmentDescription name="color_attachment">
                     <FormatName>render_target_color_format</FormatName>
@@ -628,7 +688,108 @@
             </SubpassDependenciesSynchronization>
         </RenderPass>
 
-        <RenderPass name="basic_mulisample_render_pass_blend">
+        <RenderPass name="basic_mulisample_render_pass_opaque_load" priority="1">
+            <AttachmentDescriptions>
+                <AttachmentDescription name="color_attachment">
+                    <FormatName>render_target_color_format</FormatName>
+                    <LoadOp>load</LoadOp>
+                    <StoreOp>store</StoreOp>
+                    <StencilLoadOp>load</StencilLoadOp>
+                    <StencilStoreOp>dont_care</StencilStoreOp>
+                    <InitialLayout>color_attachment_optimal</InitialLayout>
+                    <FinalLayout>color_attachment_optimal</FinalLayout>
+                    <ClearValue>
+                        <AspectFlags>
+                            <AspectMask>color</AspectMask>
+                        </AspectFlags>
+                        <ClearColorValue r="0.0" g="0.0" b="0.0" a="0.0"/>
+                    </ClearValue>
+                </AttachmentDescription>
+                <AttachmentDescription name="depth_attachment">
+                    <FormatName>render_target_depth_format</FormatName>
+                    <LoadOp>load</LoadOp>
+                    <StoreOp>store</StoreOp>
+                    <StencilLoadOp>load</StencilLoadOp>
+                    <StencilStoreOp>dont_care</StencilStoreOp>
+                    <InitialLayout>auto_depth_stencil_attachment_optimal</InitialLayout>
+                    <FinalLayout>auto_depth_stencil_attachment_optimal</FinalLayout>
+                    <ClearValue>
+                        <AspectFlags>
+                            <AspectMask>depth</AspectMask>
+                            <AspectMask>stencil</AspectMask>
+                        </AspectFlags>
+                        <ClearDepthStencilValue>
+                            <Depth>1.0</Depth>
+                            <Stencil>0</Stencil>
+                        </ClearDepthStencilValue>
+                    </ClearValue>
+                </AttachmentDescription>
+                <AttachmentDescription name="resolve_attachment">
+                    <FormatName>swap_chain_format</FormatName>
+                    <LoadOp>dont_care</LoadOp>
+                    <StoreOp>store</StoreOp>
+                    <StencilLoadOp>load</StencilLoadOp>
+                    <StencilStoreOp>dont_care</StencilStoreOp>
+                    <InitialLayout>present_src_khr</InitialLayout>
+                    <FinalLayout>present_src_khr</FinalLayout>
+                    <ClearValue>
+                        <AspectFlags>
+                            <AspectMask>color</AspectMask>
+                        </AspectFlags>
+                        <ClearColorValue r="0.0" g="0.0" b="0.0" a="0.0"/>
+                    </ClearValue>
+                </AttachmentDescription>
+            </AttachmentDescriptions>
+            <SubpassDescriptions>
+                <Subpass name="only_subpass">
+                    <PipelineBindPoint>graphics</PipelineBindPoint>
+                    <OutputAttachments>
+                        <AttachmentReferences>
+                            <AttachmentReference>
+                                <ColorAttachment attachment_unused="false">
+                                    <AttachmentName>color_attachment</AttachmentName>
+                                    <Layout>color_attachment_optimal</Layout>
+                                </ColorAttachment>
+                                <ResolveAttachment attachment_unused="false">
+                                    <AttachmentName>resolve_attachment</AttachmentName>
+                                    <Layout>color_attachment_optimal</Layout>
+                                </ResolveAttachment>
+                            </AttachmentReference>
+                        </AttachmentReferences>
+                        <DepthStencilAttachmen attachment_unused="false">
+                            <AttachmentName>depth_attachment</AttachmentName>
+                            <Layout>auto_depth_stencil_attachment_optimal</Layout>
+                        </DepthStencilAttachmen>
+                    </OutputAttachments>
+                </Subpass>
+            </SubpassDescriptions>
+            <SubpassDependenciesSynchronization>
+                <Dependency>
+                    <srcSubpass>
+                        <SubpassType>External</SubpassType>
+                    </srcSubpass>
+                    <dstSubpass>
+                        <SubpassType>Internal</SubpassType>
+                        <SubpassName>only_subpass</SubpassName>
+                    </dstSubpass>
+                    <srcStageMask>
+                        <Mask>color_attachment_output</Mask>
+                        <Mask>early_fragment_tests</Mask>
+                    </srcStageMask>
+                    <dstStageMask>
+                        <Mask>color_attachment_output</Mask>
+                        <Mask>early_fragment_tests</Mask>
+                    </dstStageMask>
+                    <srcAccessMask></srcAccessMask>
+                    <dstAccessMask>
+                        <Mask>color_attachment_write</Mask>
+                        <Mask>depth_stencil_attachment_write</Mask>
+                    </dstAccessMask>
+                </Dependency>
+            </SubpassDependenciesSynchronization>
+        </RenderPass>
+
+        <RenderPass name="basic_mulisample_render_pass_blend" priority="2">
             <AttachmentDescriptions>
                 <AttachmentDescription name="color_attachment">
                     <FormatName>render_target_color_format</FormatName>
@@ -742,6 +903,77 @@
     </Swapchain>
 
     <Pipelines>
+        <GraphicsPipeline name="basic_color_pipeline">
+            <Shaders>
+                <Shader>basic_color_vertex_shader</Shader>
+                <Shader>basic_color_pixel_shader</Shader>
+            </Shaders>
+            <InputAssembly>
+                <Topology>triangle_list</Topology>
+                <PrimitiveRestartEnable>false</PrimitiveRestartEnable>
+            </InputAssembly>
+            <RasterizationState>
+                <DepthClampEnable>false</DepthClampEnable>
+                <RasterizerDiscardEnable>false</RasterizerDiscardEnable>
+                <PolygonMode>fill</PolygonMode>
+                <CullMode><Flags><Flag>none</Flag></Flags></CullMode>
+                <FrontFace>counter_clockwise</FrontFace>
+                <DepthBiasEnable>false</DepthBiasEnable>
+                <DepthBiasConstantFactor>0.0</DepthBiasConstantFactor>
+                <DepthBiasClamp>0.0</DepthBiasClamp>
+                <DepthBiasSlopeFactor>0.0</DepthBiasSlopeFactor>
+                <LineWidth>1.0</LineWidth>
+            </RasterizationState>
+            <MultisampleState sample_count_as_device="true">
+                <SampleCount>16_bit</SampleCount>
+                <SampleShadingEnable>false</SampleShadingEnable>
+                <alphaToCoverageEnable>false</alphaToCoverageEnable>
+                <alphaToOneEnable>false</alphaToOneEnable>
+            </MultisampleState>
+            <DepthStencilState>
+                <DepthTestEnable>false</DepthTestEnable>
+                <DepthWriteEnable>true</DepthWriteEnable>
+                <DepthCompareOp>always</DepthCompareOp>
+                <DepthBoundsTestEnable>false</DepthBoundsTestEnable>
+                <StencilTestEnable>false</StencilTestEnable>
+                <MinDepthBounds>0.0</MinDepthBounds>
+                <MaxDepthBounds>1.0</MaxDepthBounds>
+            </DepthStencilState>
+            <ColorBlendState>
+                <LogicOpEnable>false</LogicOpEnable>
+                <LogicOp>copy</LogicOp>
+                <Attachments>
+                    <Attachment name="color_attachment">
+                        <BlendEnable>false</BlendEnable>
+                        <SrcColorBlendFactor>one</SrcColorBlendFactor>
+                        <DstColorBlendFactor>zero</DstColorBlendFactor>
+                        <ColorBlendOp>add</ColorBlendOp>
+                        <SrcAlphaBlendFactor>one</SrcAlphaBlendFactor>
+                        <DstAlphaBlendFactor>zero</DstAlphaBlendFactor>
+                        <AlphaBlendOp>add</AlphaBlendOp>
+                        <ColorWriteMask>
+                            <Mask>r_bit</Mask>
+                            <Mask>g_bit</Mask>
+                            <Mask>b_bit</Mask>
+                            <Mask>a_bit</Mask>
+                        </ColorWriteMask>
+                    </Attachment>
+                </Attachments>
+                <BlendConstant1>0.0</BlendConstant1>
+                <BlendConstant2>0.0</BlendConstant2>
+                <BlendConstant3>0.0</BlendConstant3>
+                <BlendConstant4>0.0</BlendConstant4>
+            </ColorBlendState>
+            <DynamicState>
+                <Dynamic>viewport</Dynamic>
+                <Dynamic>scissor</Dynamic>
+            </DynamicState>
+            <RenderPass>
+                <RenderPassName>basic_mulisample_render_pass_opaque_clear</RenderPassName>
+                <SubpassName>only_subpass</SubpassName>
+            </RenderPass>
+        </GraphicsPipeline>
+
         <GraphicsPipeline name="basic_diffuse_pipeline">
             <Shaders>
                 <Shader>basic_diffuse_vertex_shader</Shader>
@@ -808,7 +1040,7 @@
                 <Dynamic>scissor</Dynamic>
             </DynamicState>
             <RenderPass>
-                <RenderPassName>basic_mulisample_render_pass_opaque</RenderPassName>
+                <RenderPassName>basic_mulisample_render_pass_opaque_clear</RenderPassName>
                 <SubpassName>only_subpass</SubpassName>
             </RenderPass>
         </GraphicsPipeline>
@@ -892,7 +1124,8 @@
     <Framebuffers>
         <FrameBuffer name="basic_mulisample_render_framebuffer">
             <RenderPassNames>
-                <RenderPassName>basic_mulisample_render_pass_opaque</RenderPassName>
+                <RenderPassName>basic_mulisample_render_pass_opaque_clear</RenderPassName>
+                <RenderPassName>basic_mulisample_render_pass_opaque_load</RenderPassName>
                 <RenderPassName>basic_mulisample_render_pass_blend</RenderPassName>
             </RenderPassNames>
             <Extent source="as_swapchain"></Extent>
@@ -916,6 +1149,23 @@
 
     <RenderNodes>
         <PresentRenderNode name="presenter"></PresentRenderNode>
+
+        <GraphicsRenderNode name="basic_color_render">
+            <Pipeline>basic_color_pipeline</Pipeline>
+            <FrameBufferName>basic_mulisample_render_framebuffer</FrameBufferName>
+            <DynamicStates>
+                <Viewport source="auto"></Viewport>
+                <Scissor source="auto"></Scissor>
+            </DynamicStates>
+            <IndexCountType type="all"></IndexCountType>
+            <DescriptorResourcesUpdate>
+                <LayoutBinding name="uniform">
+                    <Buffer>
+                        <BufferResourceType>basic_uniform_resource</BufferResourceType>
+                    </Buffer>
+                </LayoutBinding>
+            </DescriptorResourcesUpdate>
+        </GraphicsRenderNode>
 
         <GraphicsRenderNode name="mesh_render">
             <Pipeline>basic_diffuse_pipeline</Pipeline>

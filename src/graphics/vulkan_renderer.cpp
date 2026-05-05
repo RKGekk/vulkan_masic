@@ -1,21 +1,22 @@
 #include "vulkan_renderer.h"
 
-#include "api/vulkan_device.h"
-#include "api/vulkan_image_buffer.h"
 #include "api/vulkan_command_buffer.h"
-#include "api/vulkan_shader.h"
-#include "api/vulkan_pipeline.h"
-#include "api/vulkan_swapchain.h"
-#include "api/vulkan_render_pass.h"
-#include "api/vulkan_descriptors_manager.h"
-#include "api/vulkan_shaders_manager.h"
-#include "api/vulkan_pipelines_manager.h"
-#include "api/vulkan_fence_manager.h"
-#include "api/vulkan_semaphores_manager.h"
 #include "api/vulkan_command_manager.h"
-#include "api/vulkan_render_passes_manager.h"
+#include "api/vulkan_descriptors_manager.h"
+#include "api/vulkan_device.h"
+#include "api/vulkan_framebuffer.h"
+#include "api/vulkan_fence_manager.h"
 #include "api/vulkan_format_manager.h"
+#include "api/vulkan_image_buffer.h"
+#include "api/vulkan_pipelines_manager.h"
+#include "api/vulkan_pipeline.h"
+#include "api/vulkan_render_pass.h"
+#include "api/vulkan_render_passes_manager.h"
 #include "api/vulkan_resources_manager.h"
+#include "api/vulkan_swapchain.h"
+#include "api/vulkan_shader.h"
+#include "api/vulkan_shaders_manager.h"
+#include "api/vulkan_semaphores_manager.h"
 #include "pod/render_node.h"
 #include "pod/present_render_node.h"
 #include "pod/graphics_render_node.h"
@@ -221,38 +222,32 @@ void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer, unsigned 
     for (auto dependency_it = dependency_levels.begin(); dependency_it != dependency_levels.end(); ++dependency_it) {
         const std::shared_ptr<DependencyLevel>& dependency_lvl = *dependency_it;
 
-        for(int blend_pass = 0; blend_pass <= 1; ++blend_pass) {
+        for (const auto& framebuffer_name : dependency_lvl->getFramebuffers()) {
+            for(const auto& renderpass_name : dependency_lvl->getRenderpasses(framebuffer_name)) {
 
-            for (auto const&[framebuffer_name, graphics_nodes] : dependency_lvl->getFramebufferNodeMap()) {
-                for(const DependencyLevel::PipelineName& pipeline_name : dependency_lvl->getFramebufferToPipelineMap().at(framebuffer_name)) {
+                const std::shared_ptr<VulkanPipeline>& params = *dependency_lvl->getPipelines(renderpass_name).begin();
+                const std::shared_ptr<GraphicsRenderNode>& node_params = dependency_lvl->getGraphicsNodes(params->getPipelineConfig()->getName())[0];
+                const std::shared_ptr<VulkanFramebuffer>& framebuffer_ptr = node_params->getFB();
 
-                    const std::shared_ptr<GraphicsRenderNode>& node_params = dependency_lvl->getPipelineNodeMap().at(pipeline_name)[0];
-                    if(node_params->getPipeline()->getPipelineConfig()->haveBlendEnableAttachments() && blend_pass == 0){
-                        continue;
-                    }
-                    if(!node_params->getPipeline()->getPipelineConfig()->haveBlendEnableAttachments() && blend_pass == 1){
-                        continue;
-                    }
+                VkRenderPassBeginInfo renderpass_info{};
+                renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+                renderpass_info.renderPass = framebuffer_ptr->getRenderpass()->getRenderPass();
+                renderpass_info.framebuffer = framebuffer_ptr->getFramebuffer();
+                renderpass_info.renderArea.offset = framebuffer_ptr->getFramebufferConfig()->getOffset2D();
+                renderpass_info.renderArea.extent = framebuffer_ptr->getFramebufferConfig()->getExtent2D();
+                renderpass_info.clearValueCount = framebuffer_ptr->getRenderpass()->getRenderPassConfig()->getClearValues().size();
+                renderpass_info.pClearValues = framebuffer_ptr->getRenderpass()->getRenderPassConfig()->getClearValues().data();
 
-                    const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = node_params->getPipeline()->getRenderPass();
+                vkCmdBeginRenderPass(command_buffer.getCommandBufer(), &renderpass_info, VK_SUBPASS_CONTENTS_INLINE);
 
-                    VkRenderPassBeginInfo renderpass_info{};
-                    renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-                    renderpass_info.renderPass = render_pass_ptr->getRenderPass();
-                    renderpass_info.framebuffer = node_params->getFramebuffer();
-                    renderpass_info.renderArea.offset = node_params->getGraphicsRenderNodeConfig()->getFramebufferConfig()->getOffset2D();
-                    renderpass_info.renderArea.extent = node_params->getGraphicsRenderNodeConfig()->getFramebufferConfig()->getExtent2D();
-                    renderpass_info.clearValueCount = render_pass_ptr->getRenderPassConfig()->getClearValues().size();
-                    renderpass_info.pClearValues = render_pass_ptr->getRenderPassConfig()->getClearValues().data();
-
-                    vkCmdBeginRenderPass(command_buffer.getCommandBufer(), &renderpass_info, VK_SUBPASS_CONTENTS_INLINE);
-                    vkCmdBindPipeline(command_buffer.getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, node_params->getPipeline()->getPipeline());
-
-                    for(const std::shared_ptr<GraphicsRenderNode>& graphics_node : dependency_lvl->getPipelineNodeMap().at(pipeline_name)) {
+                for(const auto& pipeline : dependency_lvl->getPipelines(renderpass_name)) {
+                    vkCmdBindPipeline(command_buffer.getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getPipeline());
+                    for(const std::shared_ptr<GraphicsRenderNode>& graphics_node : dependency_lvl->getGraphicsNodes(pipeline->getPipelineConfig()->getName())) {
                         graphics_node->render(command_buffer, image_index);
                     }
-                    vkCmdEndRenderPass(command_buffer.getCommandBufer());
                 }
+                
+                vkCmdEndRenderPass(command_buffer.getCommandBufer());
             }
         }
     }

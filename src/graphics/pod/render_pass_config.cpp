@@ -17,7 +17,7 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
     // bool has_stencil = device->hasStencilComponent(swapchain_depth_format);
     
     m_name = render_pass_data.attribute("name").as_string();
-
+    m_priority = render_pass_data.attribute("priority").as_uint();
     m_create_flags = {};
     pugi::xml_node flags_node = render_pass_data.child("Flags");
 	if (flags_node) {
@@ -322,6 +322,10 @@ bool RenderPassConfig::init(const std::shared_ptr<VulkanDevice>& device, const s
 
 const std::string& RenderPassConfig::getName() {
     return m_name;
+}
+
+size_t RenderPassConfig::getPriority() const {
+    return m_priority;
 }
 
 const VkRenderPassCreateInfo& RenderPassConfig::getRenderPassCreateInfo() const {

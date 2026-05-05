@@ -64,8 +64,8 @@ public:
     static size_t getBytesForType(VkFormat format);
     static size_t GetNumComponentsInGLSLType(VertexAttributeGLSLFormat glsl_format);
 
-    void addVertexAttribute(SemanticName semantic_name, VertexAttributeGLSLFormat glsl_format, VkFormat internal_format);
-    void setVertexAttribute(SemanticName semantic_name, VertexAttributeGLSLFormat glsl_format, VkFormat internal_format, int location);
+    void addVertexAttribute(SemanticName semantic_name, VertexAttributeGLSLFormat glsl_format, VkFormat internal_format, std::string name);
+    void setVertexAttribute(SemanticName semantic_name, VertexAttributeGLSLFormat glsl_format, VkFormat internal_format, int location, std::string name);
 
     bool checkVertexAttribExist(SemanticName semantic) const;
     size_t getVertexAttribPos(SemanticName semantic) const;
@@ -75,6 +75,8 @@ public:
     VkFormat getAttribInternalFormat (size_t pos) const;
     VertexAttributeGLSLFormat getAttribGLSLFormat (SemanticName semantic) const;
     VkFormat getAttribInternalFormat (SemanticName semantic) const;
+
+    const std::string& getAttribName(size_t pos) const;
 
     size_t GetNumComponentsInGLSLType(SemanticName semantic) const;
     size_t GetNumComponentsInVkType(SemanticName semantic) const;
@@ -133,6 +135,7 @@ private:
     std::string m_index_buffer_resource_type;
 
     std::vector<SemanticName> m_semantic_pos;
+    std::vector<std::string> m_name_pos;
     std::vector<VertexAttributeGLSLFormat> m_glsl_format_pos;
     std::vector<VkFormat> m_internal_format_pos;
     std::unordered_map<SemanticName, size_t> m_semantic_pos_map;

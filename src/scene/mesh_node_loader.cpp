@@ -46,15 +46,16 @@ std::unordered_map<MeshNodeLoader::NodeIdx, MeshNodeLoader::NodeIdx> MeshNodeLoa
 }
 
 std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem::path& model_path, std::shared_ptr<VulkanShadersManager> shader_manager, std::shared_ptr<SceneNode> root_transform) {
-	m_model_path = model_path;
 	using namespace std::literals;
+
+	m_model_path = model_path;
 
     Application& app = Application::Get();
     VulkanRenderer& renderer = app.GetRenderer();
     m_device = renderer.GetDevice();
     m_scene = Application::Get().GetGameLogic()->GetHumanView()->VGetScene();
 	m_shader_manager = std::move(shader_manager);
-	m_pbr_shader_signature = m_shader_manager->getShader("basic_diffuse_vertex_shader"s)->getShaderSignature();
+	m_default_vertex_shader_name = "basic_diffuse_vertex_shader"s;
 
     bool store_original_json_for_extras_and_extensions = true;
     m_gltf_ctx.SetStoreOriginalJSONForExtrasAndExtensions(store_original_json_for_extras_and_extensions);
@@ -393,7 +394,7 @@ VkFormat getAttribVkFormat(const tinygltf::Accessor& gltf_accessor) {
 }
 
 
-VertexFormat MeshNodeLoader::GetVertexFormat(std::map<std::string, int> attributes) const {
+VertexFormat MeshNodeLoader::GetVertexFormatFromMesh(std::map<std::string, int> attributes) const {
 	VertexFormat format{};
 	std::vector<std::string> attributes_seq(attributes.size());
 	for (const auto &[semantic_name_str, accessor] : attributes) {
@@ -402,7 +403,7 @@ VertexFormat MeshNodeLoader::GetVertexFormat(std::map<std::string, int> attribut
 		VertexAttributeGLSLFormat attrib_glsl_format = getAttribGLSLFormat(pos_vertex_attrib_accessor);
 		SemanticName semantic_name;
 		semantic_name.init(semantic_name_str);
-		format.addVertexAttribute(semantic_name, attrib_glsl_format, attrib_vk_format);
+		format.addVertexAttribute(semantic_name, attrib_glsl_format, attrib_vk_format, "");
 	}
 	return format;
 }
@@ -434,7 +435,6 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& g
 
 		std::shared_ptr<ModelData> model_data = std::make_shared<ModelData>();
 		model_data->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-		model_data->SetVertexFormat(m_pbr_shader_signature->getVertexFormat());
 
     	size_t num_vertices = GetNumVertices(primitive);
     	int32_t num_primitives = GetNumPrimitives(primitive);
@@ -455,11 +455,24 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& g
 		const void* indices_data = indices.data();
 		size_t index_count = indices.size();
 
+		int gltf_material_idx = primitive.material;
+		const tinygltf::Material& gltf_material = m_gltf_model.materials[gltf_material_idx];
+		std::string gltf_material_name = gltf_material.name.c_str();
+		std::string material_vertex_shader_name = gltf_material_name + "_vertex_shader"s;
+		std::shared_ptr<ShaderSignature> shader_signature;
+		if(m_shader_manager->hasShader(material_vertex_shader_name)) {
+			shader_signature = m_shader_manager->getShader(material_vertex_shader_name)->getShaderSignature();
+		}
+		else {
+			shader_signature = m_shader_manager->getShader(m_default_vertex_shader_name)->getShaderSignature();
+		}
+
+		model_data->SetVertexFormat(shader_signature->getVertexFormat());
     	std::shared_ptr<Material> prop_set = MakePropertySet(primitive);
     	//VertexFormat vertex_format = GetVertexFormat(primitive.attributes);
 		model_data->SetMaterial(prop_set);
 
-    	std::vector<float> vertices = GetVertices(primitive, m_pbr_shader_signature->getVertexFormat());
+    	std::vector<float> vertices = GetVertices(primitive, shader_signature->getVertexFormat());
 		const void* vertices_data = vertices.data();
 		std::shared_ptr<VulkanBuffer> vertex_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(vertices_data, num_vertices * model_data->GetVertexFormat().getVertexSize(), m_model_path.string() + "/node"s + std::to_string(node) + "/"s + mesh_name + "_vertex_buffer_primitive_"s + std::to_string(prim_idx), "basic_vertex_resource");
 		std::shared_ptr<VulkanBuffer> index_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(indices.data(), indices.size() * sizeof(uint32_t), m_model_path.string() + "/node"s + std::to_string(node) + "/"s + mesh_name + "_index_buffer_primitive_"s + std::to_string(prim_idx), "basic_index_resource");

@@ -61,7 +61,7 @@ private:
     void SetTextureProperty(const tinygltf::Texture& texture, Material::TextureType texture_type_enum, std::shared_ptr<Material> material);
     std::shared_ptr<VulkanSampler> createTextureSampler(uint32_t mip_levels, const tinygltf::Sampler& texture_sampler, const std::string& sampler_subname);
     void MakeMaterialProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material> material);
-    VertexFormat GetVertexFormat(std::map<std::string, int> attributes) const;
+    VertexFormat GetVertexFormatFromMesh(std::map<std::string, int> attributes) const;
     std::vector<float> GetVertices(const tinygltf::Primitive& primitive, const VertexFormat& pbr_shader_vertex_format);
     VkIndexType getIndexType(int accessor_component_type);
 
@@ -74,7 +74,7 @@ private:
     std::shared_ptr<Scene> m_scene;
     std::shared_ptr<SceneNode> m_root_node;
     std::shared_ptr<VulkanShadersManager> m_shader_manager;
-    std::shared_ptr<ShaderSignature> m_pbr_shader_signature;
+    std::string m_default_vertex_shader_name;
 
     nlohmann::json m_extensions;
 };

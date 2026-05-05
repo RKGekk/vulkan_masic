@@ -22,6 +22,7 @@ public:
     bool init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<VulkanFormatManager>& format_manager, const pugi::xml_node& render_pass_data);
 
     const std::string& getName();
+    size_t getPriority() const;
     const VkRenderPassCreateInfo& getRenderPassCreateInfo() const;
 
     const std::unordered_map<std::string, size_t>& getAttachmentNameToIdxMap() const;
@@ -43,6 +44,7 @@ public:
 
 private:
     std::string m_name;
+    size_t m_priority;
     VkRenderPassCreateFlags m_create_flags;
 
     std::vector<VkAttachmentDescription> m_attachment_descriptions;

@@ -6,7 +6,11 @@
 #include "vulkan_image_buffer.h"
 #include "vulkan_buffer.h"
 
+#include "../../application.h"
+
 bool VulkanFramebuffer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<FramebufferConfig> framebuffer_config, std::shared_ptr<VulkanRenderPass> render_pass_ptr, std::function<const std::shared_ptr<RenderResource>&(const LocalName&)> attach_map) {
+    using namespace std::literals;
+
     m_device = std::move(device);
     m_framebuffer_config = std::move(framebuffer_config);
     m_render_pass_ptr = std::move(render_pass_ptr);
@@ -25,6 +29,19 @@ bool VulkanFramebuffer::init(std::shared_ptr<VulkanDevice> device, std::shared_p
     if(result != VK_SUCCESS) {
         throw std::runtime_error("failed to create framebuffer!");
     }
+
+#ifndef NDEBUG
+    std::string framebuffer_name = "framebuffer_"s + m_framebuffer_config->getName();
+    auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
+    VkDebugUtilsObjectNameInfoEXT name_info = {};
+    name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+    name_info.objectType = VK_OBJECT_TYPE_FRAMEBUFFER;
+    name_info.objectHandle = (uint64_t)m_frame_buffer;
+    name_info.pObjectName = framebuffer_name.c_str();
+
+    vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
+#endif    
+
 
     return true;
 }
@@ -47,6 +64,10 @@ const std::vector<VkImageView>& VulkanFramebuffer::getFramebufferAttachments() c
 
 const VkFramebufferCreateInfo& VulkanFramebuffer::getFramebufferInfo() const {
     return m_framebuffer_info;
+}
+
+const std::shared_ptr<VulkanRenderPass>& VulkanFramebuffer::getRenderpass() const {
+    return m_render_pass_ptr;
 }
 
 std::vector<VkImageView> VulkanFramebuffer::getAttachments(std::function<const std::shared_ptr<RenderResource>&(const LocalName&)> attach_map) const {

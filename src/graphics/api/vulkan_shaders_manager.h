@@ -18,8 +18,9 @@ public:
     bool init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_name);
     void destroy();
 
-    std::shared_ptr<VulkanShader> getShader(const std::string name) const;
-    VkShaderStageFlagBits getShaderStage(const std::string name) const;
+    std::shared_ptr<VulkanShader> getShader(const std::string& name) const;
+    VkShaderStageFlagBits getShaderStage(const std::string& name) const;
+    bool hasShader(const std::string& name) const;
 
 private:
     std::shared_ptr<VulkanDevice> m_device;

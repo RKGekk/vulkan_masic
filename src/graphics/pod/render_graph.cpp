@@ -69,6 +69,10 @@ void RenderGraph::destroy() {
     m_dependency_levels.clear();
 }
 
+bool RenderGraph::hasGraphicsRenderNodeConfig(const std::string& config_name) const {
+    return m_graphics_cfg_name_map.contains(config_name);
+}
+
 const std::shared_ptr<GraphicsRenderNodeConfig>& RenderGraph::getGraphicsRenderNodeConfig(const std::string& config_name) const {
     return m_graphics_cfg_name_map.at(config_name);
 }

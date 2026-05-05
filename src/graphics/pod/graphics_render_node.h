@@ -23,7 +23,8 @@ public:
     virtual void finishRenderNode() override;
 
     const std::shared_ptr<VulkanPipeline>& getPipeline();
-    VkFramebuffer getFramebuffer() const;
+    VkFramebuffer getVkFramebuffer() const;
+    const std::shared_ptr<VulkanFramebuffer>& getFB() const;
 
     const std::unordered_map<uint32_t, std::shared_ptr<VulkanDescriptor>>& getDescriptors() const;
     std::shared_ptr<GraphicsRenderNodeConfig>& getGraphicsRenderNodeConfig();

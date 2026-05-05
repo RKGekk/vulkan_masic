@@ -102,15 +102,28 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             renderable->vertex_buffer = model_data->GetVertexBuffer();
             renderable->index_buffer = model_data->GetIndexBuffer();
 
+            std::string render_name = material->GetName() + "_render"s;
+            if(!Application::GetRenderer().getFrameData(frame)->render_graph->hasGraphicsRenderNodeConfig(render_name)) {
+                render_name = "mesh_render"s;
+            }
+
             renderable->render_node = std::make_shared<GraphicsRenderNode>();
-            renderable->render_node->init(m_device, "mesh_render"s, false, Application::GetRenderer().getFrameData(frame)->render_graph);
+            renderable->render_node->init(m_device, render_name, false, Application::GetRenderer().getFrameData(frame)->render_graph);
 
             std::shared_ptr<VulkanShader> vertex_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
             std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames().at(0));
-            renderable->render_node->addReadDependency(renderable->vertex_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getVertexBufferBindingName());
-            renderable->render_node->addReadDependency(renderable->index_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getIndexBufferBindingName());
-            renderable->render_node->addReadDependency(renderable->uniform_buffer, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER));
-            renderable->render_node->addReadDependency(renderable->texture, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
+            if(renderable->vertex_buffer) {
+                renderable->render_node->addReadDependency(renderable->vertex_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getVertexBufferBindingName());
+            }
+            if(renderable->index_buffer) {
+                renderable->render_node->addReadDependency(renderable->index_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getIndexBufferBindingName());
+            }
+            if(renderable->uniform_buffer) {
+                renderable->render_node->addReadDependency(renderable->uniform_buffer, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER));
+            }
+            if(renderable->texture) {
+                renderable->render_node->addReadDependency(renderable->texture, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
+            }
             renderable->render_node->addWriteDependency(swapchain_images[frame], "resolve_attachment");
             renderable->render_node->addWriteDependency(Application::GetRenderer().getOutColorImage(frame), "color_attachment");
             renderable->render_node->addWriteDependency(Application::GetRenderer().getOutDepthImage(frame), "depth_attachment");

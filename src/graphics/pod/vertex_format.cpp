@@ -80,26 +80,29 @@ size_t VertexFormat::GetNumComponentsInGLSLType(VertexAttributeGLSLFormat glsl_f
     }
 }
 
-void VertexFormat::addVertexAttribute(SemanticName semantic_name, VertexAttributeGLSLFormat glsl_format, VkFormat internal_format) {
+void VertexFormat::addVertexAttribute(SemanticName semantic_name, VertexAttributeGLSLFormat glsl_format, VkFormat internal_format, std::string name) {
     size_t pos = m_semantic_pos.size();
 
     m_semantic_pos.push_back(semantic_name);
     m_glsl_format_pos.push_back(glsl_format);
     m_internal_format_pos.push_back(internal_format);
     m_semantic_pos_map[semantic_name] = pos;
+    m_name_pos.push_back(std::move(name));
 }
 
-void VertexFormat::setVertexAttribute(SemanticName semantic_name, VertexAttributeGLSLFormat glsl_format, VkFormat internal_format, int location) {
+void VertexFormat::setVertexAttribute(SemanticName semantic_name, VertexAttributeGLSLFormat glsl_format, VkFormat internal_format, int location, std::string name) {
     if(m_semantic_pos.size() <= location) {
         m_semantic_pos.resize(location + 1);
         m_glsl_format_pos.resize(location + 1);
         m_internal_format_pos.resize(location + 1);
+        m_name_pos.resize(location + 1);
     }
 
     m_semantic_pos[location] = semantic_name;
     m_glsl_format_pos[location] = glsl_format;
     m_internal_format_pos[location] = internal_format;
     m_semantic_pos_map[semantic_name] = location;
+    m_name_pos[location] = std::move(name);
 }
 
 bool VertexFormat::checkVertexAttribExist(SemanticName semantic) const {
@@ -120,6 +123,10 @@ VertexAttributeGLSLFormat VertexFormat::getAttribGLSLFormat (size_t pos) const {
 
 VkFormat VertexFormat::getAttribInternalFormat (size_t pos) const {
     return m_internal_format_pos.at(pos);
+}
+
+const std::string& VertexFormat::getAttribName(size_t pos) const {
+    return m_name_pos.at(pos);
 }
 
 VertexAttributeGLSLFormat VertexFormat::getAttribGLSLFormat (SemanticName semantic) const {
