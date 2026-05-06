@@ -931,7 +931,7 @@
                 <alphaToOneEnable>false</alphaToOneEnable>
             </MultisampleState>
             <DepthStencilState>
-                <DepthTestEnable>false</DepthTestEnable>
+                <DepthTestEnable>true</DepthTestEnable>
                 <DepthWriteEnable>true</DepthWriteEnable>
                 <DepthCompareOp>always</DepthCompareOp>
                 <DepthBoundsTestEnable>false</DepthBoundsTestEnable>
