@@ -28,6 +28,7 @@ public:
 
 		float TimePos;
 		glm::vec3 Translation;
+		glm::vec3 Tangent;
 	};
 	friend bool operator<(const KeyframeTranslation& kf1, const KeyframeTranslation& kf2);
 

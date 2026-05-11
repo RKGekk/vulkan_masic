@@ -7,7 +7,7 @@
 #include "base_engine_logic.h"
 #include "../tools/string_tools.h"
 
-ActorAnimationPlayer::KeyframeTranslation::KeyframeTranslation() : TimePos(0.0f), Translation(0.0f, 0.0f, 0.0f) {}
+ActorAnimationPlayer::KeyframeTranslation::KeyframeTranslation() : TimePos(0.0f), Translation(0.0f, 0.0f, 0.0f), Tangent(0.0f, 0.0f, 0.0f) {}
 
 ActorAnimationPlayer::KeyframeTranslation::~KeyframeTranslation() {}
 
@@ -69,7 +69,11 @@ void ActorAnimationPlayer::ActorAnimation::Interpolate(float t, glm::mat4x4& tra
 			glm::vec3 p0 = it0->Translation;
 			glm::vec3 p1 = it1->Translation;
 
-			P = glm::mix(p0, p1, lerp_percent);
+			glm::vec3 t0 = it0->Tangent;
+			glm::vec3 t1 = it1->Tangent;
+
+			//P = glm::mix(p0, p1, lerp_percent);
+			P = glm::hermite(p0, t0, p1, t1, lerp_percent);
 		}
 	}
 

@@ -46,9 +46,11 @@ bool AnimationMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_inde
 				int ct = 0u;
 				if (ImGui::TreeNode("Translation channels")) {
 					for (ActorAnimationPlayer::KeyframeTranslation& tkf : anim.TranslationKeyframes) {
-						std::string tkf_name = "Trc "s + std::to_string(ct);
+						std::string trkf_name = "TrRc "s + std::to_string(ct);
+						std::string tgkf_name = "TgRc "s + std::to_string(ct);
 						if (ImGui::SliderFloat("T Time Point", ((float*)&tkf.TimePos), 0.0f, total_animation_time, "%.4f")) {}
-						if (ImGui::SliderFloat3(tkf_name.c_str(), ((float*)&tkf.Translation), -2.0f, 2.0f)) {}
+						if (ImGui::SliderFloat3(trkf_name.c_str(), ((float*)&tkf.Translation), -2.0f, 2.0f)) {}
+						if (ImGui::SliderFloat3(tgkf_name.c_str(), ((float*)&tkf.Tangent), -2.0f, 2.0f)) {}
 						++ct;
 					}
 					ImGui::TreePop();

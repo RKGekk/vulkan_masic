@@ -2587,6 +2587,7 @@
                                                                 <xs:element name="TimePosSec" type="xs:float"></xs:element>
                                                                 <xs:element name="YawPitchRoll" type="target:Vec3ComplexType"></xs:element>
                                                                 <xs:element name="Translation" type="target:Vec3ComplexType"></xs:element>
+                                                                <xs:element name="Tangent" type="target:Vec3ComplexType"></xs:element>
                                                             </xs:sequence>
                                                         </xs:complexType>
                                                     </xs:element>
