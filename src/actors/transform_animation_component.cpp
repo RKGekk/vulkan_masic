@@ -31,7 +31,6 @@ pugi::xml_node TransformAnimationComponent::VGenerateXml() {
 void TransformAnimationComponent::VPostInit() {
     std::shared_ptr<Actor> act = GetOwner();
     std::string name = act->GetName();
-    
 }
 
 bool TransformAnimationComponent::VInit(const pugi::xml_node& pData) {
@@ -98,6 +97,16 @@ void TransformAnimationComponent::Stop(const MatrixAnimation::AnimationName& nam
     if(!m_animation_map.contains(name)) return;
     m_animation_map[name]->AnimationState = MatrixAnimation::AnimState::Stoped;
     m_animation_map[name]->CurrentTime.ResetDuration();
+
+	std::shared_ptr<Actor> actor_ptr = GetOwner();
+	std::shared_ptr<TransformComponent> tc = actor_ptr->GetComponent<TransformComponent>().lock();
+
+	//glm::mat4x4 transform = tc->GetTransform();
+	glm::mat4x4 transform = glm::mat4x4(1.0f);
+
+	m_animation_map[name]->Interpolate(0, transform);
+
+	tc->SetTransform(transform);
 }
 
 void TransformAnimationComponent::Play() {
@@ -112,22 +121,22 @@ void TransformAnimationComponent::Play(const MatrixAnimation::AnimationName& nam
 }
 
 void TransformAnimationComponent::SetCurrentAnimationTime(float t) {
+	GameTimerDelta dt;
+	dt.AddDeltaDuration(t);
     for (const auto&[anim_name, anim_ptr] : m_animation_map) {
-        anim_ptr->CurrentTime.ResetDuration();
-        anim_ptr->CurrentTime.AddDeltaDuration(t);
+        SetCurrentAnimationDuration(anim_name, dt);
     }
 }
 
 void TransformAnimationComponent::SetCurrentAnimationTime(const MatrixAnimation::AnimationName& name, float t) {
-    if(!m_animation_map.contains(name)) return;
-    m_animation_map[name]->CurrentTime.ResetDuration();
-    m_animation_map[name]->CurrentTime.AddDeltaDuration(t);
+	GameTimerDelta dt;
+	dt.AddDeltaDuration(t);
+    SetCurrentAnimationDuration(name, dt);
 }
 
 void TransformAnimationComponent::SetCurrentAnimationDuration(const GameTimerDelta& duration) {
 	for (const auto&[anim_name, anim_ptr] : m_animation_map) {
-        anim_ptr->CurrentTime.ResetDuration();
-        anim_ptr->CurrentTime.AddDeltaDuration(duration);
+        SetCurrentAnimationDuration(anim_name, duration);
     }
 }
 
@@ -135,17 +144,32 @@ void TransformAnimationComponent::SetCurrentAnimationDuration(const MatrixAnimat
     if(!m_animation_map.contains(name)) return;
     m_animation_map[name]->CurrentTime.ResetDuration();
     m_animation_map[name]->CurrentTime.AddDeltaDuration(duration);
+
+    if (m_animation_map[name]->AnimationState == MatrixAnimation::AnimState::Stoped) return;
+
+	std::shared_ptr<Actor> actor_ptr = GetOwner();
+	std::shared_ptr<TransformComponent> tc = actor_ptr->GetComponent<TransformComponent>().lock();
+
+	//glm::mat4x4 transform = tc->GetTransform();
+	glm::mat4x4 transform = glm::mat4x4(1.0f);
+
+	float t = m_animation_map[name]->CurrentTime.fGetTotalSeconds();
+	m_animation_map[name]->Interpolate(t, transform);
+
+	tc->SetTransform(transform);
 }
 
 float TransformAnimationComponent::GetCurrentAnimationTime(const MatrixAnimation::AnimationName& name) const {
-    return m_animation_map.at(name)->CurrentTime.GetDeltaSeconds();
+    //return m_animation_map.at(name)->CurrentTime.GetDeltaSeconds();
+	return m_animation_map.at(name)->CurrentTime.GetTotalSeconds();
 }
 
 float TransformAnimationComponent::GetCurrentAnimationNormPos(const MatrixAnimation::AnimationName& name) const {
     if(!m_animation_map.contains(name)) return 0.0f;
     float total_anim_time = GetTotalAnimationTime(name);
     if(total_anim_time == 0.0f) return 0.0f;
-    return m_animation_map.at(name)->CurrentTime.GetDeltaSeconds() / total_anim_time;
+    //return m_animation_map.at(name)->CurrentTime.GetDeltaSeconds() / total_anim_time;
+	return m_animation_map.at(name)->CurrentTime.GetTotalSeconds() / total_anim_time;
 }
 
 const GameTimerDelta& TransformAnimationComponent::GetCurrentAnimationDuration(const MatrixAnimation::AnimationName& name) const {

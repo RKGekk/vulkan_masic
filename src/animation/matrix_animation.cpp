@@ -28,7 +28,7 @@ void MatrixAnimation::Interpolate(float t, glm::mat4x4& transform) const {
 	size_t sz1 = TranslationKeyframes.size();
 	size_t sz2 = ScaleKeyframes.size();
 	size_t sz3 = RotationKeyframes.size();
-	if ((!sz1) || (!sz2) || (!sz3)) {
+	if (!(sz1 || sz3)) {
 		return;
 	}
 
@@ -36,7 +36,9 @@ void MatrixAnimation::Interpolate(float t, glm::mat4x4& transform) const {
 	glm::vec3 P(0.0f, 0.0f, 0.0f);
 	glm::quat Q(1.0f, 0.0f, 0.0f, 0.0f);
 
-	if (TranslationKeyframes.size() == 1) {
+	if (TranslationKeyframes.size() == 0u) {
+	}
+	else if (TranslationKeyframes.size() == 1u) {
 		P = TranslationKeyframes.front().Translation;
 	}
 	else if (t >= TranslationKeyframes.rbegin()->TimePos) {
@@ -69,7 +71,10 @@ void MatrixAnimation::Interpolate(float t, glm::mat4x4& transform) const {
 		}
 	}
 
-	if (ScaleKeyframes.size() == 1) {
+	if (ScaleKeyframes.size() == 0u) {
+        
+	}
+	else if (ScaleKeyframes.size() == 1u) {
         S = ScaleKeyframes.front().Scale;
 	}
 	else if (t >= ScaleKeyframes.rbegin()->TimePos) {
@@ -98,7 +103,10 @@ void MatrixAnimation::Interpolate(float t, glm::mat4x4& transform) const {
 		}
 	}
 
-	if (RotationKeyframes.size() == 1) {
+	if (RotationKeyframes.size() == 0u) {
+
+	}
+	else if (RotationKeyframes.size() == 1u) {
         Q = RotationKeyframes.front().RotationQuat;
 	}
 	else if (t >= RotationKeyframes.rbegin()->TimePos) {

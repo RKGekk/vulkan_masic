@@ -99,17 +99,25 @@ bool ActorMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index) {
 								ac->SetCurrentAnimationTime(anim_name, current_time);
 							}
 
+							ImGui::PushID("Play");
 							if (ImGui::Button("Play")) {
 								ac->Play(anim_name);
 							}
+							ImGui::PopID();
+
 							ImGui::SameLine();
+							ImGui::PushID("Pause");
 							if (ImGui::Button("Pause")) {
 								ac->Pause(anim_name);
 							}
+							ImGui::PopID();
+
 							ImGui::SameLine();
+							ImGui::PushID("Stop");
 							if (ImGui::Button("Stop")) {
 								ac->Stop(anim_name);
 							}
+							ImGui::PopID();
 
 							if (ImGui::CollapsingHeader("Animation Channels")) {
 								int ct = 0u;
