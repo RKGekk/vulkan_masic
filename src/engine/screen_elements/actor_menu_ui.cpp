@@ -6,6 +6,7 @@
 #include "../../actors/actor.h"
 #include "../base_engine_logic.h"
 #include "../../actors/transform_component.h"
+#include "../../actors/transform_animation_component.h"
 #include "../../actors/camera_component.h"
 #include "../../actors/model_component.h"
 #include "imgui_tools.h"
@@ -82,6 +83,82 @@ bool ActorMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index) {
 
 					const std::string& resource_name = mc->GetResourceName();
 					ImGui::Text("%s", resource_name.c_str());
+				}
+				std::shared_ptr<TransformAnimationComponent> ac = act->GetComponent<TransformAnimationComponent>().lock();
+				if(ac) {
+					ImGui::SeparatorText("TransformAnimationComponent");
+
+					for(const auto&[anim_name, anim_data] : ac->GetAnimationMap()) {
+
+						if (ImGui::TreeNode(anim_name.c_str())) {
+							
+							float total_animation_time = ac->GetTotalAnimationTime(anim_name);
+							float current_time = ac->GetCurrentAnimationTime(anim_name);
+
+							if (ImGui::SliderFloat("Time", ((float*)&current_time), 0.0f, total_animation_time, "%.4f")) {
+								ac->SetCurrentAnimationTime(anim_name, current_time);
+							}
+
+							if (ImGui::Button("Play")) {
+								ac->Play(anim_name);
+							}
+							ImGui::SameLine();
+							if (ImGui::Button("Pause")) {
+								ac->Pause(anim_name);
+							}
+							ImGui::SameLine();
+							if (ImGui::Button("Stop")) {
+								ac->Stop(anim_name);
+							}
+
+							if (ImGui::CollapsingHeader("Animation Channels")) {
+								int ct = 0u;
+								if (ImGui::TreeNode("Translation channels")) {
+									for (KeyframeMatrixTranslation& tkf : anim_data->TranslationKeyframes) {
+										std::string trkf_name = "Trc "s + std::to_string(ct);
+										std::string tgkf_name = "Tgc "s + std::to_string(ct);
+										if (ImGui::SliderFloat("T Time Point", ((float*)&tkf.TimePos), 0.0f, total_animation_time, "%.4f")) {}
+										if (ImGui::SliderFloat3(trkf_name.c_str(), ((float*)&tkf.Translation), -2.0f, 2.0f)) {}
+										if (ImGui::SliderFloat3(tgkf_name.c_str(), ((float*)&tkf.Tangent), -3.0f, 3.0f)) {}
+									
+										++ct;
+									}
+									ImGui::TreePop();
+								}
+								ct = 0u;
+								if (ImGui::TreeNode("Rotation channels")) {
+									for (KeyframeMatrixRotation& rkf : anim_data->RotationKeyframes) {
+										std::string rkf_name = "YPRc "s + std::to_string(ct);
+										if (ImGui::SliderFloat("R Time Point", ((float*)&rkf.TimePos), 0.0f, total_animation_time, "%.4f")) {}
+										glm::vec3 pyr = glm::eulerAngles(rkf.RotationQuat);
+										pyr.x = glm::degrees(pyr.x);
+										pyr.y = glm::degrees(pyr.y);
+										pyr.z = glm::degrees(pyr.z);
+										if (ImGui::SliderFloat3(rkf_name.c_str(), ((float*)&pyr), -180.0f, 180.0f)) {
+											pyr.x = glm::radians(pyr.x);
+											pyr.y = glm::radians(pyr.y);
+											pyr.z = glm::radians(pyr.z);
+											rkf.RotationQuat = glm::eulerAngleXYZ(pyr.x, pyr.y, pyr.z);
+										}
+										++ct;
+									}
+									ImGui::TreePop();
+								}
+								ct = 0u;
+								if (ImGui::TreeNode("Scale channels")) {
+									for (KeyframeMatrixScale& skf : anim_data->ScaleKeyframes) {
+										std::string skf_name = "Scc "s + std::to_string(ct);
+										if (ImGui::SliderFloat("S Time Point", ((float*)&skf.TimePos), 0.0f, total_animation_time, "%.4f")) {}
+										if (ImGui::SliderFloat3(skf_name.c_str(), ((float*)&skf.Scale), 0.0001f, 2.0f)) {}
+										++ct;
+									}
+									ImGui::TreePop();
+								}
+							}
+
+							ImGui::TreePop();
+						}
+					}
 				}
 			}
 			

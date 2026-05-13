@@ -16,7 +16,6 @@
 #include "../screen_elements/test_menu_ui.h"
 #include "../screen_elements/actor_menu_ui.h"
 #include "../screen_elements/node_menu_ui.h"
-#include "../screen_elements/animation_menu_ui.h"
 #include "../../graphics/pod/render_graph.h"
 #include "../../graphics/pod/render_node.h"
 
@@ -95,7 +94,6 @@ protected:
 	std::shared_ptr<TestMenuUI> m_test_menu_ui;
 	std::shared_ptr<ActorMenuUI> m_actor_menu_ui;
 	std::shared_ptr<NodeMenuUI> m_node_menu_ui;
-	std::shared_ptr<AnimationMenuUI> m_anim_menu_ui;
 
 	std::vector<std::shared_ptr<IMovementController>> m_controllers;
 	std::shared_ptr<MovementController> m_pFree_camera_controller;

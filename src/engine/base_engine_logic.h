@@ -9,7 +9,6 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "actor_animation_player.h"
 #include "base_engine_state.h"
 #include "iengine_logic.h"
 #include "level_manager.h"
@@ -51,8 +50,6 @@ public:
 
 	virtual void VMoveActor(const ActorId id, const glm::mat4x4& mat) override;
 
-	std::shared_ptr<ActorAnimationPlayer> GetAnimationPlayer();
-
 	const LevelManager& GetLevelManager();
 	virtual std::shared_ptr<IEnginePhysics> VGetGamePhysics() override;
 	virtual bool VLoadGame(const std::string& level_resource) override;
@@ -92,7 +89,6 @@ protected:
 	std::unique_ptr<ActorFactory> m_actor_factory;
 	std::shared_ptr<IEnginePhysics> m_physics;
 	std::unique_ptr<LevelManager> m_level_manager;
-	std::shared_ptr<ActorAnimationPlayer> m_animation_player;
 	MTRandom m_random;
 	ActorMap m_actors;
 	ComponentsMap m_components;

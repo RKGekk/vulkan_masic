@@ -30,7 +30,6 @@ BaseEngineLogic::BaseEngineLogic() {
 	m_life_time = {};
 	m_level_manager = std::make_unique<LevelManager>();
 	m_level_manager->Initialize();
-	m_animation_player = std::make_shared<ActorAnimationPlayer>();
 	//m_physics = std::make_unique<XPhysics>();
 	//m_physics->VInitialize();
 }
@@ -157,10 +156,6 @@ void BaseEngineLogic::VMoveActor(const ActorId id, const glm::mat4x4& mat) {
 	}
 }
 
-std::shared_ptr<ActorAnimationPlayer> BaseEngineLogic::GetAnimationPlayer(){
-	return m_animation_player;
-}
-
 const LevelManager& BaseEngineLogic::GetLevelManager() {
 	return *m_level_manager;
 }
@@ -195,8 +190,6 @@ bool BaseEngineLogic::VLoadGame(const std::string& level_resource) {
 			break;
 		}
 	}
-
-	m_animation_player->Initialize(world_node);
 
 	if (!VLoadGameDelegate(world_node)) { return false; }
 
@@ -240,8 +233,6 @@ void BaseEngineLogic::VOnUpdate(const GameTimerDelta& delta, uint32_t image_inde
 	for (GameViewList::iterator it = m_game_views.begin(); it != m_game_views.end(); ++it) {
 		(*it)->VOnUpdate(delta, image_index);
 	}
-
-	m_animation_player->Update(delta);
 }
 
 void BaseEngineLogic::VChangeState(BaseEngineState newState) {

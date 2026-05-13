@@ -2547,6 +2547,35 @@
                                             </xs:complexType>
                                         </xs:element>
                                         <xs:element name="CoordArrowComponent" minOccurs="0" maxOccurs="1"></xs:element>
+                                        <xs:element name="TransformAnimationComponent" minOccurs="0" maxOccurs="1">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element name="Animation" minOccurs="1" maxOccurs="unbounded">
+                                                        <xs:complexType>
+                                                            <xs:sequence>
+                                                                <xs:element name="KeyframeSequence">
+                                                                    <xs:complexType>
+                                                                        <xs:sequence>
+                                                                            <xs:element name="Keyframe" minOccurs="1" maxOccurs="unbounded">
+                                                                                <xs:complexType>
+                                                                                    <xs:sequence>
+                                                                                        <xs:element name="TimePosSec" type="xs:float" minOccurs="0" maxOccurs="1"></xs:element>
+                                                                                        <xs:element name="YawPitchRoll" type="target:Vec3ComplexType" minOccurs="0" maxOccurs="1"></xs:element>
+                                                                                        <xs:element name="Translation" type="target:Vec3ComplexType" minOccurs="0" maxOccurs="1"></xs:element>
+                                                                                        <xs:element name="Tangent" type="target:Vec3ComplexType" minOccurs="0" maxOccurs="1"></xs:element>
+                                                                                    </xs:sequence>
+                                                                                </xs:complexType>
+                                                                            </xs:element>
+                                                                        </xs:sequence>
+                                                                    </xs:complexType>
+                                                                </xs:element>
+                                                             </xs:sequence>
+                                                            <xs:attribute name="name" type="xs:string"></xs:attribute>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
                                     </xs:sequence>
                                     <xs:attribute name="name" type="xs:string"></xs:attribute>
                                 </xs:complexType>
@@ -2572,30 +2601,6 @@
                                         <xs:element name="FogRange" type="xs:float"></xs:element>
                                         <xs:element name="FogColor" type="target:ColorAsAttrComplexType"></xs:element>
                                     </xs:sequence>
-                                </xs:complexType>
-                            </xs:element>
-                            <xs:element name="ActorAnimations">
-                                <xs:complexType>
-                                    <xs:sequence>
-                                        <xs:element name="ActorAnimation" minOccurs="0" maxOccurs="unbounded">
-                                            <xs:complexType>
-                                                <xs:sequence>
-                                                    <xs:element name="AnimationForActorName" type="xs:string"></xs:element>
-                                                    <xs:element name="RelativeKeyframe">
-                                                        <xs:complexType>
-                                                            <xs:sequence>
-                                                                <xs:element name="TimePosSec" type="xs:float"></xs:element>
-                                                                <xs:element name="YawPitchRoll" type="target:Vec3ComplexType"></xs:element>
-                                                                <xs:element name="Translation" type="target:Vec3ComplexType"></xs:element>
-                                                                <xs:element name="Tangent" type="target:Vec3ComplexType"></xs:element>
-                                                            </xs:sequence>
-                                                        </xs:complexType>
-                                                    </xs:element>
-                                                </xs:sequence>
-                                            </xs:complexType>
-                                        </xs:element>
-                                    </xs:sequence>
-                                    <xs:attribute name="TotalTimeSec" type="xs:float"></xs:attribute>
                                 </xs:complexType>
                             </xs:element>
                         </xs:sequence>

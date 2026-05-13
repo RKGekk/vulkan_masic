@@ -37,9 +37,7 @@ TransformComponent::TransformComponent(const pugi::xml_node& data) {
 }
 
 TransformComponent::~TransformComponent() {
-    std::shared_ptr<Actor> act = GetOwner();
-	std::shared_ptr<EvtData_Destroy_Scene_Component> pDestroyActorComponentEvent = std::make_shared<EvtData_Destroy_Scene_Component>(act->GetId(), VGetId(), m_scene_node);
-	IEventManager::Get()->VQueueEvent(pDestroyActorComponentEvent);
+    
 }
 
 const std::string& TransformComponent::VGetName() const {

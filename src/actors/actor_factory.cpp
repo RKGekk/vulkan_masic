@@ -4,6 +4,7 @@
 #include "camera_component.h"
 #include "model_component.h"
 #include "coord_arrow_component.h"
+#include "transform_animation_component.h"
 
 unsigned int ActorFactory::GetNextActorId() {
     return ++m_last_actorId;
@@ -16,6 +17,7 @@ ActorFactory::ActorFactory() {
     m_component_factory.Register<CameraComponent>(ActorComponent::GetIdFromName(CameraComponent::g_name), CameraComponent::g_name);
     m_component_factory.Register<ModelComponent>(ActorComponent::GetIdFromName(ModelComponent::g_name), ModelComponent::g_name);
     m_component_factory.Register<CoordComponent>(CoordComponent::GetIdFromName(CoordComponent::g_name), CoordComponent::g_name);
+    m_component_factory.Register<TransformAnimationComponent>(TransformAnimationComponent::GetIdFromName(TransformAnimationComponent::g_name), TransformAnimationComponent::g_name);
 }
 
 std::unordered_map<std::string, std::pair<std::shared_ptr<ActorComponent>, pugi::xml_node>> ActorFactory::getAllComponents(pugi::xml_node actor_node) {
