@@ -666,6 +666,7 @@
             <xs:enumeration value="COLOR"/>
             <xs:enumeration value="JOINTS"/>
             <xs:enumeration value="WEIGHTS"/>
+            <xs:enumeration value="OTHER"/>
         </xs:restriction>
     </xs:simpleType>
 

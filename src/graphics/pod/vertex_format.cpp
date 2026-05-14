@@ -37,6 +37,9 @@ bool SemanticName::init(const std::string& semantic_name) {
     else if(name == "WEIGHTS"s) {
         semantic = VertexAttributeSemantic::WEIGHTS;
     }
+    else if(name == "OTHER"s) {
+        semantic = VertexAttributeSemantic::OTHER;
+    }
     else return false;
 
     if(matches.length() == 3) {

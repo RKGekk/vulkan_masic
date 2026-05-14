@@ -145,6 +145,27 @@
                 </LayoutBinding>
             </Layout>
         </DescriptorSet>
+
+        <DescriptorSet name="line_descriptor_set" allocator="basic_alloc">
+            <Layout>
+                <LayoutBinding name="ubo_mvp">
+                    <Binding>0</Binding>
+                    <DescriptorType>uniform_buffer</DescriptorType>
+                    <DescriptorCount>1</DescriptorCount>
+                    <ShaderStageFlags>
+                        <Flag>vertex</Flag>
+                    </ShaderStageFlags>
+                </LayoutBinding>
+                <LayoutBinding name="ubo_param">
+                    <Binding>1</Binding>
+                    <DescriptorType>uniform_buffer</DescriptorType>
+                    <DescriptorCount>1</DescriptorCount>
+                    <ShaderStageFlags>
+                        <Flag>vertex</Flag>
+                    </ShaderStageFlags>
+                </LayoutBinding>
+            </Layout>
+        </DescriptorSet>
         
         <DescriptorSet name="imgui_descriptor_set" allocator="imgui_alloc">
             <Layout>
@@ -583,6 +604,65 @@
                 <Set slot="0">imgui_descriptor_set</Set>
             </DescriptorSet>
         </Shader>
+
+        <Shader name="line_vertex_shader">
+            <FilePath file_name="line.vert"></FilePath>
+            <EntryPointName>main</EntryPointName>
+            <Stage>vertex</Stage>
+            <InputAttributeDescription>
+                <Binding num="0" 
+                         vertex_buffer_bind_name="vertex"
+                         index_buffer_bind_name="index"
+                         input_rate="vertex"
+                         vertex_buffer_resource_type="basic_vertex_resource"
+                         index_buffer_resource_type="basic_index_resource"
+                         index_type="uint32"
+                >
+                    <Attribute name="inPosition">
+                        <Location>0</Location>
+                        <GLSLFormat>vec3</GLSLFormat>
+                        <InternalFormat>r32g32b32_sfloat</InternalFormat>
+                        <Semantic num="0">POSITION</Semantic>
+                    </Attribute>
+                    <Attribute name="inColor">
+                        <Location>1</Location>
+                        <GLSLFormat>vec4</GLSLFormat>
+                        <InternalFormat>r8g8b8a8_unorm</InternalFormat>
+                        <Semantic num="0">COLOR</Semantic>
+                    </Attribute>
+                    <Attribute name="inTarget">
+                        <Location>2</Location>
+                        <GLSLFormat>vec3</GLSLFormat>
+                        <InternalFormat>r32g32b32_sfloat</InternalFormat>
+                        <Semantic num="1">POSITION</Semantic>
+                    </Attribute>
+                    <Attribute name="inSide">
+                        <Location>3</Location>
+                        <GLSLFormat>float</GLSLFormat>
+                        <InternalFormat>r32_sfloat</InternalFormat>
+                        <Semantic num="0">OTHER</Semantic>
+                    </Attribute>
+                </Binding>
+            </InputAttributeDescription>
+            <DescriptorSet>
+                <Set slot="0">imgui_descriptor_set</Set>
+            </DescriptorSet>
+        </Shader>
+
+        <Shader name="line_pixel_shader">
+            <FilePath file_name="imgui.frag"></FilePath>
+            <EntryPointName>main</EntryPointName>
+            <Stage>fragment</Stage>
+            <SpecializationConstants>
+                <Constant name="kNonLinearColorSpace">
+                    <ConstantID>0</ConstantID>
+                    <GLSLFormat>bool</GLSLFormat>
+                    <InternalFormat>r8g8b8a8_uint</InternalFormat>
+                    <Value>true</Value>
+                </Constant>
+            </SpecializationConstants>
+        </Shader>
+
     </Shaders>
 
     <RenderPases>
@@ -918,6 +998,77 @@
                 <PolygonMode>fill</PolygonMode>
                 <CullMode><Flags><Flag>none</Flag></Flags></CullMode>
                 <FrontFace>counter_clockwise</FrontFace>
+                <DepthBiasEnable>false</DepthBiasEnable>
+                <DepthBiasConstantFactor>0.0</DepthBiasConstantFactor>
+                <DepthBiasClamp>0.0</DepthBiasClamp>
+                <DepthBiasSlopeFactor>0.0</DepthBiasSlopeFactor>
+                <LineWidth>1.0</LineWidth>
+            </RasterizationState>
+            <MultisampleState sample_count_as_device="true">
+                <SampleCount>16_bit</SampleCount>
+                <SampleShadingEnable>false</SampleShadingEnable>
+                <alphaToCoverageEnable>false</alphaToCoverageEnable>
+                <alphaToOneEnable>false</alphaToOneEnable>
+            </MultisampleState>
+            <DepthStencilState>
+                <DepthTestEnable>true</DepthTestEnable>
+                <DepthWriteEnable>true</DepthWriteEnable>
+                <DepthCompareOp>always</DepthCompareOp>
+                <DepthBoundsTestEnable>false</DepthBoundsTestEnable>
+                <StencilTestEnable>false</StencilTestEnable>
+                <MinDepthBounds>0.0</MinDepthBounds>
+                <MaxDepthBounds>1.0</MaxDepthBounds>
+            </DepthStencilState>
+            <ColorBlendState>
+                <LogicOpEnable>false</LogicOpEnable>
+                <LogicOp>copy</LogicOp>
+                <Attachments>
+                    <Attachment name="color_attachment">
+                        <BlendEnable>false</BlendEnable>
+                        <SrcColorBlendFactor>one</SrcColorBlendFactor>
+                        <DstColorBlendFactor>zero</DstColorBlendFactor>
+                        <ColorBlendOp>add</ColorBlendOp>
+                        <SrcAlphaBlendFactor>one</SrcAlphaBlendFactor>
+                        <DstAlphaBlendFactor>zero</DstAlphaBlendFactor>
+                        <AlphaBlendOp>add</AlphaBlendOp>
+                        <ColorWriteMask>
+                            <Mask>r_bit</Mask>
+                            <Mask>g_bit</Mask>
+                            <Mask>b_bit</Mask>
+                            <Mask>a_bit</Mask>
+                        </ColorWriteMask>
+                    </Attachment>
+                </Attachments>
+                <BlendConstant1>0.0</BlendConstant1>
+                <BlendConstant2>0.0</BlendConstant2>
+                <BlendConstant3>0.0</BlendConstant3>
+                <BlendConstant4>0.0</BlendConstant4>
+            </ColorBlendState>
+            <DynamicState>
+                <Dynamic>viewport</Dynamic>
+                <Dynamic>scissor</Dynamic>
+            </DynamicState>
+            <RenderPass>
+                <RenderPassName>basic_mulisample_render_pass_opaque_clear</RenderPassName>
+                <SubpassName>only_subpass</SubpassName>
+            </RenderPass>
+        </GraphicsPipeline>
+
+        <GraphicsPipeline name="line_pipeline">
+            <Shaders>
+                <Shader>line_vertex_shader</Shader>
+                <Shader>line_pixel_shader</Shader>
+            </Shaders>
+            <InputAssembly>
+                <Topology>triangle_list</Topology>
+                <PrimitiveRestartEnable>false</PrimitiveRestartEnable>
+            </InputAssembly>
+            <RasterizationState>
+                <DepthClampEnable>false</DepthClampEnable>
+                <RasterizerDiscardEnable>false</RasterizerDiscardEnable>
+                <PolygonMode>fill</PolygonMode>
+                <CullMode><Flags><Flag>none</Flag></Flags></CullMode>
+                <FrontFace>clockwise</FrontFace>
                 <DepthBiasEnable>false</DepthBiasEnable>
                 <DepthBiasConstantFactor>0.0</DepthBiasConstantFactor>
                 <DepthBiasClamp>0.0</DepthBiasClamp>

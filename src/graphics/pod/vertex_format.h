@@ -16,7 +16,8 @@ enum class VertexAttributeSemantic : int32_t {
 	TEXCOORD = 4,
     COLOR = 20,
     JOINTS = 21,
-    WEIGHTS = 22
+    WEIGHTS = 22,
+    OTHER = 31
 };
 
 struct SemanticName {

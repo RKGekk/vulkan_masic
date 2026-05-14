@@ -468,6 +468,7 @@ VertexAttributeSemantic getVertexAttributeSemantic(const std::string& semantic_s
     else if(semantic_str == "COLOR"s) {res = VertexAttributeSemantic::COLOR;}
     else if(semantic_str == "JOINTS"s) {res = VertexAttributeSemantic::JOINTS;}
     else if(semantic_str == "WEIGHTS"s) {res = VertexAttributeSemantic::WEIGHTS;}
+	else if(semantic_str == "OTHER"s) {res = VertexAttributeSemantic::OTHER;}
 
     return res;
 }
