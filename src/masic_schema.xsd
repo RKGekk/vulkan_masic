@@ -771,7 +771,7 @@
             <xs:element name="PushConstants" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element name="Constant" type="target:PushConstantComplexType"></xs:element>
+                        <xs:element name="Constant" type="target:PushConstantComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1106,6 +1106,7 @@
             <xs:element name="GLSLFormat" type="target:GLSLTypesSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="InternalFormat" type="target:ColorFormatSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
         </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
     </xs:complexType>
 
     <xs:simpleType name="PipelineCreateFlagSimpleType">

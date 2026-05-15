@@ -148,16 +148,8 @@
 
         <DescriptorSet name="line_descriptor_set" allocator="basic_alloc">
             <Layout>
-                <LayoutBinding name="ubo_mvp">
+                <LayoutBinding name="ubo">
                     <Binding>0</Binding>
-                    <DescriptorType>uniform_buffer</DescriptorType>
-                    <DescriptorCount>1</DescriptorCount>
-                    <ShaderStageFlags>
-                        <Flag>vertex</Flag>
-                    </ShaderStageFlags>
-                </LayoutBinding>
-                <LayoutBinding name="ubo_param">
-                    <Binding>1</Binding>
                     <DescriptorType>uniform_buffer</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
                     <ShaderStageFlags>
@@ -647,6 +639,16 @@
             <DescriptorSet>
                 <Set slot="0">imgui_descriptor_set</Set>
             </DescriptorSet>
+            <PushConstants>
+                <Constant name="u_resolution">
+                    <GLSLFormat>vec2</GLSLFormat>
+                    <InternalFormat>r32g32_sfloat</InternalFormat>
+                </Constant>
+                <Constant name="u_lineWidth">
+                    <GLSLFormat>float</GLSLFormat>
+                    <InternalFormat>r32_sfloat</InternalFormat>
+                </Constant>
+            </PushConstants>
         </Shader>
 
         <Shader name="line_pixel_shader">

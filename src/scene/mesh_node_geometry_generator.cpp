@@ -75,31 +75,36 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateSceneNodeSpline(co
             value += offset;
             glm::vec3 pos1 = glm::hermite(t0.Translation, t0.Tangent, t1.Translation, t1.Tangent, value);
             glm::vec4 color1 = glm::vec4(1.0f, 0.0f, 0.0f, 0.5f);
+
             size_t next_vertex_start = vertex_stride;
+            size_t vertex0_index = j * vertex_stride + 0u * 0u;
+            size_t vertex1_index = j * vertex_stride + next_vertex_start * 1u;
+            size_t vertex2_index = j * vertex_stride + next_vertex_start * 2u;
+            size_t vertex3_index = j * vertex_stride + next_vertex_start * 3u;
 
             for (size_t current_component_num = 0; current_component_num < pos_num_of_elements_to_copy; ++current_component_num) {
-                vertex_data[j * vertex_stride + 0u * 0u + pos_offset + current_component_num] = pos0[current_component_num];
-                vertex_data[j * vertex_stride + next_vertex_start * 1u + pos_offset + current_component_num] = pos0[current_component_num];
-                vertex_data[j * vertex_stride + next_vertex_start * 2u + pos_offset + current_component_num] = pos1[current_component_num];
-                vertex_data[j * vertex_stride + next_vertex_start * 3u + pos_offset + current_component_num] = pos1[current_component_num];
+                vertex_data[vertex0_index + pos_offset + current_component_num] = pos0[current_component_num];
+                vertex_data[vertex1_index + pos_offset + current_component_num] = pos0[current_component_num];
+                vertex_data[vertex2_index + pos_offset + current_component_num] = pos1[current_component_num];
+                vertex_data[vertex3_index + pos_offset + current_component_num] = pos1[current_component_num];
             }
             for (size_t current_component_num = 0; current_component_num < color_num_of_elements_to_copy; ++current_component_num) {
-                vertex_data[j * vertex_stride + 0u * 0u + color_offset + current_component_num] = color0[current_component_num];
-                vertex_data[j * vertex_stride + next_vertex_start * 1u + color_offset + current_component_num] = color0[current_component_num];
-                vertex_data[j * vertex_stride + next_vertex_start * 2u + color_offset + current_component_num] = color1[current_component_num];
-                vertex_data[j * vertex_stride + next_vertex_start * 3u + color_offset + current_component_num] = color1[current_component_num];
+                vertex_data[vertex0_index + color_offset + current_component_num] = color0[current_component_num];
+                vertex_data[vertex1_index + color_offset + current_component_num] = color0[current_component_num];
+                vertex_data[vertex2_index + color_offset + current_component_num] = color1[current_component_num];
+                vertex_data[vertex3_index + color_offset + current_component_num] = color1[current_component_num];
             }
             for (size_t current_component_num = 0; current_component_num < target_num_of_elements_to_copy; ++current_component_num) {
-                vertex_data[j * vertex_stride + 0u * 0u + target_offset + current_component_num] = pos1[current_component_num];
-                vertex_data[j * vertex_stride + next_vertex_start * 1u + target_offset + current_component_num] = pos1[current_component_num];
-                vertex_data[j * vertex_stride + next_vertex_start * 2u + target_offset + current_component_num] = pos0[current_component_num];
-                vertex_data[j * vertex_stride + next_vertex_start * 3u + target_offset + current_component_num] = pos0[current_component_num];
+                vertex_data[vertex0_index + target_offset + current_component_num] = pos1[current_component_num];
+                vertex_data[vertex1_index + target_offset + current_component_num] = pos1[current_component_num];
+                vertex_data[vertex2_index + target_offset + current_component_num] = pos0[current_component_num];
+                vertex_data[vertex3_index + target_offset + current_component_num] = pos0[current_component_num];
             }
             for (size_t current_component_num = 0; current_component_num < side_num_of_elements_to_copy; ++current_component_num) {
-                vertex_data[j * vertex_stride + 0u * 0u + side_offset + current_component_num] = -1.0f;
-                vertex_data[j * vertex_stride + next_vertex_start * 1u + side_offset + current_component_num] = 1.0f;
-                vertex_data[j * vertex_stride + next_vertex_start * 2u + side_offset + current_component_num] = -1.0f;
-                vertex_data[j * vertex_stride + next_vertex_start * 3u + side_offset + current_component_num] = 1.0f;
+                vertex_data[vertex0_index + side_offset + current_component_num] = -1.0f;
+                vertex_data[vertex1_index + side_offset + current_component_num] = 1.0f;
+                vertex_data[vertex2_index + side_offset + current_component_num] = -1.0f;
+                vertex_data[vertex3_index + side_offset + current_component_num] = 1.0f;
             }
 
             indices.push_back(0 + j);

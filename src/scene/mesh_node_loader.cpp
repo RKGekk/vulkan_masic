@@ -437,7 +437,7 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& g
 		model_data->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 
     	size_t num_vertices = GetNumVertices(primitive);
-    	int32_t num_primitives = GetNumPrimitives(primitive);
+    	//int32_t num_primitives = GetNumPrimitives(primitive);
 
     	std::vector<uint32_t> indices;
     	int indices_accessor_idx = primitive.indices;

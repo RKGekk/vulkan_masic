@@ -79,6 +79,7 @@ bool ShaderSignature::init(const pugi::xml_node& shader_data) {
             VkFormat vk_format = getFormat(constant_node.child("InternalFormat").text().as_string());
             size_t bytes_for_type = VulkanDevice::getBytesCount(vk_format);
             VkPushConstantRange constant_info{};
+            constant_info.stageFlags = m_stage;
             constant_info.offset = offset;
             constant_info.size = bytes_for_type;
             offset += bytes_for_type;
