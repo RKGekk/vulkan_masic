@@ -41,7 +41,7 @@ public:
 
     static uint32_t getGLSLAlignment(VertexAttributeGLSLFormat glsl_format);
 
-    std::shared_ptr<PushConstantConfig> makeInstance(std::string name, VkShaderStageFlags shader_stages) const;
+    std::shared_ptr<PushConstantConfig> makeInstance(std::string name) const;
 
 private:
     std::string m_name;

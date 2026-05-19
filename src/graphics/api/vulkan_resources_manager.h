@@ -20,6 +20,8 @@ class VulkanSampler;
 class VulkanFormatManager;
 class FramebufferConfig;
 class WindowSurface;
+class VulkanPushConstant;
+class PushConstantConfig;
 
 class VulkanResourcesManager {
 public:
@@ -41,11 +43,19 @@ public:
     void delete_buffer(const std::string& buffer_name);
     void delete_buffer(std::shared_ptr<VulkanBuffer> buffer_ptr);
 
+    std::shared_ptr<VulkanPushConstant> create_push_constant(std::string resource_type_name);
+    std::shared_ptr<VulkanPushConstant> create_push_constant(std::string const_name, std::string resource_type_name);
+    void delete_buffer(const std::string& const_name);
+    void delete_buffer(std::shared_ptr<VulkanPushConstant> const_ptr);
+
     const std::shared_ptr<VulkanImageBuffer>& getImageResource(const std::string& resource_global_name);
     const std::shared_ptr<VulkanBuffer>& getBufferResource(const std::string& resource_global_name);
+    const std::shared_ptr<VulkanPushConstant>& getPushConstantResource(const std::string& resource_global_name);
     std::shared_ptr<RenderResource> getResource(const std::string& resource_global_name);
+
     const std::shared_ptr<ImageBufferConfig> getImageBufferConfigTemplate(const std::string& template_name) const;
     const std::shared_ptr<BufferConfig> getBufferConfigTemplate(const std::string& template_name) const;
+    const std::shared_ptr<PushConstantConfig> getPushConstantConfigTemplate(const std::string& template_name) const;
 
     const std::shared_ptr<FramebufferConfig>& getFramebufferConfig(const std::string& framebuffer_name) const;
 
@@ -58,6 +68,9 @@ protected:
 
     std::unordered_map<std::string, std::shared_ptr<BufferConfig>> m_buffer_config_map;
     std::unordered_map<std::string, std::shared_ptr<VulkanBuffer>> m_buffer_map;
+
+    std::unordered_map<std::string, std::shared_ptr<PushConstantConfig>> m_push_constant_config_map;
+    std::unordered_map<std::string, std::shared_ptr<VulkanPushConstant>> m_push_constant_map;
 
     std::unordered_map<std::string, std::shared_ptr<FramebufferConfig>> m_framebuffer_config_map;
 };

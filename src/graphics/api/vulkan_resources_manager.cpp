@@ -12,6 +12,8 @@
 #include "vulkan_image_buffer.h"
 #include "vulkan_swapchain.h"
 #include "../../window_surface.h"
+#include "../pod/push_constant_config.h"
+#include "vulkan_push_constant.h"
 
 #include "../../tools/string_tools.h"
 
@@ -43,6 +45,11 @@ bool VulkanResourcesManager::init(const std::shared_ptr<WindowSurface>& window, 
 			std::shared_ptr<BufferConfig> buffer_config_ptr = std::make_shared<BufferConfig>();
 			buffer_config_ptr->init(m_device, name, buffer_node, m_format_manager);
 			m_buffer_config_map[name] = std::move(buffer_config_ptr);
+		}
+		else if(pugi::xml_node push_constant_node = resource_type_node.child("PushConstant")) {
+			std::shared_ptr<PushConstantConfig> push_constant_config_ptr = std::make_shared<PushConstantConfig>();
+			push_constant_config_ptr->init(name, push_constant_node);
+			m_push_constant_config_map[name] = std::move(push_constant_config_ptr);
 		}
 	}
 
@@ -224,6 +231,24 @@ void VulkanResourcesManager::delete_buffer(std::shared_ptr<VulkanBuffer> buffer_
 			return;
 		}
 	}
+}
+
+std::shared_ptr<VulkanBuffer> VulkanResourcesManager::create_push_constant(std::string resource_type_name) {
+	using namespace std::literals;
+
+	const std::shared_ptr<BufferConfig>& buffer_config_template = m_buffer_config_map.at(resource_type_name);
+	std::shared_ptr<BufferConfig> buffer_config;
+	if(buffer_config_template->isSizeDeffered()) {
+		buffer_config = buffer_config_template->makeInstance(resource_type_name + "_"s + get_uuid(), buffer_size);
+	}
+	else {
+		buffer_config = buffer_config_template->makeInstance(resource_type_name + "_"s + get_uuid(), buffer_config_template->getBufferInfo().size);
+	}
+
+	std::shared_ptr<VulkanBuffer> buffer = std::make_shared<VulkanBuffer>(m_device);
+	buffer->init(data, std::move(buffer_config));
+
+	return buffer;
 }
 
 const std::shared_ptr<VulkanImageBuffer>& VulkanResourcesManager::getImageResource(const std::string& resource_global_name) {

@@ -2063,7 +2063,20 @@
 
     <xs:complexType name="PushConstantResourceComplexType">
         <xs:sequence>
-            <xs:element name="Constant" type="target:PushConstantComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+            <xs:element name="Stages">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Stage" type="target:ShaderStageSimpleType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="Constants">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Constant" type="target:PushConstantComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
         </xs:sequence>
     </xs:complexType>
 

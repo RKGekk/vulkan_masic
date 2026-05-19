@@ -185,14 +185,19 @@
     <TypeOfResources>
         <ResourceType name="line_push_constants">
             <PushConstant>
-                <Constant field_name="u_resolution">
-                    <GLSLFormat>vec2</GLSLFormat>
-                    <InternalFormat>r32g32_sfloat</InternalFormat>
-                </Constant>
-                <Constant field_name="u_line_width">
-                    <GLSLFormat>float</GLSLFormat>
-                    <InternalFormat>r32_sfloat</InternalFormat>
-                </Constant>
+                <Stages>
+                    <Stage>vertex</Stage>
+                </Stages>
+                <Constants>
+                    <Constant field_name="u_resolution">
+                        <GLSLFormat>vec2</GLSLFormat>
+                        <InternalFormat>r32g32_sfloat</InternalFormat>
+                    </Constant>
+                    <Constant field_name="u_line_width">
+                        <GLSLFormat>float</GLSLFormat>
+                        <InternalFormat>r32_sfloat</InternalFormat>
+                    </Constant>
+                </Constants>
             </PushConstant>
         </ResourceType>
 

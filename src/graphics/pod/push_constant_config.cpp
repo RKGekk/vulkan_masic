@@ -5,8 +5,16 @@
 
 bool PushConstantConfig::init(std::string name, const pugi::xml_node& const_data) {
     m_name = std::move(name);
+    m_push_constant_range = {};
 
-    pugi::xml_node push_constants_node = const_data.child("PushConstants");
+    pugi::xml_node stages_node = const_data.child("Stages");
+	if (stages_node) {
+        for (pugi::xml_node flag_node = stages_node.first_child(); flag_node; flag_node = flag_node.next_sibling()) {
+            m_push_constant_range.stageFlags |= getShaderStageFlag(flag_node.text().as_string());
+        }
+    }
+
+    pugi::xml_node push_constants_node = const_data.child("Constants");
 	if (!push_constants_node) return;
     
     uint32_t offset = 0u;
@@ -34,8 +42,6 @@ bool PushConstantConfig::init(std::string name, const pugi::xml_node& const_data
         m_total_size += m_total_size % m_largest_member_alignment;
     }
 
-    m_push_constant_range = {};
-    //m_push_constant_range.stageFlags = m_stage;
     m_push_constant_range.offset = 0u;
     m_push_constant_range.size = static_cast<uint32_t>(offset);
 }
@@ -66,12 +72,12 @@ uint32_t PushConstantConfig::getGLSLAlignment(VertexAttributeGLSLFormat glsl_for
     }
 }
 
-std::shared_ptr<PushConstantConfig> PushConstantConfig::makeInstance(std::string name, VkShaderStageFlags shader_stages) const {
+std::shared_ptr<PushConstantConfig> PushConstantConfig::makeInstance(std::string name) const {
     using namespace std::literals;
 
     std::shared_ptr<PushConstantConfig> instance_ptr = std::make_shared<PushConstantConfig>();
     *instance_ptr = *this;
-    instance_ptr->m_push_constant_range.stageFlags = shader_stages;
+    instance_ptr->m_name = std::move(name);
 
     return instance_ptr;
 }
