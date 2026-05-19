@@ -183,6 +183,19 @@
     </Descriptors>
 
     <TypeOfResources>
+        <ResourceType name="line_push_constants">
+            <PushConstant>
+                <Constant field_name="u_resolution">
+                    <GLSLFormat>vec2</GLSLFormat>
+                    <InternalFormat>r32g32_sfloat</InternalFormat>
+                </Constant>
+                <Constant field_name="u_line_width">
+                    <GLSLFormat>float</GLSLFormat>
+                    <InternalFormat>r32_sfloat</InternalFormat>
+                </Constant>
+            </PushConstant>
+        </ResourceType>
+
         <ResourceType name="basic_swap_chain_resource">
             <ImageBuffer>
                 <FormatName>swap_chain_format</FormatName>
@@ -639,16 +652,7 @@
             <DescriptorSet>
                 <Set slot="0">imgui_descriptor_set</Set>
             </DescriptorSet>
-            <PushConstants>
-                <Constant name="u_resolution">
-                    <GLSLFormat>vec2</GLSLFormat>
-                    <InternalFormat>r32g32_sfloat</InternalFormat>
-                </Constant>
-                <Constant name="u_lineWidth">
-                    <GLSLFormat>float</GLSLFormat>
-                    <InternalFormat>r32_sfloat</InternalFormat>
-                </Constant>
-            </PushConstants>
+            <PushConstantName>line_push_constants</PushConstantName>
         </Shader>
 
         <Shader name="line_pixel_shader">

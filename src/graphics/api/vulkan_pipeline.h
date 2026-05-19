@@ -44,6 +44,8 @@ public:
 private:
     std::vector<VkDescriptorSetLayout> getVkDescriptorSetLayouts(const std::vector<std::string>& shader_names, const std::shared_ptr<VulkanDescriptorsManager>& desc_manager, const std::shared_ptr<VulkanShadersManager>& shader_manager) const;
     std::vector<VkPushConstantRange> getPushConstantRanges(const std::vector<std::string>& shader_names, const std::shared_ptr<VulkanShadersManager>& shader_manager);
+    uint32_t getPushConstantsSize(const std::vector<VkPushConstantRange>& const_ranges) const;
+    
     std::vector<VkPipelineShaderStageCreateInfo> getPipelineShaderCreateInfo(const std::vector<std::string>& shader_names, const std::shared_ptr<VulkanShadersManager>& shader_manager);
     std::unordered_map<VkShaderStageFlagBits, std::shared_ptr<VulkanShader>> createShadersMap(const std::shared_ptr<VulkanShadersManager>& shader_manager) const;
     VkPipelineVertexInputStateCreateInfo getVertexInputInfo(const std::vector<std::string>& shader_names, const std::shared_ptr<VulkanShadersManager>& shader_manager);
@@ -61,6 +63,8 @@ private:
     std::vector<VkDescriptorSetLayout> m_desc_set_layouts;
     std::unordered_map<uint32_t, std::shared_ptr<DescSetLayout>> m_desc_slot_to_layout_map;
     std::vector<VkPushConstantRange> m_push_constants;
+    uint32_t m_max_push_constants_size;
+    uint32_t m_current_push_constants_size;
     VkPipelineLayout m_pipeline_layout = VK_NULL_HANDLE;
     VkPipelineLayoutCreateInfo m_pipeline_layout_info;
     VkRect2D m_scissor;

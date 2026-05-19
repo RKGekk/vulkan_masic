@@ -56,7 +56,10 @@ bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_
     m_pipeline_layout_info.setLayoutCount = static_cast<uint32_t>(m_desc_set_layouts.size());
     m_pipeline_layout_info.pSetLayouts = m_desc_set_layouts.data();
 
+
     m_push_constants = getPushConstantRanges(m_pipeline_config->getShaderNames(), shader_manager);
+    m_max_push_constants_size = m_device->getDeviceAbilities().props.limits.maxPushConstantsSize;
+    m_current_push_constants_size = getPushConstantsSize(m_push_constants);
     m_pipeline_layout_info.pushConstantRangeCount = static_cast<uint32_t>(m_push_constants.size());
     if(m_push_constants.empty()) {
         m_pipeline_layout_info.pPushConstantRanges = nullptr;
@@ -209,6 +212,10 @@ std::vector<VkPushConstantRange> VulkanPipeline::getPushConstantRanges(const std
         }
     }
     return push_constants;
+}
+
+uint32_t VulkanPipeline::getPushConstantsSize(const std::vector<VkPushConstantRange>& const_ranges) const {
+    return const_ranges.size() > 0u ? const_ranges.back().offset + const_ranges.back().size : 0u;
 }
 
 std::vector<VkPipelineShaderStageCreateInfo> VulkanPipeline::getPipelineShaderCreateInfo(const std::vector<std::string>& shader_names, const std::shared_ptr<VulkanShadersManager>& shader_manager) {

@@ -5,6 +5,7 @@
 #include "../application.h"
 #include "../graphics/vulkan_renderer.h"
 #include "../scene/mesh_node_loader.h"
+#include "../scene/mesh_node_geometry_generator.h"
 
 #include <cassert>
 #include <unordered_map>
@@ -43,6 +44,7 @@ const ComponentDependecyList& CoordComponent::VGetComponentDependecy() const {
 }
 
 bool CoordComponent::Init(const pugi::xml_node& data) {
+	m_line_width = 4.0f;
 	m_resource_name = "objects/coord_arrows.gltf";
 	if (m_resource_name.empty()) return false;
 	std::filesystem::path p(m_resource_name);
@@ -61,7 +63,10 @@ bool CoordComponent::Init(const pugi::xml_node& data) {
 
 	if(!ac) return !!m_loaded_scene_node;
 
-	
+	MeshNodeGeometryGenerator geometry_gen;
+	for(const auto&[anim_name, anim] : ac->GetAnimationMap()) {
+		m_loaded_scene_node = geometry_gen.GenerateSceneNodeSpline(act->GetName(), anim->TranslationKeyframes, 16u, shader_manager, transform_node);
+	}
 
 
 	return !!m_loaded_scene_node;

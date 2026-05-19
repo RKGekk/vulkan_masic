@@ -9,8 +9,10 @@
 #include "../graphics/api/vulkan_buffer.h"
 #include "../graphics/vulkan_renderer.h"
 #include "../graphics/api/vulkan_resources_manager.h"
+#include "nodes/mesh_node.h"
+#include "nodes/value_bag_node.h"
 
-std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateSceneNodeSpline(const std::vector<KeyframeMatrixTranslation>& keyframes, size_t points_per_spline, std::shared_ptr<VulkanShadersManager> shader_manager, std::shared_ptr<SceneNode> root_transform) {
+std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateSceneNodeSpline(const std::string& mesh_name, float line_width, const std::vector<KeyframeMatrixTranslation>& keyframes, size_t points_per_spline, std::shared_ptr<VulkanShadersManager> shader_manager, std::shared_ptr<SceneNode> root_transform) {
 	using namespace std::literals;
 
     Application& app = Application::Get();
@@ -115,6 +117,28 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateSceneNodeSpline(co
             indices.push_back(3 + j);
         }
     }
+
+    const void* vertex_data_ptr = vertex_data.data();
+
+    std::shared_ptr<VulkanBuffer> vertex_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(vertex_data_ptr, num_vertices * model_data->GetVertexFormat().getVertexSize(), mesh_name + "_line_vertex_buffer_"s, "basic_vertex_resource");
+	std::shared_ptr<VulkanBuffer> index_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(indices.data(), indices.size() * sizeof(uint32_t), mesh_name + "_line_index_buffer"s, "basic_index_resource");
+
+	model_data->SetVertexBuffer(std::move(vertex_buffer));
+	model_data->SetIndexBuffer(std::move(index_buffer));
+		
+    model_data->SetName(mesh_name);
+    //model_data->calculateBoundingBox();
+
+    mesh_node->AddMesh(model_data);
+    
+    std::shared_ptr<ValueBagNode> value_bag_node = std::make_shared<ValueBagNode>(m_scene, new_node->VGetNodeIndex());
+    m_scene->addProperty(value_bag_node);
+
+    glm::vec2 resolution = {};
+    resolution.x = (float)Application().GetApplicationOptions().ScreenWidth;
+    resolution.y = (float)Application().GetApplicationOptions().ScreenHeight;
+    value_bag_node->AppendValue("u_resolution"s, sizeof(glm::vec2), &resolution);
+    value_bag_node->AppendValue("u_line_width"s, sizeof(float), &line_width);
 
 	return m_root_node;
 }

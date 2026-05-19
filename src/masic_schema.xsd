@@ -768,13 +768,7 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="PushConstants" minOccurs="0" maxOccurs="1">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element name="Constant" type="target:PushConstantComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
+            <xs:element name="PushConstantName" minOccurs="0" maxOccurs="1"></xs:element>
             <xs:element name="SpecializationConstants" type="target:SpecializationConstantComplexType" minOccurs="0" maxOccurs="1"></xs:element>
         </xs:sequence>
         <xs:attribute name="name" type="xs:string"></xs:attribute>
@@ -1106,7 +1100,7 @@
             <xs:element name="GLSLFormat" type="target:GLSLTypesSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="InternalFormat" type="target:ColorFormatSimpleType" minOccurs="1" maxOccurs="1"></xs:element>
         </xs:sequence>
-        <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+        <xs:attribute name="field_name" type="xs:string" use="required"></xs:attribute>
     </xs:complexType>
 
     <xs:simpleType name="PipelineCreateFlagSimpleType">
@@ -2067,6 +2061,12 @@
         </xs:restriction>
     </xs:simpleType>
 
+    <xs:complexType name="PushConstantResourceComplexType">
+        <xs:sequence>
+            <xs:element name="Constant" type="target:PushConstantComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
     <xs:complexType name="BufferComplexType">
         <xs:sequence>
             <xs:element name="Flags" minOccurs="0" maxOccurs="1">
@@ -2470,6 +2470,7 @@
                                     <xs:choice>
                                         <xs:element name="ImageBuffer" type="target:ImageBufferComplexType"></xs:element>
                                         <xs:element name="Buffer" type="target:BufferComplexType"></xs:element>
+                                        <xs:element name="PushConstant" type="target:PushConstantResourceComplexType"></xs:element>
                                     </xs:choice>
                                     <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
                                 </xs:complexType>

@@ -44,6 +44,7 @@ private:
 
 	std::string m_resource_name;
 	std::string m_resource_directory;
+	float m_line_width;
 
 	std::shared_ptr<SceneNode> m_loaded_scene_node;
 };

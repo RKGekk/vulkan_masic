@@ -21,7 +21,6 @@
 
 #include "scene.h"
 #include "nodes/scene_node.h"
-#include "nodes/mesh_node.h"
 #include "../graphics/pod/material.h"
 #include "../graphics/pod/shader_signature.h"
 #include "../graphics/api/vulkan_shaders_manager.h"
@@ -33,7 +32,7 @@ public:
 
     //std::shared_ptr<SceneNode> GenerateSceneNodeLine(std::shared_ptr<VulkanShadersManager> shader_manager, std::shared_ptr<SceneNode> root_transform);
     //std::shared_ptr<SceneNode> GenerateSceneNodeSpline(std::shared_ptr<VulkanShadersManager> shader_manager, std::shared_ptr<SceneNode> root_transform);
-    std::shared_ptr<SceneNode> GenerateSceneNodeSpline(const std::vector<KeyframeMatrixTranslation>& keyframes, size_t points_per_spline, std::shared_ptr<VulkanShadersManager> shader_manager, std::shared_ptr<SceneNode> root_transform);
+    std::shared_ptr<SceneNode> GenerateSceneNodeSpline(const std::string& mesh_name, float line_width, const std::vector<KeyframeMatrixTranslation>& keyframes, size_t points_per_spline, std::shared_ptr<VulkanShadersManager> shader_manager, std::shared_ptr<SceneNode> root_transform);
     //std::shared_ptr<SceneNode> GenerateSceneNodeBox(std::shared_ptr<VulkanShadersManager> shader_manager, std::shared_ptr<SceneNode> root_transform);
     //std::shared_ptr<SceneNode> GenerateSceneNodeSphere(std::shared_ptr<VulkanShadersManager> shader_manager, std::shared_ptr<SceneNode> root_transform);
     //std::shared_ptr<SceneNode> GenerateSceneNodeGeosphere(std::shared_ptr<VulkanShadersManager> shader_manager, std::shared_ptr<SceneNode> root_transform);

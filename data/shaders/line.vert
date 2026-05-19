@@ -6,7 +6,7 @@ layout(set = 0, binding = 0) uniform UniformBufferObject {
     mat4 proj;
 } ubo;
 
-layout(push_constant) uniform UniformBufferObject {
+layout(push_constant) uniform UniformRegisters {
     vec2 u_resolution; // Viewport Size in pixels (e.g. 1920.0, 1080.0)
     float u_line_width; // Dynamic Thickness adjustment in pixels
 } registers;
@@ -16,7 +16,7 @@ layout(location = 1) in vec4 in_color;
 layout(location = 2) in vec3 in_target;
 layout(location = 3) in float in_side;
 
-layout(location = 0) out vec3 out_Color;
+layout(location = 0) out vec4 out_color;
 
 const float epsilon = 0.00001f;
 
@@ -42,5 +42,5 @@ void main() {
     vec2 offset_screen = position_screen + line_normal * (registers.u_line_width * 0.5f) * in_side;
 
     gl_Position = vec4((offset_screen / registers.u_resolution) * position_clip.w, position_clip.z, position_clip.w);
-    fragColor = in_color;
+    out_color = in_color;
 }

@@ -33,6 +33,7 @@ public:
 	static const uint32_t NODE_TYPE_FLAG_AABB = 16u;
 	static const uint32_t NODE_TYPE_FLAG_SPHERE = 32u;
 	static const uint32_t NODE_TYPE_FLAG_BONE = 64u;
+	static const uint32_t NODE_TYPE_FLAG_VALUE_BAG = 128u;
 
 	using NodeIndex = uint32_t;
     using NodeLevel = uint32_t;

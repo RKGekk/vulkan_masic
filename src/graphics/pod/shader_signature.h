@@ -32,6 +32,7 @@ public:
     const std::unordered_map<SlotNumber, std::string>& getDescSetNames() const;
     
     const std::vector<VkPushConstantRange>& getPushConstantsRanges() const;
+    const std::unordered_map<ShaderConstantName, ShaderConstant>& getPushConstantsMetadata() const;
     const std::vector<VkSpecializationMapEntry>& getSpecializationConstantsMap() const;
     const std::vector<char>& getSpecializationConstantsData() const;
     const VkSpecializationInfo& getSpecializationInfo() const;
@@ -46,6 +47,7 @@ private:
     std::vector<VertexFormat> m_input_attributes; // by binding idx
     std::unordered_map<SlotNumber, std::string> m_desc_set_names;
     std::vector<VkPushConstantRange> m_push_constants;
+    std::unordered_map<ShaderConstantName, ShaderConstant> m_push_constants_metadata;
     std::vector<VkSpecializationMapEntry> m_specialization_constants;
     std::vector<char> m_specialization_constants_data;
     VkSpecializationInfo m_specialization_info;

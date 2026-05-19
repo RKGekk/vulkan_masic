@@ -15,7 +15,8 @@ public:
 
     enum class Type : uint32_t {
         BUFFER,
-        IMAGE
+        IMAGE,
+        PUSH_CONSTANT
     };
 
     virtual void destroy() = 0;
