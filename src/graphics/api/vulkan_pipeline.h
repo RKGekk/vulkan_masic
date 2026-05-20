@@ -41,9 +41,13 @@ public:
     const std::unordered_map<VkShaderStageFlagBits, std::shared_ptr<VulkanShader>>& getShaders() const;
     const std::unordered_map<uint32_t, std::shared_ptr<DescSetLayout>>& getDescLayouts() const;
 
+    bool has_push_constants() const;
+    void build_push_constants();
+    void attach_push_constants(VkCommandBuffer command_buffer);
+
 private:
     std::vector<VkDescriptorSetLayout> getVkDescriptorSetLayouts(const std::vector<std::string>& shader_names, const std::shared_ptr<VulkanDescriptorsManager>& desc_manager, const std::shared_ptr<VulkanShadersManager>& shader_manager) const;
-    std::vector<VkPushConstantRange> getPushConstantRanges(const std::vector<std::string>& shader_names, const std::shared_ptr<VulkanShadersManager>& shader_manager);
+    std::vector<VkPushConstantRange> getPushConstantRanges(const std::shared_ptr<VulkanShadersManager>& shader_manager);
     uint32_t getPushConstantsSize(const std::vector<VkPushConstantRange>& const_ranges) const;
     
     std::vector<VkPipelineShaderStageCreateInfo> getPipelineShaderCreateInfo(const std::vector<std::string>& shader_names, const std::shared_ptr<VulkanShadersManager>& shader_manager);
@@ -53,6 +57,7 @@ private:
     void saveCacheToFile(VkPipelineCache cache, const std::string& file_name);
     
     std::shared_ptr<VulkanDevice> m_device;
+    std::shared_ptr<VulkanShadersManager> m_shader_manager;
     std::string m_name;
     PipelineType m_pipeline_type;
     std::vector<VkPipelineShaderStageCreateInfo> m_shaders_infos;
@@ -63,6 +68,7 @@ private:
     std::vector<VkDescriptorSetLayout> m_desc_set_layouts;
     std::unordered_map<uint32_t, std::shared_ptr<DescSetLayout>> m_desc_slot_to_layout_map;
     std::vector<VkPushConstantRange> m_push_constants;
+    std::vector<char> m_push_constants_data;
     uint32_t m_max_push_constants_size;
     uint32_t m_current_push_constants_size;
     VkPipelineLayout m_pipeline_layout = VK_NULL_HANDLE;

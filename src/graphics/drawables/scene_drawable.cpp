@@ -4,14 +4,17 @@
 #include "../../engine/base_engine_logic.h"
 #include "../../actors/camera_component.h"
 #include "../../scene/nodes/basic_camera_node.h"
+#include "../../scene/nodes/value_bag_node.h"
 #include "../api/vulkan_buffer.h"
 #include "../api/vulkan_image_buffer.h"
 #include "../api/vulkan_swapchain.h"
 #include "../api/vulkan_resources_manager.h"
 #include "../api/vulkan_descriptors_manager.h"
+#include "../api/vulkan_push_constant.h"
 #include "../pod/graphics_render_node.h"
 #include "../pod/graphics_render_node_config.h"
 #include "../pod/format_config.h"
+#include "../pod/push_constant_config.h"
 #include "../vulkan_renderer.h"
 
 struct SceneUniformBufferObject {
@@ -81,7 +84,9 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
     using namespace std::literals;
 
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
+    std::shared_ptr<Scene> scene = model->GetScene();
 
+    std::shared_ptr<ValueBagNode> value_bag_node = std::dynamic_pointer_cast<ValueBagNode>(model->GetScene()->getProperty(model->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG));
     const MeshNode::MeshList& mesh_list = model->GetMeshes();
     size_t msz = mesh_list.size();
     m_renderables.reserve(m_renderables.size() + msz);
@@ -109,6 +114,13 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
 
             renderable->render_node = std::make_shared<GraphicsRenderNode>();
             renderable->render_node->init(m_device, render_name, false, Application::GetRenderer().getFrameData(frame)->render_graph);
+
+            renderable->line_params = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getPushConstants();
+            if(value_bag_node && renderable->line_params) {
+                for(const auto&[const_name, metadata_id] : renderable->line_params->getConstConfig()->getPushConstantsNamesMap()) {
+                    renderable->line_params->SetValue(const_name, value_bag_node->GetValue(const_name));
+                }
+            }
 
             std::shared_ptr<VulkanShader> vertex_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
             std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames().at(0));

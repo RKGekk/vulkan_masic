@@ -21,6 +21,7 @@ bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_
     using namespace std::literals;
     
     m_device = std::move(device);
+    m_shader_manager = std::move(shader_manager);
     m_render_pass = std::move(render_pass);
 
     m_pipeline_config = std::make_shared<PipelineConfig>();
@@ -28,8 +29,8 @@ bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_
 
     m_pipeline_type = PipelineType::GRAPHICS;
     m_name = m_pipeline_config->getName();
-    m_shaders = createShadersMap(shader_manager);
-    m_desc_slot_to_layout_map = createDescSlotToLayoutMap(desc_manager, shader_manager);
+    m_shaders = createShadersMap(m_shader_manager);
+    m_desc_slot_to_layout_map = createDescSlotToLayoutMap(desc_manager, m_shader_manager);
 
     std::filesystem::path pipeline_cache_file_path(m_name);
     std::vector<char> pipeline_cache_data;
@@ -52,12 +53,12 @@ bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_
     m_pipeline_layout_info = VkPipelineLayoutCreateInfo{};
     m_pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 
-    m_desc_set_layouts = getVkDescriptorSetLayouts(m_pipeline_config->getShaderNames(), desc_manager, shader_manager);
+    m_desc_set_layouts = getVkDescriptorSetLayouts(m_pipeline_config->getShaderNames(), desc_manager, m_shader_manager);
     m_pipeline_layout_info.setLayoutCount = static_cast<uint32_t>(m_desc_set_layouts.size());
     m_pipeline_layout_info.pSetLayouts = m_desc_set_layouts.data();
 
 
-    m_push_constants = getPushConstantRanges(m_pipeline_config->getShaderNames(), shader_manager);
+    m_push_constants = getPushConstantRanges(m_shader_manager);
     m_max_push_constants_size = m_device->getDeviceAbilities().props.limits.maxPushConstantsSize;
     m_current_push_constants_size = getPushConstantsSize(m_push_constants);
     m_pipeline_layout_info.pushConstantRangeCount = static_cast<uint32_t>(m_push_constants.size());
@@ -73,8 +74,8 @@ bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_
         throw std::runtime_error("failed to create pipeline layout!");
     }
 
-    m_shaders_infos = getPipelineShaderCreateInfo(m_pipeline_config->getShaderNames(), shader_manager);
-    m_input_info = getVertexInputInfo(m_pipeline_config->getShaderNames(), shader_manager);
+    m_shaders_infos = getPipelineShaderCreateInfo(m_pipeline_config->getShaderNames(), m_shader_manager);
+    m_input_info = getVertexInputInfo(m_pipeline_config->getShaderNames(), m_shader_manager);
 
     m_scissor = VkRect2D{};
     m_scissor.offset = {0, 0};
@@ -188,6 +189,56 @@ const std::unordered_map<uint32_t, std::shared_ptr<DescSetLayout>>& VulkanPipeli
     return m_desc_slot_to_layout_map;
 }
 
+bool VulkanPipeline::has_push_constants() const {
+    return m_push_constants.size() > 0u;
+}
+
+void VulkanPipeline::build_push_constants() {
+    if (!has_push_constants()) return;
+
+    std::unordered_set<PushConstantConfig::ShaderConstantName> push_const_names;
+    uint32_t offset = 0u;
+    m_push_constants_data.resize(m_current_push_constants_size);
+    for(const std::string& shader_name : m_pipeline_config->getShaderNames()) {
+        std::shared_ptr<VulkanPushConstant>& push_constant = m_shader_manager->getShader(shader_name)->getShaderSignature()->getPushConstants();
+        if(push_const_names.contains(push_constant->getName())) continue;
+        push_const_names.insert(push_constant->getName());
+        uint32_t push_const_size = push_constant->getConstConfig()->getTotalSize();
+        push_constant->getConstConfig()->setPushConstantRangeOffset(offset);
+        memcpy(
+            m_push_constants_data.data() + offset,
+            push_constant->getData().data(),
+            push_const_size
+        );
+        
+        offset += push_const_size;
+    }
+}
+
+void VulkanPipeline::attach_push_constants(VkCommandBuffer command_buffer) {
+    if (!has_push_constants()) return;
+
+    std::unordered_set<PushConstantConfig::ShaderConstantName> push_const_names;
+    uint32_t offset = 0u;
+    for(const std::string& shader_name : m_pipeline_config->getShaderNames()) {
+        std::shared_ptr<VulkanPushConstant>& push_constant = m_shader_manager->getShader(shader_name)->getShaderSignature()->getPushConstants();
+        if(push_const_names.contains(push_constant->getName())) continue;
+        push_const_names.insert(push_constant->getName());
+        uint32_t push_const_size = push_constant->getConstConfig()->getTotalSize();
+        
+        vkCmdPushConstants(
+            command_buffer,
+            m_pipeline_layout,
+            push_constant->getConstConfig()->getPushConstantRange().stageFlags,
+            push_constant->getConstConfig()->getPushConstantRange().offset,
+            push_constant->getConstConfig()->getPushConstantRange().size,
+            m_push_constants_data.data()
+        );
+        
+        offset += push_const_size;
+    }
+}
+
 std::vector<VkDescriptorSetLayout> VulkanPipeline::getVkDescriptorSetLayouts(const std::vector<std::string>& shader_names, const std::shared_ptr<VulkanDescriptorsManager>& desc_manager, const std::shared_ptr<VulkanShadersManager>& shader_manager) const {
     std::unordered_set<VkDescriptorSetLayout> temp;
     for(const std::string& shader_name : shader_names) {
@@ -199,17 +250,19 @@ std::vector<VkDescriptorSetLayout> VulkanPipeline::getVkDescriptorSetLayouts(con
     return {temp.begin(), temp.end()};
 }
 
-std::vector<VkPushConstantRange> VulkanPipeline::getPushConstantRanges(const std::vector<std::string>& shader_names, const std::shared_ptr<VulkanShadersManager>& shader_manager) {
+std::vector<VkPushConstantRange> VulkanPipeline::getPushConstantRanges(const std::shared_ptr<VulkanShadersManager>& shader_manager) {
     std::vector<VkPushConstantRange> push_constants;
+    std::unordered_set<PushConstantConfig::ShaderConstantName> push_const_names;
     uint32_t offset = 0u;
-    for(const std::string& shader_name : shader_names) {
-        for(VkPushConstantRange constant : shader_manager->getShader(shader_name)->getShaderSignature()->getPushConstantsRanges()) {
-            VkPushConstantRange push_constant = constant;
-            push_constant.offset = offset;
+    for(const std::string& shader_name : m_pipeline_config->getShaderNames()) {
+        std::shared_ptr<VulkanPushConstant>& push_constant = shader_manager->getShader(shader_name)->getShaderSignature()->getPushConstants();
+        if(push_const_names.contains(push_constant->getName())) continue;
+        push_const_names.insert(push_constant->getName());
+        VkPushConstantRange range = push_constant->getConstConfig()->getPushConstantRange();
+        range.offset = offset;
+        push_constants.push_back(range);
 
-            push_constants.push_back(push_constant);
-            offset += constant.size;
-        }
+        offset += range.size;
     }
     return push_constants;
 }

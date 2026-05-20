@@ -29,6 +29,15 @@ void ValueBagNode::InsertValue(const std::string& name, size_t size, size_t offs
     memcpy(m_data.data() + offset, data, size);
 }
 
+void ValueBagNode::SetValue(const std::string& name, const void* data) {
+    const ValuePosition& vp = m_metadata.at(name);
+    memcpy(
+        m_data.data() + vp.offset,
+        data,
+        vp.size
+    );
+}
+
 const void* ValueBagNode::GetValue(const std::string& name) const {
     return m_data.data() + m_metadata.at(name).offset;
 }

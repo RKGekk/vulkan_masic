@@ -36,6 +36,11 @@ void GraphicsRenderNode::render(CommandBatch& command_buffer, unsigned image_ind
     
     TransitionResourcesToProperState(command_buffer);
 
+    vkCmdBindPipeline(command_buffer.getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->getPipeline());
+
+    m_pipeline->build_push_constants();
+    m_pipeline->attach_push_constants(command_buffer.getCommandBufer());
+
     VkViewport view_port = m_node_config->getViewport();
     VkRect2D scissor = m_node_config->getScissor();
         

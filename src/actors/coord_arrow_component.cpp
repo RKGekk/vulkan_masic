@@ -6,6 +6,7 @@
 #include "../graphics/vulkan_renderer.h"
 #include "../scene/mesh_node_loader.h"
 #include "../scene/mesh_node_geometry_generator.h"
+#include "../scene/nodes/value_bag_node.h"
 
 #include <cassert>
 #include <unordered_map>
@@ -43,6 +44,15 @@ const ComponentDependecyList& CoordComponent::VGetComponentDependecy() const {
     return component_dep;
 }
 
+void CoordComponent::setLineWidth(float width) {
+	if(m_loaded_scene_node) {
+		std::shared_ptr<ValueBagNode> value_bag_node = std::dynamic_pointer_cast<ValueBagNode>(m_loaded_scene_node->GetScene()->getProperty(m_loaded_scene_node->GetChild()->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG));
+		if(value_bag_node) {
+			value_bag_node->SetValue("u_line_width"s, &m_line_width);
+		}
+	}
+}
+
 bool CoordComponent::Init(const pugi::xml_node& data) {
 	m_line_width = 4.0f;
 	m_resource_name = "objects/coord_arrows.gltf";
@@ -65,7 +75,7 @@ bool CoordComponent::Init(const pugi::xml_node& data) {
 
 	MeshNodeGeometryGenerator geometry_gen;
 	for(const auto&[anim_name, anim] : ac->GetAnimationMap()) {
-		m_loaded_scene_node = geometry_gen.GenerateSceneNodeSpline(act->GetName(), anim->TranslationKeyframes, 16u, shader_manager, transform_node);
+		m_loaded_scene_node = geometry_gen.GenerateSceneNodeSpline(act->GetName(), m_line_width, anim->TranslationKeyframes, 16u, shader_manager, transform_node);
 	}
 
 

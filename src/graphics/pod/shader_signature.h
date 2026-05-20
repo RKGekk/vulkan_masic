@@ -7,16 +7,20 @@
 
 #include "vertex_format.h"
 #include "../api/vulkan_sampler.h"
+#include "../api/vulkan_push_constant.h"
+#include "push_constant_config.h"
 
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+class VulkanResourcesManager;
+
 class ShaderSignature {
 public:
     using SlotNumber = uint32_t;
 
-    bool init(const pugi::xml_node& shader_data);
+    bool init(std::shared_ptr<VulkanResourcesManager>& resources_manager, const pugi::xml_node& shader_data);
 
     const VertexFormat& getVertexFormat() const;
 
@@ -31,8 +35,7 @@ public:
     size_t getNumInputAttributeBindings() const;
     const std::unordered_map<SlotNumber, std::string>& getDescSetNames() const;
     
-    const std::vector<VkPushConstantRange>& getPushConstantsRanges() const;
-    const std::unordered_map<ShaderConstantName, ShaderConstant>& getPushConstantsMetadata() const;
+    std::shared_ptr<VulkanPushConstant>& getPushConstants();
     const std::vector<VkSpecializationMapEntry>& getSpecializationConstantsMap() const;
     const std::vector<char>& getSpecializationConstantsData() const;
     const VkSpecializationInfo& getSpecializationInfo() const;
@@ -46,8 +49,7 @@ private:
     VkShaderStageFlagBits m_stage;
     std::vector<VertexFormat> m_input_attributes; // by binding idx
     std::unordered_map<SlotNumber, std::string> m_desc_set_names;
-    std::vector<VkPushConstantRange> m_push_constants;
-    std::unordered_map<ShaderConstantName, ShaderConstant> m_push_constants_metadata;
+    std::shared_ptr<VulkanPushConstant> m_push_constants;
     std::vector<VkSpecializationMapEntry> m_specialization_constants;
     std::vector<char> m_specialization_constants_data;
     VkSpecializationInfo m_specialization_info;

@@ -241,7 +241,6 @@ void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer, unsigned 
                 vkCmdBeginRenderPass(command_buffer.getCommandBufer(), &renderpass_info, VK_SUBPASS_CONTENTS_INLINE);
 
                 for(const auto& pipeline : dependency_lvl->getPipelines(renderpass_name)) {
-                    vkCmdBindPipeline(command_buffer.getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getPipeline());
                     for(const std::shared_ptr<GraphicsRenderNode>& graphics_node : dependency_lvl->getGraphicsNodes(pipeline->getPipelineConfig()->getName())) {
                         graphics_node->render(command_buffer, image_index);
                     }

@@ -1,9 +1,10 @@
 #include "shader_signature.h"
 
 #include "../api/vulkan_device.h"
+#include "../api/vulkan_resources_manager.h"
 #include "../../tools/string_tools.h"
 
-bool ShaderSignature::init(const pugi::xml_node& shader_data) {
+bool ShaderSignature::init(std::shared_ptr<VulkanResourcesManager>& resources_manager, const pugi::xml_node& shader_data) {
     using namespace std::literals;
 
     m_name = shader_data.attribute("name").as_string();
@@ -72,30 +73,10 @@ bool ShaderSignature::init(const pugi::xml_node& shader_data) {
         }
     }
 
-    pugi::xml_node push_constants_node = shader_data.child("PushConstants");
+    pugi::xml_node push_constants_node = shader_data.child("PushConstantName");
 	if (push_constants_node) {
-        size_t offset = 0u;
-        for (pugi::xml_node constant_node = push_constants_node.first_child(); constant_node; constant_node = constant_node.next_sibling()) {
-            VkFormat vk_format = getFormat(constant_node.child("InternalFormat").text().as_string());
-            std::string constant_name = constant_node.attribute("name").as_string();
-            size_t bytes_for_type = VulkanDevice::getBytesCount(vk_format);
-
-            m_push_constants_metadata.emplace(
-                constant_name,
-                ShaderConstant{
-                    vk_format,
-                    bytes_for_type,
-                    offset
-                }
-            );
-
-            offset += bytes_for_type;
-		}
-        VkPushConstantRange constant_info{};
-        constant_info.stageFlags = m_stage;
-        constant_info.offset = static_cast<uint32_t>(offset);
-        constant_info.size = static_cast<uint32_t>(offset);
-        m_push_constants.push_back(constant_info);
+        std::string push_const_name = push_constants_node.text().as_string();
+        m_push_constants = resources_manager->create_push_constant(m_name + "_pc_"s, push_const_name);
     }
 
     pugi::xml_node specialization_constants_node = shader_data.child("SpecializationConstants");
@@ -178,12 +159,8 @@ const std::unordered_map<ShaderSignature::SlotNumber, std::string>& ShaderSignat
     return m_desc_set_names;
 }
 
-const std::vector<VkPushConstantRange>& ShaderSignature::getPushConstantsRanges() const {
+std::shared_ptr<VulkanPushConstant>& ShaderSignature::getPushConstants() {
     return m_push_constants;
-}
-
-const std::unordered_map<ShaderSignature::ShaderConstantName, ShaderSignature::ShaderConstant>& ShaderSignature::getPushConstantsMetadata() const {
-    return m_push_constants_metadata;
 }
 
 const std::vector<VkSpecializationMapEntry>& ShaderSignature::getSpecializationConstantsMap() const {

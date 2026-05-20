@@ -233,22 +233,30 @@ void VulkanResourcesManager::delete_buffer(std::shared_ptr<VulkanBuffer> buffer_
 	}
 }
 
-std::shared_ptr<VulkanBuffer> VulkanResourcesManager::create_push_constant(std::string resource_type_name) {
+std::shared_ptr<VulkanPushConstant> VulkanResourcesManager::create_push_constant(std::string resource_type_name) {
 	using namespace std::literals;
 
-	const std::shared_ptr<BufferConfig>& buffer_config_template = m_buffer_config_map.at(resource_type_name);
-	std::shared_ptr<BufferConfig> buffer_config;
-	if(buffer_config_template->isSizeDeffered()) {
-		buffer_config = buffer_config_template->makeInstance(resource_type_name + "_"s + get_uuid(), buffer_size);
-	}
-	else {
-		buffer_config = buffer_config_template->makeInstance(resource_type_name + "_"s + get_uuid(), buffer_config_template->getBufferInfo().size);
-	}
+	const std::shared_ptr<PushConstantConfig>& const_config_template = m_push_constant_config_map.at(resource_type_name);
+	std::shared_ptr<PushConstantConfig> const_config = const_config_template->makeInstance(resource_type_name + "_"s + get_uuid());
 
-	std::shared_ptr<VulkanBuffer> buffer = std::make_shared<VulkanBuffer>(m_device);
-	buffer->init(data, std::move(buffer_config));
+	std::shared_ptr<VulkanPushConstant> push_constant = std::make_shared<VulkanPushConstant>(m_device);
+	push_constant->init(std::move(const_config));
 
-	return buffer;
+	return push_constant;
+}
+
+std::shared_ptr<VulkanPushConstant> VulkanResourcesManager::create_push_constant(std::string const_name, std::string resource_type_name) {
+	using namespace std::literals;
+
+	const std::shared_ptr<PushConstantConfig>& const_config_template = m_push_constant_config_map.at(resource_type_name);
+	std::shared_ptr<PushConstantConfig> const_config = const_config_template->makeInstance(const_name + "_"s + resource_type_name);
+	
+	std::shared_ptr<VulkanPushConstant> push_constant = std::make_shared<VulkanPushConstant>(m_device, const_name);
+	push_constant->init(std::move(const_config));
+
+	m_push_constant_map[const_name] = push_constant;
+
+	return push_constant;
 }
 
 const std::shared_ptr<VulkanImageBuffer>& VulkanResourcesManager::getImageResource(const std::string& resource_global_name) {
@@ -257,6 +265,10 @@ const std::shared_ptr<VulkanImageBuffer>& VulkanResourcesManager::getImageResour
 
 const std::shared_ptr<VulkanBuffer>& VulkanResourcesManager::getBufferResource(const std::string& resource_global_name) {
 	return m_buffer_map.at(resource_global_name);
+}
+
+const std::shared_ptr<VulkanPushConstant>& VulkanResourcesManager::getPushConstantResource(const std::string& resource_global_name) {
+	return m_push_constant_map.at(resource_global_name);
 }
 
 std::shared_ptr<RenderResource> VulkanResourcesManager::getResource(const std::string& resource_global_name) {
@@ -275,6 +287,10 @@ const std::shared_ptr<ImageBufferConfig> VulkanResourcesManager::getImageBufferC
 
 const std::shared_ptr<BufferConfig> VulkanResourcesManager::getBufferConfigTemplate(const std::string& template_name) const {
 	return m_buffer_config_map.at(template_name);
+}
+
+const std::shared_ptr<PushConstantConfig> VulkanResourcesManager::getPushConstantConfigTemplate(const std::string& template_name) const {
+	return m_push_constant_config_map.at(template_name);
 }
 
 const std::shared_ptr<FramebufferConfig>& VulkanResourcesManager::getFramebufferConfig(const std::string& framebuffer_name) const {
