@@ -91,7 +91,7 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
     m_render_passes_manager->init(m_device, "graphics_pipelines.xml"s, m_swapchain);
 
     m_shaders_manager = std::make_shared<VulkanShadersManager>();
-    m_shaders_manager->init(m_device, "graphics_pipelines.xml"s);
+    m_shaders_manager->init(m_device, m_resources_manager, "graphics_pipelines.xml"s);
 
     m_pipelines_manager = std::make_shared<VulkanPipelinesManager>();
     m_pipelines_manager->init(m_device, "graphics_pipelines.xml"s);

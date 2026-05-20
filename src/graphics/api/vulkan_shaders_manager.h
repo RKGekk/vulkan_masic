@@ -15,7 +15,7 @@ class VulkanDevice;
 
 class VulkanShadersManager {
 public:
-    bool init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_name);
+    bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<VulkanResourcesManager>& resources_manager, const std::string& rg_file_name);
     void destroy();
 
     std::shared_ptr<VulkanShader> getShader(const std::string& name) const;

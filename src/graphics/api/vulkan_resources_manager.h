@@ -45,8 +45,8 @@ public:
 
     std::shared_ptr<VulkanPushConstant> create_push_constant(std::string resource_type_name);
     std::shared_ptr<VulkanPushConstant> create_push_constant(std::string const_name, std::string resource_type_name);
-    void delete_buffer(const std::string& const_name);
-    void delete_buffer(std::shared_ptr<VulkanPushConstant> const_ptr);
+    void detete_push_buffer(const std::string& const_name);
+    void delete_push_buffer(std::shared_ptr<VulkanPushConstant> const_ptr);
 
     const std::shared_ptr<VulkanImageBuffer>& getImageResource(const std::string& resource_global_name);
     const std::shared_ptr<VulkanBuffer>& getBufferResource(const std::string& resource_global_name);

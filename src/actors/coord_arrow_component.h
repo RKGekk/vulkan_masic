@@ -36,6 +36,8 @@ public:
     virtual std::shared_ptr<SceneNode> VGetSceneNode() override;
 	virtual const ComponentDependecyList& VGetComponentDependecy() const override;
 
+	void setLineWidth(float width);
+
 protected:
 	virtual void VDelegatePostInit() override;
 

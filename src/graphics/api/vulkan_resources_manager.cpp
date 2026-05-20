@@ -259,6 +259,21 @@ std::shared_ptr<VulkanPushConstant> VulkanResourcesManager::create_push_constant
 	return push_constant;
 }
 
+void VulkanResourcesManager::detete_push_buffer(const std::string& const_name) {
+	m_push_constant_map[const_name]->destroy();
+	m_push_constant_map.erase(const_name);
+}
+
+void VulkanResourcesManager::delete_push_buffer(std::shared_ptr<VulkanPushConstant> const_ptr) {
+	for (auto&[const_name, push_const] : m_push_constant_map) {
+		if(push_const == const_ptr) {
+			push_const->destroy();
+			m_buffer_map.erase(const_name);
+			return;
+		}
+	}
+}
+
 const std::shared_ptr<VulkanImageBuffer>& VulkanResourcesManager::getImageResource(const std::string& resource_global_name) {
 	return m_image_map.at(resource_global_name);
 }

@@ -15,8 +15,8 @@ class VulkanDevice;
 
 class VulkanShader {
 public:
-    bool init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& shader_data);
-    bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<ShaderSignature> shader_signature);
+    bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<VulkanResourcesManager>& resources_manager, const pugi::xml_node& shader_data);
+    bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<VulkanResourcesManager>& resources_manager, std::shared_ptr<ShaderSignature> shader_signature);
 
     void destroy();
 

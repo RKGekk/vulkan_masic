@@ -15,7 +15,7 @@ bool PushConstantConfig::init(std::string name, const pugi::xml_node& const_data
     }
 
     pugi::xml_node push_constants_node = const_data.child("Constants");
-	if (!push_constants_node) return;
+	if (!push_constants_node) return false;
     
     uint32_t offset = 0u;
     m_raw_size = 0u;
@@ -44,6 +44,8 @@ bool PushConstantConfig::init(std::string name, const pugi::xml_node& const_data
 
     m_push_constant_range.offset = 0u;
     m_push_constant_range.size = static_cast<uint32_t>(offset);
+
+    return true;
 }
 
 uint32_t PushConstantConfig::getGLSLAlignment(VertexAttributeGLSLFormat glsl_format) {

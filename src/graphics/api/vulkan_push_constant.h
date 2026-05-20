@@ -34,6 +34,7 @@ public:
     const ResourceName& getName() const override;
     Type getType() const override;
 
+    void SetValue(const std::string& name, void* data);
     void SetValue(const std::string& name, float data);
     void SetValue(const std::string& name, int data);
     void SetValue(const std::string& name, uint32_t data);

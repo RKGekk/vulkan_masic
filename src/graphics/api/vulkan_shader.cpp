@@ -6,14 +6,14 @@
 
 #include <filesystem>
 
-bool VulkanShader::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& shader_data) {
+bool VulkanShader::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<VulkanResourcesManager>& resources_manager, const pugi::xml_node& shader_data) {
     std::shared_ptr<ShaderSignature> shader_signature = std::make_shared<ShaderSignature>();
-    shader_signature->init(shader_data);
+    shader_signature->init(resources_manager, shader_data);
 
-    return init(std::move(device), std::move(shader_signature));
+    return init(std::move(device), resources_manager, std::move(shader_signature));
 }
 
-bool VulkanShader::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<ShaderSignature> shader_signature) {
+bool VulkanShader::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<VulkanResourcesManager>& resources_manager, std::shared_ptr<ShaderSignature> shader_signature) {
     using namespace std::literals;
 
     m_device = std::move(device);

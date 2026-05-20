@@ -1,6 +1,6 @@
 #include "vulkan_shaders_manager.h"
 
-bool VulkanShadersManager::init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_name) {
+bool VulkanShadersManager::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<VulkanResourcesManager>& resources_manager, const std::string& rg_file_name) {
     m_device = device;
 
     pugi::xml_document xml_doc;
@@ -16,7 +16,7 @@ bool VulkanShadersManager::init(std::shared_ptr<VulkanDevice> device, const std:
 		for (pugi::xml_node shader_node = shaders_node.first_child(); shader_node; shader_node = shader_node.next_sibling()) {
             size_t shader_pos = m_shaders.size();
             m_shaders.push_back(std::make_shared<VulkanShader>());
-            m_shaders[shader_pos]->init(device, shader_node);
+            m_shaders[shader_pos]->init(device, resources_manager, shader_node);
             m_shader_name_map.insert({m_shaders[shader_pos]->getShaderSignature()->getName(), shader_pos});
 		}
 	}

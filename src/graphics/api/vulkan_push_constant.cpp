@@ -11,6 +11,8 @@ bool VulkanPushConstant::init(std::shared_ptr<PushConstantConfig> const_config) 
     m_const_config = std::move(const_config);
 
     m_data.resize(m_const_config->getTotalSize());
+
+    return true;
 }
 
 
