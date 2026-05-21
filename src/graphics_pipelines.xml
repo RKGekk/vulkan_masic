@@ -655,7 +655,7 @@
                 </Binding>
             </InputAttributeDescription>
             <DescriptorSet>
-                <Set slot="0">imgui_descriptor_set</Set>
+                <Set slot="0">line_descriptor_set</Set>
             </DescriptorSet>
             <PushConstantName>line_push_constants</PushConstantName>
         </Shader>
@@ -1338,7 +1338,7 @@
             </DynamicStates>
             <IndexCountType type="all"></IndexCountType>
             <DescriptorResourcesUpdate>
-                <LayoutBinding name="uniform">
+                <LayoutBinding name="ubo">
                     <Buffer>
                         <BufferResourceType>basic_uniform_resource</BufferResourceType>
                     </Buffer>

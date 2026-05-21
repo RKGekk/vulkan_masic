@@ -60,17 +60,30 @@ void SceneDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     for(size_t render_id = 0u; render_id < sz; ++render_id) {
         const std::shared_ptr<Renderable>& renderable = m_renderables.at(render_id);
         if(renderable->frame != image_index) continue;
+        if(!renderable->mesh_node) continue;
 
         const std::shared_ptr<MeshNode>& mesh_node = renderable->mesh_node;
-        const SceneNodeProperties& node_props = mesh_node->Get();
 
-        SceneUniformBufferObject ubo{};
-        ubo.model = node_props.ToRoot();
-        ubo.view = camera_node->GetView();
-        ubo.proj = camera_node->GetProjection();
-        //ubo.proj[1][1] *= -1.0f;
+        if(renderable->uniform_buffer) {
+            const SceneNodeProperties& node_props = mesh_node->Get();
 
-        renderable->uniform_buffer->update(&ubo, sizeof(SceneUniformBufferObject));
+            SceneUniformBufferObject ubo{};
+            ubo.model = node_props.ToRoot();
+            ubo.view = camera_node->GetView();
+            ubo.proj = camera_node->GetProjection();
+            //ubo.proj[1][1] *= -1.0f;
+
+            renderable->uniform_buffer->update(&ubo, sizeof(SceneUniformBufferObject));
+        }
+
+        std::shared_ptr<ValueBagNode> const_params_value_bag_node = std::dynamic_pointer_cast<ValueBagNode>(mesh_node->GetScene()->getProperty(mesh_node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG));;
+        if(const_params_value_bag_node && renderable->const_params) {
+            for(const auto&[const_name, metadata_id] : renderable->const_params->getConstConfig()->getPushConstantsNamesMap()) {
+                if(const_params_value_bag_node->HasName(const_name)) {
+                    renderable->const_params->SetValue(const_name, const_params_value_bag_node->GetValue(const_name));
+                }
+            }
+        }
 
         //renderable->render_node->changeWriteDependency(swapchain_images[image_index], "resolve_attachment");
     }

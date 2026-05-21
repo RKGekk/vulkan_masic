@@ -200,6 +200,8 @@ void VulkanPipeline::build_push_constants() {
     uint32_t offset = 0u;
     m_push_constants_data.resize(m_current_push_constants_size);
     for(const std::string& shader_name : m_pipeline_config->getShaderNames()) {
+        if(!m_shader_manager->getShader(shader_name)->getShaderSignature()->getPushConstants()) continue;
+
         std::shared_ptr<VulkanPushConstant>& push_constant = m_shader_manager->getShader(shader_name)->getShaderSignature()->getPushConstants();
         if(push_const_names.contains(push_constant->getName())) continue;
         push_const_names.insert(push_constant->getName());
@@ -221,6 +223,8 @@ void VulkanPipeline::attach_push_constants(VkCommandBuffer command_buffer) {
     std::unordered_set<PushConstantConfig::ShaderConstantName> push_const_names;
     uint32_t offset = 0u;
     for(const std::string& shader_name : m_pipeline_config->getShaderNames()) {
+        if(!m_shader_manager->getShader(shader_name)->getShaderSignature()->getPushConstants()) continue;
+        
         std::shared_ptr<VulkanPushConstant>& push_constant = m_shader_manager->getShader(shader_name)->getShaderSignature()->getPushConstants();
         if(push_const_names.contains(push_constant->getName())) continue;
         push_const_names.insert(push_constant->getName());

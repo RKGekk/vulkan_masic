@@ -32,6 +32,7 @@ class VulkanBuffer;
 class VulkanImageBuffer;
 class GraphicsRenderNode;
 class VulkanPushConstant;
+class ValueBagNode;
 
 class SceneDrawable : public IVulkanDrawable {
 public:
