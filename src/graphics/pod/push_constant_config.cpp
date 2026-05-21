@@ -25,6 +25,7 @@ bool PushConstantConfig::init(std::string name, const pugi::xml_node& const_data
         shader_constant.vk_format = getFormat(constant_node.child("InternalFormat").text().as_string());
         shader_constant.glsl_format = getInputAttributeGLSLFormat(constant_node.child("GLSLFormat").text().as_string());
         shader_constant.size = VulkanDevice::getBytesCount(shader_constant.vk_format);
+        shader_constant.offset = offset;
         shader_constant.allignment = getGLSLAlignment(shader_constant.glsl_format);
         shader_constant.name = constant_node.attribute("field_name").as_string();
         if(shader_constant.allignment > m_largest_member_alignment) m_largest_member_alignment = shader_constant.allignment;
@@ -37,13 +38,13 @@ bool PushConstantConfig::init(std::string name, const pugi::xml_node& const_data
         offset += shader_constant.allignment;
         m_raw_size += shader_constant.size;
 	}
-    m_total_size = m_push_constants_metadata.back().offset + m_push_constants_metadata.back().allignment ;
+    m_total_size = m_push_constants_metadata.back().offset + m_push_constants_metadata.back().size;
     if(m_total_size % m_largest_member_alignment) {
         m_total_size += m_total_size % m_largest_member_alignment;
     }
 
     m_push_constant_range.offset = 0u;
-    m_push_constant_range.size = static_cast<uint32_t>(offset);
+    m_push_constant_range.size = m_total_size;
 
     return true;
 }
@@ -102,6 +103,10 @@ const PushConstantConfig::ShaderConstant& PushConstantConfig::getPushConstantsMe
 
 const std::unordered_map<PushConstantConfig::ShaderConstantName, PushConstantConfig::ShaderConstantMetadataId>& PushConstantConfig::getPushConstantsNamesMap() const {
     return m_push_constants_names_map;
+}
+
+bool PushConstantConfig::hasPushConstantsName(const PushConstantConfig::ShaderConstantName& name) const {
+    return m_push_constants_names_map.contains(name);
 }
 
 uint32_t PushConstantConfig::getLargestMemberAlignment() const {

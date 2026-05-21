@@ -24,7 +24,7 @@ bool operator<(const KeyframeMatrixRotation& kf1, const KeyframeMatrixRotation& 
 	return kf1.TimePos < kf2.TimePos;
 }
 
-void MatrixAnimation::Interpolate(float t, glm::mat4x4& transform) const {
+void MatrixAnimation::InterpolateTime(float t, glm::mat4x4& transform) const {
 	size_t sz1 = TranslationKeyframes.size();
 	size_t sz2 = ScaleKeyframes.size();
 	size_t sz3 = RotationKeyframes.size();
@@ -140,4 +140,20 @@ void MatrixAnimation::Interpolate(float t, glm::mat4x4& transform) const {
 	glm::mat4x4 Translate = glm::translate(P);
 	glm::mat4x4 new_transform = Translate * Rotate * Scale;
     transform *= new_transform;
+}
+
+void MatrixAnimation::InterpolateCurrentTime(glm::mat4x4& transform) const {
+	float t = CurrentTime.fGetTotalSeconds();
+	InterpolateTime(t, transform);
+}
+
+void MatrixAnimation::InterpolateNormValue(float v, glm::mat4x4& transform) const {
+	float t = GetTotalAnimationTime() * v;
+	InterpolateTime(t, transform);
+}
+
+float MatrixAnimation::GetTotalAnimationTime() const {
+	float t1 = RotationKeyframes.size() > 0u ? RotationKeyframes.back().TimePos : 0.0f;
+	float t2 = TranslationKeyframes.size() > 0u ? TranslationKeyframes.back().TimePos : 0.0f;
+    return t1 > t2 ? t1 : t2;
 }

@@ -52,7 +52,10 @@ struct MatrixAnimation {
         Paused
 	};
 
-	void Interpolate(float t, glm::mat4x4& transform) const;
+	void InterpolateTime(float t, glm::mat4x4& transform) const;
+	void InterpolateCurrentTime(glm::mat4x4& transform) const;
+	void InterpolateNormValue(float v, glm::mat4x4& transform) const;
+	float GetTotalAnimationTime() const;
 
 	// ASC sorted by time
 	std::vector<KeyframeMatrixTranslation> TranslationKeyframes;

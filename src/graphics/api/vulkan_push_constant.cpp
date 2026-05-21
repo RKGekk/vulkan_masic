@@ -26,125 +26,13 @@ RenderResource::Type VulkanPushConstant::getType() const {
     return RenderResource::Type::PUSH_CONSTANT;
 }
 
-void VulkanPushConstant::SetValue(const std::string& name, void* data) {
+void VulkanPushConstant::SetValue(const std::string& name, const void* data) {
     memcpy(
         m_data.data() + m_const_config->getPushConstantsMetadata(name).offset,
         &data,
         m_const_config->getPushConstantsMetadata(name).size
     );
 }
-
-void VulkanPushConstant::SetValue(const std::string& name, float data) {
-    *(m_data.data() + m_const_config->getPushConstantsMetadata(name).offset) = data;
-}
-
-void VulkanPushConstant::SetValue(const std::string& name, int data) {
-    *(m_data.data() + m_const_config->getPushConstantsMetadata(name).offset) = data;
-}
-
-void VulkanPushConstant::SetValue(const std::string& name, uint32_t data) {
-    *(m_data.data() + m_const_config->getPushConstantsMetadata(name).offset) = data;
-}
-
-void VulkanPushConstant::SetValue(const std::string& name, bool data) {
-    *(m_data.data() + m_const_config->getPushConstantsMetadata(name).offset) = data;
-}
-
-void VulkanPushConstant::SetValue(const std::string& name, glm::vec2 data) {
-    memcpy(
-        m_data.data() + m_const_config->getPushConstantsMetadata(name).offset,
-        &data,
-        sizeof(glm::vec2)
-    );
-};
-
-void VulkanPushConstant::SetValue(const std::string& name, glm::vec3 data) {
-    memcpy(
-        m_data.data() + m_const_config->getPushConstantsMetadata(name).offset,
-        &data,
-        sizeof(glm::vec3)
-    );
-};
-
-void VulkanPushConstant::SetValue(const std::string& name, glm::vec4 data) {
-    memcpy(
-        m_data.data() + m_const_config->getPushConstantsMetadata(name).offset,
-        &data,
-        sizeof(glm::vec4)
-    );
-};
-
-void VulkanPushConstant::SetValue(const std::string& name, glm::bvec2 data) {
-    memcpy(
-        m_data.data() + m_const_config->getPushConstantsMetadata(name).offset,
-        &data,
-        sizeof(glm::bvec2)
-    );
-};
-
-void VulkanPushConstant::SetValue(const std::string& name, glm::bvec3 data) {
-    memcpy(
-        m_data.data() + m_const_config->getPushConstantsMetadata(name).offset,
-        &data,
-        sizeof(glm::bvec3)
-    );
-};
-
-void VulkanPushConstant::SetValue(const std::string& name, glm::bvec4 data) {
-    memcpy(
-        m_data.data() + m_const_config->getPushConstantsMetadata(name).offset,
-        &data,
-        sizeof(glm::bvec4)
-    );
-};
-
-void VulkanPushConstant::SetValue(const std::string& name, glm::ivec2 data) {
-    memcpy(
-        m_data.data() + m_const_config->getPushConstantsMetadata(name).offset,
-        &data,
-        sizeof(glm::ivec2)
-    );
-};
-
-void VulkanPushConstant::SetValue(const std::string& name, glm::ivec3 data) {
-    memcpy(
-        m_data.data() + m_const_config->getPushConstantsMetadata(name).offset,
-        &data,
-        sizeof(glm::ivec3)
-    );
-};
-
-void VulkanPushConstant::SetValue(const std::string& name, glm::ivec4 data) {
-    memcpy(
-        m_data.data() + m_const_config->getPushConstantsMetadata(name).offset,
-        &data,
-        sizeof(glm::ivec4)
-    );
-};
-
-void VulkanPushConstant::SetValue(const std::string& name, glm::uvec2 data) {
-    memcpy(
-        m_data.data() + m_const_config->getPushConstantsMetadata(name).offset,
-        &data,
-        sizeof(glm::uvec2)
-    );
-};
-
-void VulkanPushConstant::SetValue(const std::string& name, glm::uvec3 data) {
-    memcpy(
-        m_data.data() + m_const_config->getPushConstantsMetadata(name).offset,
-        &data,
-        sizeof(glm::uvec3)
-    );
-};
-
-void VulkanPushConstant::SetValue(const std::string& name, glm::uvec4 data) {
-    memcpy(
-        m_data.data() + m_const_config->getPushConstantsMetadata(name).offset,
-        &data,
-        sizeof(glm::uvec4)
-    );
-};
 
 const std::vector<char>& VulkanPushConstant::getData() const {
     return m_data;

@@ -36,21 +36,25 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateSceneNodeSpline(co
 	model_data->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
     const VertexFormat& shader_vertex_format = shader_signature->getVertexFormat();
     model_data->SetVertexFormat(shader_vertex_format);
-    std::shared_ptr<Material> material = std::make_shared<Material>("BasicMaterial");
+    std::shared_ptr<Material> material = std::make_shared<Material>("line");
     model_data->SetMaterial(material);
     
-    size_t vertices_per_line = 6u;
-    size_t num_vertices = points_per_spline * vertices_per_line;
-    std::vector<uint32_t> indices = std::vector<uint32_t>(num_vertices);
+    size_t indices_per_line = 6u;
+    size_t vertices_per_line = 4u;
+    size_t num_indices = points_per_spline * indices_per_line * (keyframes.size() - 1u);
+    //std::vector<uint32_t> indices = std::vector<uint32_t>(num_indices);
+    std::vector<uint32_t> indices;
+    indices.reserve(num_indices);
     //std::iota(indices.begin(), indices.end(), 0u);
 
     SemanticName pos_semantic_name = {VertexAttributeSemantic::POSITION, 0};
     SemanticName color_semantic_name = {VertexAttributeSemantic::COLOR, 0};
     SemanticName target_semantic_name = {VertexAttributeSemantic::POSITION, 1};
-    SemanticName side_semantic_name = {VertexAttributeSemantic::OTHER, 1};
+    SemanticName side_semantic_name = {VertexAttributeSemantic::OTHER, 0};
     size_t vertex_stride = shader_vertex_format.getVertexSize() / sizeof(float);
-    size_t vertex_number_of_components = vertex_stride * num_vertices;
-    std::vector<float> vertex_data(vertex_number_of_components);
+    size_t num_vertices = vertices_per_line * points_per_spline * (keyframes.size() - 1u);
+    size_t total_components_number = vertex_stride * num_vertices;
+    std::vector<float> vertex_data(total_components_number);
 
     size_t pos_offset = shader_vertex_format.getOffset<float>(pos_semantic_name);
     size_t pos_num_of_elements_to_copy = shader_vertex_format.GetNumComponentsInVkType(pos_semantic_name);
@@ -66,12 +70,13 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateSceneNodeSpline(co
 
     float offset = 1.0f / static_cast<float>(points_per_spline);
     float value = 0.0f;
+    
     size_t sz = keyframes.size();
-    for(size_t i0 = 0u, i1 = i0 + 1u; i1 <= sz; ++i0, ++i1) {
+    for(size_t i0 = 0u, i1 = i0 + 1u; i1 < sz; ++i0, ++i1) {
         const KeyframeMatrixTranslation& t0 = keyframes.at(i0);
         const KeyframeMatrixTranslation& t1 = keyframes.at(i1);
 
-        for(size_t j = 0u; j < (points_per_spline - 1u); ++j) {
+        for(size_t j = 0u; j < points_per_spline; ++j) {
             glm::vec3 pos0 = glm::hermite(t0.Translation, t0.Tangent, t1.Translation, t1.Tangent, value);
             glm::vec4 color0 = glm::vec4(1.0f, 0.0f, 0.0f, 0.5f);
             value += offset;
@@ -109,13 +114,14 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateSceneNodeSpline(co
                 vertex_data[vertex3_index + side_offset + current_component_num] = 1.0f;
             }
 
-            indices.push_back(0 + j);
-            indices.push_back(1 + j);
-            indices.push_back(2 + j);
-            indices.push_back(2 + j);
-            indices.push_back(1 + j);
-            indices.push_back(3 + j);
+            indices.push_back(0 + j * vertices_per_line);
+            indices.push_back(1 + j * vertices_per_line);
+            indices.push_back(2 + j * vertices_per_line);
+            indices.push_back(2 + j * vertices_per_line);
+            indices.push_back(1 + j * vertices_per_line);
+            indices.push_back(3 + j * vertices_per_line);
         }
+        value = 0.0f;
     }
 
     const void* vertex_data_ptr = vertex_data.data();
@@ -135,10 +141,10 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateSceneNodeSpline(co
     m_scene->addProperty(value_bag_node);
 
     glm::vec2 resolution = {};
-    resolution.x = (float)Application().GetApplicationOptions().ScreenWidth;
-    resolution.y = (float)Application().GetApplicationOptions().ScreenHeight;
+    resolution.x = (float)Application::Get().GetApplicationOptions().ScreenWidth;
+    resolution.y = (float)Application::Get().GetApplicationOptions().ScreenHeight;
     value_bag_node->AppendValue("u_resolution"s, sizeof(glm::vec2), &resolution);
     value_bag_node->AppendValue("u_line_width"s, sizeof(float), &line_width);
 
-	return m_root_node;
+	return new_node;
 }

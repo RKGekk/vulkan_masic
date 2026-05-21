@@ -26,7 +26,8 @@ public:
     void InsertValue(const std::string& name, size_t size, size_t offset, const void* data);
     void SetValue(const std::string& name, const void* data);
 
-    const void* GetValue(const std::string& name) const;
+    bool HasName(const ValueName& name) const;
+    const void* GetValue(const ValueName& name) const;
     const void* GetValue(size_t offset) const;
     const void* GetData() const;
     const std::unordered_map<ValueName, ValuePosition>& GetMetadata() const;

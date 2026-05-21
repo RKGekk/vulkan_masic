@@ -42,7 +42,7 @@ public:
         std::shared_ptr<VulkanBuffer> vertex_buffer;
         std::shared_ptr<VulkanBuffer> index_buffer;
         std::shared_ptr<VulkanImageBuffer> texture;
-        std::shared_ptr<VulkanPushConstant> line_params;
+        std::shared_ptr<VulkanPushConstant> const_params;
         std::shared_ptr<GraphicsRenderNode> render_node;
         int frame;
     };

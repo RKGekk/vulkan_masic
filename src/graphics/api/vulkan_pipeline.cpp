@@ -256,6 +256,7 @@ std::vector<VkPushConstantRange> VulkanPipeline::getPushConstantRanges(const std
     uint32_t offset = 0u;
     for(const std::string& shader_name : m_pipeline_config->getShaderNames()) {
         std::shared_ptr<VulkanPushConstant>& push_constant = shader_manager->getShader(shader_name)->getShaderSignature()->getPushConstants();
+        if(!push_constant) continue;
         if(push_const_names.contains(push_constant->getName())) continue;
         push_const_names.insert(push_constant->getName());
         VkPushConstantRange range = push_constant->getConstConfig()->getPushConstantRange();

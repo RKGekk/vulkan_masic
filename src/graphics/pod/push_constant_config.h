@@ -35,6 +35,7 @@ public:
     const std::vector<ShaderConstant>& getAllPushConstantsMetadata() const;
     const ShaderConstant& getPushConstantsMetadata(const ShaderConstantName& name) const;
     const std::unordered_map<ShaderConstantName, ShaderConstantMetadataId>& getPushConstantsNamesMap() const;
+    bool hasPushConstantsName(const ShaderConstantName& name) const;
     uint32_t getLargestMemberAlignment() const; // The total size of a push constant block struct must be rounded up to a multiple of its largest member's alignment. For calculation of trailing padding.
     uint32_t getTotalSize() const;
     uint32_t getRawSize() const;

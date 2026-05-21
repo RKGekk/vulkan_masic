@@ -49,8 +49,7 @@ void TransformAnimationComponent::VUpdate(const GameTimerDelta& delta) {
         if (p_anim->AnimationState != MatrixAnimation::AnimState::Playing) continue;
 
 		p_anim->CurrentTime.AddDeltaDuration(delta);
-        float t = p_anim->CurrentTime.fGetTotalSeconds();
-		p_anim->Interpolate(t, transform);
+		p_anim->InterpolateCurrentTime(transform);
 
 		has_changes = true;
 	}
@@ -104,7 +103,7 @@ void TransformAnimationComponent::Stop(const MatrixAnimation::AnimationName& nam
 	//glm::mat4x4 transform = tc->GetTransform();
 	glm::mat4x4 transform = glm::mat4x4(1.0f);
 
-	m_animation_map[name]->Interpolate(0, transform);
+	m_animation_map[name]->InterpolateTime(0, transform);
 
 	tc->SetTransform(transform);
 }
@@ -153,8 +152,7 @@ void TransformAnimationComponent::SetCurrentAnimationDuration(const MatrixAnimat
 	//glm::mat4x4 transform = tc->GetTransform();
 	glm::mat4x4 transform = glm::mat4x4(1.0f);
 
-	float t = m_animation_map[name]->CurrentTime.fGetTotalSeconds();
-	m_animation_map[name]->Interpolate(t, transform);
+	m_animation_map[name]->InterpolateCurrentTime(transform);
 
 	tc->SetTransform(transform);
 }

@@ -34,23 +34,7 @@ public:
     const ResourceName& getName() const override;
     Type getType() const override;
 
-    void SetValue(const std::string& name, void* data);
-    void SetValue(const std::string& name, float data);
-    void SetValue(const std::string& name, int data);
-    void SetValue(const std::string& name, uint32_t data);
-    void SetValue(const std::string& name, bool data);
-    void SetValue(const std::string& name, glm::vec2 data);
-    void SetValue(const std::string& name, glm::vec3 data);
-    void SetValue(const std::string& name, glm::vec4 data);
-    void SetValue(const std::string& name, glm::bvec2 data);
-    void SetValue(const std::string& name, glm::bvec3 data);
-    void SetValue(const std::string& name, glm::bvec4 data);
-    void SetValue(const std::string& name, glm::ivec2 data);
-    void SetValue(const std::string& name, glm::ivec3 data);
-    void SetValue(const std::string& name, glm::ivec4 data);
-    void SetValue(const std::string& name, glm::uvec2 data);
-    void SetValue(const std::string& name, glm::uvec3 data);
-    void SetValue(const std::string& name, glm::uvec4 data);
+    void SetValue(const std::string& name, const void* data);
 
     const std::vector<char>& getData() const;
     const std::shared_ptr<PushConstantConfig>& getConstConfig() const;

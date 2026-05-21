@@ -115,10 +115,12 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             renderable->render_node = std::make_shared<GraphicsRenderNode>();
             renderable->render_node->init(m_device, render_name, false, Application::GetRenderer().getFrameData(frame)->render_graph);
 
-            renderable->line_params = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getPushConstants();
-            if(value_bag_node && renderable->line_params) {
-                for(const auto&[const_name, metadata_id] : renderable->line_params->getConstConfig()->getPushConstantsNamesMap()) {
-                    renderable->line_params->SetValue(const_name, value_bag_node->GetValue(const_name));
+            if(value_bag_node && renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()) {
+                renderable->const_params = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getPushConstants();
+                for(const auto&[const_name, metadata_id] : renderable->const_params->getConstConfig()->getPushConstantsNamesMap()) {
+                    if(value_bag_node->HasName(const_name)) {
+                        renderable->const_params->SetValue(const_name, value_bag_node->GetValue(const_name));
+                    }
                 }
             }
 

@@ -637,7 +637,7 @@
                     <Attribute name="inColor">
                         <Location>1</Location>
                         <GLSLFormat>vec4</GLSLFormat>
-                        <InternalFormat>r8g8b8a8_unorm</InternalFormat>
+                        <InternalFormat>r32g32b32a32_sfloat</InternalFormat>
                         <Semantic num="0">COLOR</Semantic>
                     </Attribute>
                     <Attribute name="inTarget">
@@ -661,7 +661,7 @@
         </Shader>
 
         <Shader name="line_pixel_shader">
-            <FilePath file_name="imgui.frag"></FilePath>
+            <FilePath file_name="line.frag"></FilePath>
             <EntryPointName>main</EntryPointName>
             <Stage>fragment</Stage>
             <SpecializationConstants>
@@ -1314,6 +1314,23 @@
 
         <GraphicsRenderNode name="basic_color_render">
             <Pipeline>basic_color_pipeline</Pipeline>
+            <FrameBufferName>basic_mulisample_render_framebuffer</FrameBufferName>
+            <DynamicStates>
+                <Viewport source="auto"></Viewport>
+                <Scissor source="auto"></Scissor>
+            </DynamicStates>
+            <IndexCountType type="all"></IndexCountType>
+            <DescriptorResourcesUpdate>
+                <LayoutBinding name="uniform">
+                    <Buffer>
+                        <BufferResourceType>basic_uniform_resource</BufferResourceType>
+                    </Buffer>
+                </LayoutBinding>
+            </DescriptorResourcesUpdate>
+        </GraphicsRenderNode>
+
+        <GraphicsRenderNode name="line_render">
+            <Pipeline>line_pipeline</Pipeline>
             <FrameBufferName>basic_mulisample_render_framebuffer</FrameBufferName>
             <DynamicStates>
                 <Viewport source="auto"></Viewport>

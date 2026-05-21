@@ -49,4 +49,5 @@ private:
 	float m_line_width;
 
 	std::shared_ptr<SceneNode> m_loaded_scene_node;
+	std::shared_ptr<SceneNode> m_anim_vis_scene_node;
 };

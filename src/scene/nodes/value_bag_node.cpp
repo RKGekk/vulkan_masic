@@ -38,7 +38,11 @@ void ValueBagNode::SetValue(const std::string& name, const void* data) {
     );
 }
 
-const void* ValueBagNode::GetValue(const std::string& name) const {
+bool ValueBagNode::HasName(const ValueName& name) const {
+    return m_metadata.contains(name);
+}
+
+const void* ValueBagNode::GetValue(const ValueBagNode::ValueName& name) const {
     return m_data.data() + m_metadata.at(name).offset;
 }
 

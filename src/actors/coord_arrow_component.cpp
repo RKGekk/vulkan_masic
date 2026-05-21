@@ -45,8 +45,8 @@ const ComponentDependecyList& CoordComponent::VGetComponentDependecy() const {
 }
 
 void CoordComponent::setLineWidth(float width) {
-	if(m_loaded_scene_node) {
-		std::shared_ptr<ValueBagNode> value_bag_node = std::dynamic_pointer_cast<ValueBagNode>(m_loaded_scene_node->GetScene()->getProperty(m_loaded_scene_node->GetChild()->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG));
+	if(m_anim_vis_scene_node) {
+		std::shared_ptr<ValueBagNode> value_bag_node = std::dynamic_pointer_cast<ValueBagNode>(m_anim_vis_scene_node->GetScene()->getProperty(m_anim_vis_scene_node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG));
 		if(value_bag_node) {
 			value_bag_node->SetValue("u_line_width"s, &m_line_width);
 		}
@@ -54,6 +54,8 @@ void CoordComponent::setLineWidth(float width) {
 }
 
 bool CoordComponent::Init(const pugi::xml_node& data) {
+	using namespace std::literals;
+
 	m_line_width = 4.0f;
 	m_resource_name = "objects/coord_arrows.gltf";
 	if (m_resource_name.empty()) return false;
@@ -75,9 +77,9 @@ bool CoordComponent::Init(const pugi::xml_node& data) {
 
 	MeshNodeGeometryGenerator geometry_gen;
 	for(const auto&[anim_name, anim] : ac->GetAnimationMap()) {
-		m_loaded_scene_node = geometry_gen.GenerateSceneNodeSpline(act->GetName(), m_line_width, anim->TranslationKeyframes, 16u, shader_manager, transform_node);
+		if(!anim->TranslationKeyframes.size()) continue;
+		m_anim_vis_scene_node = geometry_gen.GenerateSceneNodeSpline(act->GetName() + "_anim_spline"s, m_line_width, anim->TranslationKeyframes, 16u, shader_manager, transform_node);
 	}
-
 
 	return !!m_loaded_scene_node;
 }
