@@ -43,6 +43,10 @@ bool ValueBagNode::HasName(const ValueName& name) const {
 }
 
 const void* ValueBagNode::GetValue(const ValueBagNode::ValueName& name) const {
+    // const char* data_ptr = m_data.data();
+    // size_t offset = m_metadata.at(name).offset;
+    // data_ptr += offset;
+    // return data_ptr;
     return m_data.data() + m_metadata.at(name).offset;
 }
 
