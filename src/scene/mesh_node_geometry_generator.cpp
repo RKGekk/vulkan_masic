@@ -52,6 +52,7 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateSceneNodeSpline(co
     SemanticName target_semantic_name = {VertexAttributeSemantic::POSITION, 1};
     SemanticName side_semantic_name = {VertexAttributeSemantic::OTHER, 0};
     size_t vertex_stride = shader_vertex_format.getVertexSize() / sizeof(float);
+    size_t next_vertex_start = vertex_stride;
     size_t num_vertices = vertices_per_line * points_per_spline * (keyframes.size() - 1u);
     size_t total_components_number = vertex_stride * num_vertices;
     std::vector<float> vertex_data(total_components_number);
@@ -83,11 +84,13 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateSceneNodeSpline(co
             glm::vec3 pos1 = glm::hermite(t0.Translation, t0.Tangent, t1.Translation, t1.Tangent, value);
             glm::vec4 color1 = glm::vec4(1.0f, 0.0f, 0.0f, 0.5f);
 
-            size_t next_vertex_start = vertex_stride;
-            size_t vertex0_index = j * vertex_stride + 0u * 0u;
-            size_t vertex1_index = j * vertex_stride + next_vertex_start * 1u;
-            size_t vertex2_index = j * vertex_stride + next_vertex_start * 2u;
-            size_t vertex3_index = j * vertex_stride + next_vertex_start * 3u;
+            size_t line_start = j * vertex_stride * vertices_per_line;
+            size_t keyframe_start = i0 * vertices_per_line * points_per_spline * vertex_stride;
+
+            size_t vertex0_index = keyframe_start + line_start + 0u * 0u;
+            size_t vertex1_index = keyframe_start + line_start + next_vertex_start * 1u;
+            size_t vertex2_index = keyframe_start + line_start + next_vertex_start * 2u;
+            size_t vertex3_index = keyframe_start + line_start + next_vertex_start * 3u;
 
             for (size_t current_component_num = 0; current_component_num < pos_num_of_elements_to_copy; ++current_component_num) {
                 vertex_data[vertex0_index + pos_offset + current_component_num] = pos0[current_component_num];
@@ -114,12 +117,12 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateSceneNodeSpline(co
                 vertex_data[vertex3_index + side_offset + current_component_num] = 1.0f;
             }
 
-            indices.push_back(0 + j * vertices_per_line);
-            indices.push_back(1 + j * vertices_per_line);
-            indices.push_back(2 + j * vertices_per_line);
-            indices.push_back(2 + j * vertices_per_line);
-            indices.push_back(1 + j * vertices_per_line);
-            indices.push_back(3 + j * vertices_per_line);
+            indices.push_back(0 + j * vertices_per_line + points_per_spline * vertices_per_line * i0);
+            indices.push_back(1 + j * vertices_per_line + points_per_spline * vertices_per_line * i0);
+            indices.push_back(2 + j * vertices_per_line + points_per_spline * vertices_per_line * i0);
+            indices.push_back(2 + j * vertices_per_line + points_per_spline * vertices_per_line * i0);
+            indices.push_back(1 + j * vertices_per_line + points_per_spline * vertices_per_line * i0);
+            indices.push_back(3 + j * vertices_per_line + points_per_spline * vertices_per_line * i0);
         }
         value = 0.0f;
     }
