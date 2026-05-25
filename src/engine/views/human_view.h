@@ -52,7 +52,7 @@ public:
 	virtual void VSetControlledActor(std::shared_ptr<Actor> actor);
 	virtual std::shared_ptr<CameraComponent> VGetCamera();
 	virtual void VSetCameraByName(std::string camera_name);
-	virtual std::shared_ptr<Scene> VGetScene();
+	virtual std::shared_ptr<ScreenElementScene> VGetScene();
 
 	virtual const std::string& VGetName() override;
 

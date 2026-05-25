@@ -22,11 +22,14 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateSceneNodeSpline(co
 	m_shader_manager = std::move(shader_manager);
 	m_default_vertex_shader_name = "line_vertex_shader"s;
     m_root_node = root_transform;
+    //m_root_node = root_transform->GetParent();
 
     std::shared_ptr<SceneNode> new_node = std::make_shared<SceneNode>(m_scene, "LineNode", m_root_node->VGetNodeIndex());
     m_scene->addProperty(new_node);
 
-    if(!keyframes.size() || keyframes.size() == 1) return m_root_node;
+    //new_node->SetTransform(new_node->Get().FromParent());
+
+    if(!keyframes.size() || keyframes.size() == 1) return new_node;
 
     std::shared_ptr<MeshNode> mesh_node = std::make_shared<MeshNode>(m_scene, new_node->VGetNodeIndex());
 	m_scene->addProperty(mesh_node);
@@ -121,7 +124,7 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateSceneNodeSpline(co
             indices.push_back(1 + j * vertices_per_line + points_per_spline * vertices_per_line * i0);
             indices.push_back(2 + j * vertices_per_line + points_per_spline * vertices_per_line * i0);
             indices.push_back(2 + j * vertices_per_line + points_per_spline * vertices_per_line * i0);
-            indices.push_back(1 + j * vertices_per_line + points_per_spline * vertices_per_line * i0);
+            indices.push_back(0 + j * vertices_per_line + points_per_spline * vertices_per_line * i0);
             indices.push_back(3 + j * vertices_per_line + points_per_spline * vertices_per_line * i0);
         }
         value = 0.0f;

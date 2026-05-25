@@ -66,6 +66,10 @@ void ScreenElementScene::NewModelComponentDelegate(IEventDataPtr pEventData) {
 	NewModelComponent(node);
 }
 
+void ScreenElementScene::AddRenderNode(std::shared_ptr<MeshNode> pMesh) {
+    m_scene_draw->addRendeNode(std::move(pMesh));
+}
+
 void ScreenElementScene::ModifiedSceneNode(std::shared_ptr<SceneNode> node) {};
 
 void ScreenElementScene::NewModelComponent(std::shared_ptr<SceneNode> root_node) {
@@ -75,11 +79,8 @@ void ScreenElementScene::NewModelComponent(std::shared_ptr<SceneNode> root_node)
     root_node->Accept([scene, drawable = m_scene_draw](std::shared_ptr<SceneNode> node){
         std::shared_ptr<SceneNode> pMeshNode = scene->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_MESH);
         if(pMeshNode) {
-            std::shared_ptr<SceneNode> pMeshNode = scene->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_MESH);
-            if(pMeshNode) {
-                std::shared_ptr<MeshNode> pMesh = std::dynamic_pointer_cast<MeshNode>(pMeshNode);
-                drawable->addRendeNode(pMesh);
-            }
+            std::shared_ptr<MeshNode> pMesh = std::dynamic_pointer_cast<MeshNode>(pMeshNode);
+            drawable->addRendeNode(pMesh);
         }
     });
 }

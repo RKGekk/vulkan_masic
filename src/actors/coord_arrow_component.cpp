@@ -45,11 +45,13 @@ const ComponentDependecyList& CoordComponent::VGetComponentDependecy() const {
 }
 
 void CoordComponent::setLineWidth(float width) {
-	if(m_anim_vis_scene_node) {
-		std::shared_ptr<ValueBagNode> value_bag_node = std::dynamic_pointer_cast<ValueBagNode>(m_anim_vis_scene_node->GetScene()->getProperty(m_anim_vis_scene_node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG));
+	if(m_anim_vis_scene_nodes.size() == 0u) return;
+	
+	for(std::shared_ptr<SceneNode>& scene_node : m_anim_vis_scene_nodes) {
+		std::shared_ptr<ValueBagNode> value_bag_node = std::dynamic_pointer_cast<ValueBagNode>(scene_node->GetScene()->getProperty(scene_node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG));
 		if(value_bag_node) {
 			value_bag_node->SetValue("u_line_width"s, &m_line_width);
-		}
+		}		
 	}
 }
 
@@ -78,7 +80,15 @@ bool CoordComponent::Init(const pugi::xml_node& data) {
 	MeshNodeGeometryGenerator geometry_gen;
 	for(const auto&[anim_name, anim] : ac->GetAnimationMap()) {
 		if(!anim->TranslationKeyframes.size()) continue;
-		m_anim_vis_scene_node = geometry_gen.GenerateSceneNodeSpline(act->GetName() + "_anim_spline"s, m_line_width, anim->TranslationKeyframes, 16u, shader_manager, transform_node);
+
+		std::shared_ptr<SceneNode> spline_transform_scene_node = std::make_shared<SceneNode>(transform_node->GetScene(), "spline_transform"s, glm::mat4(1.0f));
+    	transform_node->GetScene()->addProperty(spline_transform_scene_node);
+		std::shared_ptr<SceneNode> new_node = geometry_gen.GenerateSceneNodeSpline(act->GetName() + "_anim_spline"s, m_line_width, anim->TranslationKeyframes, 16u, shader_manager, spline_transform_scene_node);
+		std::shared_ptr<MeshNode> mesh_node = std::dynamic_pointer_cast<MeshNode>(new_node->GetScene()->getProperty(new_node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_MESH));
+
+		Application::Get().GetGameLogic()->GetHumanView()->VGetScene()->AddRenderNode(mesh_node);
+
+		m_anim_vis_scene_nodes.push_back(std::move(new_node));
 	}
 
 	return !!m_loaded_scene_node;

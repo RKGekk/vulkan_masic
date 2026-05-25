@@ -7,6 +7,7 @@
 #include "../../events/ievent_data.h"
 
 class SceneDrawable;
+class MeshNode;
 
 class ScreenElementScene : public IScreenElement, public Scene {
 public:
@@ -27,6 +28,8 @@ public:
 
 	void ModifiedSceneNodeComponentDelegate(IEventDataPtr pEventData);
 	void NewModelComponentDelegate(IEventDataPtr pEventData);
+
+	void AddRenderNode(std::shared_ptr<MeshNode> pMesh);
 
 protected:
 	void ModifiedSceneNode(std::shared_ptr<SceneNode> node);

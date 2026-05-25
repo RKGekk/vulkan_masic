@@ -191,7 +191,7 @@ void HumanView::VSetCameraByName(std::string camera_name) {
 	}
 }
 
-std::shared_ptr<Scene> HumanView::VGetScene() {
+std::shared_ptr<ScreenElementScene> HumanView::VGetScene() {
 	return m_scene;
 }
 

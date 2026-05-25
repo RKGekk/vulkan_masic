@@ -42,5 +42,6 @@ void main() {
     vec2 offset_screen = position_screen + line_normal * (registers.u_line_width * 0.5f) * in_side;
 
     gl_Position = vec4((offset_screen / registers.u_resolution) * position_clip.w, position_clip.z, position_clip.w);
+    gl_Position.z = 0.0f;
     out_color = in_color;
 }
