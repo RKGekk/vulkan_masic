@@ -151,6 +151,10 @@ DescSetLayout::BindingNum DescSetLayout::getBindingNum(const std::string& bindin
     return m_binding_name_map.at(binding_name);
 }
 
+const std::unordered_map<std::string, DescSetLayout::BindingNum>& DescSetLayout::getBindingMap() const {
+    return m_binding_name_map;
+}
+
 const std::vector<std::shared_ptr<VulkanSampler>>& DescSetLayout::getImmutableSamplers() const {
     return m_immutable_samplers;
 }

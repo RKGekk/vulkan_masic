@@ -69,7 +69,7 @@ void VulkanDescriptorsManager::destroy() {
     m_name_layout_map.clear();
 }
 
-std::shared_ptr<DescSetLayout> VulkanDescriptorsManager::getDescSetLayout(const std::string& desc_set_name) const {
+const std::shared_ptr<DescSetLayout>& VulkanDescriptorsManager::getDescSetLayout(const std::string& desc_set_name) const {
     return m_name_layout_map.at(desc_set_name);
 }
 

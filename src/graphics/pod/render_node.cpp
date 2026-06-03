@@ -72,6 +72,35 @@ const RenderNode::AttachMap& RenderNode::getWrittenAttachmentMap() const {
     return m_written_attached;
 }
 
+const std::unordered_map<uint32_t, std::shared_ptr<VulkanDescriptor>>& RenderNode::getDescriptors() const {
+    return m_descs;
+}
+
+std::shared_ptr<VulkanDescriptor>& RenderNode::getDescriptor(DescriptorSetSlot slot) {
+    return m_descs[slot];
+}
+
+void RenderNode::setDescriptor(DescriptorSetSlot slot, std::shared_ptr<VulkanDescriptor> desc) {
+    for(const auto& [desc_set_layout_binding_name, binding_num] : desc->getBindings()->getBindingMap()) {
+        
+    }
+    m_desc_name_map[desc->getName()] = desc;
+    m_desc_name_to_slot_map[desc->getName()] = slot;
+    m_descs[slot] = std::move(desc);
+}
+
+void RenderNode::add_update_function(const UpdateFunctionName& func_name, std::function<void(std::shared_ptr<VulkanBuffer>&)> fn) {
+    m_update_functions[func_name] = fn;
+}
+
+std::function<void(std::shared_ptr<VulkanBuffer>&)>& RenderNode::getUpdateFunction(const UpdateFunctionName& func_name) {
+    return m_update_functions[func_name];
+}
+
+const std::unordered_map<RenderNode::UpdateFunctionName, std::function<void(std::shared_ptr<VulkanBuffer>&)>>& RenderNode::getUpdateFunctionsMap() const {
+    return m_update_functions;
+}
+
 std::shared_ptr<RenderResource> RenderNode::getAttachedResource(const RenderNode::LocalName& attached_as) const {
     if(isReadAttached(attached_as)) {
         return m_read_attached.at(attached_as).resource;

@@ -29,12 +29,12 @@ public:
 	ModelComponent(const pugi::xml_node& data);
 	virtual ~ModelComponent();
 
-	virtual bool VInit(const pugi::xml_node& data) override;
-	virtual const std::string& VGetName() const override;
-	virtual pugi::xml_node VGenerateXml() override;
+	bool VInit(const pugi::xml_node& data) override;
+	const std::string& VGetName() const override;
+	pugi::xml_node VGenerateXml() override;
 
-    virtual std::shared_ptr<SceneNode> VGetSceneNode() override;
-	virtual const ComponentDependecyList& VGetComponentDependecy() const override;
+    const std::shared_ptr<SceneNode>& VGetSceneNode() override;
+	const ComponentDependecyList& VGetComponentDependecy() const override;
 
 	const std::string& GetResourceName();
 	const std::string& GetResourceDirecory();

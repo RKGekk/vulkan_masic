@@ -60,7 +60,7 @@ const std::shared_ptr<BasicCameraNode>& CameraComponent::VGetCameraNode() {
 	return m_camera_node;
 }
 
-std::shared_ptr<SceneNode> CameraComponent::VGetSceneNode() {
+const std::shared_ptr<SceneNode>& CameraComponent::VGetSceneNode() {
 	return m_camera_node;
 }
 

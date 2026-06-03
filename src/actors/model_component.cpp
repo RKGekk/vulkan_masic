@@ -32,7 +32,7 @@ pugi::xml_node ModelComponent::VGenerateXml() {
 	return pugi::xml_node();
 }
 
-std::shared_ptr<SceneNode> ModelComponent::VGetSceneNode() {
+const std::shared_ptr<SceneNode>& ModelComponent::VGetSceneNode() {
     return m_loaded_scene_node;
 }
 

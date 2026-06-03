@@ -146,6 +146,52 @@
             </Layout>
         </DescriptorSet>
 
+        <DescriptorSet name="basic_phong_descriptor_set" allocator="basic_alloc">
+            <Layout>
+                <LayoutBinding name="ubo">
+                    <Binding>0</Binding>
+                    <DescriptorType>uniform_buffer</DescriptorType>
+                    <DescriptorCount>1</DescriptorCount>
+                    <ShaderStageFlags>
+                        <Flag>vertex</Flag>
+                    </ShaderStageFlags>
+                </LayoutBinding>
+                <LayoutBinding name="inv_ubo">
+                    <Binding>1</Binding>
+                    <DescriptorType>uniform_buffer</DescriptorType>
+                    <DescriptorCount>1</DescriptorCount>
+                    <ShaderStageFlags>
+                        <Flag>vertex</Flag>
+                        <Flag>fragment</Flag>
+                    </ShaderStageFlags>
+                </LayoutBinding>
+                <LayoutBinding name="material">
+                    <Binding>2</Binding>
+                    <DescriptorType>uniform_buffer</DescriptorType>
+                    <DescriptorCount>1</DescriptorCount>
+                    <ShaderStageFlags>
+                        <Flag>fragment</Flag>
+                    </ShaderStageFlags>
+                </LayoutBinding>
+                <LayoutBinding name="texure_sampler">
+                    <Binding>3</Binding>
+                    <DescriptorType>combined_image_sampler</DescriptorType>
+                    <DescriptorCount>1</DescriptorCount>
+                    <ShaderStageFlags>
+                        <Flag>fragment</Flag>
+                    </ShaderStageFlags>
+                </LayoutBinding>
+                <LayoutBinding name="light_ubo">
+                    <Binding>4</Binding>
+                    <DescriptorType>uniform_buffer</DescriptorType>
+                    <DescriptorCount>1</DescriptorCount>
+                    <ShaderStageFlags>
+                        <Flag>fragment</Flag>
+                    </ShaderStageFlags>
+                </LayoutBinding>
+            </Layout>
+        </DescriptorSet>
+
         <DescriptorSet name="line_descriptor_set" allocator="basic_alloc">
             <Layout>
                 <LayoutBinding name="ubo">
@@ -196,6 +242,24 @@
                     <Constant field_name="u_line_width">
                         <GLSLFormat>float</GLSLFormat>
                         <InternalFormat>r32_sfloat</InternalFormat>
+                    </Constant>
+                </Constants>
+            </PushConstant>
+        </ResourceType>
+
+        <ResourceType name="phong_push_constants">
+            <PushConstant>
+                <Stages>
+                    <Stage>fragment</Stage>
+                </Stages>
+                <Constants>
+                    <Constant field_name="u_ambient_light">
+                        <GLSLFormat>vec4</GLSLFormat>
+                        <InternalFormat>r32g32b32a32_sfloat</InternalFormat>
+                    </Constant>
+                    <Constant field_name="u_resolution">
+                        <GLSLFormat>vec2</GLSLFormat>
+                        <InternalFormat>r32g32_sfloat</InternalFormat>
                     </Constant>
                 </Constants>
             </PushConstant>
@@ -613,6 +677,60 @@
             <DescriptorSet>
                 <Set slot="0">imgui_descriptor_set</Set>
             </DescriptorSet>
+        </Shader>
+
+        <Shader name="phong_vertex_shader">
+            <FilePath file_name="basic_phong.vert"></FilePath>
+            <EntryPointName>main</EntryPointName>
+            <Stage>vertex</Stage>
+            <InputAttributeDescription>
+                <Binding num="0" 
+                         vertex_buffer_bind_name="vertex"
+                         index_buffer_bind_name="index"
+                         input_rate="vertex"
+                         vertex_buffer_resource_type="basic_vertex_resource"
+                         index_buffer_resource_type="basic_index_resource"
+                         index_type="uint32"
+                >
+                    <Attribute name="in_position">
+                        <Location>0</Location>
+                        <GLSLFormat>vec3</GLSLFormat>
+                        <InternalFormat>r32g32b32_sfloat</InternalFormat>
+                        <Semantic num="0">POSITION</Semantic>
+                    </Attribute>
+                    <Attribute name="in_normal">
+                        <Location>1</Location>
+                        <GLSLFormat>vec3</GLSLFormat>
+                        <InternalFormat>r32g32b32_sfloat</InternalFormat>
+                        <Semantic num="0">NORMAL</Semantic>
+                    </Attribute>
+                    <Attribute name="in_tangent">
+                        <Location>2</Location>
+                        <GLSLFormat>vec3</GLSLFormat>
+                        <InternalFormat>r32g32b32_sfloat</InternalFormat>
+                        <Semantic num="0">TANGENT</Semantic>
+                    </Attribute>
+                    <Attribute name="in_uv">
+                        <Location>3</Location>
+                        <GLSLFormat>vec2</GLSLFormat>
+                        <InternalFormat>r32g32_sfloat</InternalFormat>
+                        <Semantic num="0">TEXCOORD</Semantic>
+                    </Attribute>
+                </Binding>
+            </InputAttributeDescription>
+            <DescriptorSet>
+                <Set slot="0">basic_phong_descriptor_set</Set>
+            </DescriptorSet>
+        </Shader>
+
+        <Shader name="phong_pixel_shader">
+            <FilePath file_name="basic_phong.frag"></FilePath>
+            <EntryPointName>main</EntryPointName>
+            <Stage>fragment</Stage>
+            <DescriptorSet>
+                <Set slot="0">basic_phong_descriptor_set</Set>
+            </DescriptorSet>
+            <PushConstantName>phong_push_constants</PushConstantName>
         </Shader>
 
         <Shader name="line_vertex_shader">
@@ -1207,6 +1325,77 @@
             </RenderPass>
         </GraphicsPipeline>
 
+        <GraphicsPipeline name="basic_phong_pipeline">
+            <Shaders>
+                <Shader>phong_vertex_shader</Shader>
+                <Shader>phong_pixel_shader</Shader>
+            </Shaders>
+            <InputAssembly>
+                <Topology>triangle_list</Topology>
+                <PrimitiveRestartEnable>false</PrimitiveRestartEnable>
+            </InputAssembly>
+            <RasterizationState>
+                <DepthClampEnable>false</DepthClampEnable>
+                <RasterizerDiscardEnable>false</RasterizerDiscardEnable>
+                <PolygonMode>fill</PolygonMode>
+                <CullMode><Flags><Flag>back</Flag></Flags></CullMode>
+                <FrontFace>counter_clockwise</FrontFace>
+                <DepthBiasEnable>false</DepthBiasEnable>
+                <DepthBiasConstantFactor>0.0</DepthBiasConstantFactor>
+                <DepthBiasClamp>0.0</DepthBiasClamp>
+                <DepthBiasSlopeFactor>0.0</DepthBiasSlopeFactor>
+                <LineWidth>1.0</LineWidth>
+            </RasterizationState>
+            <MultisampleState sample_count_as_device="true">
+                <SampleCount>16_bit</SampleCount>
+                <SampleShadingEnable>false</SampleShadingEnable>
+                <alphaToCoverageEnable>false</alphaToCoverageEnable>
+                <alphaToOneEnable>false</alphaToOneEnable>
+            </MultisampleState>
+            <DepthStencilState>
+                <DepthTestEnable>true</DepthTestEnable>
+                <DepthWriteEnable>true</DepthWriteEnable>
+                <DepthCompareOp>less</DepthCompareOp>
+                <DepthBoundsTestEnable>false</DepthBoundsTestEnable>
+                <StencilTestEnable>false</StencilTestEnable>
+                <MinDepthBounds>0.0</MinDepthBounds>
+                <MaxDepthBounds>1.0</MaxDepthBounds>
+            </DepthStencilState>
+            <ColorBlendState>
+                <LogicOpEnable>false</LogicOpEnable>
+                <LogicOp>copy</LogicOp>
+                <Attachments>
+                    <Attachment name="color_attachment">
+                        <BlendEnable>false</BlendEnable>
+                        <SrcColorBlendFactor>one</SrcColorBlendFactor>
+                        <DstColorBlendFactor>zero</DstColorBlendFactor>
+                        <ColorBlendOp>add</ColorBlendOp>
+                        <SrcAlphaBlendFactor>one</SrcAlphaBlendFactor>
+                        <DstAlphaBlendFactor>zero</DstAlphaBlendFactor>
+                        <AlphaBlendOp>add</AlphaBlendOp>
+                        <ColorWriteMask>
+                            <Mask>r_bit</Mask>
+                            <Mask>g_bit</Mask>
+                            <Mask>b_bit</Mask>
+                            <Mask>a_bit</Mask>
+                        </ColorWriteMask>
+                    </Attachment>
+                </Attachments>
+                <BlendConstant1>0.0</BlendConstant1>
+                <BlendConstant2>0.0</BlendConstant2>
+                <BlendConstant3>0.0</BlendConstant3>
+                <BlendConstant4>0.0</BlendConstant4>
+            </ColorBlendState>
+            <DynamicState>
+                <Dynamic>viewport</Dynamic>
+                <Dynamic>scissor</Dynamic>
+            </DynamicState>
+            <RenderPass>
+                <RenderPassName>basic_mulisample_render_pass_opaque_clear</RenderPassName>
+                <SubpassName>only_subpass</SubpassName>
+            </RenderPass>
+        </GraphicsPipeline>
+
         <GraphicsPipeline name="imgui_pipeline">
             <Shaders>
                 <Shader>imgui_vertex_shader</Shader>
@@ -1369,6 +1558,49 @@
                         <ImageViewResourceType>basic_image_resource_view</ImageViewResourceType>
                         <ReadImageLayout>shader_read_only_optimal</ReadImageLayout>
                     </Image>
+                </LayoutBinding>
+            </DescriptorResourcesUpdate>
+        </GraphicsRenderNode>
+
+        <GraphicsRenderNode name="phong_render">
+            <Pipeline>basic_phong_pipeline</Pipeline>
+            <FrameBufferName>basic_mulisample_render_framebuffer</FrameBufferName>
+            <DynamicStates>
+                <Viewport source="auto"></Viewport>
+                <Scissor source="auto"></Scissor>
+            </DynamicStates>
+            <IndexCountType type="all"></IndexCountType>
+            <DescriptorResourcesUpdate>
+                <LayoutBinding name="ubo">
+                    <Buffer>
+                        <BufferResourceType>basic_uniform_resource</BufferResourceType>
+                        <UpdateFunctionName>mvp_matrices_update</UpdateFunctionName>
+                    </Buffer>
+                </LayoutBinding>
+                <LayoutBinding name="inv_ubo">
+                    <Buffer>
+                        <BufferResourceType>basic_uniform_resource</BufferResourceType>
+                    </Buffer>
+                </LayoutBinding>
+                <LayoutBinding name="material">
+                    <Buffer>
+                        <BufferResourceType>basic_uniform_resource</BufferResourceType>
+                    </Buffer>
+                </LayoutBinding>
+                <LayoutBinding name="texure_sampler">
+                    <Image>
+                        <Sampler>
+                            <Type>FromImageBuffer</Type>
+                        </Sampler>
+                        <ImageBufferResourceType>basic_image_resource</ImageBufferResourceType>
+                        <ImageViewResourceType>basic_image_resource_view</ImageViewResourceType>
+                        <ReadImageLayout>shader_read_only_optimal</ReadImageLayout>
+                    </Image>
+                </LayoutBinding>
+                <LayoutBinding name="light_ubo">
+                    <Buffer>
+                        <BufferResourceType>basic_uniform_resource</BufferResourceType>
+                    </Buffer>
                 </LayoutBinding>
             </DescriptorResourcesUpdate>
         </GraphicsRenderNode>

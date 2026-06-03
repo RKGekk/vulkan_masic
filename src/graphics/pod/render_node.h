@@ -3,6 +3,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <functional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -35,6 +36,9 @@ public:
     using ResourceMap = std::unordered_map<GlobalName, AttachmentSlot>;
     using AttachMap = std::unordered_map<LocalName, AttachmentSlot>;
 
+    using UpdateFunctionName = std::string;
+    using DescriptorSetSlot = uint32_t;
+
     virtual bool init(std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) = 0;
     virtual void destroy() = 0;
 
@@ -54,6 +58,13 @@ public:
 
     const ResourceMap& getWrittenResourcesMap() const;
     const AttachMap& getWrittenAttachmentMap() const;
+
+    const std::unordered_map<uint32_t, std::shared_ptr<VulkanDescriptor>>& getDescriptors() const;
+    std::shared_ptr<VulkanDescriptor>& getDescriptor(DescriptorSetSlot slot);
+    void setDescriptor(DescriptorSetSlot slot, std::shared_ptr<VulkanDescriptor> desc);
+    void add_update_function(const UpdateFunctionName& func_name, std::function<void(std::shared_ptr<VulkanBuffer>&)> fn);
+    std::function<void(std::shared_ptr<VulkanBuffer>&)>& getUpdateFunction(const UpdateFunctionName& func_name);
+    const std::unordered_map<UpdateFunctionName, std::function<void(std::shared_ptr<VulkanBuffer>&)>>& getUpdateFunctionsMap() const;
 
     virtual void finishRenderNode() = 0;
 
@@ -86,4 +97,10 @@ private:
 
     bool m_bypass_execution;
     size_t m_execution_order;
+
+    std::unordered_map<DescriptorSetSlot, std::shared_ptr<VulkanDescriptor>> m_descs;
+    std::unordered_map<std::string, DescriptorSetSlot> m_desc_name_to_slot_map;
+    std::unordered_map<std::string, std::shared_ptr<VulkanDescriptor>> m_desc_name_map;
+    std::unordered_map<std::string, std::shared_ptr<VulkanDescriptor>> m_desc_layout_name_map;
+    std::unordered_map<UpdateFunctionName, std::function<void(std::shared_ptr<VulkanBuffer>&)>> m_update_functions;
 };

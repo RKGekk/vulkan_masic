@@ -2299,6 +2299,7 @@
                                         <xs:complexType>
                                             <xs:sequence>
                                                 <xs:element name="BufferResourceType" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
+                                                <xs:element name="UpdateFunctionName" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
                                             </xs:sequence>
                                         </xs:complexType>
                                     </xs:element>

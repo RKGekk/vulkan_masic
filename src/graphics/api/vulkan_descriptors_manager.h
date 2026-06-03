@@ -24,7 +24,7 @@ public:
     bool init(std::shared_ptr<VulkanDevice> device, const std::string& rg_file_name);
     void destroy();
 
-    std::shared_ptr<DescSetLayout> getDescSetLayout(const std::string& desc_set_name) const;
+    const std::shared_ptr<DescSetLayout>& getDescSetLayout(const std::string& desc_set_name) const;
     std::shared_ptr<VulkanDescriptor> allocateDescriptorSet(const std::string& desc_set_name);
 
 private:

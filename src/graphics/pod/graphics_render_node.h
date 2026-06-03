@@ -26,7 +26,6 @@ public:
     VkFramebuffer getVkFramebuffer() const;
     const std::shared_ptr<VulkanFramebuffer>& getFB() const;
 
-    const std::unordered_map<uint32_t, std::shared_ptr<VulkanDescriptor>>& getDescriptors() const;
     std::shared_ptr<GraphicsRenderNodeConfig>& getGraphicsRenderNodeConfig();
 
     virtual void TransitionResourcesToProperState(CommandBatch& command_buffer) override;
@@ -36,6 +35,4 @@ private:
 
     std::shared_ptr<GraphicsRenderNodeConfig> m_node_config;
     std::shared_ptr<VulkanFramebuffer> m_frame_buffer;
-
-    std::unordered_map<uint32_t, std::shared_ptr<VulkanDescriptor>> m_descs;
 };

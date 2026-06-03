@@ -33,6 +33,12 @@ void GraphicsRenderNode::destroy() {
 
 void GraphicsRenderNode::render(CommandBatch& command_buffer, unsigned image_index) {
     if(getExecutionBypass()) return;
+
+    for(const auto&[desc_layout_binding_name, metadata] : m_node_config->getBindingsMetadata()) {
+        const std::string& update_fn_name = metadata->update_function_name;
+        std::shared_ptr<VulkanBuffer> uniform_buffer = getAttachedBufferResource(desc_layout_binding_name);
+        getUpdateFunction(update_fn_name)(uniform_buffer);
+    }
     
     TransitionResourcesToProperState(command_buffer);
 
@@ -47,7 +53,7 @@ void GraphicsRenderNode::render(CommandBatch& command_buffer, unsigned image_ind
     vkCmdSetViewport(command_buffer.getCommandBufer(), 0u, 1u, &view_port);
     vkCmdSetScissor(command_buffer.getCommandBufer(), 0u, 1u, &scissor);
         
-    for(const auto&[slot, desc] : m_descs) {
+    for(const auto&[slot, desc] : getDescriptors()) {
         vkCmdBindDescriptorSets(
             command_buffer.getCommandBufer(), // commandBuffer
             VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
@@ -130,13 +136,13 @@ void GraphicsRenderNode::finishRenderNode() {
     m_frame_buffer->init(m_device, m_node_config->getFramebufferConfig(), render_pass_ptr, map_fn);
 
     for (const auto&[slot, desc_set_layout] : m_pipeline->getDescLayouts()) {
-        m_descs[slot] = renderer.getDescriptorsManager()->allocateDescriptorSet(desc_set_layout->getName());
+        setDescriptor(slot, renderer.getDescriptorsManager()->allocateDescriptorSet(desc_set_layout->getName()));
         for(const VkDescriptorSetLayoutBinding& binding : desc_set_layout->getBindings()) {
             const std::string& binding_name = desc_set_layout->getBindingName(binding.binding);
             const std::shared_ptr<GraphicsRenderNodeConfig::UpdateMetadata>& binding_metadata = m_node_config->getUpdateMetadata(binding_name);
             if(binding_metadata->resource_type == RenderResource::Type::IMAGE) {
                 std::shared_ptr<VulkanImageBuffer> image_to_bind = getReadAttachedImageResource(binding_name);
-                m_descs[slot]->updateDescImageInfo(
+                getDescriptor(slot)->updateDescImageInfo(
                     binding.binding,
                     image_to_bind->getImageConfig()->getSampler()->getSampler(),
                     image_to_bind->getImageBufferView(binding_metadata->image_view_type_name),
@@ -145,7 +151,7 @@ void GraphicsRenderNode::finishRenderNode() {
             }
             else if(binding_metadata->resource_type == RenderResource::Type::BUFFER) {
                 std::shared_ptr<VulkanBuffer> buffer_to_bind = getReadAttachedBufferResource(binding_name);
-                m_descs[slot]->updateDescBuffer(binding.binding, buffer_to_bind->getBuffer());
+                getDescriptor(slot)->updateDescBuffer(binding.binding, buffer_to_bind->getBuffer());
             }
         }
     }
@@ -162,10 +168,6 @@ VkFramebuffer GraphicsRenderNode::getVkFramebuffer() const {
 
 const std::shared_ptr<VulkanFramebuffer>& GraphicsRenderNode::getFB() const {
     return m_frame_buffer;
-}
-
-const std::unordered_map<uint32_t, std::shared_ptr<VulkanDescriptor>>& GraphicsRenderNode::getDescriptors() const {
-    return m_descs;
 }
 
 std::shared_ptr<GraphicsRenderNodeConfig>& GraphicsRenderNode::getGraphicsRenderNodeConfig() {

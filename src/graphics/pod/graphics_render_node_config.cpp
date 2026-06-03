@@ -136,9 +136,11 @@ bool GraphicsRenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device,
             std::string layout_binding_name = layout_binding_node.attribute("name").as_string();
             std::shared_ptr<UpdateMetadata> metadata = std::make_shared<UpdateMetadata>();
             metadata->name = layout_binding_name;
+
             if(pugi::xml_node buffer_metadata_node = layout_binding_node.child("Buffer")) {
                 metadata->resource_type = RenderResource::Type::BUFFER;
                 metadata->buffer_resource_type_name = buffer_metadata_node.child("BufferResourceType").text().as_string();
+                metadata->update_function_name = buffer_metadata_node.child("UpdateFunctionName").text().as_string();
             }
             else if (pugi::xml_node image_metadata_node = layout_binding_node.child("Image")) {
                 metadata->resource_type = RenderResource::Type::IMAGE;

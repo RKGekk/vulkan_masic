@@ -32,6 +32,7 @@ public:
 
         RenderResource::Type resource_type;
         std::string buffer_resource_type_name;
+        std::string update_function_name;
 
         SamplerType sampler_type;
         std::shared_ptr<VulkanSampler> image_sampler;

@@ -26,6 +26,7 @@
 #include <cstdint>
 #include <memory>
 #include <stdexcept>
+#include <unordered_map>
 #include <vector>
 
 class VulkanBuffer;
@@ -39,11 +40,11 @@ public:
 
     struct Renderable {
         std::shared_ptr<MeshNode> mesh_node;
-        std::shared_ptr<VulkanBuffer> uniform_buffer;
+        std::unordered_map<std::string, std::shared_ptr<VulkanBuffer>> uniform_buffers;
         std::shared_ptr<VulkanBuffer> vertex_buffer;
         std::shared_ptr<VulkanBuffer> index_buffer;
         std::shared_ptr<VulkanImageBuffer> texture;
-        std::shared_ptr<VulkanPushConstant> const_params;
+        std::vector<std::shared_ptr<VulkanPushConstant>> const_params;
         std::shared_ptr<GraphicsRenderNode> render_node;
         int frame;
     };
@@ -59,6 +60,8 @@ public:
     void addRendeNode(std::shared_ptr<MeshNode> model);
 
 private:
+    void updatePushConstants(int frame);
+    void updateMVPMatrices(const std::shared_ptr<SceneNode>& scene_node, std::shared_ptr<VulkanBuffer>& uniform_buffer);
 
     std::shared_ptr<VulkanDevice> m_device;
     float m_rt_aspect = 1.0f;
