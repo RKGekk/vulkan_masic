@@ -177,17 +177,18 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                 const std::shared_ptr<DescSetLayout>& desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(desc_set_name);
 
                 for (const auto&[desc_layout_bind_name, bind_num] : desc_set_layout->getBindingMap()) {
+                    const VkDescriptorSetLayoutBinding& vk_layout_binding = desc_set_layout->getBinding(bind_num);
                     //const std::shared_ptr<GraphicsRenderNodeConfig::UpdateMetadata>& update_metadata = render_node_cfg->getBindingsMetadata().at(desc_layout_bind_name);
-                    std::shared_ptr<VulkanBuffer> ubo = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, model_data->GetName() + desc_layout_bind_name + "_uniform_frame_"s + std::to_string(frame), "basic_uniform_resource");
-                    renderable->render_node->addReadDependency(ubo, desc_layout_bind_name);
-                    renderable->uniform_buffers[desc_layout_bind_name] = std::move(ubo);
-                }
-
-                if(renderable->texture) {
-                    renderable->render_node->addReadDependency(renderable->texture, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
+                    if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) {
+                        std::shared_ptr<VulkanBuffer> ubo = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, model_data->GetName() + desc_layout_bind_name + "_uniform_frame_"s + std::to_string(frame), "basic_uniform_resource");
+                        renderable->render_node->addReadDependency(ubo, desc_layout_bind_name);
+                        renderable->uniform_buffers[desc_layout_bind_name] = std::move(ubo);
+                    }
+                    else if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER && renderable->texture) {
+                        renderable->render_node->addReadDependency(renderable->texture, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
+                    }
                 }
             }
-            
 
             renderable->render_node->addWriteDependency(swapchain_images[frame], "resolve_attachment");
             renderable->render_node->addWriteDependency(Application::GetRenderer().getOutColorImage(frame), "color_attachment");
@@ -198,10 +199,6 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             Application::GetRenderer().addRenderNode(renderable->render_node, frame);
         }
     }
-}
-
-void SceneDrawable::add_update_function(const std::string& func_name, std::function<void(RenderIdentity, std::shared_ptr<VulkanBuffer>&)> fn) {
-
 }
 
 void SceneDrawable::updatePushConstants(int frame) {
