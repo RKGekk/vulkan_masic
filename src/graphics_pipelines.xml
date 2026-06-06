@@ -1513,6 +1513,7 @@
                 <LayoutBinding name="uniform">
                     <Buffer>
                         <BufferResourceType>basic_uniform_resource</BufferResourceType>
+                        <UpdateFunctionName>mvp_matrices_update</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
             </DescriptorResourcesUpdate>
@@ -1530,6 +1531,7 @@
                 <LayoutBinding name="ubo">
                     <Buffer>
                         <BufferResourceType>basic_uniform_resource</BufferResourceType>
+                        <UpdateFunctionName>mvp_matrices_update</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
             </DescriptorResourcesUpdate>
@@ -1547,6 +1549,7 @@
                 <LayoutBinding name="uniform">
                     <Buffer>
                         <BufferResourceType>basic_uniform_resource</BufferResourceType>
+                        <UpdateFunctionName>mvp_matrices_update</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
                 <LayoutBinding name="image">
@@ -1580,11 +1583,13 @@
                 <LayoutBinding name="inv_ubo">
                     <Buffer>
                         <BufferResourceType>basic_uniform_resource</BufferResourceType>
+                        <UpdateFunctionName>invmvp_matrices_update</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
                 <LayoutBinding name="material">
                     <Buffer>
                         <BufferResourceType>basic_uniform_resource</BufferResourceType>
+                        <UpdateFunctionName>material_prop_update</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
                 <LayoutBinding name="texure_sampler">

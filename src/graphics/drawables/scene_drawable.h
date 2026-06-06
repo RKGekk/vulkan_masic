@@ -62,6 +62,8 @@ public:
 private:
     void updatePushConstants(int frame);
     void updateMVPMatrices(const std::shared_ptr<SceneNode>& scene_node, std::shared_ptr<VulkanBuffer>& uniform_buffer);
+    void updateInvMVPMatrices(const std::shared_ptr<SceneNode>& scene_node, std::shared_ptr<VulkanBuffer>& uniform_buffer);
+    void updateMaterialProps(const std::shared_ptr<Material>& material, std::shared_ptr<VulkanBuffer>& uniform_buffer);
 
     std::shared_ptr<VulkanDevice> m_device;
     float m_rt_aspect = 1.0f;

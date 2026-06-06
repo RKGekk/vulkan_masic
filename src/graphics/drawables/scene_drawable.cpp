@@ -24,6 +24,11 @@ struct SceneUniformBufferObject {
     glm::mat4 proj;
 };
 
+struct PhongMaterial {
+    glm::vec3 fresnelR0;
+    float roughness;
+};
+
 bool SceneDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
     using namespace std::literals;
 
@@ -173,6 +178,20 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                 }
             );
 
+            renderable->render_node->add_update_function(
+                "invmvp_matrices_update"s,
+                [&, renderable_id](std::shared_ptr<VulkanBuffer>& uniform_buffer){
+                    updateInvMVPMatrices(m_renderables.at(renderable_id)->mesh_node, uniform_buffer);
+                }
+            );
+
+            renderable->render_node->add_update_function(
+                "material_prop_update"s,
+                [&, material](std::shared_ptr<VulkanBuffer>& uniform_buffer){
+                    updateMaterialProps(material, uniform_buffer);
+                }
+            );
+
             for(const auto&[desc_slot, desc_set_name] : vertex_shader->getShaderSignature()->getDescSetNames()) {
                 const std::shared_ptr<DescSetLayout>& desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(desc_set_name);
 
@@ -228,4 +247,30 @@ void SceneDrawable::updateMVPMatrices(const std::shared_ptr<SceneNode>& scene_no
     //ubo.proj[1][1] *= -1.0f;
 
     uniform_buffer->update(&ubo, sizeof(SceneUniformBufferObject));
+}
+
+
+void SceneDrawable::updateInvMVPMatrices(const std::shared_ptr<SceneNode>& scene_node, std::shared_ptr<VulkanBuffer>& uniform_buffer) {\
+    Application& app = Application::Get();
+    const std::shared_ptr<BaseEngineLogic>& game_logic = app.GetGameLogic();
+    const std::shared_ptr<CameraComponent>& camera_component = game_logic->GetHumanView()->VGetCamera();
+    const std::shared_ptr<BasicCameraNode>& camera_node = camera_component->VGetCameraNode();
+    const SceneNodeProperties& node_props = scene_node->Get();
+    
+    SceneUniformBufferObject ubo{};
+    ubo.model = node_props.FromRoot();
+    ubo.view = camera_node->GetInvView();
+    ubo.proj = camera_node->GetInvProjection();
+    //ubo.proj[1][1] *= -1.0f;
+
+    uniform_buffer->update(&ubo, sizeof(SceneUniformBufferObject));
+}
+
+void SceneDrawable::updateMaterialProps(const std::shared_ptr<Material>& material, std::shared_ptr<VulkanBuffer>& uniform_buffer) {
+    PhongMaterial mat;
+
+    mat.fresnelR0 = glm::vec3(material->GetReflectance());
+    mat.roughness = material->GetRoughnessFactor();
+
+    uniform_buffer->update(&mat, sizeof(PhongMaterial));
 }

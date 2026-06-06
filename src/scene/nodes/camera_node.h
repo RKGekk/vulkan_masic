@@ -34,10 +34,14 @@ public:
 	glm::mat4x4 GetViewProjectionT() const;
 
 	const glm::mat4x4& GetProjection() const;
+	glm::mat4x4 GetInvProjection() const;
 	glm::mat4x4 GetProjectionT() const;
+	glm::mat4x4 GetInvProjectionT() const;
 
 	glm::mat4x4 GetView() const;
+	glm::mat4x4 GetInvView() const;
 	glm::mat4x4 GetViewT() const;
+	glm::mat4x4 GetInvViewT() const;
 
 protected:
 	glm::mat4x4 m_projection;

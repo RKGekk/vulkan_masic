@@ -57,14 +57,30 @@ const glm::mat4x4& CameraNode::GetProjection() const {
     return m_projection;
 }
 
+glm::mat4x4 CameraNode::GetInvProjection() const {
+    return glm::inverse(m_projection);
+}
+
 glm::mat4x4 CameraNode::GetProjectionT() const {
     return glm::transpose(m_projection);
+}
+
+glm::mat4x4 CameraNode::GetInvProjectionT() const {
+    return glm::transpose(glm::inverse(m_projection));
 }
 
 glm::mat4x4 CameraNode::GetView() const {
     return Get().FromRoot();
 }
 
+glm::mat4x4 CameraNode::GetInvView() const {
+    return Get().ToRoot();
+}
+
 glm::mat4x4 CameraNode::GetViewT() const {
     return Get().FromRootT();
+}
+
+glm::mat4x4 CameraNode::GetInvViewT() const {
+    return Get().ToRootT();
 }
