@@ -64,7 +64,7 @@ void SceneDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     std::shared_ptr<BaseEngineLogic> game_logic = app.GetGameLogic();
     std::shared_ptr<CameraComponent> camera_component = game_logic->GetHumanView()->VGetCamera();
     const std::shared_ptr<BasicCameraNode>& camera_node = camera_component->VGetCameraNode();
-    const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
+    
     for(size_t render_id = 0u; render_id < sz; ++render_id) {
         const std::shared_ptr<Renderable>& renderable = m_renderables.at(render_id);
         if(renderable->frame != image_index) continue;
@@ -84,19 +84,9 @@ void SceneDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
             renderable->uniform_buffer->update(&ubo, sizeof(SceneUniformBufferObject));
         }
 
-        updatePushConstants(renderable->frame);
-        std::shared_ptr<ValueBagNode> const_params_value_bag_node = std::dynamic_pointer_cast<ValueBagNode>(mesh_node->GetScene()->getProperty(mesh_node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG));;
-        if(const_params_value_bag_node && renderable->const_params.size() > 0u) {
-            for(const auto&[const_name, metadata_id] : const_params_value_bag_node->GetMetadata()) {
-                for(std::shared_ptr<VulkanPushConstant>& push_const : renderable->const_params) {
-                    if(push_const->getConstConfig()->hasPushConstantsName(const_name)) {
-                        push_const->SetValue(const_name, const_params_value_bag_node->GetValue(const_name));
-                    }
-                }
-            }
-        }
+        if(renderable->const_params.size() == 0u) continue;
 
-        //renderable->render_node->changeWriteDependency(swapchain_images[image_index], "resolve_attachment");
+        updatePushConstants(renderable->frame);
     }
 }
 
@@ -221,8 +211,14 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
 }
 
 void SceneDrawable::updatePushConstants(int frame) {
-    std::shared_ptr<ValueBagNode> const_params_value_bag_node = std::dynamic_pointer_cast<ValueBagNode>(m_renderables[frame]->mesh_node->GetScene()->getProperty(m_renderables[frame]->mesh_node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG));;
-    if(const_params_value_bag_node && m_renderables[frame]->const_params.size() > 0u) {
+    const std::shared_ptr<MeshNode> mesh_node = m_renderables[frame]->mesh_node;
+    std::shared_ptr<Scene> scene = mesh_node->GetScene();
+    std::shared_ptr<ValueBagNode> const_params_value_bag_node = std::dynamic_pointer_cast<ValueBagNode>(scene->getProperty(mesh_node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG));
+    if(!const_params_value_bag_node) {
+        const_params_value_bag_node = std::make_shared<ValueBagNode>(scene, mesh_node->VGetNodeIndex());
+        scene->addProperty(const_params_value_bag_node);
+    }
+    if(m_renderables[frame]->const_params.size() > 0u) {
         for(const auto&[const_name, metadata_id] : const_params_value_bag_node->GetMetadata()) {
             for(std::shared_ptr<VulkanPushConstant>& push_const : m_renderables[frame]->const_params) {
                 if(push_const->getConstConfig()->hasPushConstantsName(const_name)) {

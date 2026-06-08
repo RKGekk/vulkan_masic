@@ -26,6 +26,7 @@
 #include "scene.h"
 #include "nodes/scene_node.h"
 #include "nodes/mesh_node.h"
+#include "nodes/value_bag_node.h"
 #include "../graphics/pod/material.h"
 #include "../graphics/pod/shader_signature.h"
 #include "../graphics/api/vulkan_shaders_manager.h"
@@ -45,6 +46,7 @@ private:
 
     std::shared_ptr<SceneNode> MakeSingleNode(const tinygltf::Node& gltf_node, Scene::NodeIndex parent);
     std::shared_ptr<MeshNode> MakeRenderNode(const tinygltf::Mesh& gltf_mesh, Scene::NodeIndex node);
+    
     glm::mat4x4 MakeMatrix(const tinygltf::Node& gltf_node) const;
     glm::mat4x4 MakeMatrix(const std::vector<double>& mat) const;
     glm::mat4x4 MakeMatrix(const std::vector<double>& scale, const std::vector<double>& rotation, const std::vector<double>& translation) const;

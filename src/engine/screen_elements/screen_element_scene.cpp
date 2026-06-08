@@ -36,6 +36,7 @@ bool ScreenElementScene::VOnLostDevice() {
 };
 
 void ScreenElementScene::VOnUpdate(const GameTimerDelta& delta, uint32_t image_index) {
+    getLightManager()->CalcLighting();
     m_scene_draw->update(delta, image_index);
 };
 

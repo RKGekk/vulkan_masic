@@ -1,17 +1,5 @@
 #version 450
 
-#ifndef NUM_DIR_LIGHTS
-    #define NUM_DIR_LIGHTS 1
-#endif
-
-#ifndef NUM_POINT_LIGHTS
-    #define NUM_POINT_LIGHTS 0
-#endif
-
-#ifndef NUM_SPOT_LIGHTS
-    #define NUM_SPOT_LIGHTS 0
-#endif
-
 #define MaxLights 1
 
 layout(set = 0, binding = 1) uniform InvMatrixBufferObject {
@@ -30,6 +18,9 @@ layout(set = 0, binding = 3) uniform sampler2D texure_sampler;
 layout(push_constant) uniform UniformRegisters {
     vec4 u_ambient_light;
     vec2 u_resolution; // Viewport Size in pixels (e.g. 1920.0, 1080.0)
+    uint u_num_dir_lights;
+    uint u_num_point_lights;
+    uint u_num_spot_lights;
 } registers;
 
 struct Light {
@@ -156,23 +147,17 @@ vec4 ComputeLighting(vec3 pos, vec3 normal, vec3 to_eye, vec4 diffuse_albedo) {
     vec3 result = 0.0f;
     int i = 0;
 
-#if (NUM_DIR_LIGHTS > 0)
-    for(i = 0; i < NUM_DIR_LIGHTS; ++i) {
+    for(i = 0; i < u_num_dir_lights; ++i) {
         result += ComputeDirectionalLight(light_ubo[i], normal, to_eye, diffuse_albedo);
     }
-#endif
 
-#if (NUM_POINT_LIGHTS > 0)
-    for(i = NUM_DIR_LIGHTS; i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS; ++i) {
+    for(i = u_num_dir_lights; i < u_num_dir_lights + u_num_point_lights; ++i) {
         result += ComputePointLight(light_ubo[i], pos, normal, to_eye, diffuse_albedo);
     }
-#endif
 
-#if (NUM_SPOT_LIGHTS > 0)
-    for(i = NUM_DIR_LIGHTS + NUM_POINT_LIGHTS; i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS + NUM_SPOT_LIGHTS; ++i) {
+    for(i = u_num_dir_lights + u_num_point_lights; i < u_num_dir_lights + u_num_point_lights + u_num_spot_lights; ++i) {
         result += ComputeSpotLight(light_ubo[i], pos, normal, to_eye, diffuse_albedo);
     }
-#endif 
 
     return vec4(result, 0.0f);
 }

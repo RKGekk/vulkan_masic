@@ -1,6 +1,7 @@
 #define _ENABLE_EXTENDED_ALIGNED_STORAGE
 #include "scene.h"
 #include "nodes/scene_node.h"
+#include "light_manager.h"
 
 #include <algorithm>
 #include <numeric>
@@ -13,6 +14,7 @@ Scene::Scene() {
     m_global_transform.push_back(glm::mat4(1.0f));
     m_hierarchy.push_back({});
     m_dirty_at_level = std::vector<NodeIndexArray>(MAX_NODE_LEVEL);
+    m_light_manager = std::make_shared<LightManager>();
 }
 
 int Scene::addNode(NodeIndex parent_index) {
@@ -135,11 +137,17 @@ std::shared_ptr<SceneNode> Scene::getRootNode() {
 
 void Scene::addProperty(std::shared_ptr<SceneNode> property, NodeIndex node_index) {
     if (node_index == NO_INDEX) node_index = property->VGetNodeIndex();
+
+    NodeType node_type = property->Get().GetNodeType();
+    if(node_type == NODE_TYPE_FLAG_LIGHT) {
+        m_light_manager->AddLight(std::dynamic_pointer_cast<LightNode>(property));
+    }
+
     if(!m_node_property_map.contains(node_index)) {
         Scene::PropertyIndex property_index = m_properties.size();
         m_node_property_map[node_index] = property_index;
         Properties new_props;
-        new_props[property->Get().GetNodeType()] = property;
+        new_props[node_type] = property;
         m_properties.push_back(std::make_shared<Properties>(std::move(new_props)));
 
         m_node_type_flags_map[node_index] = property->Get().GetNodeType();
@@ -147,10 +155,10 @@ void Scene::addProperty(std::shared_ptr<SceneNode> property, NodeIndex node_inde
         return;
     }
 
-    m_node_type_flags_map[node_index] |= property->Get().GetNodeType();
+    m_node_type_flags_map[node_index] |= node_type;
 
     Scene::PropertyIndex property_index = m_node_property_map[node_index];
-    m_properties[property_index]->operator[](property->Get().GetNodeType()) = std::move(property);
+    m_properties[property_index]->operator[](node_type) = std::move(property);
 }
 
 const std::unordered_map<Scene::NodeIndex, Scene::NodeTypeFlags>& Scene::getNodeTypeFlagsMap() const {
@@ -433,4 +441,8 @@ void Scene::mergeScenes(const std::vector<Scene*>& scenes, const std::vector<glm
     for (auto i = m_hierarchy.begin() + 1; i != m_hierarchy.end(); ++i) {
         i->level++;
     }
+}
+
+std::shared_ptr<LightManager>& Scene::getLightManager() {
+    return m_light_manager;
 }

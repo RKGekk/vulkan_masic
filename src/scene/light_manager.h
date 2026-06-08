@@ -23,8 +23,8 @@ public:
 
 private:
     std::vector<LightNodeProperties> m_lights;
-    int m_dir_lights_size;
-    int m_point_lights_size;
-    int m_spot_lights_size;
+    uint32_t m_dir_lights_size;
+    uint32_t m_point_lights_size;
+    uint32_t m_spot_lights_size;
 	std::unordered_map<std::shared_ptr<LightNode>, size_t> m_index_map;
 };

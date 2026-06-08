@@ -15,6 +15,7 @@
 //#include "tiny_gltf.h"
 
 #include "../../scene/nodes/mesh_node.h"
+#include "../../scene/light_manager.h"
 #include "../api/vulkan_device.h"
 #include "../drawables/vulkan_drawable.h"
 #include "../pod/render_resource.h"

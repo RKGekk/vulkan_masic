@@ -261,6 +261,18 @@
                         <GLSLFormat>vec2</GLSLFormat>
                         <InternalFormat>r32g32_sfloat</InternalFormat>
                     </Constant>
+                    <Constant field_name="u_num_dir_lights">
+                        <GLSLFormat>uint</GLSLFormat>
+                        <InternalFormat>r32_uint</InternalFormat>
+                    </Constant>
+                    <Constant field_name="u_num_point_lights">
+                        <GLSLFormat>uint</GLSLFormat>
+                        <InternalFormat>r32_uint</InternalFormat>
+                    </Constant>
+                    <Constant field_name="u_num_spot_lights">
+                        <GLSLFormat>uint</GLSLFormat>
+                        <InternalFormat>r32_uint</InternalFormat>
+                    </Constant>
                 </Constants>
             </PushConstant>
         </ResourceType>

@@ -486,6 +486,14 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& g
     	mesh_node->AddMesh(model_data);
     }
 
+	std::shared_ptr<ValueBagNode> value_bag_node = std::make_shared<ValueBagNode>(m_scene, node);
+    m_scene->addProperty(value_bag_node);
+
+    glm::vec2 resolution = {};
+    resolution.x = (float)Application::Get().GetApplicationOptions().ScreenWidth;
+    resolution.y = (float)Application::Get().GetApplicationOptions().ScreenHeight;
+    value_bag_node->AppendValue("u_resolution"s, sizeof(glm::vec2), &resolution);
+
     return mesh_node;
 }
 
