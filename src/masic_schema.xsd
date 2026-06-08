@@ -2563,6 +2563,27 @@
                                                 </xs:sequence>
                                             </xs:complexType>
                                         </xs:element>
+                                        <xs:element name="LightComponent" minOccurs="0" maxOccurs="1">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element name="strength" type="target:ColorAsAttrComplexType" minOccurs="1" maxOccurs="1"></xs:element>
+                                                    <xs:element name="falloff_start" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
+                                                    <xs:element name="falloff_end" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
+                                                    <xs:element name="spot_power" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
+                                                    <xs:element name="outer_angle" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
+                                                    <xs:element name="inner_angle" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
+                                                </xs:sequence>
+                                                <xs:attribute name="type">
+                                                    <xs:simpleType>
+                                                        <xs:restriction base="xs:string">
+                                                            <xs:enumeration value="DirectionalLight"></xs:enumeration>
+                                                            <xs:enumeration value="PointLight"></xs:enumeration>
+                                                            <xs:enumeration value="SpotLight"></xs:enumeration>
+                                                        </xs:restriction>
+                                                    </xs:simpleType>
+                                                </xs:attribute>
+                                            </xs:complexType>
+                                        </xs:element>
                                         <xs:element name="CoordArrowComponent" minOccurs="0" maxOccurs="1"></xs:element>
                                         <xs:element name="TransformAnimationComponent" minOccurs="0" maxOccurs="1">
                                             <xs:complexType>
