@@ -64,6 +64,9 @@ void SceneDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     std::shared_ptr<BaseEngineLogic> game_logic = app.GetGameLogic();
     std::shared_ptr<CameraComponent> camera_component = game_logic->GetHumanView()->VGetCamera();
     const std::shared_ptr<BasicCameraNode>& camera_node = camera_component->VGetCameraNode();
+    const std::shared_ptr<LightManager>& light_manager = camera_node->GetScene()->getLightManager();
+
+    m_light_buffer->update(light_manager->getLightsData().data(), light_manager->getLightsData().size() * sizeof(LightNodeProperties));
     
     for(size_t render_id = 0u; render_id < sz; ++render_id) {
         const std::shared_ptr<Renderable>& renderable = m_renderables.at(render_id);
@@ -187,9 +190,14 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
 
                 for (const auto&[desc_layout_bind_name, bind_num] : desc_set_layout->getBindingMap()) {
                     const VkDescriptorSetLayoutBinding& vk_layout_binding = desc_set_layout->getBinding(bind_num);
-                    //const std::shared_ptr<GraphicsRenderNodeConfig::UpdateMetadata>& update_metadata = render_node_cfg->getBindingsMetadata().at(desc_layout_bind_name);
-                    if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) {
+                    const std::shared_ptr<GraphicsRenderNodeConfig::UpdateMetadata>& update_metadata = render_node_cfg->getBindingsMetadata().at(desc_layout_bind_name);
+                    if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER && update_metadata->creation_point == GraphicsRenderNodeConfig::CreationPoint::RENDER_NODE_CREATION_TIME) {
                         std::shared_ptr<VulkanBuffer> ubo = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, model_data->GetName() + desc_layout_bind_name + "_uniform_frame_"s + std::to_string(frame), "basic_uniform_resource");
+                        renderable->render_node->addReadDependency(ubo, desc_layout_bind_name);
+                        renderable->uniform_buffers[desc_layout_bind_name] = std::move(ubo);
+                    }
+                    if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER && update_metadata->creation_point == GraphicsRenderNodeConfig::CreationPoint::EXTERNAL) {
+                        std::shared_ptr<VulkanBuffer> ubo = Application::GetRenderer().getResourcesManager()->getBufferResource(desc_layout_bind_name + std::to_string(frame));
                         renderable->render_node->addReadDependency(ubo, desc_layout_bind_name);
                         renderable->uniform_buffers[desc_layout_bind_name] = std::move(ubo);
                     }

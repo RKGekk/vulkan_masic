@@ -3,7 +3,7 @@
 
 LightManager::LightManager() {}
 
-void LightManager::CalcLighting() {
+void LightManager::CalcLighting(std::shared_ptr<CameraNode> camera_node) {
     for(const auto&[light_node, idx] : m_index_map) {
         m_lights[idx] = light_node->GetLightProperties();
     }
@@ -20,14 +20,12 @@ const std::vector<LightNodeProperties>& LightManager::getLightsData() const {
 void LightManager::AddLight(const std::shared_ptr<LightNode>& node) {
     using namespace std::literals;
 
-    std::shared_ptr<ValueBagNode> value_bag_node = std::dynamic_pointer_cast<ValueBagNode>(node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG));
     switch (node->getLightType()) {
         case LightNode::LightType::DIRECTIONAL : {
                 size_t light_id = m_dir_lights_size;
                 m_lights.insert(m_lights.begin(), node->GetLightProperties());
                 ++m_dir_lights_size;
                 m_index_map[node] = light_id;
-                value_bag_node->SetValue("u_num_dir_lights"s, &m_dir_lights_size);
             }
             break;
 
@@ -36,7 +34,6 @@ void LightManager::AddLight(const std::shared_ptr<LightNode>& node) {
                 m_lights.insert(m_lights.begin() + light_id, node->GetLightProperties());
                 ++m_point_lights_size;
                 m_index_map[node] = light_id;
-                value_bag_node->SetValue("u_num_point_lights"s, &m_point_lights_size);
             }
             break;
 
@@ -45,7 +42,6 @@ void LightManager::AddLight(const std::shared_ptr<LightNode>& node) {
                 m_lights.insert(m_lights.begin() + light_id, node->GetLightProperties());
                 ++m_spot_lights_size;
                 m_index_map[node] = light_id;
-                value_bag_node->SetValue("u_num_spot_lights"s, &m_spot_lights_size);
             }
             break;
     
@@ -67,6 +63,19 @@ void LightManager::RemoveLight(const std::shared_ptr<LightNode>& node) {
     }
 }
 
+void LightManager::DecorateValueBag(std::shared_ptr<SceneNode> node) const {
+    using namespace std::literals;
+    std::shared_ptr<Scene> scene = node->GetScene();
+    std::shared_ptr<ValueBagNode> value_bag_node = std::dynamic_pointer_cast<ValueBagNode>(scene->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG));
+    if(!value_bag_node) {
+        value_bag_node = std::make_shared<ValueBagNode>(scene, node->VGetNodeIndex());
+        scene->addProperty(value_bag_node);
+    }
+    value_bag_node->SetValue("u_num_dir_lights"s, &m_dir_lights_size);
+    value_bag_node->SetValue("u_num_point_lights"s, &m_point_lights_size);
+    value_bag_node->SetValue("u_num_spot_lights"s, &m_spot_lights_size);
+}
+
 size_t LightManager::GetDirLightsCount() const {
     return m_dir_lights_size;
 }
@@ -77,4 +86,9 @@ size_t LightManager::GetPointLightsCount() const {
 
 size_t LightManager::GetSpotLightsCount() const {
     return m_spot_lights_size;
+}
+
+const std::string& LightManager::getLightBufferName() const {
+    using namespace std::literals;
+    return ""s
 }

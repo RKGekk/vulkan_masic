@@ -1,8 +1,10 @@
 #pragma once
 
 #include "nodes/light_node.h"
+#include "nodes/camera_node.h"
 
 #include <memory>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -10,16 +12,20 @@ class LightManager {
 public:
     LightManager();
 
-    void CalcLighting();
+    void CalcLighting(std::shared_ptr<CameraNode> camera_node);
     int GetLightCount(std::shared_ptr<SceneNode> node) const;
     const std::vector<LightNodeProperties>& getLightsData() const;
 
     void AddLight(const std::shared_ptr<LightNode>& node);
 	void RemoveLight(const std::shared_ptr<LightNode>& node);
 
+    void DecorateValueBag(std::shared_ptr<SceneNode> node) const;
+
 	size_t GetDirLightsCount() const;
 	size_t GetPointLightsCount() const;
 	size_t GetSpotLightsCount() const;
+
+    const std::string& getLightBufferName() const;
 
 private:
     std::vector<LightNodeProperties> m_lights;

@@ -100,6 +100,8 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
     //m_prev_frame.push_back(m_swapchain->getMaxFrames() - 1u);
     //m_prev_frame.push_back(0u);
 
+
+
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = m_swapchain->getSwapchainImages();
     int max_frames = m_swapchain->getMaxFrames();
     m_per_frame.reserve(max_frames);
@@ -108,6 +110,7 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
 
         per_frame->out_color_image = m_resources_manager->create_image("render_target_color"s + std::to_string(i), "render_target_color_resource");
         per_frame->out_depth_image = m_resources_manager->create_image("render_target_depth"s + std::to_string(i), "render_target_depth_resource");
+        per_frame->light_buffer = m_resources_manager->create_buffer(nullptr, 0, "light_ubo"s + std::to_string(i), "basic_uniform_resource");
 
         per_frame->swapchain_available_sem = m_semaphore_manager->getSemaphore("swapchain_available_sem");
         per_frame->swapchain_available_fen = m_fence_manager->getFence();

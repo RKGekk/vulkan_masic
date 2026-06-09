@@ -1,6 +1,6 @@
 #version 450
 
-#define MaxLights 1
+#define MaxLights 9
 
 layout(set = 0, binding = 1) uniform InvMatrixBufferObject {
     mat4 inv_model;

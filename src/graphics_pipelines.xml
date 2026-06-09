@@ -466,6 +466,32 @@
             </Buffer>
         </ResourceType>
 
+        <ResourceType name="material_uniform_resource">
+            <Buffer>
+                <BufferUsageFlags>
+                    <Flag>uniform_buffer</Flag>
+                </BufferUsageFlags>
+                <Size dynamic="false" deffered="false">192</Size>
+                <MemoryProperties>
+                    <Property>host_visible</Property>
+                    <Property>host_coherent</Property>
+                </MemoryProperties>
+            </Buffer>
+        </ResourceType>
+
+        <ResourceType name="light_uniform_resource">
+            <Buffer>
+                <BufferUsageFlags>
+                    <Flag>uniform_buffer</Flag>
+                </BufferUsageFlags>
+                <Size dynamic="false" deffered="false">192</Size>
+                <MemoryProperties>
+                    <Property>host_visible</Property>
+                    <Property>host_coherent</Property>
+                </MemoryProperties>
+            </Buffer>
+        </ResourceType>
+
         <ResourceType name="imgui_uniform_resource">
             <Buffer>
                 <BufferUsageFlags>

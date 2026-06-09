@@ -12,6 +12,7 @@
 #include "../graphics/api/vulkan_buffer.h"
 #include "../graphics/vulkan_renderer.h"
 #include "../graphics/api/vulkan_resources_manager.h"
+#include "light_manager.h"
 
 struct TextureMatInfo {
 	int index = -1; // required.
@@ -562,6 +563,8 @@ void MeshNodeLoader::MakeNodesHierarchy(int current_node_idx, std::shared_ptr<Sc
 		const tinygltf::Mesh& gltf_mesh = m_gltf_model.meshes[gltf_node.mesh];
 		MakeRenderNode(gltf_mesh, transform_node->VGetNodeIndex());
 	}
+
+	transform_node->GetScene()->getLightManager()->DecorateValueBag(transform_node);
 
 	size_t child_ct = gltf_node.children.size();
 	for (size_t current_child_ct = 0u; current_child_ct < child_ct; ++current_child_ct) {

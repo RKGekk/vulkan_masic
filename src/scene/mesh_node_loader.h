@@ -26,6 +26,7 @@
 #include "scene.h"
 #include "nodes/scene_node.h"
 #include "nodes/mesh_node.h"
+#include "nodes/light_node.h"
 #include "nodes/value_bag_node.h"
 #include "../graphics/pod/material.h"
 #include "../graphics/pod/shader_signature.h"

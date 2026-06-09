@@ -136,6 +136,8 @@ bool GraphicsRenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device,
             std::string layout_binding_name = layout_binding_node.attribute("name").as_string();
             std::shared_ptr<UpdateMetadata> metadata = std::make_shared<UpdateMetadata>();
             metadata->name = layout_binding_name;
+            CreationPoint creation_point = layout_binding_node.attribute("resource_creation_point").as_string() == "RenderNodeCreationTime" ? CreationPoint::RENDER_NODE_CREATION_TIME : CreationPoint::EXTERNAL;
+            metadata->creation_point = creation_point;
 
             if(pugi::xml_node buffer_metadata_node = layout_binding_node.child("Buffer")) {
                 metadata->resource_type = RenderResource::Type::BUFFER;

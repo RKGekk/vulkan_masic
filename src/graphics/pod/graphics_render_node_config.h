@@ -25,6 +25,7 @@ class GraphicsRenderNodeConfig {
 public:
     enum class ExtentSource { AUTO, AS_SWAPCHAIN, EXACT };
     enum class IndexCountType { ALL, EXACT };
+    enum class CreationPoint { RENDER_NODE_CREATION_TIME, EXTERNAL};
 
     struct UpdateMetadata {
         std::string name;
@@ -33,6 +34,7 @@ public:
         RenderResource::Type resource_type;
         std::string buffer_resource_type_name;
         std::string update_function_name;
+        CreationPoint creation_point;
 
         SamplerType sampler_type;
         std::shared_ptr<VulkanSampler> image_sampler;

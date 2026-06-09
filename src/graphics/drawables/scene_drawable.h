@@ -72,4 +72,5 @@ private:
     VkExtent2D m_viewport_extent;
 
     std::vector<std::shared_ptr<Renderable>> m_renderables;
+    std::shared_ptr<VulkanBuffer> m_light_buffer;
 };

@@ -2263,7 +2263,7 @@
                     </xs:attribute>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="DescriptorResourcesUpdate" minOccurs="0" maxOccurs="1">
+            <xs:element name="DescriptorResourcesCreateAndUpdate" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element name="LayoutBinding" minOccurs="0" maxOccurs="unbounded">
@@ -2306,6 +2306,14 @@
                                     <xs:element name="TexelBufferResourceType" minOccurs="0" maxOccurs="1"></xs:element>
                                 </xs:choice>
                                 <xs:attribute name="name" type="xs:string"></xs:attribute>
+                                <xs:attribute name="resource_creation_point">
+                                    <xs:simpleType>
+                                        <xs:restriction base="xs:string">
+                                            <xs:enumeration value="RenderNodeCreationTime"></xs:enumeration>
+                                            <xs:enumeration value="External"></xs:enumeration>
+                                        </xs:restriction>
+                                    </xs:simpleType>
+                                </xs:attribute>
                             </xs:complexType>
                         </xs:element>
                     </xs:sequence>
