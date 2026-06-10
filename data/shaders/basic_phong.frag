@@ -39,7 +39,7 @@ layout(set = 0, binding = 4) uniform LightBufferObject {
 } light_ubo;
 
 layout(location = 0) in vec3 in_normal;
-layout(location = 1) in vec3 in_world_pos;
+layout(location = 1) in vec4 in_world_pos;
 layout(location = 2) in vec2 in_uv;
 
 layout(location = 0) out vec4 out_color;
@@ -60,12 +60,12 @@ vec3 SchlickFresnel(vec3 R0, vec3 normal, vec3 to_light) {
 }
 
 vec3 BlinnPhong(vec3 light_strength, vec3 to_light, vec3 normal, vec3 to_eye, vec4 diffuse_albedo) {
-    const float shininess = 1.0f - u_roughness;
+    const float shininess = 1.0f - material.u_roughness;
     const float m = shininess * 256.0f;
     vec3 half_vec = normalize(to_eye + to_light);
 
     float roughness_factor = (m + 8.0f) * pow(max(dot(half_vec, normal), 0.0f), m) / 8.0f;
-    vec3 fresnel_factor = SchlickFresnel(u_fresnelR0, half_vec, to_light);
+    vec3 fresnel_factor = SchlickFresnel(material.u_fresnelR0, half_vec, to_light);
 
     vec3 spec_albedo = fresnel_factor * roughness_factor;
 
@@ -83,10 +83,10 @@ vec3 ComputeDirectionalLight(Light light_source, vec3 normal, vec3 to_eye, vec4 
     float ndotl = max(dot(to_light, normal), 0.0f);
     vec3 light_strength = light_source.strength * ndotl;
 
-    return BlinnPhong(light_strength, to_light, normal, toEye, diffuse_albedo);
+    return BlinnPhong(light_strength, to_light, normal, to_eye, diffuse_albedo);
 }
 
-vec3 ComputePointLight(Light light_source, float3 point_pos, float3 normal, float3 to_eye, vec4 diffuse_albedo) {
+vec3 ComputePointLight(Light light_source, vec3 point_pos, vec3 normal, vec3 to_eye, vec4 diffuse_albedo) {
     // The vector from the surface to the light.
     vec3 to_light = light_source.position - point_pos;
 
@@ -95,7 +95,7 @@ vec3 ComputePointLight(Light light_source, float3 point_pos, float3 normal, floa
 
     // Range test.
     if(d > light_source.falloff_end)
-        return 0.0f;
+        return vec3(0.0f, 0.0f, 0.0f);
 
     // Normalize the light vector.
     to_light /= d;
@@ -120,7 +120,7 @@ vec3 ComputeSpotLight(Light light_source, vec3 point_pos, vec3 normal, vec3 to_e
 
     // Range test.
     if(d > light_source.falloff_end)
-        return 0.0f;
+        return vec3(0.0f, 0.0f, 0.0f);
 
     // Normalize the light vector.
     to_light /= d;
@@ -137,26 +137,26 @@ vec3 ComputeSpotLight(Light light_source, vec3 point_pos, vec3 normal, vec3 to_e
     float theta = max(dot(-to_light, light_source.direction), 0.0f);
     float epsilon = cos(light_source.inner_angle - light_source.outer_angle);
     float intensity = clamp((theta - cos(light_source.outer_angle)) / epsilon, 0.0f, 1.0f);
-    float spot_factor = pow(intensity, L.spot_power);
+    float spot_factor = pow(intensity, light_source.spot_power);
     light_strength *= spot_factor;
 
     return BlinnPhong(light_strength, to_light, normal, to_eye, diffuse_albedo);
 }
 
 vec4 ComputeLighting(vec3 pos, vec3 normal, vec3 to_eye, vec4 diffuse_albedo) {
-    vec3 result = 0.0f;
-    int i = 0;
+    vec3 result = vec3(0.0f, 0.0f, 0.0f);
+    uint i = 0;
 
-    for(i = 0; i < u_num_dir_lights; ++i) {
-        result += ComputeDirectionalLight(light_ubo[i], normal, to_eye, diffuse_albedo);
+    for(i = 0; i < registers.u_num_dir_lights; ++i) {
+        result += ComputeDirectionalLight(light_ubo.u_light_array[i], normal, to_eye, diffuse_albedo);
     }
 
-    for(i = u_num_dir_lights; i < u_num_dir_lights + u_num_point_lights; ++i) {
-        result += ComputePointLight(light_ubo[i], pos, normal, to_eye, diffuse_albedo);
+    for(i = registers.u_num_dir_lights; i < registers.u_num_dir_lights + registers.u_num_point_lights; ++i) {
+        result += ComputePointLight(light_ubo.u_light_array[i], pos, normal, to_eye, diffuse_albedo);
     }
 
-    for(i = u_num_dir_lights + u_num_point_lights; i < u_num_dir_lights + u_num_point_lights + u_num_spot_lights; ++i) {
-        result += ComputeSpotLight(light_ubo[i], pos, normal, to_eye, diffuse_albedo);
+    for(i = registers.u_num_dir_lights + registers.u_num_point_lights; i < registers.u_num_dir_lights + registers.u_num_point_lights + registers.u_num_spot_lights; ++i) {
+        result += ComputeSpotLight(light_ubo.u_light_array[i], pos, normal, to_eye, diffuse_albedo);
     }
 
     return vec4(result, 0.0f);
@@ -167,15 +167,16 @@ void main() {
 
     vec3 world_normal = normalize(in_normal);
     vec3 world_eye_position = inv_ubo.inv_view[3].xyz;
-    vec3 world_to_eye = normalize(world_eye_position - in_world_pos);
+    vec3 world_to_eye = normalize(world_eye_position - in_world_pos.xyz);
 
-    vec4 diffuse = ComputeLighting(in_world_pos, in_normal, world_to_eye, diffuse_albedo);
+    vec4 diffuse_attenuation = ComputeLighting(in_world_pos.xyz, in_normal, world_to_eye, diffuse_albedo);
 
-    vec4 ambient = u_ambient_light * diffuse;
-    vec4 lit_color = ambient + attenuation;
+    vec4 ambient = registers.u_ambient_light * diffuse_albedo;
+    vec4 lit_color = ambient + diffuse_attenuation;
 
-// Common convention to take alpha from diffuse material.
-litColor.a = gDiffuseAlbedo.a;
+    // Common convention to take alpha from diffuse material.
+    lit_color.a = diffuse_albedo.a;
 
-    out_color = texture(texure_sampler, in_uv);
+    //out_color = texture(texure_sampler, in_uv);
+    out_color = lit_color;
 }
