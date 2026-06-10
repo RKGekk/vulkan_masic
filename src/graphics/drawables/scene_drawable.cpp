@@ -37,9 +37,13 @@ bool SceneDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
     m_rt_aspect = Application::GetRenderer().getSwapchain()->getFormatConfig()->getAspect();
     m_viewport_extent = Application::GetRenderer().getSwapchain()->getFormatConfig()->getExtent2D();
 
+    Application& app = Application::Get();
+    const std::shared_ptr<LightManager>& light_manager = app.GetGameLogic()->GetHumanView()->VGetScene()->getLightManager();
+
     m_per_frame.reserve(max_frames);
     for(int frame = 0; frame < m_max_frames; ++frame) {
         m_per_frame[frame] = std::make_shared<RenderPerFrame>();
+        m_per_frame[frame]->light_buffer = Application::GetRenderer().getResourcesManager()->getBufferResource(light_manager->getLightBufferName() + std::to_string(frame));
     }
 
     return true;

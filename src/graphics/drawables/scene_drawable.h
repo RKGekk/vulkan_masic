@@ -54,6 +54,7 @@ public:
 
     struct RenderPerFrame {
         std::vector<std::shared_ptr<Renderable>> renderables;
+        std::shared_ptr<VulkanBuffer> light_buffer;
     };
 
     bool init(std::shared_ptr<VulkanDevice> device, int max_frames);

@@ -1548,7 +1548,7 @@
             </DynamicStates>
             <IndexCountType type="all"></IndexCountType>
             <DescriptorResourcesCreateAndUpdate>
-                <LayoutBinding name="uniform">
+                <LayoutBinding name="uniform" resource_creation_point="RenderNodeCreationTime">
                     <Buffer>
                         <BufferResourceType>basic_uniform_resource</BufferResourceType>
                         <UpdateFunctionName>mvp_matrices_update</UpdateFunctionName>
@@ -1566,7 +1566,7 @@
             </DynamicStates>
             <IndexCountType type="all"></IndexCountType>
             <DescriptorResourcesCreateAndUpdate>
-                <LayoutBinding name="ubo">
+                <LayoutBinding name="ubo" resource_creation_point="RenderNodeCreationTime">
                     <Buffer>
                         <BufferResourceType>basic_uniform_resource</BufferResourceType>
                         <UpdateFunctionName>mvp_matrices_update</UpdateFunctionName>
@@ -1584,13 +1584,13 @@
             </DynamicStates>
             <IndexCountType type="all"></IndexCountType>
             <DescriptorResourcesCreateAndUpdate>
-                <LayoutBinding name="uniform">
+                <LayoutBinding name="uniform" resource_creation_point="RenderNodeCreationTime">
                     <Buffer>
                         <BufferResourceType>basic_uniform_resource</BufferResourceType>
                         <UpdateFunctionName>mvp_matrices_update</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
-                <LayoutBinding name="image">
+                <LayoutBinding name="image" resource_creation_point="External">
                     <Image>
                         <Sampler>
                             <Type>FromImageBuffer</Type>
@@ -1618,19 +1618,19 @@
                         <UpdateFunctionName>mvp_matrices_update</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
-                <LayoutBinding name="inv_ubo">
+                <LayoutBinding name="inv_ubo" resource_creation_point="RenderNodeCreationTime">
                     <Buffer>
                         <BufferResourceType>basic_uniform_resource</BufferResourceType>
                         <UpdateFunctionName>invmvp_matrices_update</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
-                <LayoutBinding name="material">
+                <LayoutBinding name="material" resource_creation_point="RenderNodeCreationTime">
                     <Buffer>
                         <BufferResourceType>material_uniform_resource</BufferResourceType>
                         <UpdateFunctionName>material_prop_update</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
-                <LayoutBinding name="texure_sampler">
+                <LayoutBinding name="texure_sampler" resource_creation_point="External">
                     <Image>
                         <Sampler>
                             <Type>FromImageBuffer</Type>
@@ -1640,9 +1640,10 @@
                         <ReadImageLayout>shader_read_only_optimal</ReadImageLayout>
                     </Image>
                 </LayoutBinding>
-                <LayoutBinding name="light_ubo">
+                <LayoutBinding name="light_ubo" resource_creation_point="External">
                     <Buffer>
                         <BufferResourceType>light_uniform_resource</BufferResourceType>
+                        <UpdateFunctionName>no_name</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
             </DescriptorResourcesCreateAndUpdate>
@@ -1661,12 +1662,13 @@
                 <VertexOffset>0</VertexOffset>
             </IndexCountType>
             <DescriptorResourcesCreateAndUpdate>
-                <LayoutBinding name="uniform">
+                <LayoutBinding name="uniform" resource_creation_point="RenderNodeCreationTime">
                     <Buffer>
                         <BufferResourceType>imgui_uniform_resource</BufferResourceType>
+                        <UpdateFunctionName></UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
-                <LayoutBinding name="image">
+                <LayoutBinding name="image" resource_creation_point="External">
                     <Image>
                         <Sampler>
                             <Type>FromImageBuffer</Type>
