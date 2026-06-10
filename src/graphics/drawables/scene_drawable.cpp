@@ -37,6 +37,11 @@ bool SceneDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
     m_rt_aspect = Application::GetRenderer().getSwapchain()->getFormatConfig()->getAspect();
     m_viewport_extent = Application::GetRenderer().getSwapchain()->getFormatConfig()->getExtent2D();
 
+    m_per_frame.reserve(max_frames);
+    for(int frame = 0; frame < m_max_frames; ++frame) {
+        m_per_frame[frame] = std::make_shared<RenderPerFrame>();
+    }
+
     return true;
 }
 
@@ -57,39 +62,21 @@ void SceneDrawable::destroy() {
 }
 
 void SceneDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
-    size_t sz = m_renderables.size();
+    size_t sz = m_per_frame[image_index]->renderables.size();
     if(!sz) return;
 
-    Application& app = Application::Get();
-    std::shared_ptr<BaseEngineLogic> game_logic = app.GetGameLogic();
-    std::shared_ptr<CameraComponent> camera_component = game_logic->GetHumanView()->VGetCamera();
-    const std::shared_ptr<BasicCameraNode>& camera_node = camera_component->VGetCameraNode();
-    const std::shared_ptr<LightManager>& light_manager = camera_node->GetScene()->getLightManager();
-
-    m_light_buffer->update(light_manager->getLightsData().data(), light_manager->getLightsData().size() * sizeof(LightNodeProperties));
+    if(m_per_frame[image_index]->light_buffer) {
+        Application& app = Application::Get();
+        const std::shared_ptr<LightManager>& light_manager = app.GetGameLogic()->GetHumanView()->VGetScene()->getLightManager();
+        m_per_frame[image_index]->light_buffer->update(light_manager->getLightsData().data(), light_manager->getLightsData().size() * sizeof(LightNodeProperties));
+    }
     
     for(size_t render_id = 0u; render_id < sz; ++render_id) {
-        const std::shared_ptr<Renderable>& renderable = m_renderables.at(render_id);
-        if(renderable->frame != image_index) continue;
+        const std::shared_ptr<Renderable>& renderable = m_per_frame[image_index]->renderables.at(render_id);
         if(!renderable->mesh_node) continue;
 
-        const std::shared_ptr<MeshNode>& mesh_node = renderable->mesh_node;
-
-        if(renderable->uniform_buffer) {
-            const SceneNodeProperties& node_props = mesh_node->Get();
-
-            SceneUniformBufferObject ubo{};
-            ubo.model = node_props.ToRoot();
-            ubo.view = camera_node->GetView();
-            ubo.proj = camera_node->GetProjection();
-            //ubo.proj[1][1] *= -1.0f;
-
-            renderable->uniform_buffer->update(&ubo, sizeof(SceneUniformBufferObject));
-        }
-
         if(renderable->const_params.size() == 0u) continue;
-
-        updatePushConstants(renderable->frame);
+        updatePushConstants(image_index, render_id);
     }
 }
 
@@ -120,16 +107,18 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
     std::shared_ptr<ValueBagNode> value_bag_node = std::dynamic_pointer_cast<ValueBagNode>(model->GetScene()->getProperty(model->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG));
     const MeshNode::MeshList& mesh_list = model->GetMeshes();
     size_t msz = mesh_list.size();
-    m_renderables.reserve(m_renderables.size() + msz);
+    for(int frame = 0; frame < m_max_frames; ++frame) {
+        m_per_frame[frame]->renderables.reserve(m_per_frame[frame]->renderables.size() + msz);
+    }
     for (size_t i = 0u; i < msz; ++i) {
         std::shared_ptr<ModelData> model_data = mesh_list.at(i);
         std::shared_ptr<Material> material = model_data->GetMaterial();
 
         for(int frame = 0; frame < m_max_frames; ++frame) {
-            size_t renderable_id = m_renderables.size();
+            std::shared_ptr<RenderPerFrame>& per_frame_data = m_per_frame[frame];
+            size_t renderable_id = per_frame_data->renderables.size();
 
             std::shared_ptr<Renderable> renderable = std::make_shared<Renderable>();
-            renderable->frame = frame;
             renderable->mesh_node = model;
             
             renderable->texture = material->GetTexture();
@@ -152,7 +141,7 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             }
 
             if(value_bag_node && renderable->const_params.size() > 0u) {
-                updatePushConstants(frame);
+                updatePushConstants(frame, renderable_id);
             }
 
             std::shared_ptr<VulkanShader> vertex_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
@@ -166,15 +155,15 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
 
             renderable->render_node->add_update_function(
                 "mvp_matrices_update"s,
-                [&, renderable_id](std::shared_ptr<VulkanBuffer>& uniform_buffer){
-                    updateMVPMatrices(m_renderables.at(renderable_id)->mesh_node, uniform_buffer);
+                [&, frame, renderable_id](std::shared_ptr<VulkanBuffer>& uniform_buffer){
+                    updateMVPMatrices(m_per_frame[frame]->renderables.at(renderable_id)->mesh_node, uniform_buffer);
                 }
             );
 
             renderable->render_node->add_update_function(
                 "invmvp_matrices_update"s,
-                [&, renderable_id](std::shared_ptr<VulkanBuffer>& uniform_buffer){
-                    updateInvMVPMatrices(m_renderables.at(renderable_id)->mesh_node, uniform_buffer);
+                [&, frame, renderable_id](std::shared_ptr<VulkanBuffer>& uniform_buffer){
+                    updateInvMVPMatrices(m_per_frame[frame]->renderables.at(renderable_id)->mesh_node, uniform_buffer);
                 }
             );
 
@@ -192,14 +181,13 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                     const VkDescriptorSetLayoutBinding& vk_layout_binding = desc_set_layout->getBinding(bind_num);
                     const std::shared_ptr<GraphicsRenderNodeConfig::UpdateMetadata>& update_metadata = render_node_cfg->getBindingsMetadata().at(desc_layout_bind_name);
                     if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER && update_metadata->creation_point == GraphicsRenderNodeConfig::CreationPoint::RENDER_NODE_CREATION_TIME) {
-                        std::shared_ptr<VulkanBuffer> ubo = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, model_data->GetName() + desc_layout_bind_name + "_uniform_frame_"s + std::to_string(frame), "basic_uniform_resource");
+                        std::shared_ptr<VulkanBuffer> ubo = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, model_data->GetName() + desc_layout_bind_name + "_uniform_frame_"s + std::to_string(frame), update_metadata->buffer_resource_type_name);
                         renderable->render_node->addReadDependency(ubo, desc_layout_bind_name);
                         renderable->uniform_buffers[desc_layout_bind_name] = std::move(ubo);
                     }
                     if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER && update_metadata->creation_point == GraphicsRenderNodeConfig::CreationPoint::EXTERNAL) {
                         std::shared_ptr<VulkanBuffer> ubo = Application::GetRenderer().getResourcesManager()->getBufferResource(desc_layout_bind_name + std::to_string(frame));
                         renderable->render_node->addReadDependency(ubo, desc_layout_bind_name);
-                        renderable->uniform_buffers[desc_layout_bind_name] = std::move(ubo);
                     }
                     else if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER && renderable->texture) {
                         renderable->render_node->addReadDependency(renderable->texture, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
@@ -212,26 +200,27 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             renderable->render_node->addWriteDependency(Application::GetRenderer().getOutDepthImage(frame), "depth_attachment");
             renderable->render_node->finishRenderNode();
 
-            m_renderables.push_back(renderable);
+            per_frame_data->renderables.push_back(renderable);
             Application::GetRenderer().addRenderNode(renderable->render_node, frame);
         }
     }
 }
 
-void SceneDrawable::updatePushConstants(int frame) {
-    const std::shared_ptr<MeshNode> mesh_node = m_renderables[frame]->mesh_node;
+void SceneDrawable::updatePushConstants(int frame, RenderableId render_id) {
+    if(m_per_frame[frame]->renderables[render_id]->const_params.size() == 0u) return;
+
+    const std::shared_ptr<MeshNode> mesh_node = m_per_frame[frame]->renderables[render_id]->mesh_node;
     std::shared_ptr<Scene> scene = mesh_node->GetScene();
     std::shared_ptr<ValueBagNode> const_params_value_bag_node = std::dynamic_pointer_cast<ValueBagNode>(scene->getProperty(mesh_node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG));
     if(!const_params_value_bag_node) {
         const_params_value_bag_node = std::make_shared<ValueBagNode>(scene, mesh_node->VGetNodeIndex());
         scene->addProperty(const_params_value_bag_node);
     }
-    if(m_renderables[frame]->const_params.size() > 0u) {
-        for(const auto&[const_name, metadata_id] : const_params_value_bag_node->GetMetadata()) {
-            for(std::shared_ptr<VulkanPushConstant>& push_const : m_renderables[frame]->const_params) {
-                if(push_const->getConstConfig()->hasPushConstantsName(const_name)) {
-                    push_const->SetValue(const_name, const_params_value_bag_node->GetValue(const_name));
-                }
+    
+    for(const auto&[const_name, metadata_id] : const_params_value_bag_node->GetMetadata()) {
+        for(std::shared_ptr<VulkanPushConstant>& push_const : m_per_frame[frame]->renderables[render_id]->const_params) {
+            if(push_const->getConstConfig()->hasPushConstantsName(const_name)) {
+                push_const->SetValue(const_name, const_params_value_bag_node->GetValue(const_name));
             }
         }
     }

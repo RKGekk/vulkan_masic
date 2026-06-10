@@ -35,6 +35,7 @@ void GraphicsRenderNode::render(CommandBatch& command_buffer, unsigned image_ind
     if(getExecutionBypass()) return;
 
     for(const auto&[desc_layout_binding_name, metadata] : m_node_config->getBindingsMetadata()) {
+        if(metadata->creation_point == GraphicsRenderNodeConfig::CreationPoint::EXTERNAL) continue;
         const std::string& update_fn_name = metadata->update_function_name;
         std::shared_ptr<VulkanBuffer> uniform_buffer = getAttachedBufferResource(desc_layout_binding_name);
         getUpdateFunction(update_fn_name)(uniform_buffer);

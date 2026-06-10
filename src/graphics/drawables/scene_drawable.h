@@ -39,6 +39,8 @@ class ValueBagNode;
 class SceneDrawable : public IVulkanDrawable {
 public:
 
+    using RenderableId = size_t;
+
     struct Renderable {
         std::shared_ptr<MeshNode> mesh_node;
         std::unordered_map<std::string, std::shared_ptr<VulkanBuffer>> uniform_buffers;
@@ -47,7 +49,11 @@ public:
         std::shared_ptr<VulkanImageBuffer> texture;
         std::vector<std::shared_ptr<VulkanPushConstant>> const_params;
         std::shared_ptr<GraphicsRenderNode> render_node;
-        int frame;
+        //int frame;
+    };
+
+    struct RenderPerFrame {
+        std::vector<std::shared_ptr<Renderable>> renderables;
     };
 
     bool init(std::shared_ptr<VulkanDevice> device, int max_frames);
@@ -61,7 +67,7 @@ public:
     void addRendeNode(std::shared_ptr<MeshNode> model);
 
 private:
-    void updatePushConstants(int frame);
+    void updatePushConstants(int frame, RenderableId render_id);
     void updateMVPMatrices(const std::shared_ptr<SceneNode>& scene_node, std::shared_ptr<VulkanBuffer>& uniform_buffer);
     void updateInvMVPMatrices(const std::shared_ptr<SceneNode>& scene_node, std::shared_ptr<VulkanBuffer>& uniform_buffer);
     void updateMaterialProps(const std::shared_ptr<Material>& material, std::shared_ptr<VulkanBuffer>& uniform_buffer);
@@ -71,6 +77,5 @@ private:
     int m_max_frames;
     VkExtent2D m_viewport_extent;
 
-    std::vector<std::shared_ptr<Renderable>> m_renderables;
-    std::shared_ptr<VulkanBuffer> m_light_buffer;
+    std::vector<std::shared_ptr<RenderPerFrame>> m_per_frame;
 };

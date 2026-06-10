@@ -42,7 +42,7 @@ void VulkanDescriptor::updateDescSampler(VkSampler sampler) {
     desc_write.dstBinding = m_layout->getBinding(VK_DESCRIPTOR_TYPE_SAMPLER).binding;
     desc_write.dstArrayElement = 0u;
     desc_write.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
-    desc_write.descriptorCount = 1u;
+    desc_write.descriptorCount = m_layout->getBinding(VK_DESCRIPTOR_TYPE_SAMPLER).descriptorCount;
     desc_write.pImageInfo = &image_info;
     desc_write.pBufferInfo = nullptr;
     desc_write.pTexelBufferView = nullptr;
@@ -60,7 +60,7 @@ void VulkanDescriptor::updateDescSampler(VkSampler sampler, uint32_t binding) {
     desc_write.dstBinding = binding;
     desc_write.dstArrayElement = 0u;
     desc_write.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
-    desc_write.descriptorCount = 1u;
+    desc_write.descriptorCount = m_layout->getBinding(binding).descriptorCount;
     desc_write.pImageInfo = &image_info;
     desc_write.pBufferInfo = nullptr;
     desc_write.pTexelBufferView = nullptr;
@@ -110,7 +110,7 @@ void VulkanDescriptor::updateDescImage(VkImageView image_view, VkImageLayout ima
     desc_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     desc_write.dstSet = m_descriptor_set;
     desc_write.dstArrayElement = 0u;
-    desc_write.descriptorCount = 1u;
+    desc_write.descriptorCount = m_layout->getBinding(binding).descriptorCount;
     desc_write.pImageInfo = &image_info;
     desc_write.pBufferInfo = nullptr;
     desc_write.pTexelBufferView = nullptr;
@@ -146,7 +146,7 @@ void VulkanDescriptor::updateDescCombinedImage(VkSampler sampler, VkImageView im
     desc_write.dstBinding = m_layout->getBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER).binding;
     desc_write.dstArrayElement = 0u;
     desc_write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    desc_write.descriptorCount = 1u;
+    desc_write.descriptorCount = m_layout->getBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER).descriptorCount;
     desc_write.pImageInfo = &image_info;
     desc_write.pBufferInfo = nullptr;
     desc_write.pTexelBufferView = nullptr;
@@ -206,7 +206,7 @@ void VulkanDescriptor::updateDescBuffer(uint32_t binding, VkBuffer buffer, VkDev
     desc_write.dstBinding = binding;
     desc_write.dstArrayElement = 0u;
     desc_write.descriptorType = m_layout->getBinding(binding).descriptorType;
-    desc_write.descriptorCount = 1u;
+    desc_write.descriptorCount = m_layout->getBinding(binding).descriptorCount;
     desc_write.pBufferInfo = &buffer_info;
     desc_write.pImageInfo = nullptr;
     desc_write.pTexelBufferView = nullptr;
@@ -221,7 +221,7 @@ void VulkanDescriptor::updateDescTexel(VkBufferView buffer_view) {
     desc_write.dstBinding = m_layout->getBinding(VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER).binding;
     desc_write.dstArrayElement = 0u;
     desc_write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
-    desc_write.descriptorCount = 1u;
+    desc_write.descriptorCount = m_layout->getBinding(VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER).descriptorCount;
     desc_write.pBufferInfo = nullptr;
     desc_write.pImageInfo = nullptr;
     desc_write.pTexelBufferView = &buffer_view;
@@ -236,7 +236,7 @@ void VulkanDescriptor::updateDescTexel(VkBufferView buffer_view, uint32_t bindin
     desc_write.dstBinding = binding;
     desc_write.dstArrayElement = 0u;
     desc_write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
-    desc_write.descriptorCount = 1u;
+    desc_write.descriptorCount =  m_layout->getBinding(binding).descriptorCount;
     desc_write.pBufferInfo = nullptr;
     desc_write.pImageInfo = nullptr;
     desc_write.pTexelBufferView = &buffer_view;

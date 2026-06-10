@@ -130,7 +130,7 @@ bool GraphicsRenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device,
         }
     }
 
-    pugi::xml_node update_metadata_node = node_data.child("DescriptorResourcesUpdate");
+    pugi::xml_node update_metadata_node = node_data.child("DescriptorResourcesCreateAndUpdate");
     if(update_metadata_node) {
         for (pugi::xml_node layout_binding_node = update_metadata_node.first_child(); layout_binding_node; layout_binding_node = layout_binding_node.next_sibling()) {
             std::string layout_binding_name = layout_binding_node.attribute("name").as_string();

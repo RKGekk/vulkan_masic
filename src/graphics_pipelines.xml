@@ -471,7 +471,7 @@
                 <BufferUsageFlags>
                     <Flag>uniform_buffer</Flag>
                 </BufferUsageFlags>
-                <Size dynamic="false" deffered="false">192</Size>
+                <Size dynamic="false" deffered="false">16</Size>
                 <MemoryProperties>
                     <Property>host_visible</Property>
                     <Property>host_coherent</Property>
@@ -484,7 +484,7 @@
                 <BufferUsageFlags>
                     <Flag>uniform_buffer</Flag>
                 </BufferUsageFlags>
-                <Size dynamic="false" deffered="false">192</Size>
+                <Size dynamic="false" deffered="false">504</Size>
                 <MemoryProperties>
                     <Property>host_visible</Property>
                     <Property>host_coherent</Property>
@@ -1547,14 +1547,14 @@
                 <Scissor source="auto"></Scissor>
             </DynamicStates>
             <IndexCountType type="all"></IndexCountType>
-            <DescriptorResourcesUpdate>
+            <DescriptorResourcesCreateAndUpdate>
                 <LayoutBinding name="uniform">
                     <Buffer>
                         <BufferResourceType>basic_uniform_resource</BufferResourceType>
                         <UpdateFunctionName>mvp_matrices_update</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
-            </DescriptorResourcesUpdate>
+            </DescriptorResourcesCreateAndUpdate>
         </GraphicsRenderNode>
 
         <GraphicsRenderNode name="line_render">
@@ -1565,14 +1565,14 @@
                 <Scissor source="auto"></Scissor>
             </DynamicStates>
             <IndexCountType type="all"></IndexCountType>
-            <DescriptorResourcesUpdate>
+            <DescriptorResourcesCreateAndUpdate>
                 <LayoutBinding name="ubo">
                     <Buffer>
                         <BufferResourceType>basic_uniform_resource</BufferResourceType>
                         <UpdateFunctionName>mvp_matrices_update</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
-            </DescriptorResourcesUpdate>
+            </DescriptorResourcesCreateAndUpdate>
         </GraphicsRenderNode>
 
         <GraphicsRenderNode name="mesh_render">
@@ -1583,7 +1583,7 @@
                 <Scissor source="auto"></Scissor>
             </DynamicStates>
             <IndexCountType type="all"></IndexCountType>
-            <DescriptorResourcesUpdate>
+            <DescriptorResourcesCreateAndUpdate>
                 <LayoutBinding name="uniform">
                     <Buffer>
                         <BufferResourceType>basic_uniform_resource</BufferResourceType>
@@ -1600,7 +1600,7 @@
                         <ReadImageLayout>shader_read_only_optimal</ReadImageLayout>
                     </Image>
                 </LayoutBinding>
-            </DescriptorResourcesUpdate>
+            </DescriptorResourcesCreateAndUpdate>
         </GraphicsRenderNode>
 
         <GraphicsRenderNode name="phong_render">
@@ -1611,8 +1611,8 @@
                 <Scissor source="auto"></Scissor>
             </DynamicStates>
             <IndexCountType type="all"></IndexCountType>
-            <DescriptorResourcesUpdate>
-                <LayoutBinding name="ubo">
+            <DescriptorResourcesCreateAndUpdate>
+                <LayoutBinding name="ubo" resource_creation_point="RenderNodeCreationTime">
                     <Buffer>
                         <BufferResourceType>basic_uniform_resource</BufferResourceType>
                         <UpdateFunctionName>mvp_matrices_update</UpdateFunctionName>
@@ -1626,7 +1626,7 @@
                 </LayoutBinding>
                 <LayoutBinding name="material">
                     <Buffer>
-                        <BufferResourceType>basic_uniform_resource</BufferResourceType>
+                        <BufferResourceType>material_uniform_resource</BufferResourceType>
                         <UpdateFunctionName>material_prop_update</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
@@ -1642,10 +1642,10 @@
                 </LayoutBinding>
                 <LayoutBinding name="light_ubo">
                     <Buffer>
-                        <BufferResourceType>basic_uniform_resource</BufferResourceType>
+                        <BufferResourceType>light_uniform_resource</BufferResourceType>
                     </Buffer>
                 </LayoutBinding>
-            </DescriptorResourcesUpdate>
+            </DescriptorResourcesCreateAndUpdate>
         </GraphicsRenderNode>
 
         <GraphicsRenderNode name="imgui_renderer">
@@ -1660,7 +1660,7 @@
                 <FirstIndex>0</FirstIndex>
                 <VertexOffset>0</VertexOffset>
             </IndexCountType>
-            <DescriptorResourcesUpdate>
+            <DescriptorResourcesCreateAndUpdate>
                 <LayoutBinding name="uniform">
                     <Buffer>
                         <BufferResourceType>imgui_uniform_resource</BufferResourceType>
@@ -1676,7 +1676,7 @@
                         <ReadImageLayout>shader_read_only_optimal</ReadImageLayout>
                     </Image>
                 </LayoutBinding>
-            </DescriptorResourcesUpdate>
+            </DescriptorResourcesCreateAndUpdate>
         </GraphicsRenderNode>
 
     </RenderNodes>
