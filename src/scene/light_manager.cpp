@@ -3,13 +3,15 @@
 
 LightManager::LightManager() {}
 
-void LightManager::CalcLighting(std::shared_ptr<CameraNode> camera_node) {
+const std::string LightManager::m_light_buffer_name = "light_ubo";
+
+void LightManager::CalcLighting(const std::shared_ptr<CameraNode>& camera_node) {
     for(const auto&[light_node, idx] : m_index_map) {
         m_lights[idx] = light_node->GetLightProperties();
     }
 }
 
-int LightManager::GetLightCount(std::shared_ptr<SceneNode> node) const {
+int LightManager::GetLightCount(const std::shared_ptr<SceneNode>& node) const {
     return m_lights.size();
 }
 
@@ -63,7 +65,7 @@ void LightManager::RemoveLight(const std::shared_ptr<LightNode>& node) {
     }
 }
 
-void LightManager::DecorateValueBag(std::shared_ptr<SceneNode> node) const {
+void LightManager::DecorateValueBag(std::shared_ptr<SceneNode>& node) const {
     using namespace std::literals;
     std::shared_ptr<Scene> scene = node->GetScene();
     std::shared_ptr<ValueBagNode> value_bag_node = std::dynamic_pointer_cast<ValueBagNode>(scene->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG));
@@ -90,5 +92,5 @@ size_t LightManager::GetSpotLightsCount() const {
 
 const std::string& LightManager::getLightBufferName() const {
     using namespace std::literals;
-    return ""s
+    return m_light_buffer_name;
 }

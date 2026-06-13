@@ -36,8 +36,6 @@ public:
     const std::shared_ptr<SceneNode>& VGetSceneNode() override;
 	const ComponentDependecyList& VGetComponentDependecy() const override;
 
-	const std::shared_ptr<SceneNode>& VGetSceneNode() override;
-
 protected:
 	virtual void VDelegatePostInit() override;
 

@@ -10,6 +10,8 @@
 #include "../../events/cicadas/evt_data_new_model_component.h"
 #include "../../scene/nodes/scene_node.h"
 #include "../../scene/nodes/mesh_node.h"
+#include "../../scene/nodes/basic_camera_node.h"
+#include "../../scene/nodes/camera_node.h"
 #include "../../graphics/pod/render_node.h"
 
 ScreenElementScene::ScreenElementScene() : Scene() {
@@ -36,7 +38,11 @@ bool ScreenElementScene::VOnLostDevice() {
 };
 
 void ScreenElementScene::VOnUpdate(const GameTimerDelta& delta, uint32_t image_index) {
-    getLightManager()->CalcLighting();
+    Application& app = Application::Get();
+    const std::shared_ptr<BaseEngineLogic>& game_logic = app.GetGameLogic();
+    const std::shared_ptr<CameraComponent>& camera_component = game_logic->GetHumanView()->VGetCamera();
+    const std::shared_ptr<BasicCameraNode>& camera_node = camera_component->VGetCameraNode();
+    getLightManager()->CalcLighting(std::static_pointer_cast<CameraNode>(camera_node));
     m_scene_draw->update(delta, image_index);
 };
 

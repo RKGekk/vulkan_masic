@@ -2581,7 +2581,7 @@
                                                     <xs:element name="outer_angle" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
                                                     <xs:element name="inner_angle" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
                                                 </xs:sequence>
-                                                <xs:attribute name="type">
+                                                <xs:attribute name="type" use="required">
                                                     <xs:simpleType>
                                                         <xs:restriction base="xs:string">
                                                             <xs:enumeration value="DirectionalLight"></xs:enumeration>

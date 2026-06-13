@@ -23,6 +23,5 @@ public:
     virtual void reset() = 0;
     virtual void destroy() = 0;
     virtual void update(const GameTimerDelta& delta, uint32_t image_index) = 0;
-    virtual void add_update_function(const std::string& func_name, std::function<void(RenderIdentity, std::shared_ptr<VulkanBuffer>&)> fn) = 0;
     virtual int order() = 0;
 };

@@ -42,6 +42,18 @@ const ComponentDependecyList& LightComponent::VGetComponentDependecy() const {
     return component_dep;
 }
 
+LightNode::LightType LightComponent::GetLightType(const std::string& light_type_string) {
+	LightNode::LightType res = LightNode::LightType::DIRECTIONAL;
+	if(light_type_string == "PointLight") {
+		res = LightNode::LightType::POINT;
+	}
+	else if(light_type_string == "SpotLight") {
+		res = LightNode::LightType::SPOT;
+	}
+
+	return res;
+}
+
 bool LightComponent::Init(const pugi::xml_node& data) {
 	pugi::xml_node light_node_data = data.child("Light");
 	if (!light_node_data) return false;
