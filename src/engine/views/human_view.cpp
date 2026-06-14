@@ -174,7 +174,7 @@ void HumanView::VSetControlledActor(std::shared_ptr<Actor> actor) {
 	}
 }
 
-const std::shared_ptr<CameraComponent>& HumanView::VGetCamera() {
+std::shared_ptr<CameraComponent> HumanView::VGetCamera() {
 	if (!m_camera.expired()) {
 		return m_camera.lock();
 	}

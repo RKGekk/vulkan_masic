@@ -25,10 +25,12 @@ public:
 	size_t GetPointLightsCount() const;
 	size_t GetSpotLightsCount() const;
 
-    const std::string& getLightBufferName() const;
+    static const std::string& getLightBufferName();
+    static const std::string& getLightResourceCfgName();
 
 private:
     static const std::string m_light_buffer_name;
+    static const std::string m_light_resource_cfg_name;
     std::vector<LightNodeProperties> m_lights;
     uint32_t m_dir_lights_size;
     uint32_t m_point_lights_size;

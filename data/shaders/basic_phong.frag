@@ -32,11 +32,11 @@ struct Light {
     float spot_power;       // spot light only
     float outer_angle;      // spot light only
     float inner_angle;      // spot light only
-};
+}; // 56
 
 layout(set = 0, binding = 4) uniform LightBufferObject {
     Light u_light_array[MaxLights];
-} light_ubo;
+} light_ubo; // 56 * 9 = 504
 
 layout(location = 0) in vec3 in_normal;
 layout(location = 1) in vec4 in_world_pos;

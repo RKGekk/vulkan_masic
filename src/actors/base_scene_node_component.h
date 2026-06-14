@@ -12,7 +12,7 @@ class BaseSceneNodeComponent : public ActorComponent {
 public:
 	virtual ~BaseSceneNodeComponent();
 
-	virtual const std::shared_ptr<SceneNode>& VGetSceneNode() = 0;
+	virtual std::shared_ptr<SceneNode> VGetSceneNode() = 0;
 	
 	virtual void VPostInit() override;
     virtual void VDelegatePostInit() {};

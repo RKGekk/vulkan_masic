@@ -33,7 +33,7 @@ pugi::xml_node LightComponent::VGenerateXml() {
 	return pugi::xml_node();
 }
 
-const std::shared_ptr<SceneNode>& LightComponent::VGetSceneNode() {
+std::shared_ptr<SceneNode> LightComponent::VGetSceneNode() {
     return m_loaded_scene_node;
 }
 

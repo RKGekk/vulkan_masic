@@ -1,9 +1,10 @@
 #include "light_manager.h"
 #include "nodes/value_bag_node.h"
 
-LightManager::LightManager() {}
+LightManager::LightManager() : m_dir_lights_size(0u), m_point_lights_size(0u), m_spot_lights_size(0u) {}
 
 const std::string LightManager::m_light_buffer_name = "light_ubo";
+const std::string LightManager::m_light_resource_cfg_name = "light_uniform_resource";
 
 void LightManager::CalcLighting(const std::shared_ptr<CameraNode>& camera_node) {
     for(const auto&[light_node, idx] : m_index_map) {
@@ -90,7 +91,12 @@ size_t LightManager::GetSpotLightsCount() const {
     return m_spot_lights_size;
 }
 
-const std::string& LightManager::getLightBufferName() const {
+const std::string& LightManager::getLightBufferName() {
     using namespace std::literals;
     return m_light_buffer_name;
+}
+
+const std::string& LightManager::getLightResourceCfgName() {
+    using namespace std::literals;
+    return m_light_resource_cfg_name;
 }

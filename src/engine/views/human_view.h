@@ -50,7 +50,7 @@ public:
 	void TogglePause(bool active);
 
 	virtual void VSetControlledActor(std::shared_ptr<Actor> actor);
-	virtual const std::shared_ptr<CameraComponent>& VGetCamera();
+	virtual std::shared_ptr<CameraComponent> VGetCamera();
 	virtual void VSetCameraByName(std::string camera_name);
 	virtual const std::shared_ptr<ScreenElementScene>& VGetScene();
 

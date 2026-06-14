@@ -33,7 +33,7 @@ public:
 	const std::string& VGetName() const override;
 	pugi::xml_node VGenerateXml() override;
 
-    const std::shared_ptr<SceneNode>& VGetSceneNode() override;
+    std::shared_ptr<SceneNode> VGetSceneNode() override;
 	const ComponentDependecyList& VGetComponentDependecy() const override;
 
 	void setLineWidth(float width);
