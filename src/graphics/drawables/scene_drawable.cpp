@@ -90,11 +90,12 @@ std::string makeRenderNodeName(const std::shared_ptr<Material>& material) {
 
     const std::string& material_name = material->GetName();
 
-    render_name = material->GetName() + "_render"s;
+    render_name = material->GetName();
     size_t delim_pos = render_name.find('_', 0u);
     if(delim_pos != std::string::npos) {
         render_name = render_name.substr(0u, delim_pos);
     }
+    render_name += "_render"s;
 
     return render_name;
 }
@@ -120,6 +121,7 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             size_t renderable_id = per_frame_data->renderables.size();
 
             std::shared_ptr<Renderable> renderable = std::make_shared<Renderable>();
+            per_frame_data->renderables.push_back(renderable);
             renderable->mesh_node = model;
             
             renderable->texture = material->GetTexture();
@@ -186,7 +188,7 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                         renderable->render_node->addReadDependency(ubo, desc_layout_bind_name);
                         renderable->uniform_buffers[desc_layout_bind_name] = std::move(ubo);
                     }
-                    if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER && update_metadata->creation_point == GraphicsRenderNodeConfig::CreationPoint::EXTERNAL) {
+                    else if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER && update_metadata->creation_point == GraphicsRenderNodeConfig::CreationPoint::EXTERNAL) {
                         std::shared_ptr<VulkanBuffer> ubo = Application::GetRenderer().getResourcesManager()->getBufferResource(desc_layout_bind_name + std::to_string(frame));
                         renderable->render_node->addReadDependency(ubo, desc_layout_bind_name);
                     }
@@ -201,7 +203,6 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             renderable->render_node->addWriteDependency(Application::GetRenderer().getOutDepthImage(frame), "depth_attachment");
             renderable->render_node->finishRenderNode();
 
-            per_frame_data->renderables.push_back(renderable);
             Application::GetRenderer().addRenderNode(renderable->render_node, frame);
         }
     }
