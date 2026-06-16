@@ -1539,7 +1539,7 @@
     <RenderNodes>
         <PresentRenderNode name="presenter"></PresentRenderNode>
 
-        <GraphicsRenderNode name="basic_color_render">
+        <GraphicsRenderNode name="basiccolor_render">
             <Pipeline>basic_color_pipeline</Pipeline>
             <FrameBufferName>basic_mulisample_render_framebuffer</FrameBufferName>
             <DynamicStates>
@@ -1665,7 +1665,7 @@
                 <LayoutBinding name="uniform" resource_creation_point="RenderNodeCreationTime">
                     <Buffer>
                         <BufferResourceType>imgui_uniform_resource</BufferResourceType>
-                        <UpdateFunctionName></UpdateFunctionName>
+                        <UpdateFunctionName>imgui_uniform_update_fn</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
                 <LayoutBinding name="image" resource_creation_point="External">

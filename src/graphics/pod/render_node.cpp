@@ -135,11 +135,11 @@ std::shared_ptr<VulkanImageBuffer> RenderNode::getReadAttachedImageResource(cons
 
 std::shared_ptr<VulkanBuffer> RenderNode::getAttachedBufferResource(const RenderNode::LocalName& attached_as) const {
     if(isReadAttached(attached_as)) {
-        return getWrittenAttachedBufferResource(attached_as);
+        return getReadAttachedBufferResource(attached_as);
     }
 
     if(isWrittenAttached(attached_as)) {
-        return getReadAttachedBufferResource(attached_as);
+        return getWrittenAttachedBufferResource(attached_as);
     }
 
     return nullptr;

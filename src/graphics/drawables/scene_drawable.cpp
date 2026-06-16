@@ -106,7 +106,7 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
     std::shared_ptr<Scene> scene = model->GetScene();
 
-    std::shared_ptr<ValueBagNode> value_bag_node = std::dynamic_pointer_cast<ValueBagNode>(model->GetScene()->getProperty(model->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG));
+    std::shared_ptr<ValueBagNode> value_bag_node = std::dynamic_pointer_cast<ValueBagNode>(scene->getProperty(model->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG));
     const MeshNode::MeshList& mesh_list = model->GetMeshes();
     size_t msz = mesh_list.size();
     for(int frame = 0; frame < m_max_frames; ++frame) {
@@ -139,15 +139,19 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
 
             const std::shared_ptr<GraphicsRenderNodeConfig>& render_node_cfg = renderable->render_node->getGraphicsRenderNodeConfig();
 
-            if(renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT) && renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getPushConstants()) {
-                renderable->const_params.push_back(renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getPushConstants());
+            std::shared_ptr<VulkanShader> vertex_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
+            if(vertex_shader && vertex_shader->getShaderSignature()->getPushConstants()) {
+                renderable->const_params.push_back(vertex_shader->getShaderSignature()->getPushConstants());
+            }
+
+            std::shared_ptr<VulkanShader> pixel_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_FRAGMENT_BIT);
+            if(pixel_shader && pixel_shader->getShaderSignature()->getPushConstants()) {
+                renderable->const_params.push_back(pixel_shader->getShaderSignature()->getPushConstants());
             }
 
             if(value_bag_node && renderable->const_params.size() > 0u) {
                 updatePushConstants(frame, renderable_id);
             }
-
-            std::shared_ptr<VulkanShader> vertex_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
             
             if(renderable->vertex_buffer) {
                 renderable->render_node->addReadDependency(renderable->vertex_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getVertexBufferBindingName());

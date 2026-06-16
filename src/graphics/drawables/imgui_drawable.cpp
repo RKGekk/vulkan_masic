@@ -118,6 +118,13 @@ std::shared_ptr<GraphicsRenderNode> ImGUIDrawable::makeRenderable(uint32_t image
     std::shared_ptr<VulkanShader> vertex_shader = render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
     std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames().at(0));
 
+    render_node->add_update_function(
+        "imgui_uniform_update_fn"s,
+        [&, frame = image_index](std::shared_ptr<VulkanBuffer>& uniform_buffer){
+            updateUniform(uniform_buffer);
+        }
+    );
+
     render_node->addReadDependency(m_per_frame[image_index]->vertex_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getVertexBufferBindingName());
     render_node->addReadDependency(m_per_frame[image_index]->index_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getIndexBufferBindingName());
     render_node->addReadDependency(m_per_frame[image_index]->uniform_buffer, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER));
@@ -130,14 +137,21 @@ std::shared_ptr<GraphicsRenderNode> ImGUIDrawable::makeRenderable(uint32_t image
     return render_node;
 }
 
-void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
-    std::shared_ptr<PerFrameData>& per_frame = m_per_frame.at(image_index);
-
+void ImGUIDrawable::updateUniform(std::shared_ptr<VulkanBuffer>& uniform_buffer) {
     ImDrawData* dd = ImGui::GetDrawData();
     const float L = dd->DisplayPos.x;
     const float R = dd->DisplayPos.x + dd->DisplaySize.x;
     const float T = dd->DisplayPos.y;
     const float B = dd->DisplayPos.y + dd->DisplaySize.y;
+    ImGuiUniformBufferObject bindData;
+    bindData.LRTB = {L, R, T, B};
+    uniform_buffer->update(&bindData, sizeof(ImGuiUniformBufferObject));
+}
+
+void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
+    std::shared_ptr<PerFrameData>& per_frame = m_per_frame.at(image_index);
+
+    ImDrawData* dd = ImGui::GetDrawData();
     const ImVec2 clip_off = dd->DisplayPos;
     const ImVec2 clip_scale = dd->FramebufferScale;
     const float fb_width = dd->DisplaySize.x * dd->FramebufferScale.x;
@@ -172,10 +186,6 @@ void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
 
     per_frame->vertex_buffer->update(per_frame->imgui_vtx.data(), vertex_sz);
     per_frame->index_buffer->update(per_frame->imgui_idx.data(), index_sz);
-
-    ImGuiUniformBufferObject bindData;
-    bindData.LRTB = {L, R, T, B};
-    per_frame->uniform_buffer->update(&bindData, sizeof(ImGuiUniformBufferObject));
 
     size_t cmd_ct = 0u;
     for (const ImDrawList* cmdList : dd->CmdLists) {
