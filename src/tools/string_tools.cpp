@@ -370,6 +370,19 @@ void writeFile(const std::string& file_name, size_t file_size, const void* data)
     file.write((const char*)data, file_size);
 }
 
+std::string makeRenderName(const std::string& material_name, const std::string& postfix) {
+	std::string render_name;
+
+    render_name = material_name;
+    size_t delim_pos = render_name.find('_', 0u);
+    if(delim_pos != std::string::npos) {
+        render_name = render_name.substr(0u, delim_pos);
+    }
+    render_name += postfix;
+
+    return render_name;
+}
+
 VkShaderCreateFlagBitsEXT getShaderCreateFlagEXT(const std::string& flag_str) {
     using namespace std::literals;
     VkShaderCreateFlagBitsEXT res{};

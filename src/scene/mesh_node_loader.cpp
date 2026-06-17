@@ -8,6 +8,7 @@
 #include "../application.h"
 #include "../graphics/pod/image_buffer_config.h"
 #include "../graphics/pod/buffer_config.h"
+#include "../graphics/pod/graphics_render_node_config.h"
 #include "../graphics/api/vulkan_image_buffer.h"
 #include "../graphics/api/vulkan_buffer.h"
 #include "../graphics/vulkan_renderer.h"
@@ -459,14 +460,20 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& g
 		int gltf_material_idx = primitive.material;
 		const tinygltf::Material& gltf_material = m_gltf_model.materials[gltf_material_idx];
 		std::string gltf_material_name = gltf_material.name.c_str();
-		std::string material_vertex_shader_name = gltf_material_name + "_vertex_shader"s;
-		std::shared_ptr<ShaderSignature> shader_signature;
-		if(m_shader_manager->hasShader(material_vertex_shader_name)) {
-			shader_signature = m_shader_manager->getShader(material_vertex_shader_name)->getShaderSignature();
-		}
-		else {
-			shader_signature = m_shader_manager->getShader(m_default_vertex_shader_name)->getShaderSignature();
-		}
+		std::string render_name = makeRenderName(gltf_material_name, "_render"s);
+		if(!Application::GetRenderer().getFrameData(0)->render_graph->hasGraphicsRenderNodeConfig(render_name)) {
+        	render_name = "mesh_render"s;
+        }
+		const std::shared_ptr<GraphicsRenderNodeConfig>& render_node_cfg = Application::GetRenderer().getFrameData(0)->render_graph->getGraphicsRenderNodeConfig(render_name);
+		std::shared_ptr<VulkanPipeline> pipeline = render_node_cfg->getPipeline();
+		//std::string material_vertex_shader_name = pipeline->getPipelineConfig()->;
+		std::shared_ptr<ShaderSignature> shader_signature = pipeline->getShader(VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature();
+		//if(m_shader_manager->hasShader(material_vertex_shader_name)) {	
+		//	shader_signature = m_shader_manager->getShader(material_vertex_shader_name)->getShaderSignature();	
+		//}	
+		//else {	
+		//	shader_signature = m_shader_manager->getShader(m_default_vertex_shader_name)->getShaderSignature();	
+		//}	
 
 		model_data->SetVertexFormat(shader_signature->getVertexFormat());
     	std::shared_ptr<Material> prop_set = MakePropertySet(primitive);

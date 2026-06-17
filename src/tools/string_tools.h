@@ -145,6 +145,8 @@ private:
 std::vector<char> readFile(const std::string& file_name);
 void writeFile(const std::string& file_name, size_t file_size, const void* data);
 
+std::string makeRenderName(const std::string& material_name, const std::string& postfix);
+
 VkShaderCreateFlagBitsEXT getShaderCreateFlagEXT(const std::string& flag_str);
 VkPipelineShaderStageCreateFlagBits getPipelineShaderStageCreateFlag(const std::string& flag_str);
 VkShaderStageFlagBits getShaderStageFlag(const std::string& stage_str);

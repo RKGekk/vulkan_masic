@@ -17,6 +17,7 @@
 #include "../pod/format_config.h"
 #include "../pod/push_constant_config.h"
 #include "../vulkan_renderer.h"
+#include "../../tools/string_tools.h"
 
 struct SceneUniformBufferObject {
     glm::mat4 model;
@@ -86,17 +87,7 @@ int SceneDrawable::order() {
 }
 
 std::string makeRenderNodeName(const std::shared_ptr<Material>& material) {
-    std::string render_name;
-
-    const std::string& material_name = material->GetName();
-
-    render_name = material->GetName();
-    size_t delim_pos = render_name.find('_', 0u);
-    if(delim_pos != std::string::npos) {
-        render_name = render_name.substr(0u, delim_pos);
-    }
-    render_name += "_render"s;
-
+    std::string render_name = makeRenderName(material->GetName(), "_render"s);
     return render_name;
 }
 
