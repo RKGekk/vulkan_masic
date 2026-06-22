@@ -520,7 +520,6 @@ std::shared_ptr<LightNode> MeshNodeLoader::MakeLightNodes(const tinygltf::Node& 
 	const LightPunctual& light_data = m_lights[gltf_light_idx];
 
     std::shared_ptr<LightNode> light_node = std::make_shared<LightNode>(m_scene, node);
-	m_scene->addProperty(light_node);
 
     const std::string& light_name = gltf_node.name;
 	light_node->SetName(light_name);
@@ -544,6 +543,7 @@ std::shared_ptr<LightNode> MeshNodeLoader::MakeLightNodes(const tinygltf::Node& 
 	light_node->setFalloffEnd(light_data.range);
 	light_node->setSpotPower(1.0f);
 
+	m_scene->addProperty(light_node);
 	return light_node;
 }
 

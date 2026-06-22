@@ -394,7 +394,7 @@ set(OBJECTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data/objects")
 set(FONT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data/fonts")
 set(APP_SHADERS "${SHADER_DIR}/color.frag" "${SHADER_DIR}/color.vert" "${SHADER_DIR}/shader.frag" "${SHADER_DIR}/shader.vert" "${SHADER_DIR}/imgui.frag" "${SHADER_DIR}/imgui.vert" "${SHADER_DIR}/line.frag" "${SHADER_DIR}/line.vert" "${SHADER_DIR}/basic_phong.frag" "${SHADER_DIR}/basic_phong.vert" )
 set(APP_RESOURCES "${TEXTURES_DIR}/texture.jpg" "${TEXTURES_DIR}/Sketchfab_UV_Checker.png" "${TEXTURES_DIR}/UVCheckerMap01-1024.png" "${TEXTURES_DIR}/UVCheckerMap06-1024.png" "${TEXTURES_DIR}/UVCheckerMap14-1024.png" "${TEXTURES_DIR}/tank_1.jpg" "${TEXTURES_DIR}/tank_2.jpg")
-set(APP_OBJECTS "${OBJECTS_DIR}/cube.gltf" "${OBJECTS_DIR}/cube.bin" "${OBJECTS_DIR}/arrow.gltf" "${OBJECTS_DIR}/arrow.bin" "${OBJECTS_DIR}/tank.gltf" "${OBJECTS_DIR}/tank.bin" "${OBJECTS_DIR}/coord_arrows.gltf" "${OBJECTS_DIR}/coord_arrows.bin")
+set(APP_OBJECTS "${OBJECTS_DIR}/cube.gltf" "${OBJECTS_DIR}/cube.bin" "${OBJECTS_DIR}/arrow.gltf" "${OBJECTS_DIR}/arrow.bin" "${OBJECTS_DIR}/tank.gltf" "${OBJECTS_DIR}/tank.bin" "${OBJECTS_DIR}/coord_arrows.gltf" "${OBJECTS_DIR}/coord_arrows.bin" "${OBJECTS_DIR}/phong_light_test.bin" "${OBJECTS_DIR}/phong_light_test.gltf")
 set(APP_FONTS "${FONT_DIR}/OpenSans-Light.ttf")
 
 set(SPV_BIN_DIR "${CMAKE_COMPILE_DIR}/shaders")

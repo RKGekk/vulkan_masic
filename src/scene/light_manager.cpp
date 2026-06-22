@@ -78,9 +78,27 @@ void LightManager::DecorateValueBag(std::shared_ptr<SceneNode>& node) const {
         value_bag_node = std::make_shared<ValueBagNode>(scene, node->VGetNodeIndex());
         scene->addProperty(value_bag_node);
     }
-    value_bag_node->SetValue("u_num_dir_lights"s, &m_dir_lights_size);
-    value_bag_node->SetValue("u_num_point_lights"s, &m_point_lights_size);
-    value_bag_node->SetValue("u_num_spot_lights"s, &m_spot_lights_size);
+
+    if(value_bag_node->HasName("u_num_dir_lights"s)) {
+        value_bag_node->SetValue("u_num_dir_lights"s, &m_dir_lights_size);
+    }
+    else {
+        value_bag_node->AppendValue("u_num_dir_lights"s, sizeof(uint32_t), &m_dir_lights_size);
+    }
+
+    if(value_bag_node->HasName("u_num_point_lights"s)) {
+        value_bag_node->SetValue("u_num_point_lights"s, &m_point_lights_size);
+    }
+    else {
+        value_bag_node->AppendValue("u_num_point_lights"s, sizeof(uint32_t), &m_point_lights_size);
+    }
+    
+    if(value_bag_node->HasName("u_num_spot_lights"s)) {
+        value_bag_node->SetValue("u_num_spot_lights"s, &m_spot_lights_size);
+    }
+    else {
+        value_bag_node->AppendValue("u_num_spot_lights"s, sizeof(uint32_t), &m_spot_lights_size);
+    }
 }
 
 size_t LightManager::GetDirLightsCount() const {
