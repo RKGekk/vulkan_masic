@@ -1,6 +1,6 @@
 {
 	"asset":{
-		"generator":"Khronos glTF Blender I/O v5.1.19",
+		"generator":"Khronos glTF Blender I/O v5.1.20",
 		"version":"2.0"
 	},
 	"extensionsUsed":[
@@ -25,25 +25,27 @@
 				{
 					"color":[
 						1,
-						1,
-						1
+						0,
+						0
 					],
-					"intensity":543.5141306588226,
+					"intensity":54351.41306588226,
 					"type":"point",
+					"range":10,
 					"name":"Point"
 				},
 				{
 					"color":[
-						1,
-						1,
+						0,
+						0,
 						1
 					],
-					"intensity":543.5141306588226,
+					"intensity":108702.82613176452,
 					"spot":{
 						"innerConeAngle":0.19634954631328583,
 						"outerConeAngle":0.39269909262657166
 					},
 					"type":"spot",
+					"range":10,
 					"name":"Spot"
 				}
 			]

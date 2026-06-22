@@ -16,7 +16,11 @@ int LightManager::GetLightCount(const std::shared_ptr<SceneNode>& node) const {
     return m_lights.size();
 }
 
-const std::vector<LightNodeProperties>& LightManager::getLightsData() const {
+const std::vector<LightNodeProperties>& LightManager::getLightsData(const std::shared_ptr<SceneNode>& node) const {
+    return m_lights;
+}
+
+const std::vector<LightNodeProperties>& LightManager::getAllLightsData() const {
     return m_lights;
 }
 

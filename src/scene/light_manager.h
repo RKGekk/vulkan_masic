@@ -14,7 +14,8 @@ public:
 
     void CalcLighting(const std::shared_ptr<CameraNode>& camera_node);
     int GetLightCount(const std::shared_ptr<SceneNode>& node) const;
-    const std::vector<LightNodeProperties>& getLightsData() const;
+    const std::vector<LightNodeProperties>& getLightsData(const std::shared_ptr<SceneNode>& node) const;
+    const std::vector<LightNodeProperties>& getAllLightsData() const;
 
     void AddLight(const std::shared_ptr<LightNode>& node);
 	void RemoveLight(const std::shared_ptr<LightNode>& node);

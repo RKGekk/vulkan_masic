@@ -327,6 +327,38 @@ glm::vec3 anglesfromattr3f(const pugi::xml_node& node_with_angles, const glm::ve
 	return angles;
 }
 
+glm::vec3 GetColor3FromFloatVec(const std::vector<float>& gltf_vec) {
+	glm::vec3 res;
+	if (gltf_vec.size() >= 3) {
+		res.x = gltf_vec[0];
+		res.y = gltf_vec[1];
+		res.z = gltf_vec[2];
+	}
+	else {
+		res.x = 0.5f;
+		res.y = 0.5f;
+		res.z = 0.5f;
+	}
+	return res;
+}
+
+glm::vec4 GetColor4FromFloatVec(const std::vector<float>& gltf_vec) {
+	glm::vec4 res;
+	if (gltf_vec.size() >= 4) {
+		res.x = gltf_vec[0];
+		res.y = gltf_vec[1];
+		res.z = gltf_vec[2];
+		res.w = gltf_vec[3];
+	}
+	else {
+		res.x = 0.5f;
+		res.y = 0.5f;
+		res.z = 0.5f;
+		res.w = 0.5f;
+	}
+	return res;
+}
+
 std::unordered_set<std::string> getNamesUnsupported(const std::unordered_set<std::string>& available_names, const std::unordered_set<std::string>& required_names) {
     std::unordered_set<std::string> result;
     std::vector<std::string> from(available_names.cbegin(), available_names.cend());

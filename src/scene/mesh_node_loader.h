@@ -32,6 +32,32 @@
 #include "../graphics/pod/shader_signature.h"
 #include "../graphics/api/vulkan_shaders_manager.h"
 
+struct LightPunctual {
+	std::string name;			// Name of the light. Not required, default: ""
+	std::vector<float> color;	// RGB value for light's color in linear space. Not required, default: [1.0, 1.0, 1.0]
+	float intensity;			// Brightness of light in. The units that this is defined in depend on the type of light. point and spot lights use luminous intensity in candela (lm/sr) while directional lights use illuminance in lux (lm/m2). Not required, default: 1.0
+	std::string type;			// Declares the type of the light. Required. Enum: directional, point or spot
+	float range;				// Hint defining a distance cutoff at which the light's intensity may be considered to have reached zero. Supported only for point and spot lights. Must be > 0. When undefined, range is assumed to be infinite. Not required.
+	float innerConeAngle;
+	float outerConeAngle;
+
+	LightPunctual() : name("")
+                    , color({1.0, 1.0, 1.0, 1.0})
+                    , intensity(1.0)
+                    , type("")
+                    , range(10.0f)
+                    , innerConeAngle(0.0)
+                    , outerConeAngle(0.0) {}
+
+	bool operator==(const LightPunctual& other) const {
+        return name == other.name
+	        && color == other.color
+	        && intensity == other.intensity
+	        && type == other.type
+	        && range == other.range;
+    }
+};
+
 class MeshNodeLoader {
 public:
 	MeshNodeLoader() = default;
@@ -47,6 +73,7 @@ private:
 
     std::shared_ptr<SceneNode> MakeSingleNode(const tinygltf::Node& gltf_node, Scene::NodeIndex parent);
     std::shared_ptr<MeshNode> MakeRenderNode(const tinygltf::Mesh& gltf_mesh, Scene::NodeIndex node);
+    std::shared_ptr<LightNode> MakeLightNodes(const tinygltf::Node& gltf_node, Scene::NodeIndex node);
     
     glm::mat4x4 MakeMatrix(const tinygltf::Node& gltf_node) const;
     glm::mat4x4 MakeMatrix(const std::vector<double>& mat) const;
@@ -67,6 +94,9 @@ private:
     VertexFormat GetVertexFormatFromMesh(std::map<std::string, int> attributes) const;
     std::vector<float> GetVertices(const tinygltf::Primitive& primitive, const VertexFormat& pbr_shader_vertex_format);
     VkIndexType getIndexType(int accessor_component_type);
+    bool HaveLightExt(const tinygltf::Node& gltf_node);
+    bool HaveLightExt(const nlohmann::json& json_node_ext);
+    LightPunctual GetLightPunctual(const nlohmann::json& json_light);
 
     tinygltf::Model m_gltf_model;
     std::filesystem::path m_model_path;
@@ -78,6 +108,7 @@ private:
     std::shared_ptr<SceneNode> m_root_node;
     std::shared_ptr<VulkanShadersManager> m_shader_manager;
     std::string m_default_vertex_shader_name;
+    std::vector<LightPunctual> m_lights;
 
     nlohmann::json m_extensions;
 };

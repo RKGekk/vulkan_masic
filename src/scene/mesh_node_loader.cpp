@@ -83,6 +83,13 @@ std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem
 
     m_node_parent = make_parent_map();
 
+	if(m_gltf_model.extensions.count("KHR_lights_punctual")) {
+		nlohmann::json light_ext = m_extensions["KHR_lights_punctual"];
+		for(auto light_el : light_ext["lights"]) {
+			m_lights.push_back(GetLightPunctual(light_el));
+		}
+	}
+
     size_t num_scenes = m_gltf_model.scenes.size();
     for (int scene_idx = 0; scene_idx < num_scenes; ++scene_idx) {
     	const tinygltf::Scene gltf_current_scene = m_gltf_model.scenes[scene_idx];
@@ -505,6 +512,41 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& g
     return mesh_node;
 }
 
+std::shared_ptr<LightNode> MeshNodeLoader::MakeLightNodes(const tinygltf::Node& gltf_node, Scene::NodeIndex node) {
+	using namespace std::literals;
+
+	nlohmann::json node_ext = nlohmann::json::parse(gltf_node.extensions_json_string.begin(), gltf_node.extensions_json_string.end());
+	int gltf_light_idx = node_ext["KHR_lights_punctual"]["light"].get<int>();
+	const LightPunctual& light_data = m_lights[gltf_light_idx];
+
+    std::shared_ptr<LightNode> light_node = std::make_shared<LightNode>(m_scene, node);
+	m_scene->addProperty(light_node);
+
+    const std::string& light_name = gltf_node.name;
+	light_node->SetName(light_name);
+
+	if (light_data.type == "spot") light_node->setLightType(LightNode::LightType::SPOT);
+	else if (light_data.type == "point") light_node->setLightType(LightNode::LightType::POINT);
+	else light_node->setLightType(LightNode::LightType::DIRECTIONAL);
+
+	glm::vec3 light_color = GetColor3FromFloatVec(light_data.color);
+	light_node->setStrength(light_color);
+
+	if (light_data.type == "spot") {
+		float phy = light_data.outerConeAngle;
+		light_node->setOuterAngle(phy);
+
+		float theta = light_data.innerConeAngle;
+		light_node->setInnerAngle(theta);
+	}
+
+	light_node->setFalloffStart(light_data.range * 0.05f);
+	light_node->setFalloffEnd(light_data.range);
+	light_node->setSpotPower(1.0f);
+
+	return light_node;
+}
+
 std::shared_ptr<SceneNode> MeshNodeLoader::MakeSingleNode(const tinygltf::Node& gltf_node, Scene::NodeIndex parent) {
     std::shared_ptr<SceneNode> transform_node = std::make_shared<SceneNode>(m_scene, gltf_node.name, parent);
     m_scene->addProperty(transform_node);
@@ -569,9 +611,12 @@ void MeshNodeLoader::MakeNodesHierarchy(int current_node_idx, std::shared_ptr<Sc
 	if (gltf_node.mesh != -1) {
 		const tinygltf::Mesh& gltf_mesh = m_gltf_model.meshes[gltf_node.mesh];
 		MakeRenderNode(gltf_mesh, transform_node->VGetNodeIndex());
+		transform_node->GetScene()->getLightManager()->DecorateValueBag(transform_node);
 	}
 
-	//transform_node->GetScene()->getLightManager()->DecorateValueBag(transform_node);
+	if(HaveLightExt(gltf_node)) {
+		MakeLightNodes(gltf_node, transform_node->VGetNodeIndex());
+	}
 
 	size_t child_ct = gltf_node.children.size();
 	for (size_t current_child_ct = 0u; current_child_ct < child_ct; ++current_child_ct) {
@@ -1256,4 +1301,52 @@ std::vector<float> MeshNodeLoader::GetVertices(const tinygltf::Primitive& primit
 		}
 	}
 	return result;
+}
+
+bool MeshNodeLoader::HaveLightExt(const tinygltf::Node& gltf_node) {
+	if (gltf_node.extensions_json_string.empty()) return false;
+
+	nlohmann::json node_ext = nlohmann::json::parse(gltf_node.extensions_json_string.begin(), gltf_node.extensions_json_string.end());
+	if(HaveLightExt(node_ext)) return true;
+
+	return false;
+}
+
+bool MeshNodeLoader::HaveLightExt(const nlohmann::json& json_node_ext) {
+	if (json_node_ext.contains("KHR_lights_punctual")) return true;
+	return false;
+}
+
+LightPunctual MeshNodeLoader::GetLightPunctual(const nlohmann::json& json_light) {
+	//if (!json_light.contains("type")) return LightPunctual();
+	LightPunctual light;
+
+	if (json_light.contains("name")) {
+		light.name = json_light["name"].get<std::string>();
+	}
+
+	if (json_light.contains("color")) {
+		light.color[0] = json_light["color"][0].get<float>();
+		light.color[1] = json_light["color"][1].get<float>();
+		light.color[2] = json_light["color"][2].get<float>();
+	}
+
+	if (json_light.contains("intensity")) {
+		light.intensity = json_light["intensity"].get<float>();
+	}
+
+	if (json_light.contains("type")) {
+		light.type = json_light["type"].get<std::string>();
+	}
+
+	if (json_light.contains("range")) {
+		light.range = json_light["range"].get<float>();
+	}
+
+	if(light.type == "spot") {
+		light.innerConeAngle = json_light["spot"]["innerConeAngle"].get<float>();
+		light.outerConeAngle = json_light["spot"]["outerConeAngle"].get<float>();
+	}
+
+	return light;
 }

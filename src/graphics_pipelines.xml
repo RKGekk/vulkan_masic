@@ -1643,7 +1643,7 @@
                 <LayoutBinding name="light_ubo" resource_creation_point="External">
                     <Buffer>
                         <BufferResourceType>light_uniform_resource</BufferResourceType>
-                        <UpdateFunctionName>no_name</UpdateFunctionName>
+                        <UpdateFunctionName>light_prop_update</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
             </DescriptorResourcesCreateAndUpdate>

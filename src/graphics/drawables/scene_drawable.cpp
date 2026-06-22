@@ -67,12 +67,6 @@ void SceneDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     size_t sz = m_per_frame[image_index]->renderables.size();
     if(!sz) return;
 
-    if(m_per_frame[image_index]->light_buffer) {
-        Application& app = Application::Get();
-        const std::shared_ptr<LightManager>& light_manager = app.GetGameLogic()->GetHumanView()->VGetScene()->getLightManager();
-        m_per_frame[image_index]->light_buffer->update(light_manager->getLightsData().data(), light_manager->getLightsData().size() * sizeof(LightNodeProperties));
-    }
-    
     for(size_t render_id = 0u; render_id < sz; ++render_id) {
         const std::shared_ptr<Renderable>& renderable = m_per_frame[image_index]->renderables.at(render_id);
         if(!renderable->mesh_node) continue;
@@ -172,6 +166,13 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                 }
             );
 
+            renderable->render_node->add_update_function(
+                "light_prop_update"s,
+                [&, frame, renderable_id](std::shared_ptr<VulkanBuffer>& uniform_buffer){
+                    updateLightProps(m_per_frame[frame]->renderables.at(renderable_id)->mesh_node, uniform_buffer);
+                }
+            );
+
             for(const auto&[desc_slot, desc_set_name] : vertex_shader->getShaderSignature()->getDescSetNames()) {
                 const std::shared_ptr<DescSetLayout>& desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(desc_set_name);
 
@@ -263,4 +264,15 @@ void SceneDrawable::updateMaterialProps(const std::shared_ptr<Material>& materia
     mat.roughness = material->GetRoughnessFactor();
 
     uniform_buffer->update(&mat, sizeof(PhongMaterial));
+}
+
+void SceneDrawable::updateLightProps(const std::shared_ptr<SceneNode>& scene_node, std::shared_ptr<VulkanBuffer>& uniform_buffer) {
+    
+    Application& app = Application::Get();
+    const std::shared_ptr<BaseEngineLogic>& game_logic = app.GetGameLogic();
+    const std::shared_ptr<ScreenElementScene>& screen_scene = game_logic->GetHumanView()->VGetScene();
+    std::shared_ptr<LightManager>& light_manager = screen_scene->getLightManager();
+
+    const std::vector<LightNodeProperties>& light_data = light_manager->getLightsData(scene_node);
+    uniform_buffer->update(light_data.data(), sizeof(LightNodeProperties) * light_data.size());
 }

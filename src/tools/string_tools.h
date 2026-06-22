@@ -109,6 +109,9 @@ glm::vec3 posfromattr3f(const pugi::xml_node& node_with_pos, const glm::vec3& de
 glm::vec3 anglesfromattr3f(const pugi::xml_node& node_with_angles);
 glm::vec3 anglesfromattr3f(const pugi::xml_node& node_with_angles, const glm::vec3& def);
 
+glm::vec3 GetColor3FromFloatVec(const std::vector<float>& gltf_vec);
+glm::vec4 GetColor4FromFloatVec(const std::vector<float>& gltf_vec);
+
 template<typename Container>
 void printInfo(std::string_view header, Container container) {
     std::cout << header << ": " << std::endl;
