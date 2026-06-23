@@ -26,8 +26,8 @@ struct Light {
     vec4 strength;
     vec4 direction;         // directional/spot light only
     vec4 position;          // point light only
-    float falloff_end;      // point/spot light only
     float falloff_start;    // point/spot light only
+    float falloff_end;      // point/spot light only
     float outer_angle;      // spot light only
     float inner_angle;      // spot light only
 }; // 56
