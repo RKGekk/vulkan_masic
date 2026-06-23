@@ -70,7 +70,7 @@ void LightManager::RemoveLight(const std::shared_ptr<LightNode>& node) {
     }
 }
 
-void LightManager::DecorateValueBag(std::shared_ptr<SceneNode>& node) const {
+void LightManager::DecorateValueBag(const std::shared_ptr<SceneNode>& node) const {
     using namespace std::literals;
     std::shared_ptr<Scene> scene = node->GetScene();
     std::shared_ptr<ValueBagNode> value_bag_node = std::dynamic_pointer_cast<ValueBagNode>(scene->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG));

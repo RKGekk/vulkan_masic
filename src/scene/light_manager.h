@@ -20,7 +20,7 @@ public:
     void AddLight(const std::shared_ptr<LightNode>& node);
 	void RemoveLight(const std::shared_ptr<LightNode>& node);
 
-    void DecorateValueBag(std::shared_ptr<SceneNode>& node) const;
+    void DecorateValueBag(const std::shared_ptr<SceneNode>& node) const;
 
 	size_t GetDirLightsCount() const;
 	size_t GetPointLightsCount() const;

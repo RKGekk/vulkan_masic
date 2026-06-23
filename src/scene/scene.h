@@ -91,7 +91,7 @@ public:
     void deleteSceneNodes(const std::vector<NodeIndex>& nodes_indices_to_delete);
 	void mergeScenes(const std::vector<Scene*>& scenes, const std::vector<glm::mat4>& root_transforms, const std::vector<uint32_t>& mesh_counts, bool merge_meshes, bool merge_materials);
 
-	std::shared_ptr<LightManager>& getLightManager();
+	const std::shared_ptr<LightManager>& getLightManager();
 
 private:
 	NodeIndex findLastNonDeletedItem(const std::vector<NodeIndex>& new_indices, NodeIndex node);

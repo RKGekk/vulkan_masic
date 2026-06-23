@@ -19,7 +19,7 @@ ScreenElementScene::ScreenElementScene() : Scene() {
 	std::shared_ptr<VulkanDevice> device = renderer.GetDevice();
 
     m_scene_draw = std::make_shared<SceneDrawable>();
-    m_scene_draw->init(device, renderer.getSwapchain()->getMaxFrames());
+    m_scene_draw->init(device, renderer.getSwapchain()->getMaxFrames(), getLightManager());
 
     RegisterAllDelegates();
 };

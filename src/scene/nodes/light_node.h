@@ -47,9 +47,6 @@ public:
     void setFalloffEnd(float falloff_end);
     float getFalloffEnd() const;
 
-    void setSpotPower(float spot_power);
-    float getSpotPower() const;
-
     void setOuterAngle(float outer_angle);
     float getOuterAngle() const;
 
@@ -61,7 +58,6 @@ private:
 	glm::vec3 m_strength;
     float m_falloff_start;
     float m_falloff_end;
-    float m_spot_power;
     float m_outer_angle;
     float m_inner_angle;
 };

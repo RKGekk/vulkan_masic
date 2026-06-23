@@ -11,12 +11,11 @@
 #include <glm/ext.hpp>
 
 struct LightNodeProperties {
-    glm::vec3 strength;
+    glm::vec4 strength;
+    glm::vec4 direction;    // directional/spot light only
+    glm::vec4 position;     // point light only
     float falloff_start;    // point/spot light only
-    glm::vec3 direction;    // directional/spot light only
     float falloff_end;      // point/spot light only
-    glm::vec3 position;     // point light only
-    float spot_power;       // spot light only
     float outer_angle;      // spot light only
     float inner_angle;      // spot light only
 };

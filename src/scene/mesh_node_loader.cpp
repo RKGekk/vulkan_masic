@@ -541,7 +541,6 @@ std::shared_ptr<LightNode> MeshNodeLoader::MakeLightNodes(const tinygltf::Node& 
 
 	light_node->setFalloffStart(light_data.range * 0.05f);
 	light_node->setFalloffEnd(light_data.range);
-	light_node->setSpotPower(1.0f);
 
 	m_scene->addProperty(light_node);
 	return light_node;

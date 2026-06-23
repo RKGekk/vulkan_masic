@@ -484,7 +484,7 @@
                 <BufferUsageFlags>
                     <Flag>uniform_buffer</Flag>
                 </BufferUsageFlags>
-                <Size dynamic="false" deffered="false">504</Size>
+                <Size dynamic="false" deffered="false">576</Size>
                 <MemoryProperties>
                     <Property>host_visible</Property>
                     <Property>host_coherent</Property>
@@ -1643,7 +1643,7 @@
                 <LayoutBinding name="light_ubo" resource_creation_point="External">
                     <Buffer>
                         <BufferResourceType>light_uniform_resource</BufferResourceType>
-                        <UpdateFunctionName>light_prop_update</UpdateFunctionName>
+                        <UpdateFunctionName>no_name</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
             </DescriptorResourcesCreateAndUpdate>

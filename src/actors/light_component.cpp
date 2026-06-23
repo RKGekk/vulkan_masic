@@ -76,10 +76,10 @@ bool LightComponent::Init(const pugi::xml_node& data) {
 
 	LightNodeProperties props;
     glm::vec3 default_strength = { 1.0f, 1.0f, 1.0f };
-	props.strength = colorfromattr3f(light_node_data.child("strength"), default_strength);
+	glm::vec3 strength = colorfromattr3f(light_node_data.child("strength"), default_strength);
+	props.strength = glm::vec4(strength, 1.0f);
 	props.falloff_start = light_node_data.child("falloff_start").text().as_float();
 	props.falloff_end = light_node_data.child("falloff_end").text().as_float();
-	props.spot_power = light_node_data.child("spot_power").text().as_float();
 	props.outer_angle = glm::radians(light_node_data.child("outer_angle").text().as_float());
 	props.inner_angle = glm::radians(light_node_data.child("inner_angle").text().as_float());
 	

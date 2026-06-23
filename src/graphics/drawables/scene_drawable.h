@@ -49,7 +49,6 @@ public:
         std::shared_ptr<VulkanImageBuffer> texture;
         std::vector<std::shared_ptr<VulkanPushConstant>> const_params;
         std::shared_ptr<GraphicsRenderNode> render_node;
-        //int frame;
     };
 
     struct RenderPerFrame {
@@ -57,7 +56,7 @@ public:
         std::shared_ptr<VulkanBuffer> light_buffer;
     };
 
-    bool init(std::shared_ptr<VulkanDevice> device, int max_frames);
+    bool init(std::shared_ptr<VulkanDevice> device, int max_frames, std::shared_ptr<LightManager> light_manager);
 
     void reset() override;
     void destroy() override;
@@ -72,12 +71,12 @@ private:
     void updateMVPMatrices(const std::shared_ptr<SceneNode>& scene_node, std::shared_ptr<VulkanBuffer>& uniform_buffer);
     void updateInvMVPMatrices(const std::shared_ptr<SceneNode>& scene_node, std::shared_ptr<VulkanBuffer>& uniform_buffer);
     void updateMaterialProps(const std::shared_ptr<Material>& material, std::shared_ptr<VulkanBuffer>& uniform_buffer);
-    void updateLightProps(const std::shared_ptr<SceneNode>& scene_node, std::shared_ptr<VulkanBuffer>& uniform_buffer);
 
     std::shared_ptr<VulkanDevice> m_device;
     float m_rt_aspect = 1.0f;
     int m_max_frames;
     VkExtent2D m_viewport_extent;
+    std::shared_ptr<LightManager> m_light_manager;
 
     std::vector<std::shared_ptr<RenderPerFrame>> m_per_frame;
 };

@@ -84,7 +84,6 @@
         <strength r="1.0" g="1.0" b="1.0"></strength>
         <falloff_start>0.0</falloff_start>
         <falloff_end>1.0</falloff_end>
-        <spot_power>1.0</spot_power>
         <outer_angle>90.0</outer_angle>
         <inner_angle>45.0</inner_angle>
       </LightComponent>

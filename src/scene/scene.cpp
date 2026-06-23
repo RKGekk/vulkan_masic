@@ -443,6 +443,6 @@ void Scene::mergeScenes(const std::vector<Scene*>& scenes, const std::vector<glm
     }
 }
 
-std::shared_ptr<LightManager>& Scene::getLightManager() {
+const std::shared_ptr<LightManager>& Scene::getLightManager() {
     return m_light_manager;
 }

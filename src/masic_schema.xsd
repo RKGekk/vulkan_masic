@@ -2577,7 +2577,6 @@
                                                     <xs:element name="strength" type="target:ColorAsAttrComplexType" minOccurs="1" maxOccurs="1"></xs:element>
                                                     <xs:element name="falloff_start" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
                                                     <xs:element name="falloff_end" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
-                                                    <xs:element name="spot_power" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
                                                     <xs:element name="outer_angle" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
                                                     <xs:element name="inner_angle" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
                                                 </xs:sequence>

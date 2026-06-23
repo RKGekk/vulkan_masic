@@ -9,8 +9,7 @@ layout(set = 0, binding = 1) uniform InvMatrixBufferObject {
 } inv_ubo;
 
 layout(set = 0, binding = 2) uniform MaterialBufferObject {
-    vec3 u_fresnelR0;
-    float u_roughness;
+    vec4 u_fresnelR0_roughness;
 } material;
 
 layout(set = 0, binding = 3) uniform sampler2D texure_sampler;
@@ -24,12 +23,11 @@ layout(push_constant) uniform UniformRegisters {
 } registers;
 
 struct Light {
-    vec3 strength;
-    float falloff_start;    // point/spot light only
-    vec3 direction;         // directional/spot light only
+    vec4 strength;
+    vec4 direction;         // directional/spot light only
+    vec4 position;          // point light only
     float falloff_end;      // point/spot light only
-    vec3 position;          // point light only
-    float spot_power;       // spot light only
+    float falloff_start;    // point/spot light only
     float outer_angle;      // spot light only
     float inner_angle;      // spot light only
 }; // 56
@@ -60,12 +58,12 @@ vec3 SchlickFresnel(vec3 R0, vec3 normal, vec3 to_light) {
 }
 
 vec3 BlinnPhong(vec3 light_strength, vec3 to_light, vec3 normal, vec3 to_eye, vec4 diffuse_albedo) {
-    const float shininess = 1.0f - material.u_roughness;
+    const float shininess = 1.0f - material.u_fresnelR0_roughness.a;
     const float m = shininess * 256.0f;
     vec3 half_vec = normalize(to_eye + to_light);
 
     float roughness_factor = (m + 8.0f) * pow(max(dot(half_vec, normal), 0.0f), m) / 8.0f;
-    vec3 fresnel_factor = SchlickFresnel(material.u_fresnelR0, half_vec, to_light);
+    vec3 fresnel_factor = SchlickFresnel(material.u_fresnelR0_roughness.rgb, half_vec, to_light);
 
     vec3 spec_albedo = fresnel_factor * roughness_factor;
 
@@ -77,18 +75,18 @@ vec3 BlinnPhong(vec3 light_strength, vec3 to_light, vec3 normal, vec3 to_eye, ve
 }
 
 vec3 ComputeDirectionalLight(Light light_source, vec3 normal, vec3 to_eye, vec4 diffuse_albedo) {
-    vec3 to_light = -light_source.direction;
+    vec3 to_light = -light_source.direction.xyz;
 
     // Scale light down by Lambert's cosine law.
     float ndotl = max(dot(to_light, normal), 0.0f);
-    vec3 light_strength = light_source.strength * ndotl;
+    vec3 light_strength = light_source.strength.rgb * ndotl;
 
     return BlinnPhong(light_strength, to_light, normal, to_eye, diffuse_albedo);
 }
 
 vec3 ComputePointLight(Light light_source, vec3 point_pos, vec3 normal, vec3 to_eye, vec4 diffuse_albedo) {
     // The vector from the surface to the light.
-    vec3 to_light = light_source.position - point_pos;
+    vec3 to_light = light_source.position.xyz - point_pos;
 
     // The distance from surface to light.
     float d = length(to_light);
@@ -102,7 +100,7 @@ vec3 ComputePointLight(Light light_source, vec3 point_pos, vec3 normal, vec3 to_
 
     // Scale light down by Lambert's cosine law.
     float ndotl = max(dot(to_light, normal), 0.0f);
-    vec3 light_strength = light_source.strength * ndotl;
+    vec3 light_strength = light_source.strength.rgb * ndotl;
 
     // Attenuate light by distance.
     float att = CalcAttenuation(d, light_source.falloff_start, light_source.falloff_end);
@@ -113,7 +111,7 @@ vec3 ComputePointLight(Light light_source, vec3 point_pos, vec3 normal, vec3 to_
 
 vec3 ComputeSpotLight(Light light_source, vec3 point_pos, vec3 normal, vec3 to_eye, vec4 diffuse_albedo) {
     // The vector from the surface to the light.
-    vec3 to_light = light_source.position - point_pos;
+    vec3 to_light = light_source.position.xyz - point_pos;
 
     // The distance from surface to light.
     float d = length(to_light);
@@ -127,18 +125,16 @@ vec3 ComputeSpotLight(Light light_source, vec3 point_pos, vec3 normal, vec3 to_e
 
     // Scale light down by Lambert's cosine law.
     float ndotl = max(dot(to_light, normal), 0.0f);
-    vec3 light_strength = light_source.strength * ndotl;
+    vec3 light_strength = light_source.strength.rgb * ndotl;
 
     // Attenuate light by distance.
     float att = CalcAttenuation(d, light_source.falloff_start, light_source.falloff_end);
     light_strength *= att;
 
     // Scale by spotlight
-    float theta = max(dot(-to_light, light_source.direction), 0.0f);
+    float theta = max(dot(-to_light, light_source.direction.xyz), 0.0f);
     float epsilon = cos(light_source.inner_angle - light_source.outer_angle);
     float intensity = clamp((theta - cos(light_source.outer_angle)) / epsilon, 0.0f, 1.0f);
-    float spot_factor = pow(intensity, light_source.spot_power);
-    light_strength *= spot_factor;
 
     return BlinnPhong(light_strength, to_light, normal, to_eye, diffuse_albedo);
 }
