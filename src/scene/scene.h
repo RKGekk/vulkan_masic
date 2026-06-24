@@ -97,8 +97,8 @@ private:
 	NodeIndex findLastNonDeletedItem(const std::vector<NodeIndex>& new_indices, NodeIndex node);
 	void shiftNodes(int startOffset, int nodeCount, int shiftAmount);
 
-	std::vector<glm::mat4> m_local_transform;
-	std::vector<glm::mat4> m_global_transform;
+	std::vector<glm::mat4> m_local_transform; // convert from local space to parent space
+	std::vector<glm::mat4> m_global_transform; // accumulated convert from local space directly to root space(world space)
 	std::vector<Hierarchy> m_hierarchy;
 	std::vector<NodeIndexArray> m_dirty_at_level;
 

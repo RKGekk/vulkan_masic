@@ -9,6 +9,7 @@
 #include "../../scene/nodes/camera_node.h"
 #include "../../scene/nodes/basic_camera_node.h"
 #include "../../scene/nodes/aabb_node.h"
+#include "../../scene/nodes/light_node.h"
 #include "imgui_tools.h"
 
 NodeMenuUI::NodeMenuUI() {
@@ -23,7 +24,7 @@ bool NodeMenuUI::VOnRestore() {
 void DrawHierarchyTreeView(std::shared_ptr<SceneNode> start_node) {
     for(std::shared_ptr<SceneNode> node = start_node; node;) {
         const Scene::Hierarchy& hierarchy_node = node->VGetHierarchy();
-        Scene::NodeTypeFlags node_type_flags = node->Get().GetNodeType();
+        Scene::NodeTypeFlags node_type_flags = node->GetScene()->getNodeTypeFlags(node->VGetNodeIndex());
         std::string node_name = node->Get().Name();
         std::string header = getSummaryForHierarchyStr(node->VGetNodeIndex(), hierarchy_node, node_type_flags, node_name);
 
@@ -87,6 +88,13 @@ void DrawHierarchyTreeView(std::shared_ptr<SceneNode> start_node) {
                 if(pAABBNode && ImGui::TreeNode("AABB")) {
                     std::shared_ptr<AABBNode> pAABB = std::dynamic_pointer_cast<AABBNode>(pAABBNode);
                     printAABBNodeImGUI(pAABB);
+                    ImGui::TreePop();
+                }
+
+                std::shared_ptr<SceneNode> pLightNode = node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_LIGHT);
+                if(pAABBNode && ImGui::TreeNode("Light")) {
+                    std::shared_ptr<LightNode> pLight = std::dynamic_pointer_cast<LightNode>(pLightNode);
+                    printLightNodeImGUI(pLight);
                     ImGui::TreePop();
                 }
                         

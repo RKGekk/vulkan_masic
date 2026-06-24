@@ -614,6 +614,28 @@ void printAABBNodeImGUI(std::shared_ptr<AABBNode> pAABB) {
     printBoundingBoxImGUI(pAABB->getAABB());
 }
 
+void printLightNodeImGUI(std::shared_ptr<LightNode> pLight) {
+    if(!pLight) return;
+
+	LightNode::LightType light_type = pLight->getLightType();
+    std::string light_type_str;
+    if(light_type == LightNode::LightType::DIRECTIONAL) light_type_str = "directional";
+    if(light_type == LightNode::LightType::POINT) light_type_str = "point";
+    if(light_type == LightNode::LightType::SPOT) light_type_str = "spot";
+
+    ImGui::InputText("LightType", const_cast<char*>(light_type_str.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
+
+    LightNodeProperties light_prop = pLight->GetLightProperties();
+
+    if (ImGui::ColorEdit4("strength", ((float*)&light_prop.strength) + 0)) {};
+    if (ImGui::InputFloat3("direction", ((float*)&light_prop.direction), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+    if (ImGui::InputFloat3("position", ((float*)&light_prop.position), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+    if (ImGui::InputFloat("falloff_start", const_cast<float*>(&light_prop.falloff_start), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+    if (ImGui::InputFloat("falloff_end", const_cast<float*>(&light_prop.falloff_end), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+    if (ImGui::InputFloat("outer_angle", const_cast<float*>(&light_prop.outer_angle), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+    if (ImGui::InputFloat("inner_angle", const_cast<float*>(&light_prop.inner_angle), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+}
+
 void printHierarchyImGui(Scene::Hierarchy hierarchy) {
     int parent = hierarchy.parent;
 	ImGui::InputInt("Parent", &parent, 0, 0, ImGuiInputTextFlags_ReadOnly);
