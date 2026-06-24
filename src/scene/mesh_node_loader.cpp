@@ -529,6 +529,15 @@ std::shared_ptr<LightNode> MeshNodeLoader::MakeLightNodes(const tinygltf::Node& 
 	else light_node->setLightType(LightNode::LightType::DIRECTIONAL);
 
 	glm::vec3 light_color = GetColor3FromFloatVec(light_data.color);
+	float sdr_cf = 1.0f;
+	if (light_data.type == "directional") {
+		sdr_cf = glm::min(light_data.intensity / 10000.0f, 1.0f);
+	}
+	else {
+		sdr_cf = glm::min(light_data.intensity / 20000.0f, 1.0f);
+	}
+	light_color *= sdr_cf;
+
 	light_node->setStrength(light_color);
 
 	if (light_data.type == "spot") {

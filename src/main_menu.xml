@@ -11,15 +11,15 @@
       </TransformComponent>
       <CameraComponent>
         <Fov>90.0</Fov>
-        <Near>1.0</Near>
-        <Far>11.0</Far>
+        <Near>0.1</Near>
+        <Far>100.0</Far>
       </CameraComponent>
 
     </Actor>
 
     <Actor name="light_scene">
       <TransformComponent>
-        <Position x="0.000000" y="0.000000" z="-3.000000" />
+        <Position x="0.000000" y="-3.000000" z="-3.000000" />
         <YawPitchRoll x="0.000000" y="0.000000" z="0.000000" />
         <Scale x="1.000000" y="1.000000" z="1.000000" />
       </TransformComponent>

@@ -276,6 +276,7 @@ RenderGraph::RenderNodePtr RenderGraph::getLastWritten(const RenderNodePtr& rend
 size_t RenderGraph::getLastWrittenIdentity(const RenderNodePtr& render_node, const std::string& global_resource_name) const {
     size_t current_idx = NO_ID;
     size_t my_render_node_pos = m_render_node_sort_idx.at(render_node);
+    if(!m_written_map.contains(global_resource_name)) return current_idx;
 
     for(const std::shared_ptr<RenderNode>& write_node : m_written_map.at(global_resource_name)) {
         size_t write_node_idx = m_render_node_sort_idx.at(write_node);
