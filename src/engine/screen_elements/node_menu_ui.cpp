@@ -92,7 +92,7 @@ void DrawHierarchyTreeView(std::shared_ptr<SceneNode> start_node) {
                 }
 
                 std::shared_ptr<SceneNode> pLightNode = node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_LIGHT);
-                if(pAABBNode && ImGui::TreeNode("Light")) {
+                if(pLightNode && ImGui::TreeNode("Light")) {
                     std::shared_ptr<LightNode> pLight = std::dynamic_pointer_cast<LightNode>(pLightNode);
                     printLightNodeImGUI(pLight);
                     ImGui::TreePop();

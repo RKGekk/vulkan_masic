@@ -594,21 +594,22 @@ glm::mat4x4 MeshNodeLoader::MakeMatrix(const std::vector<double>& mat) const {
 glm::mat4x4 MeshNodeLoader::MakeMatrix(const std::vector<double>& scale, const std::vector<double>& rotation, const std::vector<double>& translation) const {
 	glm::mat4x4 S = glm::mat4x4(1.0);
 	if (scale.size()) {
-		S = glm::scale(glm::vec3((float)scale[0], (float)scale[1], (float)scale[2]));
+		S = glm::scale(S, glm::vec3((float)scale[0], (float)scale[1], (float)scale[2]));
 	}
 
 	glm::mat4x4 R = glm::mat4x4(1.0);
 	if (rotation.size()) {
-		glm::quat q((float)rotation[0], (float)rotation[1], (float)rotation[2], (float)rotation[3]);
-		R = glm::toMat4(q);
+		glm::quat q((float)rotation[3], (float)rotation[0], (float)rotation[1], (float)rotation[2]);
+		R = glm::toMat4(glm::normalize(q));
 	}
 
 	glm::mat4x4 T = glm::mat4x4(1.0);;
 	if (translation.size()) {
-		T = glm::translate(glm::vec3((float)translation[0], (float)translation[1], (float)translation[2]));
+		T = glm::translate(T, glm::vec3((float)translation[0], (float)translation[1], (float)translation[2]));
 	}
 
-	return  S * R * T;
+	//return  S * R * T;
+	return T * R * S;
 }
 
 void MeshNodeLoader::MakeNodesHierarchy(int current_node_idx, std::shared_ptr<SceneNode> parent) {

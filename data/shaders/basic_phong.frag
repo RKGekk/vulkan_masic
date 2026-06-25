@@ -133,8 +133,11 @@ vec3 ComputeSpotLight(Light light_source, vec3 point_pos, vec3 normal, vec3 to_e
 
     // Scale by spotlight
     float theta = max(dot(-to_light, light_source.direction.xyz), 0.0f);
-    float epsilon = cos(light_source.inner_angle - light_source.outer_angle);
-    float intensity = clamp((theta - cos(light_source.outer_angle)) / epsilon, 0.0f, 1.0f);
+    float cos_outer = cos(light_source.outer_angle);
+    float cos_inner = cos(light_source.inner_angle);
+    float epsilon = cos_inner - cos_outer;
+    float intensity = clamp((theta - cos_outer) / epsilon, 0.0f, 1.0f);
+    light_strength *= intensity;
 
     return BlinnPhong(light_strength, to_light, normal, to_eye, diffuse_albedo);
 }

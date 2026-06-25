@@ -482,20 +482,23 @@ void editMatrixImGUI(const glm::mat4& mat, std::function<void(glm::bvec3 tsr, gl
 }
 
 void printDecomposedMatrixImGUI(glm::mat4 matrix) {
-    glm::vec3 scale_xm;
-	glm::vec3 translation_xm;
-
-    translation_xm = matrix[3];
+    
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 translation;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(matrix, scale, rotation, translation, skew, perspective);
 
     for (int i = 0; i < 3; ++i) {
-        scale_xm[i] = glm::length(matrix[i]);
-        matrix[i] /= scale_xm[i];
+        matrix[i] /= scale[i];
     }
                         
-    printQuatImGUI(glm::toQuat(matrix));
+    //printQuatImGUI(glm::toQuat(matrix));
+    printQuatImGUI(rotation);
 
-	if (ImGui::InputFloat3("Sc", ((float*)&scale_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-	if (ImGui::InputFloat3("Tr", ((float*)&translation_xm), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+	if (ImGui::InputFloat3("Sc", ((float*)&scale), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+	if (ImGui::InputFloat3("Tr", ((float*)&translation), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
 }
 
 void printBoundingBoxImGUI(const BoundingBox& bounding_box) {
