@@ -131,6 +131,8 @@ set(APP_SOURCES
     "${SRC_DIR}/physics/sphere_contacts.h"
     "${SRC_DIR}/animation/matrix_animation.h"
     "${SRC_DIR}/animation/matrix_animation.cpp"
+    "${SRC_DIR}/animation/skinned_data.h"
+    "${SRC_DIR}/animation/skinned_data.cpp"
     "${SRC_DIR}/actors/actor.h"
     "${SRC_DIR}/actors/actor.cpp"
     "${SRC_DIR}/actors/actor_component.h"
@@ -254,12 +256,16 @@ set(APP_SOURCES
     "${SRC_DIR}/scene/ivisitor.h"
     "${SRC_DIR}/scene/light_manager.h"
     "${SRC_DIR}/scene/light_manager.cpp"
+    "${SRC_DIR}/scene/animation_manager.h"
+    "${SRC_DIR}/scene/animation_manager.cpp"
     "${SRC_DIR}/scene/nodes/scene_node.h"
     "${SRC_DIR}/scene/nodes/scene_node.cpp"
     "${SRC_DIR}/scene/nodes/camera_node.h"
     "${SRC_DIR}/scene/nodes/camera_node.cpp"
     "${SRC_DIR}/scene/nodes/basic_camera_node.h"
     "${SRC_DIR}/scene/nodes/basic_camera_node.cpp"
+    "${SRC_DIR}/scene/nodes/animation_node.h"
+    "${SRC_DIR}/scene/nodes/animation_node.cpp"
     "${SRC_DIR}/scene/nodes/scene_node_properties.h"
     "${SRC_DIR}/scene/nodes/scene_node_properties.cpp"
     "${SRC_DIR}/scene/nodes/mesh_node.h"
@@ -268,7 +274,11 @@ set(APP_SOURCES
     "${SRC_DIR}/scene/nodes/aabb_node.cpp"
     "${SRC_DIR}/scene/nodes/light_node.h"
     "${SRC_DIR}/scene/nodes/light_node.cpp"
+    "${SRC_DIR}/scene/nodes/bone_node.h"
+    "${SRC_DIR}/scene/nodes/bone_node.cpp"
     "${SRC_DIR}/scene/nodes/light_node_properties.h"
+    "${SRC_DIR}/scene/skeleton_manager.h"
+    "${SRC_DIR}/scene/skeleton_manager.cpp"
     "${SRC_DIR}/scene/nodes/value_bag_node.h"
     "${SRC_DIR}/scene/nodes/value_bag_node.cpp"
     "${SRC_DIR}/graphics/pod/scene_config.h"
@@ -394,7 +404,7 @@ set(OBJECTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data/objects")
 set(FONT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data/fonts")
 set(APP_SHADERS "${SHADER_DIR}/color.frag" "${SHADER_DIR}/color.vert" "${SHADER_DIR}/shader.frag" "${SHADER_DIR}/shader.vert" "${SHADER_DIR}/imgui.frag" "${SHADER_DIR}/imgui.vert" "${SHADER_DIR}/line.frag" "${SHADER_DIR}/line.vert" "${SHADER_DIR}/basic_phong.frag" "${SHADER_DIR}/basic_phong.vert" )
 set(APP_RESOURCES "${TEXTURES_DIR}/texture.jpg" "${TEXTURES_DIR}/Sketchfab_UV_Checker.png" "${TEXTURES_DIR}/UVCheckerMap01-1024.png" "${TEXTURES_DIR}/UVCheckerMap06-1024.png" "${TEXTURES_DIR}/UVCheckerMap14-1024.png" "${TEXTURES_DIR}/tank_1.jpg" "${TEXTURES_DIR}/tank_2.jpg")
-set(APP_OBJECTS "${OBJECTS_DIR}/cube.gltf" "${OBJECTS_DIR}/cube.bin" "${OBJECTS_DIR}/arrow.gltf" "${OBJECTS_DIR}/arrow.bin" "${OBJECTS_DIR}/tank.gltf" "${OBJECTS_DIR}/tank.bin" "${OBJECTS_DIR}/coord_arrows.gltf" "${OBJECTS_DIR}/coord_arrows.bin" "${OBJECTS_DIR}/phong_light_test.bin" "${OBJECTS_DIR}/phong_light_test.gltf")
+set(APP_OBJECTS "${OBJECTS_DIR}/cube.gltf" "${OBJECTS_DIR}/cube.bin" "${OBJECTS_DIR}/arrow.gltf" "${OBJECTS_DIR}/arrow.bin" "${OBJECTS_DIR}/tank.gltf" "${OBJECTS_DIR}/tank.bin" "${OBJECTS_DIR}/coord_arrows.gltf" "${OBJECTS_DIR}/coord_arrows.bin" "${OBJECTS_DIR}/phong_light_test.bin" "${OBJECTS_DIR}/phong_light_test.gltf" "${OBJECTS_DIR}/anim_bones_test.bin" "${OBJECTS_DIR}/anim_bones_test.gltf" "${OBJECTS_DIR}/uanim.bin" "${OBJECTS_DIR}/uanim.gltf")
 set(APP_FONTS "${FONT_DIR}/OpenSans-Light.ttf")
 
 set(SPV_BIN_DIR "${CMAKE_COMPILE_DIR}/shaders")

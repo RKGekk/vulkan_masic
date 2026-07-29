@@ -45,24 +45,16 @@ struct KeyframeMatrixRotation {
 bool operator<(const KeyframeMatrixRotation& kf1, const KeyframeMatrixRotation& kf2);
 
 struct MatrixAnimation {
-	using AnimationName = std::string;
-	enum class AnimState {
-		Playing,
-		Stoped,
-        Paused
-	};
-
 	void InterpolateTime(float t, glm::mat4x4& transform) const;
-	void InterpolateCurrentTime(glm::mat4x4& transform) const;
+	glm::mat4x4 InterpolateTime(float t) const;
+	
 	void InterpolateNormValue(float v, glm::mat4x4& transform) const;
+	glm::mat4x4 InterpolateNormValue(float v) const;
+
 	float GetTotalAnimationTime() const;
 
 	// ASC sorted by time
 	std::vector<KeyframeMatrixTranslation> TranslationKeyframes;
 	std::vector<KeyframeMatrixScale> ScaleKeyframes;
 	std::vector<KeyframeMatrixRotation> RotationKeyframes;
-
-	AnimationName Name;
-	AnimState AnimationState;
-	GameTimerDelta CurrentTime;
 };

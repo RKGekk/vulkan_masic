@@ -82,20 +82,20 @@ glm::vec3 SceneNodeProperties::ToRootUp() const {
 	return glm::vec3(just_rot * up);
 }
 
-glm::mat4x4 SceneNodeProperties::FromParent() const {
-    return glm::inverse(m_scene->getNodeLocalTransform(m_node_index));
+const glm::mat4x4& SceneNodeProperties::FromParent() const {
+    return m_scene->getNodeInvLocalTransform(m_node_index);
 }
 
 glm::mat4x4 SceneNodeProperties::FromParentT() const {
-    return glm::transpose(glm::inverse(m_scene->getNodeLocalTransform(m_node_index)));
+    return glm::transpose(m_scene->getNodeInvLocalTransform(m_node_index));
 }
 
-glm::mat4x4 SceneNodeProperties::FromRoot() const {
-    return glm::inverse(m_scene->getNodeGlobalTransform(m_node_index));
+const glm::mat4x4& SceneNodeProperties::FromRoot() const {
+    return m_scene->getNodeGlobalTransform(m_node_index);
 }
 
 glm::mat4x4 SceneNodeProperties::FromRootT() const {
-    return glm::transpose(glm::inverse(m_scene->getNodeGlobalTransform(m_node_index)));
+    return glm::transpose(m_scene->getNodeInvGlobalTransform(m_node_index));
 }
 
 const char* SceneNodeProperties::NameCstr() const {

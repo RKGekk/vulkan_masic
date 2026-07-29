@@ -68,18 +68,33 @@ private:
     using NodeIdx = int;
     using MatrixIdx = int;
     const int NO_PARENT = -1;
+    using SkinName = std::string;
+    using SkinIdx = int;
+
+    struct BoneIdentity {
+        MatrixIdx joint;
+        glm::mat4x4 inv_matrix;
+        std::string skin_name;
+        SkinIdx skin_id;
+    };
 
     struct SimpleHash { size_t operator()(const std::pair<int, int>& p) const { size_t h = (size_t)p.first; h <<= 32; h += p.second; return h; }};
 
-    std::shared_ptr<SceneNode> MakeSingleNode(const tinygltf::Node& gltf_node, Scene::NodeIndex parent);
+    std::shared_ptr<SceneNode> MakeSingleNode(const tinygltf::Node& gltf_node, Scene::NodeIndex parent, const std::shared_ptr<Scene>& scene);
     std::shared_ptr<MeshNode> MakeRenderNode(const tinygltf::Mesh& gltf_mesh, Scene::NodeIndex node);
     std::shared_ptr<LightNode> MakeLightNodes(const tinygltf::Node& gltf_node, Scene::NodeIndex node);
     
     glm::mat4x4 MakeMatrix(const tinygltf::Node& gltf_node) const;
     glm::mat4x4 MakeMatrix(const std::vector<double>& mat) const;
     glm::mat4x4 MakeMatrix(const std::vector<double>& scale, const std::vector<double>& rotation, const std::vector<double>& translation) const;
+    std::vector<glm::mat4x4> GetMatrices(const tinygltf::Skin& gltf_skin);
+    std::vector<glm::mat4x4> GetMatrices(const tinygltf::Accessor& matrices_accessor);
+
     void MakeNodesHierarchy(NodeIdx current_node_idx, std::shared_ptr<SceneNode> parent);
-    NodeIdx getParrent(NodeIdx) const;
+    void MakeBonesHierarchy(NodeIdx current_node_idx, std::shared_ptr<SceneNode> parent);
+    //NodeIdx getSkinRoot(SkinIdx skin_idx) const;
+    NodeIdx isSceneRoot();
+    NodeIdx getParent(NodeIdx) const;
     std::unordered_map<NodeIdx, NodeIdx> make_parent_map();
     int32_t GetNumVertices(const tinygltf::Primitive& primitive) const;
     int32_t GetNumPrimitives(const tinygltf::Primitive& primitive) const;
@@ -105,6 +120,8 @@ private:
 
     std::shared_ptr<VulkanDevice> m_device;
     std::shared_ptr<Scene> m_scene;
+    std::vector<std::shared_ptr<SkinnedData>> m_skins;
+    std::unordered_map<NodeIdx, BoneIdentity> m_skin_inv_map;
     std::shared_ptr<SceneNode> m_root_node;
     std::shared_ptr<VulkanShadersManager> m_shader_manager;
     std::string m_default_vertex_shader_name;

@@ -14,7 +14,7 @@
 #include "../../scene/nodes/camera_node.h"
 #include "../../graphics/pod/render_node.h"
 
-ScreenElementScene::ScreenElementScene() : Scene() {
+ScreenElementScene::ScreenElementScene() : Scene("ScreenElementScene") {
     VulkanRenderer& renderer = Application::GetRenderer();
 	std::shared_ptr<VulkanDevice> device = renderer.GetDevice();
 

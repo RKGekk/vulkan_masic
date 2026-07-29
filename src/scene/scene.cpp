@@ -2,6 +2,8 @@
 #include "scene.h"
 #include "nodes/scene_node.h"
 #include "light_manager.h"
+#include "animation_manager.h"
+#include "skeleton_manager.h"
 
 #include <algorithm>
 #include <numeric>
@@ -9,10 +11,14 @@
 //const std::string Scene::NO_NAME = "NO NAME";
 const Material NO_MATERIAL = Material("NO MATERIAL");
 
-Scene::Scene() {
+Scene::Scene(std::string name) {
     m_local_transform.push_back(glm::mat4(1.0f));
     m_global_transform.push_back(glm::mat4(1.0f));
+    m_inv_local_transform.push_back(glm::mat4(1.0f));
+    m_inv_global_transform.push_back(glm::mat4(1.0f));
     m_hierarchy.push_back({});
+    m_node_names.push_back(std::move(name));
+    m_node_name_map[0] = 0;
     m_dirty_at_level = std::vector<NodeIndexArray>(MAX_NODE_LEVEL);
     m_light_manager = std::make_shared<LightManager>();
 }
@@ -26,6 +32,8 @@ int Scene::addNode(NodeIndex parent_index) {
 
     m_local_transform.push_back(glm::mat4(1.0f));
     m_global_transform.push_back(glm::mat4(1.0f));
+    m_inv_local_transform.push_back(glm::mat4(1.0f));
+    m_inv_global_transform.push_back(glm::mat4(1.0f));
     m_hierarchy.push_back(hierarchy);
 
     const NodeIndex old_child_index = m_hierarchy[parent_index].first_child;
@@ -85,10 +93,18 @@ int Scene::findNodeByName(const std::string& name) const {
     return NO_INDEX;
 }
 
+const std::string Scene::getSceneName() const {
+    return m_node_names[0];
+}
+
 const std::string& Scene::getNodeName(Scene::NodeIndex node_index) const {
     if(!m_node_name_map.contains(node_index)) return Scene::NO_NAME;
     const Scene::NameIndex name_index = m_node_name_map.at(node_index);
     return m_node_names[name_index];
+}
+
+const std::vector<glm::mat4>& Scene::getNodeLocalTransforms() const {
+    return m_local_transform;
 }
 
 const glm::mat4& Scene::getNodeLocalTransform(Scene::NodeIndex node_index) const {
@@ -97,11 +113,32 @@ const glm::mat4& Scene::getNodeLocalTransform(Scene::NodeIndex node_index) const
 
 void Scene::setNodeLocalTransform(Scene::NodeIndex node_index, const glm::mat4& local_transform) {
     m_local_transform[node_index] = local_transform;
+    m_inv_local_transform[node_index] = glm::inverse(local_transform);
     markAsChanged(node_index);
+}
+
+const std::vector<glm::mat4>& Scene::getNodeInvLocalTransforms() const {
+    return m_inv_local_transform;
+}
+
+const glm::mat4& Scene::getNodeInvLocalTransform(NodeIndex node_index) const {
+    return m_inv_local_transform[node_index];
+}
+
+const std::vector<glm::mat4>& Scene::getNodeGlobalTransforms() const {
+    return m_global_transform;
 }
 
 const glm::mat4& Scene::getNodeGlobalTransform(Scene::NodeIndex node_index) const {
     return m_global_transform[node_index];
+}
+
+const std::vector<glm::mat4>& Scene::getNodeInvGlobalTransforms() const {
+    return m_inv_global_transform;
+}
+
+const glm::mat4& Scene::getNodeInvGlobalTransform(NodeIndex node_index) const {
+    return m_inv_global_transform[node_index];
 }
 
 const Scene::Hierarchy& Scene::getNodeHierarchy(Scene::NodeIndex node_index) const {
@@ -141,6 +178,12 @@ void Scene::addProperty(std::shared_ptr<SceneNode> property, NodeIndex node_inde
     NodeType node_type = property->Get().GetNodeType();
     if(node_type == NODE_TYPE_FLAG_LIGHT) {
         m_light_manager->AddLight(std::dynamic_pointer_cast<LightNode>(property));
+    }
+    else if(node_type == NODE_TYPE_FLAG_BONE) {
+        m_skeleton_manager->AddBone(std::dynamic_pointer_cast<BoneNode>(property));
+    }
+    else if(node_type == NODE_TYPE_FLAG_ANIMATION) {
+        m_animation_manager->AddNodeAnimation(std::dynamic_pointer_cast<AnimationNode>(property));
     }
 
     if(!m_node_property_map.contains(node_index)) {
@@ -203,7 +246,9 @@ bool Scene::recalculateGlobalTransforms() {
     for (int lvl = 1; lvl < MAX_NODE_LEVEL; ++lvl) {
         for (int dirty_node_index : m_dirty_at_level[lvl]) {
             const int parent_node_index = m_hierarchy[dirty_node_index].parent;
-            m_global_transform[dirty_node_index] = m_global_transform[parent_node_index] * m_local_transform[dirty_node_index];
+            glm::mat4 new_global_transform = m_global_transform[parent_node_index] * m_local_transform[dirty_node_index];
+            m_global_transform[dirty_node_index] = new_global_transform;
+            m_inv_global_transform[dirty_node_index] = glm::inverse(new_global_transform);
         }
         was_updated |= !m_dirty_at_level[lvl].empty();
         m_dirty_at_level[lvl].clear();
@@ -311,6 +356,8 @@ void Scene::deleteSceneNodes(const std::vector<NodeIndex>& nodes_indices_to_dele
     // 4a) Transformations are stored in arrays, so we just erase the items as we did with the scene.hierarchy_
     eraseSelected(m_local_transform, copy_of_indices_to_delete);
     eraseSelected(m_global_transform, copy_of_indices_to_delete);
+    eraseSelected(m_inv_local_transform, copy_of_indices_to_delete);
+    eraseSelected(m_inv_global_transform, copy_of_indices_to_delete);
 
     // 4b) All the maps should change the key values with the newIndices[] array
     shiftMapIndices(m_node_type_flags_map, new_indices);
@@ -366,11 +413,13 @@ void Scene::mergeScenes(const std::vector<Scene*>& scenes, const std::vector<glm
         }
     };
 
-    m_node_name_map[0] = 0;
-    m_node_names = { "NewRoot" };
+    //m_node_name_map[0] = 0;
+    //m_node_names = { "NewRoot" };
 
-    m_local_transform.push_back(glm::mat4(1.f));
-    m_global_transform.push_back(glm::mat4(1.f));
+    m_local_transform.push_back(glm::mat4(1.0f));
+    m_global_transform.push_back(glm::mat4(1.0f));
+    m_inv_local_transform.push_back(glm::mat4(1.0f));
+    m_inv_global_transform.push_back(glm::mat4(1.0f));
 
     if (scenes.empty()) return;
 
@@ -388,6 +437,8 @@ void Scene::mergeScenes(const std::vector<Scene*>& scenes, const std::vector<glm
     for (const Scene* s : scenes) {
         mergeVectors(m_local_transform, s->m_local_transform);
         mergeVectors(m_global_transform, s->m_global_transform);
+        mergeVectors(m_inv_local_transform, s->m_inv_local_transform);
+        mergeVectors(m_inv_global_transform, s->m_inv_global_transform);
 
         mergeVectors(m_hierarchy, s->m_hierarchy);
 
@@ -431,6 +482,7 @@ void Scene::mergeScenes(const std::vector<Scene*>& scenes, const std::vector<glm
         // transform old root nodes, if the transforms are given
         if (!root_transforms.empty()) {
             m_local_transform[offs] = root_transforms[idx] * m_local_transform[offs];
+            m_inv_local_transform[offs] = glm::inverse(m_local_transform[offs]);
         }
 
         offs += node_count;

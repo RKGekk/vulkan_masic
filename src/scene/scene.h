@@ -23,6 +23,8 @@ constexpr const int MAX_NODE_LEVEL = 32;
 
 class SceneNode;
 class LightManager;
+class AnimationManager;
+class SkeletonManager;
 
 class Scene : public std::enable_shared_from_this<Scene> {
 public:
@@ -35,6 +37,7 @@ public:
 	static const uint32_t NODE_TYPE_FLAG_SPHERE = 32u;
 	static const uint32_t NODE_TYPE_FLAG_BONE = 64u;
 	static const uint32_t NODE_TYPE_FLAG_VALUE_BAG = 128u;
+	static const uint32_t NODE_TYPE_FLAG_ANIMATION = 256u;
 
 	using NodeIndex = uint32_t;
     using NodeLevel = uint32_t;
@@ -55,7 +58,7 @@ public:
 		NodeLevel level = 0;
 	};
 
-    Scene();
+    Scene(std::string name);
 
 	int addNode(NodeIndex parent_index = 0u);
 	int addNode(std::string name, NodeIndex parent_index = 0);
@@ -65,15 +68,24 @@ public:
     void markAsChanged(NodeIndex node_index);
     int findNodeByName(const std::string& name) const;
 
+	const std::string getSceneName() const;
+
     const std::string& getNodeName(NodeIndex node_index) const;
 	void setNodeName(NodeIndex node_index, std::string name);
 	const std::vector<std::string>& getNodeNames() const;
 	const std::unordered_map<NodeIndex, NameIndex>& getNodeNameMap() const;
 
+	const std::vector<glm::mat4>& getNodeLocalTransforms() const;
 	const glm::mat4& getNodeLocalTransform(NodeIndex node_index) const;
 	void setNodeLocalTransform(NodeIndex node_index, const glm::mat4& local_transform);
+	const std::vector<glm::mat4>& getNodeInvLocalTransforms() const;
+	const glm::mat4& getNodeInvLocalTransform(NodeIndex node_index) const;
 
+	const std::vector<glm::mat4>& getNodeGlobalTransforms() const;
 	const glm::mat4& getNodeGlobalTransform(NodeIndex node_index) const;
+	const std::vector<glm::mat4>& getNodeInvGlobalTransforms() const;
+	const glm::mat4& getNodeInvGlobalTransform(NodeIndex node_index) const;
+
 	const Hierarchy& getNodeHierarchy(NodeIndex node_index) const;
 	const std::vector<Hierarchy>& getHierarchy() const;
 	NodeTypeFlags getNodeTypeFlags(NodeIndex node_index) const;
@@ -99,6 +111,8 @@ private:
 
 	std::vector<glm::mat4> m_local_transform; // convert from local space to parent space
 	std::vector<glm::mat4> m_global_transform; // accumulated convert from local space directly to root space(world space)
+	std::vector<glm::mat4> m_inv_local_transform;
+	std::vector<glm::mat4> m_inv_global_transform;
 	std::vector<Hierarchy> m_hierarchy;
 	std::vector<NodeIndexArray> m_dirty_at_level;
 
@@ -109,4 +123,6 @@ private:
 	std::vector<std::string> m_node_names;
 	std::vector<std::shared_ptr<Properties>> m_properties;
 	std::shared_ptr<LightManager> m_light_manager;
+	std::shared_ptr<AnimationManager> m_animation_manager;
+	std::shared_ptr<SkeletonManager> m_skeleton_manager;
 };

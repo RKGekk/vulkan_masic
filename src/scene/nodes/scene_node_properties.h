@@ -41,10 +41,10 @@ public:
 	glm::vec3 ToRootDirection() const;
 	glm::vec3 ToRootUp() const;
 
-	glm::mat4x4 FromParent() const;
+	const glm::mat4x4& FromParent() const;
 	glm::mat4x4 FromParentT() const;
 
-	glm::mat4x4 FromRoot() const;
+	const glm::mat4x4& FromRoot() const;
 	glm::mat4x4 FromRootT() const;
 
 	const char* NameCstr() const;

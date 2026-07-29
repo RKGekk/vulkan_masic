@@ -15,8 +15,8 @@ LightNode::LightNode(std::shared_ptr<Scene> scene, std::string name, Scene::Node
     SetNodeType(Scene::NODE_TYPE_FLAG_LIGHT);
 }
 
-LightNode::LightNode(std::shared_ptr<Scene> scene, std::string name, glm::mat4x4 camera_transform, Scene::NodeIndex parent)
-    : SceneNode(std::move(scene), std::move(name), camera_transform, parent)
+LightNode::LightNode(std::shared_ptr<Scene> scene, std::string name, glm::mat4x4 light_transform, Scene::NodeIndex parent)
+    : SceneNode(std::move(scene), std::move(name), light_transform, parent)
     , m_light_type(LightType::SPOT)
     , m_strength(1.0f)
     , m_falloff_start(0.0f)
@@ -26,8 +26,8 @@ LightNode::LightNode(std::shared_ptr<Scene> scene, std::string name, glm::mat4x4
     SetNodeType(Scene::NODE_TYPE_FLAG_LIGHT);
 }
 
-LightNode::LightNode(std::shared_ptr<Scene> scene, std::string name, glm::mat4x4 camera_transform, const LightNodeProperties& light_props, LightType light_type, Scene::NodeIndex parent)
-    : SceneNode(std::move(scene), std::move(name), camera_transform, parent)
+LightNode::LightNode(std::shared_ptr<Scene> scene, std::string name, glm::mat4x4 light_transform, const LightNodeProperties& light_props, LightType light_type, Scene::NodeIndex parent)
+    : SceneNode(std::move(scene), std::move(name), light_transform, parent)
     , m_light_type(light_type)
     , m_strength(light_props.strength)
     , m_falloff_start(light_props.falloff_start)
