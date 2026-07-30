@@ -54,6 +54,14 @@ void BoneNode::setJointIndex(JointIndex joint_idx, const SkinName& skin_name) {
     m_bone_data.at(skin_name).joint_index = joint_idx;
 }
 
+void BoneNode::setBoneData(BoneData bone_data) {
+    (*m_bone_data.begin()).second = bone_data;
+}
+
+void BoneNode::setBoneData(BoneData bone_data, const SkinName& skin_name) {
+    m_bone_data[skin_name] = bone_data;
+}
+
 const std::unordered_map<BoneNode::SkinName, BoneNode::BoneData>& BoneNode::getBoneDataMap() const {
     return m_bone_data;
 }

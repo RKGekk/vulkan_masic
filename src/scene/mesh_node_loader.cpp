@@ -97,12 +97,15 @@ std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem
 		for (int skin_ct = 0; const tinygltf::Skin& gltf_skin : m_gltf_model.skins) {
 			std::vector<glm::mat4x4> inv_matrices = GetMatrices(gltf_skin);
 			for (int joint_ct = 0; int bone_node_idx : gltf_skin.joints) {
-				m_skin_inv_map[bone_node_idx] = {joint_ct, inv_matrices[joint_ct], gltf_skin.name, skin_ct};
+				m_skin_inv_map[bone_node_idx].push_back({joint_ct, inv_matrices[joint_ct], gltf_skin.name, skin_ct});
 				++joint_ct;
 			}
-			m_skins.push_back(std::make_shared<SkinnedData>(gltf_skin.name));
 			++skin_ct;
 		}
+	}
+
+	if(!m_gltf_model.animations.empty()) {
+		
 	}
 
     for (int scene_idx = 0; scene_idx < num_scenes; ++scene_idx) {
@@ -526,7 +529,21 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& g
     return mesh_node;
 }
 
-std::shared_ptr<LightNode> MeshNodeLoader::MakeLightNodes(const tinygltf::Node& gltf_node, Scene::NodeIndex node) {
+std::shared_ptr<BoneNode> MeshNodeLoader::MakeBoneNode(const tinygltf::Node& gltf_node, Scene::NodeIndex node) {
+	using namespace std::literals;
+	const tinygltf::Node& gltf_node = m_gltf_model.nodes[gltf_node_idx];
+	std::shared_ptr<BoneNode> bone_node = std::make_shared<BoneNode>(m_scene, node);
+
+	for (const BoneIdentity& bone_identity : m_skin_inv_map[node]) {
+		BoneNode::BoneData bone_data = {bone_identity.inv_matrix, bone_identity.joint};
+		bone_node->setBoneData(bone_data, bone_identity.skin_name);
+	}
+
+	m_scene->addProperty(bone_node);
+	return bone_node;
+}
+
+std::shared_ptr<LightNode> MeshNodeLoader::MakeLightNode(const tinygltf::Node& gltf_node, Scene::NodeIndex node) {
 	using namespace std::literals;
 
 	nlohmann::json node_ext = nlohmann::json::parse(gltf_node.extensions_json_string.begin(), gltf_node.extensions_json_string.end());
@@ -535,8 +552,8 @@ std::shared_ptr<LightNode> MeshNodeLoader::MakeLightNodes(const tinygltf::Node& 
 
     std::shared_ptr<LightNode> light_node = std::make_shared<LightNode>(m_scene, node);
 
-    const std::string& light_name = gltf_node.name;
-	light_node->SetName(light_name);
+    //const std::string& light_name = gltf_node.name;
+	//light_node->SetName(light_name);
 
 	if (light_data.type == "spot") light_node->setLightType(LightNode::LightType::SPOT);
 	else if (light_data.type == "point") light_node->setLightType(LightNode::LightType::POINT);
@@ -705,30 +722,10 @@ std::vector<glm::mat4x4> MeshNodeLoader::GetMatrices(const tinygltf::Accessor& m
 }
 
 void MeshNodeLoader::MakeNodesHierarchy(NodeIdx current_node_idx, std::shared_ptr<SceneNode> parent) {
-	NodeIdx parent_node_idx = getParent(current_node_idx);
 	const tinygltf::Node& gltf_node = m_gltf_model.nodes[current_node_idx];
 	bool is_current_bone = m_skin_inv_map.count(current_node_idx);
-	bool is_parent_bone = m_skin_inv_map.count(parent_node_idx);
 
 	std::shared_ptr<SceneNode> transform_node = MakeSingleNode(gltf_node, parent->VGetNodeIndex(), m_scene);
-	// std::shared_ptr<SceneNode> transform_node;
-	// if(is_current_bone) {
-	// 	const BoneIdentity& bone_identity = m_skin_inv_map.at(current_node_idx);
-	// 	const tinygltf::Skin& gltf_skin = m_gltf_model.skins.at(bone_identity.skin_id);
-	// 	const std::shared_ptr<Scene>& skeneton_ptr = m_skins[bone_identity.skin_id]->getSkeleton();
-
-	// 	bool is_root_bone = skeneton_ptr->getHierarchy().size() == 1u;
-	// 	if(is_root_bone) {
-	// 		transform_node = MakeSingleNode(gltf_node, 0u, skeneton_ptr);
-	// 	}
-	// 	else {
-	// 		transform_node = MakeSingleNode(gltf_node, parent->VGetNodeIndex(), skeneton_ptr);
-	// 	}
-		
-	// }
-	// else {
-	// 	transform_node = MakeSingleNode(gltf_node, parent->VGetNodeIndex(), m_scene);
-	// }
 	
 	if (gltf_node.mesh != -1) {
 		const tinygltf::Mesh& gltf_mesh = m_gltf_model.meshes[gltf_node.mesh];
@@ -737,7 +734,11 @@ void MeshNodeLoader::MakeNodesHierarchy(NodeIdx current_node_idx, std::shared_pt
 	}
 
 	if(HaveLightExt(gltf_node)) {
-		MakeLightNodes(gltf_node, transform_node->VGetNodeIndex());
+		MakeLightNode(gltf_node, transform_node->VGetNodeIndex());
+	}
+
+	if(is_current_bone) {
+		MakeBoneNode(gltf_node, transform_node->VGetNodeIndex());
 	}
 
 	size_t child_ct = gltf_node.children.size();

@@ -46,6 +46,9 @@ public:
 	void setJointIndex(JointIndex joint_idx);
 	void setJointIndex(JointIndex joint_idx, const SkinName& skin_name);
 
+	void setBoneData(BoneData bone_data);
+	void setBoneData(BoneData bone_data, const SkinName& skin_name);
+
 	const std::unordered_map<SkinName, BoneData>& getBoneDataMap() const;
 
 private:

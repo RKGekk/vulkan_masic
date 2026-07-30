@@ -7,14 +7,10 @@
 #include "scene_node.h"
 #include "../../graphics/pod/model_data.h"
 
-class SkinnedData;
-
 class MeshNode : public SceneNode {
 public:
 	using MeshList = std::vector<std::shared_ptr<ModelData>>;
 	using SkinName = std::string;
-
-	using SkeletonList = std::unordered_map<SkinName, std::shared_ptr<SkinnedData>>;
 
 	MeshNode(std::shared_ptr<Scene> scene, Scene::NodeIndex node_index);
 	MeshNode(std::shared_ptr<Scene> scene, const std::string& name, const glm::mat4x4& transform, Scene::NodeIndex parent = 0u);
@@ -33,5 +29,4 @@ protected:
 	void CalcAABB();
 
 	MeshList m_meshes;
-	SkeletonList m_skeletons;
 };
