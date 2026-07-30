@@ -148,18 +148,6 @@ glm::mat4x4 MatrixAnimation::InterpolateTime(float t) const {
 	return transform;
 }
 
-void MatrixAnimation::InterpolateCurrentTime(glm::mat4x4& transform) const {
-	float t = CurrentTime.fGetTotalSeconds();
-	InterpolateTime(t, transform);
-}
-
-glm::mat4x4 MatrixAnimation::InterpolateCurrentTime() const {
-	glm::mat4x4 transform = glm::mat4x4(1.0f);
-	float t = CurrentTime.fGetTotalSeconds();
-	InterpolateTime(t, transform);
-	return transform;
-}
-
 void MatrixAnimation::InterpolateNormValue(float v, glm::mat4x4& transform) const {
 	float t = GetTotalAnimationTime() * v;
 	InterpolateTime(t, transform);

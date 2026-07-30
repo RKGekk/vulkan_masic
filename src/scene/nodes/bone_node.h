@@ -12,24 +12,42 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <memory>
+#include <string>
+#include <unordered_map>
 
 #include "scene_node.h"
 
 class BoneNode : public SceneNode {
 public:
+	using JointIndex = uint32_t;
+	using SkinName = std::string;
+
+	struct BoneData {
+		glm::mat4 inverse_bind_matrice;
+		JointIndex joint_index;
+	};
 
 	BoneNode(std::shared_ptr<Scene> scene, Scene::NodeIndex node_index);
 	BoneNode(std::shared_ptr<Scene> scene, std::string name, Scene::NodeIndex parent = 0u);
 	BoneNode(std::shared_ptr<Scene> scene, std::string name, glm::mat4x4 transform, Scene::NodeIndex parent = 0u);
-    BoneNode(std::shared_ptr<Scene> scene, std::string name, glm::mat4x4 transform, glm::mat4 inverse_bind_matrice, Scene::NodeIndex parent = 0u);
 
 	virtual bool VOnRestore() override;
 	virtual bool VOnUpdate() override;
 
+	const glm::mat4x4& getInverseBindMatrice(const SkinName& skin_name) const;
     const glm::mat4x4& getInverseBindMatrice() const;
 	glm::mat4x4 getInverseBindMatriceT() const;
+	glm::mat4x4 getInverseBindMatriceT(const SkinName& skin_name) const;
     void setInverseBindMatrice(const glm::mat4x4& inverse_bind_matrice);
+	void setInverseBindMatrice(const glm::mat4x4& inverse_bind_matrice, const SkinName& skin_name);
+
+	JointIndex getJointIndex() const;
+	JointIndex getJointIndex(const SkinName& skin_name) const;
+	void setJointIndex(JointIndex joint_idx);
+	void setJointIndex(JointIndex joint_idx, const SkinName& skin_name);
+
+	const std::unordered_map<SkinName, BoneData>& getBoneDataMap() const;
 
 private:
-    glm::mat4 m_inverse_bind_matrice;
+    std::unordered_map<SkinName, BoneData> m_bone_data;
 };

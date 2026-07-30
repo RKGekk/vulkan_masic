@@ -131,8 +131,6 @@ set(APP_SOURCES
     "${SRC_DIR}/physics/sphere_contacts.h"
     "${SRC_DIR}/animation/matrix_animation.h"
     "${SRC_DIR}/animation/matrix_animation.cpp"
-    "${SRC_DIR}/animation/skinned_data.h"
-    "${SRC_DIR}/animation/skinned_data.cpp"
     "${SRC_DIR}/actors/actor.h"
     "${SRC_DIR}/actors/actor.cpp"
     "${SRC_DIR}/actors/actor_component.h"
