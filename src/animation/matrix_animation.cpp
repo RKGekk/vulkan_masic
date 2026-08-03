@@ -49,6 +49,9 @@ void MatrixAnimation::InterpolateTime(float t, glm::mat4x4& transform) const {
 		if (it1 == TranslationKeyframes.cbegin()) {
 			P = it1->Translation;
 		}
+		else if(std::prev(it1)->InterpolationType == KeyFrameInterpolationType::STEP) {
+			P = std::prev(it1)->Translation;
+		}
 		else {
 			auto it0 = std::prev(it1);
 
@@ -63,11 +66,19 @@ void MatrixAnimation::InterpolateTime(float t, glm::mat4x4& transform) const {
 			glm::vec3 p0 = it0->Translation;
 			glm::vec3 p1 = it1->Translation;
 
-			glm::vec3 t0 = it0->Tangent;
-			glm::vec3 t1 = it1->Tangent;
+			if(it0->InterpolationType == KeyFrameInterpolationType::LINEAR) {
+				//P = glm::mix(p0, p1, lerp_percent);
+				P = glm::lerp(p0, p1, lerp_percent);
+			}
+			else if(it0->InterpolationType == KeyFrameInterpolationType::CUBICSPLINE) {
+				// glm::vec3 t0 = it0->Tangent;
+				// glm::vec3 t1 = it1->Tangent;
+				// Multiply the tangents by the frame's time duration because of how decouples physical velocity from keyframe spacing.The primary reasons for this requirement involve mathematical unit cancellation, normalized curve shapes, and maintaining consistent animation speeds
+				glm::vec3 t0 = it0->inTangent * time_delta;
+				glm::vec3 t1 = it0->outTangent * time_delta;
 
-			//P = glm::mix(p0, p1, lerp_percent);
-			P = glm::hermite(p0, t0, p1, t1, lerp_percent);
+				P = glm::hermite(p0, t0, p1, t1, lerp_percent);
+			}
 		}
 	}
 
@@ -117,6 +128,9 @@ void MatrixAnimation::InterpolateTime(float t, glm::mat4x4& transform) const {
 		if (it1 == RotationKeyframes.cbegin()) {
 			Q = it1->RotationQuat;
 		}
+		else if(std::prev(it1)->InterpolationType == KeyFrameInterpolationType::STEP) {
+			Q = std::prev(it1)->RotationQuat;
+		}
 		else {
 			auto it0 = std::prev(it1);
 
@@ -131,7 +145,23 @@ void MatrixAnimation::InterpolateTime(float t, glm::mat4x4& transform) const {
 			glm::quat q0 = it0->RotationQuat;
 			glm::quat q1 = it1->RotationQuat;
 
-            Q = glm::slerp(q0, q1, lerp_percent);
+			if (glm::dot(q0, q1) < 0.0f) {
+        		q1 = -q1; // Invert quaternion to prevent long-way wrapping
+    		}
+
+			if(it0->InterpolationType == KeyFrameInterpolationType::LINEAR) {
+				Q = glm::slerp(q0, q1, lerp_percent);
+			}
+			else if(it0->InterpolationType == KeyFrameInterpolationType::CUBICSPLINE) {
+				// glm::quat t0 = it0->Tangent;
+				// glm::quat t1 = it1->Tangent;
+				// Multiply the tangents by the frame's time duration because of how decouples physical velocity from keyframe spacing.The primary reasons for this requirement involve mathematical unit cancellation, normalized curve shapes, and maintaining consistent animation speeds
+				glm::quat t0 = it0->inTangent * time_delta;
+				glm::quat t1 = it0->outTangent * time_delta;
+
+				// Spline accumulation breaks unit length; normalization is mandatory
+				Q = glm::normalize(glm::hermite(q0, t0, q1, t1, lerp_percent));
+			}
 		}
 	}
 

@@ -16,13 +16,21 @@
 
 #include "../tools/game_timer.h"
 
+enum class KeyFrameInterpolationType {
+	LINEAR,
+	STEP,
+	CUBICSPLINE
+};
+
 struct KeyframeMatrixTranslation {
 	KeyframeMatrixTranslation();
 	~KeyframeMatrixTranslation();
 
 	float TimePos;
+	KeyFrameInterpolationType InterpolationType;
 	glm::vec3 Translation;
-	glm::vec3 Tangent;
+	glm::vec3 inTangent;
+	glm::vec3 outTangent;
 };
 bool operator<(const KeyframeMatrixTranslation& kf1, const KeyframeMatrixTranslation& kf2);
 
@@ -31,6 +39,7 @@ struct KeyframeMatrixScale {
 	~KeyframeMatrixScale();
 
 	float TimePos;
+	KeyFrameInterpolationType InterpolationType;
 	glm::vec3 Scale;
 };
 bool operator<(const KeyframeMatrixScale& kf1, const KeyframeMatrixScale& kf2);
@@ -40,7 +49,10 @@ struct KeyframeMatrixRotation {
 	~KeyframeMatrixRotation();
 
 	float TimePos;
+	KeyFrameInterpolationType InterpolationType;
 	glm::quat RotationQuat;
+	glm::quat inTangent;
+	glm::quat outTangent;
 };
 bool operator<(const KeyframeMatrixRotation& kf1, const KeyframeMatrixRotation& kf2);
 

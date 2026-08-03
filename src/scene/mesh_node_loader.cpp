@@ -105,7 +105,8 @@ std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem
 	}
 
 	if(!m_gltf_model.animations.empty()) {
-		
+		m_node_to_anim_map = make_node_to_anim_map();
+		m_node_to_matrix_map = make_node_to_matrix_map();
 	}
 
     for (int scene_idx = 0; scene_idx < num_scenes; ++scene_idx) {
@@ -543,6 +544,23 @@ std::shared_ptr<BoneNode> MeshNodeLoader::MakeBoneNode(const tinygltf::Node& glt
 	return bone_node;
 }
 
+std::shared_ptr<AnimationNode> MeshNodeLoader::MakeAnimationNode(const tinygltf::Node& gltf_node, Scene::NodeIndex node) {
+	using namespace std::literals;
+	std::shared_ptr<AnimationNode> animation_node = std::make_shared<AnimationNode>(m_scene, node);
+	const tinygltf::Node& gltf_node = m_gltf_model.nodes[gltf_node_idx];
+
+	std::unordered_map<AnimationIdx, AnimationChannelIdx> anim_map = m_node_to_anim_map[gltf_node];
+	for (const auto&[anim_idx, anim_channel_idx] : anim_map) {
+		const tinygltf::Animation& gltf_current_animation = m_gltf_model.animations[anim_idx];
+
+	}
+
+
+
+	m_scene->addProperty(animation_node);
+	return animation_node;
+}
+
 std::shared_ptr<LightNode> MeshNodeLoader::MakeLightNode(const tinygltf::Node& gltf_node, Scene::NodeIndex node) {
 	using namespace std::literals;
 
@@ -721,9 +739,58 @@ std::vector<glm::mat4x4> MeshNodeLoader::GetMatrices(const tinygltf::Accessor& m
 	return matrices;
 }
 
+std::vector<glm::quat> MeshNodeLoader::GetLinearRotationAnimData(const tinygltf::Accessor& rotation_accessor) {
+	size_t rotation_view_idx = rotation_accessor.bufferView;
+	const tinygltf::BufferView& rotation_view = m_gltf_model.bufferViews[rotation_view_idx];
+	size_t rotation_buffer_idx = rotation_view.buffer;
+	const tinygltf::Buffer& rotation_buffer = m_gltf_model.buffers[rotation_buffer_idx];
+
+	const glm::quat* begin_ptr = static_cast<const glm::quat*>(rotation_buffer.data.data());
+	std::vector<glm::quat> rotations(begin_ptr, begin_ptr + rotation_accessor.count);
+
+	return rotations;
+}
+
+std::vector<CubicSplineQuat> MeshNodeLoader::GetCubicRotationAnimData(const tinygltf::Accessor& rotation_accessor) {
+	size_t rotation_view_idx = rotation_accessor.bufferView;
+	const tinygltf::BufferView& rotation_view = m_gltf_model.bufferViews[rotation_view_idx];
+	size_t rotation_buffer_idx = rotation_view.buffer;
+	const tinygltf::Buffer& rotation_buffer = m_gltf_model.buffers[rotation_buffer_idx];
+
+	const CubicSplineQuat* begin_ptr = static_cast<const CubicSplineQuat*>(rotation_buffer.data.data());
+	std::vector<CubicSplineQuat> rotations(begin_ptr, begin_ptr + rotation_accessor.count / 3);
+
+	return rotations;
+}
+
+std::vector<glm::vec3> MeshNodeLoader::GetLinearTranslationAnimData(const tinygltf::Accessor& translation_accessor) {
+	size_t translation_view_idx = translation_accessor.bufferView;
+	const tinygltf::BufferView& translation_view = m_gltf_model.bufferViews[translation_view_idx];
+	size_t translation_buffer_idx = translation_view.buffer;
+	const tinygltf::Buffer& translation_buffer = m_gltf_model.buffers[translation_buffer_idx];
+
+	const glm::vec3* begin_ptr = static_cast<const glm::vec3*>(translation_buffer.data.data());
+	std::vector<glm::vec3> translations(begin_ptr, begin_ptr + translation_accessor.count);
+
+	return translations;
+}
+
+std::vector<CubicSplineVec3> MeshNodeLoader::GetCubicTranslationAnimData(const tinygltf::Accessor& translation_accessor) {
+	size_t translation_view_idx = translation_accessor.bufferView;
+	const tinygltf::BufferView& translation_view = m_gltf_model.bufferViews[translation_view_idx];
+	size_t translation_buffer_idx = translation_view.buffer;
+	const tinygltf::Buffer& translation_buffer = m_gltf_model.buffers[translation_buffer_idx];
+
+	const glm::CubicSplineVec3* begin_ptr = static_cast<const glm::CubicSplineVec3*>(translation_buffer.data.data());
+	std::vector<glm::CubicSplineVec3> translations(begin_ptr, begin_ptr + translation_accessor.count / 3);
+
+	return translations;
+}
+
 void MeshNodeLoader::MakeNodesHierarchy(NodeIdx current_node_idx, std::shared_ptr<SceneNode> parent) {
 	const tinygltf::Node& gltf_node = m_gltf_model.nodes[current_node_idx];
 	bool is_current_bone = m_skin_inv_map.count(current_node_idx);
+	bool is_current_has_anim = m_node_to_anim_map.count(current_node_idx);
 
 	std::shared_ptr<SceneNode> transform_node = MakeSingleNode(gltf_node, parent->VGetNodeIndex(), m_scene);
 	
@@ -741,6 +808,10 @@ void MeshNodeLoader::MakeNodesHierarchy(NodeIdx current_node_idx, std::shared_pt
 		MakeBoneNode(gltf_node, transform_node->VGetNodeIndex());
 	}
 
+	if(is_current_has_anim) {
+		MakeAnimationNode(gltf_node, transform_node->VGetNodeIndex());
+	}
+
 	size_t child_ct = gltf_node.children.size();
 	for (size_t current_child_ct = 0u; current_child_ct < child_ct; ++current_child_ct) {
 		int current_child_idx = gltf_node.children[current_child_ct];
@@ -749,13 +820,171 @@ void MeshNodeLoader::MakeNodesHierarchy(NodeIdx current_node_idx, std::shared_pt
 	}
 }
 
-void MeshNodeLoader::MakeBonesHierarchy(NodeIdx current_node_idx, std::shared_ptr<SceneNode> parent) {
+// void MeshNodeLoader::MakeBonesHierarchy(NodeIdx current_node_idx, std::shared_ptr<SceneNode> parent) {
 
-}
+// }
 
 // MeshNodeLoader::NodeIdx MeshNodeLoader::getSkinRoot(MeshNodeLoader::SkinIdx skin_idx) const {
 // 	const tinygltf::Skin& gltf_skin = m_gltf_model.skins[skin_idx];
 // }
+
+std::unordered_map<MeshNodeLoader::NodeIdx, std::unordered_map<MeshNodeLoader::AnimationIdx, std::vector<MeshNodeLoader::AnimationChannelIdx>>> MeshNodeLoader::make_node_to_anim_map() {
+	std::unordered_map<NodeIdx, std::unordered_map<AnimationIdx, std::vector<AnimationChannelIdx>>> node_to_anim_map;
+	size_t num_animations = m_gltf_model.animations.size();
+	for (int animation_ct = 0; animation_ct < num_animations; ++animation_ct) {
+		const tinygltf::Animation& gltf_current_animation = m_gltf_model.animations[animation_ct];
+		size_t num_channels = gltf_current_animation.channels.size();
+		for (int channel_ct = 0; channel_ct < num_channels; ++channel_ct) {
+			const tinygltf::AnimationChannel& gltf_anim_channel = gltf_current_animation.channels[channel_ct];
+			node_to_anim_map[gltf_anim_channel.target_node][animation_ct].push_back(channel_ct);
+		}
+	}
+
+	return node_to_anim_map;
+}
+
+std::unordered_map<MeshNodeLoader::NodeIdx, std::unordered_map<MeshNodeLoader::AnimationIdx, std::shared_ptr<MatrixAnimation>>> MeshNodeLoader::make_node_to_matrix_map() {
+	std::unordered_map<NodeIdx, std::unordered_map<AnimationIdx, std::vector<AnimationChannelIdx>>> node_to_anim_map;
+	size_t num_animations = m_gltf_model.animations.size();
+	for (int animation_ct = 0; animation_ct < num_animations; ++animation_ct) {
+		const tinygltf::Animation& gltf_current_animation = m_gltf_model.animations[animation_ct];
+		size_t num_channels = gltf_current_animation.channels.size();
+		for (int channel_ct = 0; channel_ct < num_channels; ++channel_ct) {
+			const tinygltf::AnimationChannel& gltf_anim_channel = gltf_current_animation.channels[channel_ct];
+
+			node_to_anim_map[gltf_anim_channel.target_node][animation_ct].push_back(channel_ct);
+		}
+	}
+
+	return node_to_anim_map;
+}
+
+std::shared_ptr<MatrixAnimation> MeshNodeLoader::make_anim_matrix(const tinygltf::Animation& gltf_animation, NodeIdx node_idx) {
+	using namespace std::literals;
+	std::shared_ptr<MatrixAnimation> matrix_anim = std::make_shared<MatrixAnimation>();
+	for (int channel_ct = 0; channel_ct < num_channels; ++channel_ct) {
+		const tinygltf::AnimationChannel& gltf_anim_channel = gltf_current_animation.channels[channel_ct];
+		int anim_sampler_idx = gltf_anim_channel.sampler;
+		const tinygltf::AnimationSampler& anim_sampler = gltf_animation.samplers[anim_sampler_idx];
+		std::vector<float> timeline = GetTimeline(m_gltf_model.accessors[anim_sampler.input]);
+
+		int anim_out_accessor_idx = anim_sampler.output;
+		const tinygltf::Accessor& anim_out_accessor = m_gltf_model.accessors[anim_out_accessor_idx];
+		if(gltf_anim_channel.target_path == "translation"s) {
+			if(anim_sampler.interpolation == "LINEAR"s) {
+				std::vector<glm::vec3> translations = GetLinearTranslationAnimData(anim_out_accessor);
+				for(int t = 0; t < translations.size(); ++t) {
+					KeyframeMatrixTranslation trans_key_frame{};
+					trans_key_frame.InterpolationType == KeyFrameInterpolationType::LINEAR;
+					trans_key_frame.TimePos = timeline[t];
+					trans_key_frame.Translation = translations[t];
+
+					matrix_anim->TranslationKeyframes.push_back(trans_key_frame);
+				}
+			}
+			else if(anim_sampler.interpolation == "STEP"s) {
+				std::vector<glm::vec3> translations = GetLinearTranslationAnimData(anim_out_accessor);
+				for(int t = 0; t < translations.size(); ++t) {
+					KeyframeMatrixTranslation trans_key_frame{};
+					trans_key_frame.InterpolationType == KeyFrameInterpolationType::STEP;
+					trans_key_frame.TimePos = timeline[t];
+					trans_key_frame.Translation = translations[t];
+
+					matrix_anim->TranslationKeyframes.push_back(trans_key_frame);
+				}
+			}
+			else if(anim_sampler.interpolation == "CUBICSPLINE"s) {
+				std::vector<CubicSplineVec3> translations = GetCubicTranslationAnimData(anim_out_accessor);
+				for(int t = 0; t < translations.size(); ++t) {
+					KeyframeMatrixTranslation trans_key_frame{};
+					trans_key_frame.InterpolationType == KeyFrameInterpolationType::CUBICSPLINE;
+					trans_key_frame.TimePos = timeline[t];
+					trans_key_frame.Translation = translations[t].value;
+					trans_key_frame.inTangent = translations[t].inTangent;
+					trans_key_frame.outTangent = translations[t].outTangent;
+
+					matrix_anim->TranslationKeyframes.push_back(trans_key_frame);
+				}
+			}
+		}
+		else if(gltf_anim_channel.target_path == "rotation"s){
+			if(anim_sampler.interpolation == "LINEAR"s) {
+				std::vector<glm::quat> rotations = GetLinearRotationAnimData(anim_out_accessor);
+				for(int t = 0; t < rotations.size(); ++t) {
+					KeyframeMatrixRotation rot_key_frame{};
+					rot_key_frame.InterpolationType == KeyFrameInterpolationType::LINEAR;
+					rot_key_frame.TimePos = timeline[t];
+					rot_key_frame.RotationQuat = rotations[t];
+
+					matrix_anim->RotationKeyframes.push_back(rot_key_frame);
+				}
+			}
+			else if(anim_sampler.interpolation == "STEP"s) {
+				std::vector<glm::vec3> rotations = GetLinearTranslationAnimData(anim_out_accessor);
+				for(int t = 0; t < rotations.size(); ++t) {
+					std::vector<glm::quat> rotations = GetLinearRotationAnimData(anim_out_accessor);
+					for(int t = 0; t < rotations.size(); ++t) {
+						KeyframeMatrixRotation rot_key_frame{};
+						rot_key_frame.InterpolationType == KeyFrameInterpolationType::STEP;
+						rot_key_frame.TimePos = timeline[t];
+						rot_key_frame.RotationQuat = rotations[t];
+
+						matrix_anim->RotationKeyframes.push_back(rot_key_frame);
+					}
+				}
+			}
+			else if(anim_sampler.interpolation == "CUBICSPLINE"s) {
+				std::vector<CubicSplineQuat> rotations = GetCubicRotationAnimData(anim_out_accessor);
+				for(int t = 0; t < rotations.size(); ++t) {
+					KeyframeMatrixRotation rot_key_frame{};
+					rot_key_frame.InterpolationType == KeyFrameInterpolationType::CUBICSPLINE;
+					rot_key_frame.TimePos = timeline[t];
+					rot_key_frame.RotationQuat = rotations[t].value;
+					rot_key_frame.inTangent = rotations[t].inTangent;
+					rot_key_frame.outTangent = rotations[t].outTangent;
+
+					matrix_anim->RotationKeyframes.push_back(rot_key_frame);
+				}
+			}
+		}
+		else if(gltf_anim_channel.target_path == "scale"s){
+
+		}
+		else if(gltf_anim_channel.target_path == "weights"s){
+
+		}
+	}
+
+	return matrix_anim;
+}
+
+std::vector<float> MeshNodeLoader::GetTimeline(const tinygltf::Accessor& time_accessor) {
+	int32_t time_element_size = tinygltf::GetComponentSizeInBytes(time_accessor.componentType);
+	int32_t num_elements_in_time_type = tinygltf::GetNumComponentsInType(time_accessor.type);
+	int32_t num_of_elements_to_copy = num_elements_in_time_type;
+
+	size_t time_view_idx = time_accessor.bufferView;
+	const tinygltf::BufferView& time_view = m_gltf_model.bufferViews[time_view_idx];
+	size_t time_buffer_idx = time_view.buffer;
+	const tinygltf::Buffer& time_buffer = m_gltf_model.buffers[time_buffer_idx];
+
+	const unsigned char* begin_ptr = time_buffer.data.data();
+	size_t buffer_offset_bytes = time_accessor.byteOffset + time_view.byteOffset;
+	size_t buffer_stride_bytes = time_view.byteStride ? time_view.byteStride : time_element_size * num_elements_in_time_type;
+	size_t elements_count = time_accessor.count;
+
+	std::vector<float> timeline;
+	timeline.reserve(elements_count * num_elements_in_time_type);
+	for (size_t current_element = 0u; current_element < elements_count; ++current_element) {
+		for (int32_t current_component_num = 0; current_component_num < num_of_elements_to_copy; ++current_component_num) {
+			const unsigned char* raw_data_ptr = begin_ptr + buffer_offset_bytes + current_element * buffer_stride_bytes + current_component_num * time_element_size;
+			float vertex_attrib_element = GetAttribute(raw_data_ptr, time_accessor.componentType);
+			timeline.push_back(vertex_attrib_element);
+		}
+	}
+
+	return timeline;
+}
 
 MeshNodeLoader::NodeIdx MeshNodeLoader::getParent(MeshNodeLoader::NodeIdx node_idx) const {
     if(m_node_parent.count(node_idx)) {
