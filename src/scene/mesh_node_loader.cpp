@@ -6,7 +6,6 @@
 #include "mesh_node_loader.h"
 
 #include "../application.h"
-#include "../animation/skinned_data.h"
 #include "../graphics/pod/image_buffer_config.h"
 #include "../graphics/pod/buffer_config.h"
 #include "../graphics/pod/graphics_render_node_config.h"
@@ -97,7 +96,12 @@ std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem
 		for (int skin_ct = 0; const tinygltf::Skin& gltf_skin : m_gltf_model.skins) {
 			std::vector<glm::mat4x4> inv_matrices = GetMatrices(gltf_skin);
 			for (int joint_ct = 0; int bone_node_idx : gltf_skin.joints) {
-				m_skin_inv_map[bone_node_idx].push_back({joint_ct, inv_matrices[joint_ct], gltf_skin.name, skin_ct});
+				BoneIdentity bone_identity{};
+				bone_identity.joint = joint_ct;
+				bone_identity.inv_matrix = inv_matrices[joint_ct];
+				bone_identity.skin_name = gltf_skin.name;
+				bone_identity.skin_id = skin_ct;
+				m_skin_inv_map[bone_node_idx].push_back(bone_identity);
 				++joint_ct;
 			}
 			++skin_ct;
@@ -530,12 +534,11 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& g
     return mesh_node;
 }
 
-std::shared_ptr<BoneNode> MeshNodeLoader::MakeBoneNode(const tinygltf::Node& gltf_node, Scene::NodeIndex node) {
+std::shared_ptr<BoneNode> MeshNodeLoader::MakeBoneNode(NodeIdx gltf_node_idx, Scene::NodeIndex node) {
 	using namespace std::literals;
-	const tinygltf::Node& gltf_node = m_gltf_model.nodes[gltf_node_idx];
 	std::shared_ptr<BoneNode> bone_node = std::make_shared<BoneNode>(m_scene, node);
 
-	for (const BoneIdentity& bone_identity : m_skin_inv_map[node]) {
+	for (const BoneIdentity& bone_identity : m_skin_inv_map[gltf_node_idx]) {
 		BoneNode::BoneData bone_data = {bone_identity.inv_matrix, bone_identity.joint};
 		bone_node->setBoneData(bone_data, bone_identity.skin_name);
 	}
@@ -544,18 +547,14 @@ std::shared_ptr<BoneNode> MeshNodeLoader::MakeBoneNode(const tinygltf::Node& glt
 	return bone_node;
 }
 
-std::shared_ptr<AnimationNode> MeshNodeLoader::MakeAnimationNode(const tinygltf::Node& gltf_node, Scene::NodeIndex node) {
+std::shared_ptr<AnimationNode> MeshNodeLoader::MakeAnimationNode(NodeIdx gltf_node_idx, Scene::NodeIndex node) {
 	using namespace std::literals;
 	std::shared_ptr<AnimationNode> animation_node = std::make_shared<AnimationNode>(m_scene, node);
-	const tinygltf::Node& gltf_node = m_gltf_model.nodes[gltf_node_idx];
 
-	std::unordered_map<AnimationIdx, AnimationChannelIdx> anim_map = m_node_to_anim_map[gltf_node];
-	for (const auto&[anim_idx, anim_channel_idx] : anim_map) {
+	for (const auto&[anim_idx, matrix_anim] : m_node_to_matrix_map[gltf_node_idx]) {
 		const tinygltf::Animation& gltf_current_animation = m_gltf_model.animations[anim_idx];
-
+		animation_node->addAnimation(gltf_current_animation.name, matrix_anim);
 	}
-
-
 
 	m_scene->addProperty(animation_node);
 	return animation_node;
@@ -745,19 +744,19 @@ std::vector<glm::quat> MeshNodeLoader::GetLinearRotationAnimData(const tinygltf:
 	size_t rotation_buffer_idx = rotation_view.buffer;
 	const tinygltf::Buffer& rotation_buffer = m_gltf_model.buffers[rotation_buffer_idx];
 
-	const glm::quat* begin_ptr = static_cast<const glm::quat*>(rotation_buffer.data.data());
+	const glm::quat* begin_ptr = reinterpret_cast<const glm::quat*>(rotation_buffer.data.data());
 	std::vector<glm::quat> rotations(begin_ptr, begin_ptr + rotation_accessor.count);
 
 	return rotations;
 }
 
-std::vector<CubicSplineQuat> MeshNodeLoader::GetCubicRotationAnimData(const tinygltf::Accessor& rotation_accessor) {
+std::vector<MeshNodeLoader::CubicSplineQuat> MeshNodeLoader::GetCubicRotationAnimData(const tinygltf::Accessor& rotation_accessor) {
 	size_t rotation_view_idx = rotation_accessor.bufferView;
 	const tinygltf::BufferView& rotation_view = m_gltf_model.bufferViews[rotation_view_idx];
 	size_t rotation_buffer_idx = rotation_view.buffer;
 	const tinygltf::Buffer& rotation_buffer = m_gltf_model.buffers[rotation_buffer_idx];
 
-	const CubicSplineQuat* begin_ptr = static_cast<const CubicSplineQuat*>(rotation_buffer.data.data());
+	const CubicSplineQuat* begin_ptr = reinterpret_cast<const CubicSplineQuat*>(rotation_buffer.data.data());
 	std::vector<CubicSplineQuat> rotations(begin_ptr, begin_ptr + rotation_accessor.count / 3);
 
 	return rotations;
@@ -769,20 +768,20 @@ std::vector<glm::vec3> MeshNodeLoader::GetLinearTranslationAnimData(const tinygl
 	size_t translation_buffer_idx = translation_view.buffer;
 	const tinygltf::Buffer& translation_buffer = m_gltf_model.buffers[translation_buffer_idx];
 
-	const glm::vec3* begin_ptr = static_cast<const glm::vec3*>(translation_buffer.data.data());
+	const glm::vec3* begin_ptr = reinterpret_cast<const glm::vec3*>(translation_buffer.data.data());
 	std::vector<glm::vec3> translations(begin_ptr, begin_ptr + translation_accessor.count);
 
 	return translations;
 }
 
-std::vector<CubicSplineVec3> MeshNodeLoader::GetCubicTranslationAnimData(const tinygltf::Accessor& translation_accessor) {
+std::vector<MeshNodeLoader::CubicSplineVec3> MeshNodeLoader::GetCubicTranslationAnimData(const tinygltf::Accessor& translation_accessor) {
 	size_t translation_view_idx = translation_accessor.bufferView;
 	const tinygltf::BufferView& translation_view = m_gltf_model.bufferViews[translation_view_idx];
 	size_t translation_buffer_idx = translation_view.buffer;
 	const tinygltf::Buffer& translation_buffer = m_gltf_model.buffers[translation_buffer_idx];
 
-	const glm::CubicSplineVec3* begin_ptr = static_cast<const glm::CubicSplineVec3*>(translation_buffer.data.data());
-	std::vector<glm::CubicSplineVec3> translations(begin_ptr, begin_ptr + translation_accessor.count / 3);
+	const CubicSplineVec3* begin_ptr = reinterpret_cast<const CubicSplineVec3*>(translation_buffer.data.data());
+	std::vector<CubicSplineVec3> translations(begin_ptr, begin_ptr + translation_accessor.count / 3);
 
 	return translations;
 }
@@ -805,11 +804,11 @@ void MeshNodeLoader::MakeNodesHierarchy(NodeIdx current_node_idx, std::shared_pt
 	}
 
 	if(is_current_bone) {
-		MakeBoneNode(gltf_node, transform_node->VGetNodeIndex());
+		MakeBoneNode(current_node_idx, transform_node->VGetNodeIndex());
 	}
 
 	if(is_current_has_anim) {
-		MakeAnimationNode(gltf_node, transform_node->VGetNodeIndex());
+		MakeAnimationNode(current_node_idx, transform_node->VGetNodeIndex());
 	}
 
 	size_t child_ct = gltf_node.children.size();
@@ -844,26 +843,27 @@ std::unordered_map<MeshNodeLoader::NodeIdx, std::unordered_map<MeshNodeLoader::A
 }
 
 std::unordered_map<MeshNodeLoader::NodeIdx, std::unordered_map<MeshNodeLoader::AnimationIdx, std::shared_ptr<MatrixAnimation>>> MeshNodeLoader::make_node_to_matrix_map() {
-	std::unordered_map<NodeIdx, std::unordered_map<AnimationIdx, std::vector<AnimationChannelIdx>>> node_to_anim_map;
-	size_t num_animations = m_gltf_model.animations.size();
-	for (int animation_ct = 0; animation_ct < num_animations; ++animation_ct) {
-		const tinygltf::Animation& gltf_current_animation = m_gltf_model.animations[animation_ct];
-		size_t num_channels = gltf_current_animation.channels.size();
-		for (int channel_ct = 0; channel_ct < num_channels; ++channel_ct) {
-			const tinygltf::AnimationChannel& gltf_anim_channel = gltf_current_animation.channels[channel_ct];
-
-			node_to_anim_map[gltf_anim_channel.target_node][animation_ct].push_back(channel_ct);
+	std::unordered_map<NodeIdx, std::unordered_map<AnimationIdx, std::shared_ptr<MatrixAnimation>>> node_to_matrix_map;
+	for (const auto&[node_idx, node_to_anim_map] : m_node_to_anim_map) {
+		for(const auto&[anim_idx, channels_vec] : node_to_anim_map) {
+			std::shared_ptr<MatrixAnimation> anim_matrix = make_anim_matrix(anim_idx, node_idx);
+			m_node_to_matrix_map[node_idx][anim_idx] = std::move(anim_matrix);
 		}
 	}
 
-	return node_to_anim_map;
+	return node_to_matrix_map;
 }
 
-std::shared_ptr<MatrixAnimation> MeshNodeLoader::make_anim_matrix(const tinygltf::Animation& gltf_animation, NodeIdx node_idx) {
+std::shared_ptr<MatrixAnimation> MeshNodeLoader::make_anim_matrix(AnimationIdx animation_idx, NodeIdx node_idx) {
 	using namespace std::literals;
+	if(!m_node_to_anim_map.contains(node_idx)) return nullptr;
+	
+	const tinygltf::Animation& gltf_animation = m_gltf_model.animations[animation_idx];
 	std::shared_ptr<MatrixAnimation> matrix_anim = std::make_shared<MatrixAnimation>();
-	for (int channel_ct = 0; channel_ct < num_channels; ++channel_ct) {
-		const tinygltf::AnimationChannel& gltf_anim_channel = gltf_current_animation.channels[channel_ct];
+	for (AnimationChannelIdx channel_idx : m_node_to_anim_map[node_idx][animation_idx]) {
+		const tinygltf::AnimationChannel& gltf_anim_channel = gltf_animation.channels[channel_idx];
+		if(gltf_anim_channel.target_node != node_idx) continue;
+
 		int anim_sampler_idx = gltf_anim_channel.sampler;
 		const tinygltf::AnimationSampler& anim_sampler = gltf_animation.samplers[anim_sampler_idx];
 		std::vector<float> timeline = GetTimeline(m_gltf_model.accessors[anim_sampler.input]);
@@ -875,7 +875,7 @@ std::shared_ptr<MatrixAnimation> MeshNodeLoader::make_anim_matrix(const tinygltf
 				std::vector<glm::vec3> translations = GetLinearTranslationAnimData(anim_out_accessor);
 				for(int t = 0; t < translations.size(); ++t) {
 					KeyframeMatrixTranslation trans_key_frame{};
-					trans_key_frame.InterpolationType == KeyFrameInterpolationType::LINEAR;
+					trans_key_frame.InterpolationType = KeyFrameInterpolationType::LINEAR;
 					trans_key_frame.TimePos = timeline[t];
 					trans_key_frame.Translation = translations[t];
 
@@ -886,7 +886,7 @@ std::shared_ptr<MatrixAnimation> MeshNodeLoader::make_anim_matrix(const tinygltf
 				std::vector<glm::vec3> translations = GetLinearTranslationAnimData(anim_out_accessor);
 				for(int t = 0; t < translations.size(); ++t) {
 					KeyframeMatrixTranslation trans_key_frame{};
-					trans_key_frame.InterpolationType == KeyFrameInterpolationType::STEP;
+					trans_key_frame.InterpolationType = KeyFrameInterpolationType::STEP;
 					trans_key_frame.TimePos = timeline[t];
 					trans_key_frame.Translation = translations[t];
 
@@ -897,7 +897,7 @@ std::shared_ptr<MatrixAnimation> MeshNodeLoader::make_anim_matrix(const tinygltf
 				std::vector<CubicSplineVec3> translations = GetCubicTranslationAnimData(anim_out_accessor);
 				for(int t = 0; t < translations.size(); ++t) {
 					KeyframeMatrixTranslation trans_key_frame{};
-					trans_key_frame.InterpolationType == KeyFrameInterpolationType::CUBICSPLINE;
+					trans_key_frame.InterpolationType = KeyFrameInterpolationType::CUBICSPLINE;
 					trans_key_frame.TimePos = timeline[t];
 					trans_key_frame.Translation = translations[t].value;
 					trans_key_frame.inTangent = translations[t].inTangent;
@@ -912,7 +912,7 @@ std::shared_ptr<MatrixAnimation> MeshNodeLoader::make_anim_matrix(const tinygltf
 				std::vector<glm::quat> rotations = GetLinearRotationAnimData(anim_out_accessor);
 				for(int t = 0; t < rotations.size(); ++t) {
 					KeyframeMatrixRotation rot_key_frame{};
-					rot_key_frame.InterpolationType == KeyFrameInterpolationType::LINEAR;
+					rot_key_frame.InterpolationType = KeyFrameInterpolationType::LINEAR;
 					rot_key_frame.TimePos = timeline[t];
 					rot_key_frame.RotationQuat = rotations[t];
 
@@ -925,7 +925,7 @@ std::shared_ptr<MatrixAnimation> MeshNodeLoader::make_anim_matrix(const tinygltf
 					std::vector<glm::quat> rotations = GetLinearRotationAnimData(anim_out_accessor);
 					for(int t = 0; t < rotations.size(); ++t) {
 						KeyframeMatrixRotation rot_key_frame{};
-						rot_key_frame.InterpolationType == KeyFrameInterpolationType::STEP;
+						rot_key_frame.InterpolationType = KeyFrameInterpolationType::STEP;
 						rot_key_frame.TimePos = timeline[t];
 						rot_key_frame.RotationQuat = rotations[t];
 
@@ -937,7 +937,7 @@ std::shared_ptr<MatrixAnimation> MeshNodeLoader::make_anim_matrix(const tinygltf
 				std::vector<CubicSplineQuat> rotations = GetCubicRotationAnimData(anim_out_accessor);
 				for(int t = 0; t < rotations.size(); ++t) {
 					KeyframeMatrixRotation rot_key_frame{};
-					rot_key_frame.InterpolationType == KeyFrameInterpolationType::CUBICSPLINE;
+					rot_key_frame.InterpolationType = KeyFrameInterpolationType::CUBICSPLINE;
 					rot_key_frame.TimePos = timeline[t];
 					rot_key_frame.RotationQuat = rotations[t].value;
 					rot_key_frame.inTangent = rotations[t].inTangent;
@@ -1709,4 +1709,30 @@ LightPunctual MeshNodeLoader::GetLightPunctual(const nlohmann::json& json_light)
 	}
 
 	return light;
+}
+
+float MeshNodeLoader::GetAttribute(const unsigned char* raw_data_ptr, uint32_t component_type) {
+	float result;
+	switch (component_type) {
+		case TINYGLTF_COMPONENT_TYPE_BYTE: {
+			result = *((int8_t*)raw_data_ptr);
+		}
+		break;
+		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE: break;
+		case TINYGLTF_COMPONENT_TYPE_SHORT: break;
+		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT: break;
+		case TINYGLTF_COMPONENT_TYPE_INT: break;
+		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT: break;
+		case TINYGLTF_COMPONENT_TYPE_FLOAT: {
+			result = *((float*)raw_data_ptr);
+		}
+		break;
+		case TINYGLTF_COMPONENT_TYPE_DOUBLE: {
+			double value = *((double*)raw_data_ptr);
+			result = value;
+		}
+		break;
+		default: break;
+	}
+	return result;
 }

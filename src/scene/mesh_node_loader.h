@@ -76,7 +76,7 @@ private:
     using AnimationChannelIdx = int;
 
     struct BoneIdentity {
-        MatrixIdx joint;
+        BoneNode::JointIndex joint;
         glm::mat4x4 inv_matrix;
         std::string skin_name;
         SkinIdx skin_id;
@@ -99,8 +99,8 @@ private:
     std::shared_ptr<SceneNode> MakeSingleNode(const tinygltf::Node& gltf_node, Scene::NodeIndex parent, const std::shared_ptr<Scene>& scene);
     std::shared_ptr<MeshNode> MakeRenderNode(const tinygltf::Mesh& gltf_mesh, Scene::NodeIndex node);
     std::shared_ptr<LightNode> MakeLightNode(const tinygltf::Node& gltf_node, Scene::NodeIndex node);
-    std::shared_ptr<BoneNode> MakeBoneNode(const tinygltf::Node& gltf_node, Scene::NodeIndex node);
-    std::shared_ptr<AnimationNode> MakeAnimationNode(const tinygltf::Node& gltf_node, Scene::NodeIndex node);
+    std::shared_ptr<BoneNode> MakeBoneNode(NodeIdx gltf_node_idx, Scene::NodeIndex node);
+    std::shared_ptr<AnimationNode> MakeAnimationNode(NodeIdx gltf_node_idx, Scene::NodeIndex node);
     
     glm::mat4x4 MakeMatrix(const tinygltf::Node& gltf_node) const;
     glm::mat4x4 MakeMatrix(const std::vector<double>& mat) const;
@@ -113,6 +113,7 @@ private:
     std::vector<CubicSplineVec3> GetCubicTranslationAnimData(const tinygltf::Accessor& translation_accessor);
 
     void MakeNodesHierarchy(NodeIdx current_node_idx, std::shared_ptr<SceneNode> parent);
+    float GetAttribute(const unsigned char* raw_data_ptr, uint32_t component_type);
     
     //NodeIdx getSkinRoot(SkinIdx skin_idx) const;
     //NodeIdx isSceneRoot();
@@ -120,7 +121,7 @@ private:
     std::unordered_map<NodeIdx, NodeIdx> make_parent_map();
     std::unordered_map<NodeIdx, std::unordered_map<AnimationIdx, std::vector<AnimationChannelIdx>>> make_node_to_anim_map();
     std::unordered_map<NodeIdx, std::unordered_map<AnimationIdx, std::shared_ptr<MatrixAnimation>>> make_node_to_matrix_map();
-    std::shared_ptr<MatrixAnimation> make_anim_matrix(const tinygltf::Animation& gltf_animation, NodeIdx node_idx);
+    std::shared_ptr<MatrixAnimation> make_anim_matrix(AnimationIdx animation_idx, NodeIdx node_idx);
     std::vector<float> GetTimeline(const tinygltf::Accessor& time_accessor);
     int32_t GetNumVertices(const tinygltf::Primitive& primitive) const;
     int32_t GetNumPrimitives(const tinygltf::Primitive& primitive) const;

@@ -34,18 +34,21 @@
               <TimePosSec>0.0</TimePosSec>
               <YawPitchRoll x="0.000000" y="0.000000" z="0.000000" />
               <Translation x="-2.000000" y="0.000000" z="-3.000000" />
-              <Tangent x="0.000000" y="3.000000" z="0.000000" />
+              <inTangent x="0.000000" y="3.000000" z="0.000000" />
+              <outTangent x="0.000000" y="-3.000000" z="0.000000" />
             </Keyframe>
             <Keyframe>
               <TimePosSec>5.0</TimePosSec>
               <Translation x="2.000000" y="0.000000" z="-3.000000" />
-              <Tangent x="0.000000" y="-3.000000" z="0.000000" />
+              <inTangent x="0.000000" y="-3.000000" z="0.000000" />
+              <outTangent x="0.000000" y="3.000000" z="0.000000" />
             </Keyframe>
             <Keyframe>
               <TimePosSec>10.0</TimePosSec>
               <YawPitchRoll x="180.000000" y="90.000000" z="0.000000" />
               <Translation x="-2.000000" y="0.000000" z="-3.000000" />
-              <Tangent x="0.000000" y="3.000000" z="0.000000" />
+              <inTangent x="0.000000" y="3.000000" z="0.000000" />
+              <outTangent x="0.000000" y="-3.000000" z="0.000000" />
             </Keyframe>
           </KeyframeSequence>
         </Animation>

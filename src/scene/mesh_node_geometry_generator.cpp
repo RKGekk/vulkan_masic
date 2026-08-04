@@ -81,10 +81,10 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateSceneNodeSpline(co
         const KeyframeMatrixTranslation& t1 = keyframes.at(i1);
 
         for(size_t j = 0u; j < points_per_spline; ++j) {
-            glm::vec3 pos0 = glm::hermite(t0.Translation, t0.Tangent, t1.Translation, t1.Tangent, value);
+            glm::vec3 pos0 = glm::hermite(t0.Translation, t0.inTangent, t1.Translation, t0.outTangent, value);
             glm::vec4 color0 = glm::vec4(1.0f, 0.0f, 0.0f, 0.5f);
             value += offset;
-            glm::vec3 pos1 = glm::hermite(t0.Translation, t0.Tangent, t1.Translation, t1.Tangent, value);
+            glm::vec3 pos1 = glm::hermite(t0.Translation, t1.inTangent, t1.Translation, t1.outTangent, value);
             glm::vec4 color1 = glm::vec4(1.0f, 0.0f, 0.0f, 0.5f);
 
             size_t line_start = j * vertex_stride * vertices_per_line;

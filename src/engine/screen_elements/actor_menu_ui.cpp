@@ -127,7 +127,8 @@ bool ActorMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index) {
 										std::string tgkf_name = "Tgc "s + std::to_string(ct);
 										if (ImGui::SliderFloat("T Time Point", ((float*)&tkf.TimePos), 0.0f, total_animation_time, "%.4f")) {}
 										if (ImGui::SliderFloat3(trkf_name.c_str(), ((float*)&tkf.Translation), -2.0f, 2.0f)) {}
-										if (ImGui::SliderFloat3(tgkf_name.c_str(), ((float*)&tkf.Tangent), -3.0f, 3.0f)) {}
+										if (ImGui::SliderFloat3(tgkf_name.c_str(), ((float*)&tkf.inTangent), -3.0f, 3.0f)) {}
+										if (ImGui::SliderFloat3(tgkf_name.c_str(), ((float*)&tkf.outTangent), -3.0f, 3.0f)) {}
 									
 										++ct;
 									}

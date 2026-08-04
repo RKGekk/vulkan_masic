@@ -1,6 +1,6 @@
 #include "matrix_animation.h"
 
-KeyframeMatrixTranslation::KeyframeMatrixTranslation() : TimePos(0.0f), Translation(0.0f, 0.0f, 0.0f), Tangent(0.0f, 0.0f, 0.0f) {}
+KeyframeMatrixTranslation::KeyframeMatrixTranslation() : TimePos(0.0f), Translation(0.0f, 0.0f, 0.0f), inTangent(0.0f, 0.0f, 0.0f), outTangent(0.0f, 0.0f, 0.0f) {}
 
 KeyframeMatrixTranslation::~KeyframeMatrixTranslation() {}
 
@@ -8,7 +8,7 @@ KeyframeMatrixScale::KeyframeMatrixScale() : TimePos(0.0f), Scale(1.0f, 1.0f, 1.
 
 KeyframeMatrixScale::~KeyframeMatrixScale() {}
 
-KeyframeMatrixRotation::KeyframeMatrixRotation() : TimePos(0.0f), RotationQuat(1.0f, 0.0f, 0.0f, 0.0f) {}
+KeyframeMatrixRotation::KeyframeMatrixRotation() : TimePos(0.0f), RotationQuat(1.0f, 0.0f, 0.0f, 0.0f), inTangent(1.0f, 0.0f, 0.0f, 0.0f), outTangent(1.0f, 0.0f, 0.0f, 0.0f) {}
 
 KeyframeMatrixRotation::~KeyframeMatrixRotation() {}
 

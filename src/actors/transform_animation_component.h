@@ -12,6 +12,7 @@
 
 #include "actor_component.h"
 #include "../animation/matrix_animation.h"
+#include "../scene/nodes/animation_node.h"
 
 #include <pugixml.hpp>
 
@@ -27,6 +28,12 @@ public:
         Paused
 	};
 
+    struct AnimData {
+        AnimationNode::AnimationName name;
+        AnimState animation_state;
+	    GameTimerDelta current_time;
+    };
+
     static const std::string g_name;
 
     TransformAnimationComponent();
@@ -41,31 +48,32 @@ public:
     virtual void VUpdate(const GameTimerDelta& delta) override;
 
     void Pause();
-    void Pause(const MatrixAnimation::AnimationName& name);
+    void Pause(const AnimationNode::AnimationName& name);
 
 	void Stop();
-    void Stop(const MatrixAnimation::AnimationName& name);
+    void Stop(const AnimationNode::AnimationName& name);
 
 	void Play();
-    void Play(const MatrixAnimation::AnimationName& name);
+    void Play(const AnimationNode::AnimationName& name);
 
     void SetCurrentAnimationTime(float t);
-	void SetCurrentAnimationTime(const MatrixAnimation::AnimationName& name, float t);
+	void SetCurrentAnimationTime(const AnimationNode::AnimationName& name, float t);
     void SetCurrentAnimationDuration(const GameTimerDelta& duration);
-	void SetCurrentAnimationDuration(const MatrixAnimation::AnimationName& name, const GameTimerDelta& duration);
+	void SetCurrentAnimationDuration(const AnimationNode::AnimationName& name, const GameTimerDelta& duration);
     
-    float GetCurrentAnimationTime(const MatrixAnimation::AnimationName& name) const;
-    float GetCurrentAnimationNormPos(const MatrixAnimation::AnimationName& name) const;
-    const GameTimerDelta& GetCurrentAnimationDuration(const MatrixAnimation::AnimationName& name) const;
-    float GetTotalAnimationTime(const MatrixAnimation::AnimationName& name) const;
-    GameTimerDelta GetTotalAnimationDuration(const MatrixAnimation::AnimationName& name) const;
+    float GetCurrentAnimationTime(const AnimationNode::AnimationName& name) const;
+    float GetCurrentAnimationNormPos(const AnimationNode::AnimationName& name) const;
+    const GameTimerDelta& GetCurrentAnimationDuration(const AnimationNode::AnimationName& name) const;
+    float GetTotalAnimationTime(const AnimationNode::AnimationName& name) const;
+    GameTimerDelta GetTotalAnimationDuration(const AnimationNode::AnimationName& name) const;
 
-    const std::unordered_map<MatrixAnimation::AnimationName, std::shared_ptr<MatrixAnimation>>& GetAnimationMap() const;
+    const std::unordered_map<AnimationNode::AnimationName, std::shared_ptr<MatrixAnimation>>& GetAnimationMap() const;
 
 private:
-    void AddActorAnimation(const MatrixAnimation::AnimationName& name, const pugi::xml_node& keyframe_seq_data);
+    void AddActorAnimation(const AnimationNode::AnimationName& name, const pugi::xml_node& keyframe_seq_data);
 
     bool Init(const pugi::xml_node& data);
 
-    std::unordered_map<MatrixAnimation::AnimationName, std::shared_ptr<MatrixAnimation>> m_animation_map;
+    std::shared_ptr<AnimationNode> m_animation_node;
+    std::unordered_map<AnimationNode::AnimationName, AnimData> m_animation_data_map;
 };

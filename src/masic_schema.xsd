@@ -2607,7 +2607,8 @@
                                                                                         <xs:element name="TimePosSec" type="xs:float" minOccurs="0" maxOccurs="1"></xs:element>
                                                                                         <xs:element name="YawPitchRoll" type="target:Vec3ComplexType" minOccurs="0" maxOccurs="1"></xs:element>
                                                                                         <xs:element name="Translation" type="target:Vec3ComplexType" minOccurs="0" maxOccurs="1"></xs:element>
-                                                                                        <xs:element name="Tangent" type="target:Vec3ComplexType" minOccurs="0" maxOccurs="1"></xs:element>
+                                                                                        <xs:element name="inTangent" type="target:Vec3ComplexType" minOccurs="0" maxOccurs="1"></xs:element>
+                                                                                        <xs:element name="outTangent" type="target:Vec3ComplexType" minOccurs="0" maxOccurs="1"></xs:element>
                                                                                     </xs:sequence>
                                                                                 </xs:complexType>
                                                                             </xs:element>

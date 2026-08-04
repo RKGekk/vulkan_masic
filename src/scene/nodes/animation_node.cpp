@@ -1,8 +1,8 @@
 #include "animation_node.h"
 
 AnimationNode::AnimationNode(std::shared_ptr<Scene> scene, Scene::NodeIndex node_index) : SceneNode(std::move(scene), node_index) {};
-AnimationNode::AnimationNode(std::shared_ptr<Scene> scene, std::string name, Scene::NodeIndex parent = 0u) : SceneNode(std::move(scene), std::move(name), parent) {};
-AnimationNode::AnimationNode(std::shared_ptr<Scene> scene, std::string name, glm::mat4x4 transform, Scene::NodeIndex parent = 0u) : SceneNode(std::move(scene), std::move(name), light_transform, parent) {};
+AnimationNode::AnimationNode(std::shared_ptr<Scene> scene, std::string name, Scene::NodeIndex parent) : SceneNode(std::move(scene), std::move(name), parent) {};
+AnimationNode::AnimationNode(std::shared_ptr<Scene> scene, std::string name, glm::mat4x4 transform, Scene::NodeIndex parent) : SceneNode(std::move(scene), std::move(name), transform, parent) {};
 
 bool AnimationNode::VOnRestore() {
     return SceneNode::VOnRestore();
