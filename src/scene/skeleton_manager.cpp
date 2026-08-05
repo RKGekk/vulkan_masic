@@ -42,6 +42,10 @@ bool SkeletonManager::recalculateSkinnedData() {
     return was_updated;
 }
 
+const std::shared_ptr<SkeletonManager::SkinnedData>& SkeletonManager::getSkinnedData(const BoneNode::SkinName& name) const {
+    return m_skinned_data.at(name);
+}
+
 bool SkeletonManager::UpdateBoneData(const std::shared_ptr<BoneNode>& node) {
     bool was_updated = false;
 

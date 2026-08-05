@@ -90,8 +90,8 @@ public:
 	const std::vector<Hierarchy>& getHierarchy() const;
 	NodeTypeFlags getNodeTypeFlags(NodeIndex node_index) const;
 
-	std::shared_ptr<Properties> getProperties(NodeIndex node_index);
-	std::shared_ptr<SceneNode> getProperty(NodeIndex node_index, NodeType node_type = NODE_TYPE_FLAG_NONE);
+	const std::shared_ptr<Properties>& getProperties(NodeIndex node_index);
+	const std::shared_ptr<SceneNode>& getProperty(NodeIndex node_index, NodeType node_type = NODE_TYPE_FLAG_NONE);
 	std::shared_ptr<SceneNode> getRootNode();
 	void addProperty(std::shared_ptr<SceneNode> property, NodeIndex node_index = NO_INDEX);
 	const std::unordered_map<NodeIndex, NodeTypeFlags>& getNodeTypeFlagsMap() const;
@@ -103,7 +103,9 @@ public:
     void deleteSceneNodes(const std::vector<NodeIndex>& nodes_indices_to_delete);
 	void mergeScenes(const std::vector<Scene*>& scenes, const std::vector<glm::mat4>& root_transforms, const std::vector<uint32_t>& mesh_counts, bool merge_meshes, bool merge_materials);
 
-	const std::shared_ptr<LightManager>& getLightManager();
+	const std::shared_ptr<LightManager>& getLightManager() const;
+	const std::shared_ptr<AnimationManager>& getAnimationManager() const;
+	const std::shared_ptr<SkeletonManager>& getSkeletonManager() const;
 
 private:
 	NodeIndex findLastNonDeletedItem(const std::vector<NodeIndex>& new_indices, NodeIndex node);

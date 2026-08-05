@@ -37,6 +37,8 @@ public:
     void AddBone(const std::shared_ptr<BoneNode>& node);
     void markAsChanged(const std::shared_ptr<BoneNode>& node);
 
+    const std::shared_ptr<SkinnedData>& getSkinnedData(const BoneNode::SkinName& name) const;
+
 private:
     bool UpdateBoneData(const std::shared_ptr<BoneNode>& node);
 

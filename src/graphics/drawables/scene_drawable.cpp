@@ -5,6 +5,7 @@
 #include "../../actors/camera_component.h"
 #include "../../scene/nodes/basic_camera_node.h"
 #include "../../scene/nodes/value_bag_node.h"
+#include "../../scene/skeleton_manager.h"
 #include "../api/vulkan_buffer.h"
 #include "../api/vulkan_image_buffer.h"
 #include "../api/vulkan_swapchain.h"
@@ -171,6 +172,13 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                 }
             );
 
+            renderable->render_node->add_update_function(
+                "joint_matrices_update"s,
+                [&, frame, renderable_id](std::shared_ptr<VulkanBuffer>& uniform_buffer){
+                    updateJointMatrices(m_per_frame[frame]->renderables.at(renderable_id)->mesh_node, uniform_buffer);
+                }
+            );
+
             for(const auto&[desc_slot, desc_set_name] : vertex_shader->getShaderSignature()->getDescSetNames()) {
                 const std::shared_ptr<DescSetLayout>& desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(desc_set_name);
 
@@ -262,4 +270,14 @@ void SceneDrawable::updateMaterialProps(const std::shared_ptr<Material>& materia
     mat.fresnelR0_roughness.a = material->GetRoughnessFactor();
 
     uniform_buffer->update(&mat, sizeof(PhongMaterial));
+}
+
+void SceneDrawable::updateJointMatrices(const std::shared_ptr<MeshNode>& mesh_node, std::shared_ptr<VulkanBuffer>& uniform_buffer) {
+    if(mesh_node->GetSkinName().empty()) return;
+
+    const std::shared_ptr<Scene>& scene = mesh_node->GetScene();
+    const std::shared_ptr<SkeletonManager>& skeleton_manager = scene->getSkeletonManager();
+
+    const std::shared_ptr<SkeletonManager::SkinnedData>& skinned_data = skeleton_manager->getSkinnedData(mesh_node->GetSkinName());
+    uniform_buffer->update(skinned_data->final_matrices.data(), skinned_data->final_matrices.size() * sizeof(glm::mat4));
 }

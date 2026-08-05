@@ -365,7 +365,7 @@
    "materials": [
       {
          "doubleSided": true,
-         "name": "Material",
+         "name": "anim_phong_material",
          "pbrMetallicRoughness": {
             "baseColorTexture": { "index": 0 },
             "metallicFactor": 0,

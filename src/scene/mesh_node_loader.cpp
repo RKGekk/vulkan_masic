@@ -453,12 +453,20 @@ VkIndexType MeshNodeLoader::getIndexType(int accessor_component_type) {
     }
 }
 
-std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Mesh& gltf_mesh, Scene::NodeIndex node) {
+std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Node& gltf_node, Scene::NodeIndex node) {
 	using namespace std::literals;
+
+	if(gltf_node.mesh == -1) return nullptr;
+	const tinygltf::Mesh& gltf_mesh = m_gltf_model.meshes[gltf_node.mesh];
 
     std::shared_ptr<MeshNode> mesh_node = std::make_shared<MeshNode>(m_scene, node);
 	m_scene->addProperty(mesh_node);
     const std::string& mesh_name = gltf_mesh.name;
+
+	if(gltf_node.skin != -1) {
+		const tinygltf::Skin& gltf_skin = m_gltf_model.skins[gltf_node.skin];
+		mesh_node->SetSkinName(gltf_skin.name);
+	}
     size_t num_primitives = gltf_mesh.primitives.size();
     for (size_t prim_idx = 0; prim_idx < num_primitives; ++prim_idx) {
 		const tinygltf::Primitive& primitive = gltf_mesh.primitives[prim_idx];
@@ -794,8 +802,8 @@ void MeshNodeLoader::MakeNodesHierarchy(NodeIdx current_node_idx, std::shared_pt
 	std::shared_ptr<SceneNode> transform_node = MakeSingleNode(gltf_node, parent->VGetNodeIndex(), m_scene);
 	
 	if (gltf_node.mesh != -1) {
-		const tinygltf::Mesh& gltf_mesh = m_gltf_model.meshes[gltf_node.mesh];
-		MakeRenderNode(gltf_mesh, transform_node->VGetNodeIndex());
+		//const tinygltf::Mesh& gltf_mesh = m_gltf_model.meshes[gltf_node.mesh];
+		MakeRenderNode(gltf_node, transform_node->VGetNodeIndex());
 		transform_node->GetScene()->getLightManager()->DecorateValueBag(transform_node);
 	}
 

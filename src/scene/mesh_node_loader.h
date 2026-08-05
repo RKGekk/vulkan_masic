@@ -97,7 +97,7 @@ private:
     struct SimpleHash { size_t operator()(const std::pair<int, int>& p) const { size_t h = (size_t)p.first; h <<= 32; h += p.second; return h; }};
 
     std::shared_ptr<SceneNode> MakeSingleNode(const tinygltf::Node& gltf_node, Scene::NodeIndex parent, const std::shared_ptr<Scene>& scene);
-    std::shared_ptr<MeshNode> MakeRenderNode(const tinygltf::Mesh& gltf_mesh, Scene::NodeIndex node);
+    std::shared_ptr<MeshNode> MakeRenderNode(const tinygltf::Node& gltf_node, Scene::NodeIndex node);
     std::shared_ptr<LightNode> MakeLightNode(const tinygltf::Node& gltf_node, Scene::NodeIndex node);
     std::shared_ptr<BoneNode> MakeBoneNode(NodeIdx gltf_node_idx, Scene::NodeIndex node);
     std::shared_ptr<AnimationNode> MakeAnimationNode(NodeIdx gltf_node_idx, Scene::NodeIndex node);

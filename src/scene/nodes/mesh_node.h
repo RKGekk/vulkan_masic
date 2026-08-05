@@ -15,7 +15,9 @@ public:
 	MeshNode(std::shared_ptr<Scene> scene, Scene::NodeIndex node_index);
 	MeshNode(std::shared_ptr<Scene> scene, const std::string& name, const glm::mat4x4& transform, Scene::NodeIndex parent = 0u);
 	MeshNode(std::shared_ptr<Scene> scene, const std::string& name, const glm::mat4x4& transform, const MeshList& meshes, Scene::NodeIndex parent = 0u);
+	MeshNode(std::shared_ptr<Scene> scene, const std::string& name, const glm::mat4x4& transform, const MeshList& meshes, SkinName skin_name, Scene::NodeIndex parent = 0u);
 	MeshNode(std::shared_ptr<Scene> scene, const std::string& name, const MeshList& meshes, Scene::NodeIndex parent = 0u);
+	MeshNode(std::shared_ptr<Scene> scene, const std::string& name, const MeshList& meshes, SkinName skin_name, Scene::NodeIndex parent = 0u);
 
 	virtual bool VOnRestore() override;
 	virtual bool VOnUpdate() override;
@@ -25,8 +27,12 @@ public:
 	const MeshList& GetMeshes() const;
 	const std::shared_ptr<ModelData>& GetMesh(size_t index = 0) const;
 
+	void SetSkinName(const SkinName& name);
+	const SkinName& GetSkinName() const;
+
 protected:
 	void CalcAABB();
 
 	MeshList m_meshes;
+	std::string m_skin_name;
 };

@@ -40,10 +40,10 @@ public:
 	virtual Scene::NodeIndex VGetNodeIndex() const;
 	virtual Scene::NodeIndex VGetParentIndex() const;
 
-	std::shared_ptr<Scene> GetScene();
-	std::shared_ptr<SceneNode> GetParent();
-	std::shared_ptr<SceneNode> GetChild();
-	std::shared_ptr<SceneNode> GetNextSibling();
+	const std::shared_ptr<Scene>& GetScene();
+	const std::shared_ptr<SceneNode>& GetParent();
+	const std::shared_ptr<SceneNode>& GetChild();
+	const std::shared_ptr<SceneNode>& GetNextSibling();
 	const SceneNodeProperties& Get() const;
 
 	void SetTransform(const glm::mat4x4& to_parent);

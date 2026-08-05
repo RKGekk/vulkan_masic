@@ -1,5 +1,7 @@
 #include "scene_node.h"
 
+const std::shared_ptr<SceneNode> NULL_PTR_NODE;
+
 SceneNode::SceneNode(std::shared_ptr<Scene> scene, Scene::NodeIndex node_index)
     : m_props(scene, node_index) {
 }
@@ -68,25 +70,25 @@ Scene::NodeIndex SceneNode::VGetParentIndex() const {
     return m_props.m_scene->getNodeHierarchy(m_props.m_node_index).parent;
 }
 
-std::shared_ptr<Scene> SceneNode::GetScene() {
+const std::shared_ptr<Scene>& SceneNode::GetScene() {
     return m_props.m_scene;
 };
 
-std::shared_ptr<SceneNode> SceneNode::GetParent() {
+const std::shared_ptr<SceneNode>& SceneNode::GetParent() {
     const Scene::Hierarchy& hierarchy = m_props.m_scene->getNodeHierarchy(m_props.m_node_index);
-    if(hierarchy.next_sibling == Scene::NO_INDEX) return nullptr;
+    if(hierarchy.next_sibling == Scene::NO_INDEX) return NULL_PTR_NODE;
     return m_props.m_scene->getProperty(hierarchy.next_sibling, Scene::NODE_TYPE_FLAG_NONE);
 }
 
-std::shared_ptr<SceneNode> SceneNode::GetChild() {
+const std::shared_ptr<SceneNode>& SceneNode::GetChild() {
     const Scene::Hierarchy& hierarchy = m_props.m_scene->getNodeHierarchy(m_props.m_node_index);
-    if(hierarchy.first_child == Scene::NO_INDEX) return nullptr;
+    if(hierarchy.first_child == Scene::NO_INDEX) return NULL_PTR_NODE;
     return m_props.m_scene->getProperty(hierarchy.first_child, Scene::NODE_TYPE_FLAG_NONE);
 }
 
-std::shared_ptr<SceneNode> SceneNode::GetNextSibling() {
+const std::shared_ptr<SceneNode>& SceneNode::GetNextSibling() {
     const Scene::Hierarchy& hierarchy = m_props.m_scene->getNodeHierarchy(m_props.m_node_index);
-    if(hierarchy.next_sibling == Scene::NO_INDEX) return nullptr;
+    if(hierarchy.next_sibling == Scene::NO_INDEX) return NULL_PTR_NODE;
     return m_props.m_scene->getProperty(hierarchy.next_sibling, Scene::NODE_TYPE_FLAG_NONE);
 }
 

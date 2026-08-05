@@ -17,7 +17,22 @@ MeshNode::MeshNode(std::shared_ptr<Scene> scene, const std::string& name, const 
     SetNodeType(Scene::NODE_TYPE_FLAG_MESH);
 }
 
+
+MeshNode::MeshNode(std::shared_ptr<Scene> scene, const std::string& name, const glm::mat4x4& transform, const MeshList& meshes, SkinName skin_name, Scene::NodeIndex parent) : SceneNode(std::move(scene), std::move(name), transform, parent), m_skin_name(std::move(skin_name)) {
+    for (const auto& mesh : meshes) {
+        AddMesh(mesh);
+    }
+    SetNodeType(Scene::NODE_TYPE_FLAG_MESH);
+}
+
 MeshNode::MeshNode(std::shared_ptr<Scene> scene, const std::string& name, const MeshList& meshes, Scene::NodeIndex parent) : SceneNode(std::move(scene), std::move(name), parent) {
+    for (const auto& mesh : meshes) {
+        AddMesh(mesh);
+    }
+    SetNodeType(Scene::NODE_TYPE_FLAG_MESH);
+}
+
+MeshNode::MeshNode(std::shared_ptr<Scene> scene, const std::string& name, const MeshList& meshes, SkinName skin_name, Scene::NodeIndex parent) : SceneNode(std::move(scene), std::move(name), parent), m_skin_name(std::move(skin_name)) {
     for (const auto& mesh : meshes) {
         AddMesh(mesh);
     }
@@ -61,6 +76,14 @@ const MeshNode::MeshList& MeshNode::GetMeshes() const {
 
 const std::shared_ptr<ModelData>& MeshNode::GetMesh(size_t index) const {
     return m_meshes.at(index);
+}
+
+void MeshNode::SetSkinName(const SkinName& name) {
+    m_skin_name = name;
+}
+
+const MeshNode::SkinName& MeshNode::GetSkinName() const {
+    return m_skin_name;
 }
 
 void MeshNode::CalcAABB() {

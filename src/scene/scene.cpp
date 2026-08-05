@@ -10,6 +10,8 @@
 
 //const std::string Scene::NO_NAME = "NO NAME";
 const Material NO_MATERIAL = Material("NO MATERIAL");
+const std::shared_ptr<SceneNode> NULL_PTR_NODE;
+const std::shared_ptr<Scene::Properties> NULL_PTR_PROP;
 
 Scene::Scene(std::string name) {
     m_local_transform.push_back(glm::mat4(1.0f));
@@ -156,15 +158,15 @@ Scene::NodeTypeFlags Scene::getNodeTypeFlags(Scene::NodeIndex node_index) const 
     else return NODE_TYPE_FLAG_NONE;
 }
 
-std::shared_ptr<Scene::Properties> Scene::getProperties(Scene::NodeIndex node_index) {
-    if(!m_node_property_map.contains(node_index)) return nullptr;
+const std::shared_ptr<Scene::Properties>& Scene::getProperties(Scene::NodeIndex node_index) {
+    if(!m_node_property_map.contains(node_index)) return NULL_PTR_PROP;
     const Scene::PropertyIndex property_index = m_node_property_map.at(node_index);
     return m_properties[property_index];
 }
 
-std::shared_ptr<SceneNode> Scene::getProperty(NodeIndex node_index, NodeType node_type) {
+const std::shared_ptr<SceneNode>& Scene::getProperty(NodeIndex node_index, NodeType node_type) {
     const std::shared_ptr<Scene::Properties>& props = getProperties(node_index);
-    if(!props || !props->contains(node_type)) return nullptr;
+    if(!props || !props->contains(node_type)) return NULL_PTR_NODE;
     return props->at(node_type);
 }
 
@@ -495,6 +497,14 @@ void Scene::mergeScenes(const std::vector<Scene*>& scenes, const std::vector<glm
     }
 }
 
-const std::shared_ptr<LightManager>& Scene::getLightManager() {
+const std::shared_ptr<LightManager>& Scene::getLightManager() const {
     return m_light_manager;
+}
+
+const std::shared_ptr<AnimationManager>& Scene::getAnimationManager() const {
+    return m_animation_manager;
+}
+	
+const std::shared_ptr<SkeletonManager>& Scene::getSkeletonManager() const {
+    return m_skeleton_manager;
 }
