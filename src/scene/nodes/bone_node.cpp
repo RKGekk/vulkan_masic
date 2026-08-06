@@ -1,10 +1,16 @@
 #include "bone_node.h"
 
-BoneNode::BoneNode(std::shared_ptr<Scene> scene, Scene::NodeIndex node_index) : SceneNode(std::move(scene), node_index) {}
+BoneNode::BoneNode(std::shared_ptr<Scene> scene, Scene::NodeIndex node_index) : SceneNode(std::move(scene), node_index) {
+    SetNodeType(Scene::NODE_TYPE_FLAG_BONE);
+}
 
-BoneNode::BoneNode(std::shared_ptr<Scene> scene, std::string name, Scene::NodeIndex parent) : SceneNode(std::move(scene), std::move(name), parent) {}
+BoneNode::BoneNode(std::shared_ptr<Scene> scene, std::string name, Scene::NodeIndex parent) : SceneNode(std::move(scene), std::move(name), parent) {
+    SetNodeType(Scene::NODE_TYPE_FLAG_BONE);
+}
 
-BoneNode::BoneNode(std::shared_ptr<Scene> scene, std::string name, glm::mat4x4 transform, Scene::NodeIndex parent) : SceneNode(std::move(scene), std::move(name), transform, parent) {}
+BoneNode::BoneNode(std::shared_ptr<Scene> scene, std::string name, glm::mat4x4 transform, Scene::NodeIndex parent) : SceneNode(std::move(scene), std::move(name), transform, parent) {
+    SetNodeType(Scene::NODE_TYPE_FLAG_BONE);
+}
 
 bool BoneNode::VOnRestore() {
     return SceneNode::VOnRestore();

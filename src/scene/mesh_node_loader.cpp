@@ -6,6 +6,7 @@
 #include "mesh_node_loader.h"
 
 #include "../application.h"
+#include "../graphics/api/vulkan_device.h"
 #include "../graphics/pod/image_buffer_config.h"
 #include "../graphics/pod/buffer_config.h"
 #include "../graphics/pod/graphics_render_node_config.h"
@@ -517,7 +518,7 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Node& g
     	//VertexFormat vertex_format = GetVertexFormat(primitive.attributes);
 		model_data->SetMaterial(prop_set);
 
-    	std::vector<float> vertices = GetVertices(primitive, shader_signature->getVertexFormat());
+    	std::vector<char> vertices = GetVertices(primitive, shader_signature->getVertexFormat());
 		const void* vertices_data = vertices.data();
 		std::shared_ptr<VulkanBuffer> vertex_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(vertices_data, num_vertices * model_data->GetVertexFormat().getVertexSize(), m_model_path.string() + "/node"s + std::to_string(node) + "/"s + mesh_name + "_vertex_buffer_primitive_"s + std::to_string(prim_idx), "basic_vertex_resource");
 		std::shared_ptr<VulkanBuffer> index_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(indices.data(), indices.size() * sizeof(uint32_t), m_model_path.string() + "/node"s + std::to_string(node) + "/"s + mesh_name + "_index_buffer_primitive_"s + std::to_string(prim_idx), "basic_index_resource");
@@ -702,7 +703,7 @@ std::vector<glm::mat4x4> MeshNodeLoader::GetMatrices(const tinygltf::Accessor& m
 	for (size_t current_element = 0u; current_element < elements_count; ++current_element) {
 		for (int32_t current_component_num = 0; current_component_num < num_of_elements_to_copy; ++current_component_num) {
 			const unsigned char* raw_data_ptr = begin_ptr + buffer_offset_bytes + current_element * buffer_stride_bytes + current_component_num * matrice_element_size;
-			float vertex_attrib_element = GetAttribute(raw_data_ptr, matrices_accessor.componentType);
+			float vertex_attrib_element = GetAttribute<float>(raw_data_ptr, matrices_accessor.componentType);
 			matrice[current_component_num] = vertex_attrib_element;
 		}
 		// if(num_of_elements_to_copy == 16) {
@@ -986,7 +987,7 @@ std::vector<float> MeshNodeLoader::GetTimeline(const tinygltf::Accessor& time_ac
 	for (size_t current_element = 0u; current_element < elements_count; ++current_element) {
 		for (int32_t current_component_num = 0; current_component_num < num_of_elements_to_copy; ++current_component_num) {
 			const unsigned char* raw_data_ptr = begin_ptr + buffer_offset_bytes + current_element * buffer_stride_bytes + current_component_num * time_element_size;
-			float vertex_attrib_element = GetAttribute(raw_data_ptr, time_accessor.componentType);
+			float vertex_attrib_element = GetAttribute<float>(raw_data_ptr, time_accessor.componentType);
 			timeline.push_back(vertex_attrib_element);
 		}
 	}
@@ -1604,50 +1605,54 @@ bool ValidateVertexAttribute(const std::string& semantic_name) {
 	return false;
 }
 
-float GetAttribute(const unsigned char* raw_data_ptr, uint32_t component_type) {
-	float result;
-	switch (component_type) {
-		case TINYGLTF_COMPONENT_TYPE_BYTE: {
-			result = *((int8_t*)raw_data_ptr);
-		}
-		break;
-		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE: break;
-		case TINYGLTF_COMPONENT_TYPE_SHORT: break;
-		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT: break;
-		case TINYGLTF_COMPONENT_TYPE_INT: break;
-		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT: break;
-		case TINYGLTF_COMPONENT_TYPE_FLOAT: {
-			result = *((float*)raw_data_ptr);
-		}
-		break;
-		case TINYGLTF_COMPONENT_TYPE_DOUBLE: {
-			double value = *((double*)raw_data_ptr);
-			result = value;
-		}
-		break;
-		default: break;
-	}
-	return result;
-}
+// float GetAttribute(const unsigned char* raw_data_ptr, uint32_t component_type) {
+// 	float result;
+// 	switch (component_type) {
+// 		case TINYGLTF_COMPONENT_TYPE_BYTE: {
+// 			result = *((int8_t*)raw_data_ptr);
+// 		}
+// 		break;
+// 		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE: break;
+// 		case TINYGLTF_COMPONENT_TYPE_SHORT: break;
+// 		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT: break;
+// 		case TINYGLTF_COMPONENT_TYPE_INT: break;
+// 		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT: break;
+// 		case TINYGLTF_COMPONENT_TYPE_FLOAT: {
+// 			result = *((float*)raw_data_ptr);
+// 		}
+// 		break;
+// 		case TINYGLTF_COMPONENT_TYPE_DOUBLE: {
+// 			double value = *((double*)raw_data_ptr);
+// 			result = value;
+// 		}
+// 		break;
+// 		default: break;
+// 	}
+// 	return result;
+// }
 
-std::vector<float> MeshNodeLoader::GetVertices(const tinygltf::Primitive& primitive, const VertexFormat& pbr_shader_vertex_format) {
+std::vector<char> MeshNodeLoader::GetVertices(const tinygltf::Primitive& primitive, const VertexFormat& pbr_shader_vertex_format) {
 	const VertexFormat& uni_vertex_format = pbr_shader_vertex_format;
 	int32_t num_vertices = GetNumVertices(primitive);
-	int32_t uni_stride_el = uni_vertex_format.getVertexSize() / sizeof(float);
-	size_t uni_number_of_components = uni_stride_el * num_vertices;
-	std::vector<float> result(uni_number_of_components);
+	int32_t uni_stride = uni_vertex_format.getVertexSize();
+	size_t uni_total_vertex_size_bytes = uni_stride * num_vertices;
+
+	std::vector<char> result(uni_total_vertex_size_bytes);
+
 	for (const auto& [semantic_name_str, semantic_accessor_idx] : primitive.attributes) {
 		SemanticName semantic_name;
 		semantic_name.init(semantic_name_str);
 		if(!ValidateVertexAttribute(semantic_name_str)) continue;
 		if(!uni_vertex_format.checkVertexAttribExist(semantic_name)) continue;
-		size_t uni_current_offset = uni_vertex_format.getOffset<float>(semantic_name);
+
+		size_t uni_current_offset = uni_vertex_format.getOffset<char>(semantic_name);
 
 		const tinygltf::Accessor& vertex_attrib_accessor = m_gltf_model.accessors[semantic_accessor_idx];
-		int32_t element_size = tinygltf::GetComponentSizeInBytes(vertex_attrib_accessor.componentType);
+		int32_t gltf_element_size = tinygltf::GetComponentSizeInBytes(vertex_attrib_accessor.componentType);
 		int32_t num_of_elements_in_type = tinygltf::GetNumComponentsInType(vertex_attrib_accessor.type);
 		//int32_t num_of_elements_to_copy = num_of_elements_in_type;
 		int32_t num_of_elements_to_copy = uni_vertex_format.GetNumComponentsInVkType(semantic_name);
+		int32_t my_element_size = uni_vertex_format.GetComponentSizeInVkType(semantic_name);
 		//int32_t num_of_elements_to_copy = VulkanDevice::getNumComponents(semantic_name);
 
 		size_t vertex_attrib_view_idx = vertex_attrib_accessor.bufferView;
@@ -1657,14 +1662,18 @@ std::vector<float> MeshNodeLoader::GetVertices(const tinygltf::Primitive& primit
 
 		const unsigned char* begin_ptr = vertex_attrib_buffer.data.data();
 		size_t buffer_offset_bytes = vertex_attrib_accessor.byteOffset + vertex_attrib_view.byteOffset;
-		size_t buffer_stride_bytes = vertex_attrib_view.byteStride ? vertex_attrib_view.byteStride : element_size * num_of_elements_in_type;
+		size_t buffer_stride_bytes = vertex_attrib_view.byteStride ? vertex_attrib_view.byteStride : gltf_element_size * num_of_elements_in_type;
 		size_t elements_count = vertex_attrib_accessor.count;
 
 		for (size_t current_element = 0u; current_element < elements_count; ++current_element) {
 			for (int32_t current_component_num = 0; current_component_num < num_of_elements_to_copy; ++current_component_num) {
-				const unsigned char* raw_data_ptr = begin_ptr + buffer_offset_bytes + current_element * buffer_stride_bytes + current_component_num * element_size;
-				float vertex_attrib_element = GetAttribute(raw_data_ptr, vertex_attrib_accessor.componentType);
-				result[current_element * uni_stride_el + uni_current_offset + current_component_num] = vertex_attrib_element;
+				const unsigned char* raw_data_ptr = begin_ptr + buffer_offset_bytes + current_element * buffer_stride_bytes + current_component_num * gltf_element_size;
+				for(int32_t c = 0; c < gltf_element_size; ++c) {
+					char one_data = *((int8_t*)(raw_data_ptr + c));
+					result[current_element * uni_stride + uni_current_offset + current_component_num * my_element_size + c] = one_data;
+				}
+				//float vertex_attrib_element = GetAttribute(raw_data_ptr, vertex_attrib_accessor.componentType);
+				//result[current_element * uni_stride_el + uni_current_offset + current_component_num] = vertex_attrib_element;
 			}
 		}
 	}
@@ -1719,28 +1728,28 @@ LightPunctual MeshNodeLoader::GetLightPunctual(const nlohmann::json& json_light)
 	return light;
 }
 
-float MeshNodeLoader::GetAttribute(const unsigned char* raw_data_ptr, uint32_t component_type) {
-	float result;
-	switch (component_type) {
-		case TINYGLTF_COMPONENT_TYPE_BYTE: {
-			result = *((int8_t*)raw_data_ptr);
-		}
-		break;
-		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE: break;
-		case TINYGLTF_COMPONENT_TYPE_SHORT: break;
-		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT: break;
-		case TINYGLTF_COMPONENT_TYPE_INT: break;
-		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT: break;
-		case TINYGLTF_COMPONENT_TYPE_FLOAT: {
-			result = *((float*)raw_data_ptr);
-		}
-		break;
-		case TINYGLTF_COMPONENT_TYPE_DOUBLE: {
-			double value = *((double*)raw_data_ptr);
-			result = value;
-		}
-		break;
-		default: break;
-	}
-	return result;
-}
+// float MeshNodeLoader::GetAttribute(const unsigned char* raw_data_ptr, uint32_t component_type) {
+// 	float result;
+// 	switch (component_type) {
+// 		case TINYGLTF_COMPONENT_TYPE_BYTE: {
+// 			result = *((int8_t*)raw_data_ptr);
+// 		}
+// 		break;
+// 		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE: break;
+// 		case TINYGLTF_COMPONENT_TYPE_SHORT: break;
+// 		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT: break;
+// 		case TINYGLTF_COMPONENT_TYPE_INT: break;
+// 		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT: break;
+// 		case TINYGLTF_COMPONENT_TYPE_FLOAT: {
+// 			result = *((float*)raw_data_ptr);
+// 		}
+// 		break;
+// 		case TINYGLTF_COMPONENT_TYPE_DOUBLE: {
+// 			double value = *((double*)raw_data_ptr);
+// 			result = value;
+// 		}
+// 		break;
+// 		default: break;
+// 	}
+// 	return result;
+// }

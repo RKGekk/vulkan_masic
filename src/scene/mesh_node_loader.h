@@ -113,7 +113,47 @@ private:
     std::vector<CubicSplineVec3> GetCubicTranslationAnimData(const tinygltf::Accessor& translation_accessor);
 
     void MakeNodesHierarchy(NodeIdx current_node_idx, std::shared_ptr<SceneNode> parent);
-    float GetAttribute(const unsigned char* raw_data_ptr, uint32_t component_type);
+    //float GetAttribute(const unsigned char* raw_data_ptr, uint32_t component_type);
+    template<typename ElementType>
+    ElementType GetAttribute(const unsigned char* raw_data_ptr, uint32_t component_type) {
+        ElementType result;
+    	switch (component_type) {
+    		case TINYGLTF_COMPONENT_TYPE_BYTE: {
+    			result = static_cast<ElementType>(*((int8_t*)raw_data_ptr));
+    		}
+    		break;
+    		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE: {
+                result = static_cast<ElementType>(*((uint8_t*)raw_data_ptr));
+            }
+            break;
+    		case TINYGLTF_COMPONENT_TYPE_SHORT: {
+                result = static_cast<ElementType>(*((int16_t*)raw_data_ptr));
+            }
+            break;
+    		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT: {
+                result = static_cast<ElementType>(*((uint16_t*)raw_data_ptr));
+            }
+            break;
+    		case TINYGLTF_COMPONENT_TYPE_INT: {
+                result = static_cast<ElementType>(*((int32_t*)raw_data_ptr));
+            }
+            break;
+    		case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT: {
+                result = static_cast<ElementType>(*((uint32_t*)raw_data_ptr));
+            }
+            break;
+    		case TINYGLTF_COMPONENT_TYPE_FLOAT: {
+    			result = static_cast<ElementType>(*((float*)raw_data_ptr));
+    		}
+    		break;
+    		case TINYGLTF_COMPONENT_TYPE_DOUBLE: {
+    			result = static_cast<ElementType>(*((double*)raw_data_ptr));
+    		}
+    		break;
+    		default: break;
+    	}
+    	return result;
+    }
     
     //NodeIdx getSkinRoot(SkinIdx skin_idx) const;
     //NodeIdx isSceneRoot();
@@ -134,7 +174,7 @@ private:
     std::shared_ptr<VulkanSampler> createTextureSampler(uint32_t mip_levels, const tinygltf::Sampler& texture_sampler, const std::string& sampler_subname);
     void MakeMaterialProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material> material);
     VertexFormat GetVertexFormatFromMesh(std::map<std::string, int> attributes) const;
-    std::vector<float> GetVertices(const tinygltf::Primitive& primitive, const VertexFormat& pbr_shader_vertex_format);
+    std::vector<char> GetVertices(const tinygltf::Primitive& primitive, const VertexFormat& pbr_shader_vertex_format);
     VkIndexType getIndexType(int accessor_component_type);
     bool HaveLightExt(const tinygltf::Node& gltf_node);
     bool HaveLightExt(const nlohmann::json& json_node_ext);

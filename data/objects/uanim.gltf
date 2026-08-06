@@ -48,7 +48,7 @@
 	],
 	"materials":[
 		{
-			"name":"anim_phong_material",
+			"name":"animphong_material",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":0

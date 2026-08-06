@@ -23,6 +23,8 @@ Scene::Scene(std::string name) {
     m_node_name_map[0] = 0;
     m_dirty_at_level = std::vector<NodeIndexArray>(MAX_NODE_LEVEL);
     m_light_manager = std::make_shared<LightManager>();
+    m_animation_manager = std::make_shared<AnimationManager>();
+    m_skeleton_manager = std::make_shared<SkeletonManager>();
 }
 
 int Scene::addNode(NodeIndex parent_index) {

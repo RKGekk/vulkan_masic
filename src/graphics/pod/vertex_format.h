@@ -32,7 +32,8 @@ namespace std {
     template<>
     struct hash<SemanticName> {
         size_t operator()(const SemanticName& key) const {
-            return 1;
+            //return 1;
+            return static_cast<int32_t>(key.semantic) ^ key.num;
         }
     };
 }
@@ -81,6 +82,7 @@ public:
 
     size_t GetNumComponentsInGLSLType(SemanticName semantic) const;
     size_t GetNumComponentsInVkType(SemanticName semantic) const;
+    size_t GetComponentSizeInVkType(SemanticName semantic) const;
 
     size_t getOffset(SemanticName semantic) const;
     size_t getOffset(size_t pos) const;

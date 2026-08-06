@@ -152,6 +152,10 @@ size_t VertexFormat::GetNumComponentsInVkType(SemanticName semantic) const {
     return VulkanDevice::getNumComponents(getAttribInternalFormat(semantic));
 }
 
+size_t VertexFormat::GetComponentSizeInVkType(SemanticName semantic) const {
+    return VulkanDevice::getBytesCount(getAttribInternalFormat(semantic)) / GetNumComponentsInVkType(semantic);
+}
+
 size_t VertexFormat::getOffset(SemanticName semantic) const {
     size_t offset = 0u;
     if(!m_semantic_pos_map.count(semantic)) return offset;

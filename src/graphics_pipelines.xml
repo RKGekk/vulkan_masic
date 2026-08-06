@@ -1896,7 +1896,7 @@
                         <UpdateFunctionName>no_name</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
-                <LayoutBinding name="light_ubo" resource_creation_point="External">
+                <LayoutBinding name="joint_ubo" resource_creation_point="RenderNodeCreationTime">
                     <Buffer>
                         <BufferResourceType>joint_uniform_resource</BufferResourceType>
                         <UpdateFunctionName>joint_matrices_update</UpdateFunctionName>
