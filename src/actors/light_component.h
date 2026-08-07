@@ -43,5 +43,5 @@ private:
     LightNode::LightType GetLightType(const std::string& light_type_string);
     bool Init(const pugi::xml_node& data);
 
-	std::shared_ptr<SceneNode> m_loaded_scene_node;
+	std::shared_ptr<LightNode> m_light_scene_node;
 };

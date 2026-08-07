@@ -34,7 +34,7 @@ pugi::xml_node LightComponent::VGenerateXml() {
 }
 
 std::shared_ptr<SceneNode> LightComponent::VGetSceneNode() {
-    return m_loaded_scene_node;
+    return m_light_scene_node;
 }
 
 const ComponentDependecyList& LightComponent::VGetComponentDependecy() const {
@@ -54,8 +54,7 @@ LightNode::LightType LightComponent::GetLightType(const std::string& light_type_
 	return res;
 }
 
-bool LightComponent::Init(const pugi::xml_node& data) {
-	pugi::xml_node light_node_data = data.child("Light");
+bool LightComponent::Init(const pugi::xml_node& light_node_data) {
 	if (!light_node_data) return false;
 
     std::shared_ptr<Actor> act = GetOwner();
@@ -66,13 +65,11 @@ bool LightComponent::Init(const pugi::xml_node& data) {
     std::shared_ptr<SceneNode> transform_node = tc->GetSceneNode();
     const std::shared_ptr<Scene>& scene = Application::Get().GetGameLogic()->GetHumanView()->VGetScene();
 
-	std::shared_ptr<LightNode> light_node = std::make_shared<LightNode>(scene, transform_node->VGetNodeIndex());
-	scene->addProperty(light_node);
-    m_loaded_scene_node = light_node;
+	m_light_scene_node = std::make_shared<LightNode>(scene, transform_node->VGetNodeIndex());
 
 	std::string light_type_string = light_node_data.attribute("type").as_string();
     LightNode::LightType light_type = GetLightType(light_type_string);
-	light_node->setLightType(light_type);
+	m_light_scene_node->setLightType(light_type);
 
 	LightNodeProperties props;
     glm::vec3 default_strength = { 1.0f, 1.0f, 1.0f };
@@ -83,7 +80,9 @@ bool LightComponent::Init(const pugi::xml_node& data) {
 	props.outer_angle = glm::radians(light_node_data.child("outer_angle").text().as_float());
 	props.inner_angle = glm::radians(light_node_data.child("inner_angle").text().as_float());
 	
-	light_node->SetLightProperties(props);
+	m_light_scene_node->SetLightProperties(props);
 
-	return !!m_loaded_scene_node;
+	scene->addProperty(m_light_scene_node);
+
+	return !!m_light_scene_node;
 }
