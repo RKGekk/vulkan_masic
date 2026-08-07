@@ -91,7 +91,7 @@ glm::mat4x4 SceneNodeProperties::FromParentT() const {
 }
 
 const glm::mat4x4& SceneNodeProperties::FromRoot() const {
-    return m_scene->getNodeGlobalTransform(m_node_index);
+    return m_scene->getNodeInvGlobalTransform(m_node_index);
 }
 
 glm::mat4x4 SceneNodeProperties::FromRootT() const {

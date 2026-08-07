@@ -634,18 +634,18 @@ glm::mat4x4 MeshNodeLoader::MakeMatrix(const tinygltf::Node& gltf_node) const {
 }
 
 glm::mat4x4 MeshNodeLoader::MakeMatrix(const std::vector<double>& mat) const {
-	/*return glm::mat4x4(
+	return glm::mat4x4(
 		mat[0],  mat[1],  mat[2],  mat[3],
 		mat[4],  mat[5],  mat[6],  mat[7],
 		mat[8],  mat[9],  mat[10], mat[11],
 		mat[12], mat[13], mat[14], mat[15]
-	);*/
-	return glm::mat4x4(
-		mat[0], mat[4], mat[8],  mat[12],
-		mat[1], mat[5], mat[9],  mat[13],
-		mat[2], mat[6], mat[10], mat[14],
-		mat[3], mat[7], mat[11], mat[15]
 	);
+	// return glm::mat4x4(
+	// 	mat[0], mat[4], mat[8],  mat[12],
+	// 	mat[1], mat[5], mat[9],  mat[13],
+	// 	mat[2], mat[6], mat[10], mat[14],
+	// 	mat[3], mat[7], mat[11], mat[15]
+	// );
 }
 
 glm::mat4x4 MeshNodeLoader::MakeMatrix(const std::vector<double>& scale, const std::vector<double>& rotation, const std::vector<double>& translation) const {
@@ -706,42 +706,42 @@ std::vector<glm::mat4x4> MeshNodeLoader::GetMatrices(const tinygltf::Accessor& m
 			float vertex_attrib_element = GetAttribute<float>(raw_data_ptr, matrices_accessor.componentType);
 			matrice[current_component_num] = vertex_attrib_element;
 		}
-		// if(num_of_elements_to_copy == 16) {
-		// 	glm::mat4x4 uni_matrix(
-		// 		matrice[0],  matrice[1],  matrice[2],  matrice[3],
-		// 		matrice[4],  matrice[5],  matrice[6],  matrice[7],
-		// 		matrice[8],  matrice[9],  matrice[10], matrice[11],
-		// 		matrice[12], matrice[13], matrice[14], matrice[15]
-		// 	);
-		// 	matrices.push_back(uni_matrix);
-		// }
-		// else {
-		// 	glm::mat4x4 uni_matrix(
-		// 		matrice[0], matrice[1], matrice[2], 0.0,
-		// 		matrice[3], matrice[4], matrice[5], 0.0,
-		// 		matrice[6], matrice[7], matrice[8], 0.0,
-		// 		0.0,        0.0,        0.0,        0.0
-		// 	);
-		// 	matrices.push_back(uni_matrix);
-		// }
 		if(num_of_elements_to_copy == 16) {
 			glm::mat4x4 uni_matrix(
-				matrice[0], matrice[4], matrice[8],  matrice[12],
-				matrice[1], matrice[5], matrice[9],  matrice[13],
-				matrice[2], matrice[6], matrice[10], matrice[14],
-				matrice[3], matrice[7], matrice[11], matrice[15]
+				matrice[0],  matrice[1],  matrice[2],  matrice[3],
+				matrice[4],  matrice[5],  matrice[6],  matrice[7],
+				matrice[8],  matrice[9],  matrice[10], matrice[11],
+				matrice[12], matrice[13], matrice[14], matrice[15]
 			);
 			matrices.push_back(uni_matrix);
 		}
 		else {
 			glm::mat4x4 uni_matrix(
-				matrice[0], matrice[3], matrice[6], 0.0,
-				matrice[1], matrice[4], matrice[7], 0.0,
-				matrice[2], matrice[5], matrice[8], 0.0,
+				matrice[0], matrice[1], matrice[2], 0.0,
+				matrice[3], matrice[4], matrice[5], 0.0,
+				matrice[6], matrice[7], matrice[8], 0.0,
 				0.0,        0.0,        0.0,        0.0
 			);
 			matrices.push_back(uni_matrix);
 		}
+		// if(num_of_elements_to_copy == 16) {
+		// 	glm::mat4x4 uni_matrix(
+		// 		matrice[0], matrice[4], matrice[8],  matrice[12],
+		// 		matrice[1], matrice[5], matrice[9],  matrice[13],
+		// 		matrice[2], matrice[6], matrice[10], matrice[14],
+		// 		matrice[3], matrice[7], matrice[11], matrice[15]
+		// 	);
+		// 	matrices.push_back(uni_matrix);
+		// }
+		// else {
+		// 	glm::mat4x4 uni_matrix(
+		// 		matrice[0], matrice[3], matrice[6], 0.0,
+		// 		matrice[1], matrice[4], matrice[7], 0.0,
+		// 		matrice[2], matrice[5], matrice[8], 0.0,
+		// 		0.0,        0.0,        0.0,        0.0
+		// 	);
+		// 	matrices.push_back(uni_matrix);
+		// }
 	}
 
 	return matrices;
