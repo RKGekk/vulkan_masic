@@ -25,6 +25,7 @@ void SkeletonManager::AddBone(const std::shared_ptr<BoneNode>& node) {
         skinned_data->joint_to_bone_map[bone_data.joint_index] = node;
     }
     UpdateBoneData(node);
+    markAsChanged(node);
 }
 
 void SkeletonManager::markAsChanged(const std::shared_ptr<BoneNode>& node) {
@@ -53,7 +54,8 @@ bool SkeletonManager::UpdateBoneData(const std::shared_ptr<BoneNode>& node) {
     for(const auto&[skin_name, bone_data] : node->getBoneDataMap()) {
 
         const std::shared_ptr<SkinnedData>& skinned_data = m_skinned_data[skin_name];
-        skinned_data->to_root_transforms[bone_data.joint_index] = node->Get().FromRoot();
+        //skinned_data->to_root_transforms[bone_data.joint_index] = node->Get().FromRoot();
+        skinned_data->to_root_transforms[bone_data.joint_index] = node->Get().ToRoot();
         skinned_data->final_matrices[bone_data.joint_index] = skinned_data->to_root_transforms[bone_data.joint_index] * skinned_data->inverse_bind_matrices[bone_data.joint_index];
 
         {

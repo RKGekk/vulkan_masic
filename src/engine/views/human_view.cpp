@@ -13,6 +13,8 @@
 #include "../../events/cicadas/evt_data_key_pressed_event.h"
 #include "../../events/cicadas/evt_data_key_released_event.h"
 #include "../../events/cicadas/evt_data_mouse_wheel.h"
+#include "../../scene/scene.h"
+#include "../../scene/skeleton_manager.h"
 
 const std::string HumanView::g_name = "Level"s;
 
@@ -115,6 +117,7 @@ void HumanView::VOnUpdate(const GameTimerDelta& delta, uint32_t image_index) {
 		(*i)->VOnUpdate(delta, image_index);
 	}
 	m_scene->recalculateGlobalTransforms();
+	m_scene->getSkeletonManager()->recalculateSkinnedData();
 }
 
 EngineViewType HumanView::VGetType() {

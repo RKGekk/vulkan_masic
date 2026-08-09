@@ -26,13 +26,22 @@ layout(location = 4) in uvec4 in_joint_indices;
 layout(location = 5) in vec4 in_joint_weights;
 
 layout(location = 0) out vec3 out_normal;
-layout(location = 1) out vec4 out_world_pos;
-layout(location = 2) out vec2 out_uv;
+layout(location = 1) out vec3 out_tangent;
+layout(location = 2) out vec4 out_world_pos;
+layout(location = 3) out vec2 out_uv;
 
 void main() {
-    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(in_position, 1.0f);
+    mat4 skin = in_joint_weights.x * joint_ubo.joint_array[in_joint_indices.x]
+              + in_joint_weights.y * joint_ubo.joint_array[in_joint_indices.y]
+              + in_joint_weights.z * joint_ubo.joint_array[in_joint_indices.z]
+              + in_joint_weights.w * joint_ubo.joint_array[in_joint_indices.w];
+
+    mat3 skin_only_rot = mat3(skin);
+
+    gl_Position = ubo.proj * ubo.view * ubo.model * skin * vec4(in_position, 1.0f);
     
-    out_normal = transpose(mat3(inv_ubo.inv_model)) * in_normal;
-    out_world_pos = ubo.model * vec4(in_position, 1.0f);
+    out_normal = transpose(mat3(inv_ubo.inv_model)) * skin_only_rot * in_normal;
+    out_tangent = transpose(mat3(inv_ubo.inv_model)) * skin_only_rot * in_tangent;
+    out_world_pos = ubo.model * skin * vec4(in_position, 1.0f);
     out_uv = in_uv;
 }
