@@ -113,7 +113,8 @@ const std::unordered_map<AnimationManager::ClipName, std::unordered_set<std::sha
 
 void AnimationManager::ProcessClip(const ClipName& clip_name, float t) {
     for(const std::shared_ptr<AnimationNode>& anim_node : m_anim_name_to_node_map[clip_name]) {
-        glm::mat4x4 transform = glm::mat4x4(1.0f);
+        //glm::mat4x4 transform = glm::mat4x4(1.0f);
+        glm::mat4x4 transform = anim_node->Get().ToParent();
         anim_node->getAnimation(clip_name)->InterpolateTime(t, transform);
 	    anim_node->SetTransform(transform);
     }

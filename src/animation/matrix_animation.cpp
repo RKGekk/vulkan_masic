@@ -36,6 +36,19 @@ void MatrixAnimation::InterpolateTime(float t, glm::mat4x4& transform) const {
 	glm::vec3 P(0.0f, 0.0f, 0.0f);
 	glm::quat Q(1.0f, 0.0f, 0.0f, 0.0f);
 
+	{
+		glm::quat orientation;
+    	glm::vec3 scale;
+    	glm::vec3 translation;
+    	glm::vec3 skew;
+    	glm::vec4 perspective;
+    	if (glm::decompose(transform, scale, orientation, translation, skew, perspective)) {
+			S = scale;
+			P = translation;
+			Q = orientation;
+		}
+	}
+
 	if (TranslationKeyframes.size() == 0u) {
 	}
 	else if (TranslationKeyframes.size() == 1u) {
@@ -171,7 +184,8 @@ void MatrixAnimation::InterpolateTime(float t, glm::mat4x4& transform) const {
 	glm::mat4x4 Rotate(Q);
 	glm::mat4x4 Translate = glm::translate(P);
 	glm::mat4x4 new_transform = Translate * Rotate * Scale;
-    transform *= new_transform;
+	transform = new_transform;
+    //transform *= new_transform;
 }
 
 glm::mat4x4 MatrixAnimation::InterpolateTime(float t) const {
