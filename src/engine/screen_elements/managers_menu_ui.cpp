@@ -27,6 +27,34 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
                         for(const std::shared_ptr<AnimationNode>& anim_node : clip_data) {
                             printHierarchyTreeView(anim_node);
                         }
+                        ImGui::SeparatorText("AnimationControl");
+
+                        float total_animation_time = animation_manager->GetClipTotalTime(clip_name);
+						float current_time = animation_manager->GetClipCurrentTime(clip_name);
+
+						if (ImGui::SliderFloat("Time", ((float*)&current_time), 0.0f, total_animation_time, "%.4f")) {
+							animation_manager->SetClipCurrentTime(clip_name, current_time);
+						}
+
+						ImGui::PushID("Play");
+						if (ImGui::Button("Play")) {
+							animation_manager->Play(clip_name);
+						}
+						ImGui::PopID();
+
+						ImGui::SameLine();
+						ImGui::PushID("Pause");
+						if (ImGui::Button("Pause")) {
+							animation_manager->Pause(clip_name);
+						}
+						ImGui::PopID();
+
+						ImGui::SameLine();
+						ImGui::PushID("Stop");
+						if (ImGui::Button("Stop")) {
+							animation_manager->Stop(clip_name);
+						}
+						ImGui::PopID();
                         ImGui::TreePop();
                     }
                 }

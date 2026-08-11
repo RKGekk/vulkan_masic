@@ -119,6 +119,7 @@ void HumanView::VOnUpdate(const GameTimerDelta& delta, uint32_t image_index) {
 	for (ScreenElementList::iterator i = m_screen_elements.begin(); i != m_screen_elements.end(); ++i) {
 		(*i)->VOnUpdate(delta, image_index);
 	}
+	m_scene->getAnimationManager()->Update(delta);
 	m_scene->recalculateGlobalTransforms();
 	m_scene->getSkeletonManager()->recalculateSkinnedData();
 }

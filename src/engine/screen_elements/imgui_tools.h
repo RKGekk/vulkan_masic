@@ -24,6 +24,9 @@
 #include "../../scene/nodes/camera_node.h"
 #include "../../scene/nodes/aabb_node.h"
 #include "../../scene/nodes/light_node.h"
+#include "../../scene/nodes/value_bag_node.h"
+#include "../../scene/nodes/animation_node.h"
+#include "../../scene/nodes/bone_node.h"
 
 std::string getPrimitiveTopologyStr(VkPrimitiveTopology topology);
 std::string getFormatStr(VkFormat format);
@@ -45,5 +48,8 @@ void printMeshNodeImGUI(std::shared_ptr<MeshNode> pMesh);
 void printCameraNodeImGUI(std::shared_ptr<CameraNode> pCamera);
 void printAABBNodeImGUI(std::shared_ptr<AABBNode> pAABB);
 void printLightNodeImGUI(std::shared_ptr<LightNode> pLight);
+void printBoneNodeImGUI(std::shared_ptr<BoneNode> pBone);
+void printValueBagNodeImGUI(std::shared_ptr<ValueBagNode> pValueBag);
+void printAnimationNodeImGUI(std::shared_ptr<AnimationNode> pAnimation);
 void printHierarchyImGui(Scene::Hierarchy h);
 void printHierarchyTreeView(std::shared_ptr<SceneNode> start_node);

@@ -6,7 +6,7 @@ void AnimationManager::Update(const GameTimerDelta& delta) {
     if(!m_state_to_name_map.contains(ClipState::Playing) || m_state_to_name_map[ClipState::Playing].empty()) return;
 
     for(const ClipName& clip_name : m_state_to_name_map[ClipState::Playing]) {
-        m_name_to_current_time_map[clip_name] += delta.fGetTotalSeconds();
+        m_name_to_current_time_map[clip_name] += delta.fGetDeltaSeconds();
         float current_time = m_name_to_current_time_map[clip_name];
         ProcessClip(clip_name, current_time);
     }

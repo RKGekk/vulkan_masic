@@ -73,12 +73,13 @@ void Scene::markAsChanged(NodeIndex node_index) {
     const NodeLevel level = m_hierarchy[node_index].level;
     m_dirty_at_level[level].push_back(node_index);
 
+    if(m_skeleton_manager && (getNodeTypeFlags(node_index) & NODE_TYPE_FLAG_BONE)) {
+        std::shared_ptr<BoneNode> bone = std::dynamic_pointer_cast<BoneNode>(getProperty(node_index, NODE_TYPE_FLAG_BONE));
+        m_skeleton_manager->markAsChanged(bone);
+    }
+
     for (int n = m_hierarchy[node_index].first_child; n != -1; n = m_hierarchy[n].next_sibling) {
         markAsChanged(n);
-        if(m_skeleton_manager && (getNodeTypeFlags(n) & NODE_TYPE_FLAG_BONE)) {
-            std::shared_ptr<BoneNode> bone = std::dynamic_pointer_cast<BoneNode>(getProperty(n, NODE_TYPE_FLAG_BONE));
-            m_skeleton_manager->markAsChanged(bone);
-        }
     }
 }
 

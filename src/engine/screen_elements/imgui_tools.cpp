@@ -354,6 +354,8 @@ std::string getNodeFlagsStr(Scene::NodeTypeFlags node_type_flags) {
     if(node_type_flags & Scene::NODE_TYPE_FLAG_AABB) node_type_flags_str += "/AABB"s;
     if(node_type_flags & Scene::NODE_TYPE_FLAG_SPHERE) node_type_flags_str += "/Sp"s;
     if(node_type_flags & Scene::NODE_TYPE_FLAG_BONE) node_type_flags_str += "/B"s;
+    if(node_type_flags & Scene::NODE_TYPE_FLAG_VALUE_BAG) node_type_flags_str += "/Vb"s;
+    if(node_type_flags & Scene::NODE_TYPE_FLAG_ANIMATION) node_type_flags_str += "/A"s;
     return node_type_flags_str;
 }
 
@@ -604,11 +606,11 @@ void printCameraNodeImGUI(std::shared_ptr<CameraNode> pCamera) {
 	float cam_fov = pBasic_camera->GetFovYDeg();
 	if (ImGui::InputFloat("FovY", const_cast<float*>(&cam_fov), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
 
-    float cam_near = pBasic_camera->GetNear();
-    if (ImGui::InputFloat("Near", const_cast<float*>(&cam_near), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+    // float cam_near = pBasic_camera->GetNear();
+    // if (ImGui::InputFloat("Near", const_cast<float*>(&cam_near), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
 
-    float cam_far = pBasic_camera->GetFar();
-    if (ImGui::InputFloat("Far", const_cast<float*>(&cam_far), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+    // float cam_far = pBasic_camera->GetFar();
+    // if (ImGui::InputFloat("Far", const_cast<float*>(&cam_far), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
 }
 
 void printAABBNodeImGUI(std::shared_ptr<AABBNode> pAABB) {
@@ -637,6 +639,18 @@ void printLightNodeImGUI(std::shared_ptr<LightNode> pLight) {
     if (ImGui::InputFloat("falloff_end", const_cast<float*>(&light_prop.falloff_end), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
     if (ImGui::InputFloat("outer_angle", const_cast<float*>(&light_prop.outer_angle), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
     if (ImGui::InputFloat("inner_angle", const_cast<float*>(&light_prop.inner_angle), 0.0F, 0.0F, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+}
+
+void printBoneNodeImGUI(std::shared_ptr<BoneNode> pBone) {
+    if(!pBone) return;
+}
+
+void printValueBagNodeImGUI(std::shared_ptr<ValueBagNode> pValueBag) {
+    if(!pValueBag) return;
+}
+
+void printAnimationNodeImGUI(std::shared_ptr<AnimationNode> pAnimation) {
+    if(!pAnimation) return;
 }
 
 void printHierarchyImGui(Scene::Hierarchy hierarchy) {
@@ -729,6 +743,27 @@ void printHierarchyTreeView(std::shared_ptr<SceneNode> start_node) {
                 if(pLightNode && ImGui::TreeNode("Light")) {
                     std::shared_ptr<LightNode> pLight = std::dynamic_pointer_cast<LightNode>(pLightNode);
                     printLightNodeImGUI(pLight);
+                    ImGui::TreePop();
+                }
+
+                std::shared_ptr<SceneNode> pValueBagNode = node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG);
+                if(pValueBagNode && ImGui::TreeNode("ValueBag")) {
+                    std::shared_ptr<ValueBagNode> pValueBag = std::dynamic_pointer_cast<ValueBagNode>(pValueBagNode);
+                    printValueBagNodeImGUI(pValueBag);
+                    ImGui::TreePop();
+                }
+
+                std::shared_ptr<SceneNode> pBoneNode = node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_BONE);
+                if(pBoneNode && ImGui::TreeNode("Bone")) {
+                    std::shared_ptr<BoneNode> pBone = std::dynamic_pointer_cast<BoneNode>(pBoneNode);
+                    printBoneNodeImGUI(pBone);
+                    ImGui::TreePop();
+                }
+
+                std::shared_ptr<SceneNode> pAnimationNode = node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_ANIMATION);
+                if(pAnimationNode && ImGui::TreeNode("Animation")) {
+                    std::shared_ptr<AnimationNode> pAnimation = std::dynamic_pointer_cast<AnimationNode>(pAnimationNode);
+                    printAnimationNodeImGUI(pAnimation);
                     ImGui::TreePop();
                 }
                         
