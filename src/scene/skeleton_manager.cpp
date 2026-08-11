@@ -16,7 +16,6 @@ void SkeletonManager::AddBone(const std::shared_ptr<BoneNode>& node) {
         if(skinned_data->inverse_bind_matrices.size() <= bone_data.joint_index) {
             skinned_data->inverse_bind_matrices.resize(bone_data.joint_index + 1u);
             skinned_data->final_matrices.resize(bone_data.joint_index + 1u);
-            skinned_data->to_root_transforms.resize(bone_data.joint_index + 1u);
             skinned_data->m_dual_quats.resize(bone_data.joint_index + 1u);
         }
         skinned_data->inverse_bind_matrices[bone_data.joint_index] = bone_data.inverse_bind_matrice;
@@ -54,9 +53,9 @@ bool SkeletonManager::UpdateBoneData(const std::shared_ptr<BoneNode>& node) {
     for(const auto&[skin_name, bone_data] : node->getBoneDataMap()) {
 
         const std::shared_ptr<SkinnedData>& skinned_data = m_skinned_data[skin_name];
-        //skinned_data->to_root_transforms[bone_data.joint_index] = node->Get().FromRoot();
-        skinned_data->to_root_transforms[bone_data.joint_index] = node->Get().ToRoot();
-        skinned_data->final_matrices[bone_data.joint_index] = skinned_data->to_root_transforms[bone_data.joint_index] * skinned_data->inverse_bind_matrices[bone_data.joint_index];
+        glm::mat4 model_from_root = node->getBoneDataMap().at(skin_name).m_mesh_root_node->Get().FromRoot();
+        glm::mat4 to_root = node->Get().ToRoot();
+        skinned_data->final_matrices[bone_data.joint_index] = model_from_root * to_root * skinned_data->inverse_bind_matrices[bone_data.joint_index];
 
         {
             glm::quat orientation;

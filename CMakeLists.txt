@@ -47,6 +47,8 @@ set(APP_SOURCES
     "${SRC_DIR}/engine/screen_elements/node_menu_ui.cpp"
     "${SRC_DIR}/engine/screen_elements/test_menu_ui.h"
     "${SRC_DIR}/engine/screen_elements/test_menu_ui.cpp"
+    "${SRC_DIR}/engine/screen_elements/managers_menu_ui.h"
+    "${SRC_DIR}/engine/screen_elements/managers_menu_ui.cpp"
     "${SRC_DIR}/engine/screen_elements/screen_element_scene.h"
     "${SRC_DIR}/engine/screen_elements/screen_element_scene.cpp"
     "${SRC_DIR}/engine/controllers/ipointer_handler.h"

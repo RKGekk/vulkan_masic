@@ -548,7 +548,7 @@ std::shared_ptr<BoneNode> MeshNodeLoader::MakeBoneNode(NodeIdx gltf_node_idx, Sc
 	std::shared_ptr<BoneNode> bone_node = std::make_shared<BoneNode>(m_scene, node);
 
 	for (const BoneIdentity& bone_identity : m_skin_inv_map[gltf_node_idx]) {
-		BoneNode::BoneData bone_data = {bone_identity.inv_matrix, bone_identity.joint};
+		BoneNode::BoneData bone_data = {bone_identity.inv_matrix, bone_identity.joint, m_root_node};
 		bone_node->setBoneData(bone_data, bone_identity.skin_name);
 	}
 
@@ -814,6 +814,7 @@ void MeshNodeLoader::MakeNodesHierarchy(NodeIdx current_node_idx, std::shared_pt
 
 	if(is_current_bone) {
 		MakeBoneNode(current_node_idx, transform_node->VGetNodeIndex());
+		//MakeBoneNode(current_node_idx, m_scene->getRootNode()->VGetNodeIndex());
 	}
 
 	if(is_current_has_anim) {
@@ -856,7 +857,7 @@ std::unordered_map<MeshNodeLoader::NodeIdx, std::unordered_map<MeshNodeLoader::A
 	for (const auto&[node_idx, node_to_anim_map] : m_node_to_anim_map) {
 		for(const auto&[anim_idx, channels_vec] : node_to_anim_map) {
 			std::shared_ptr<MatrixAnimation> anim_matrix = make_anim_matrix(anim_idx, node_idx);
-			m_node_to_matrix_map[node_idx][anim_idx] = std::move(anim_matrix);
+			node_to_matrix_map[node_idx][anim_idx] = std::move(anim_matrix);
 		}
 	}
 

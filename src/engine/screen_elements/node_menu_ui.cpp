@@ -21,99 +21,6 @@ bool NodeMenuUI::VOnRestore() {
     return true;
 }
 
-void DrawHierarchyTreeView(std::shared_ptr<SceneNode> start_node) {
-    for(std::shared_ptr<SceneNode> node = start_node; node;) {
-        const Scene::Hierarchy& hierarchy_node = node->VGetHierarchy();
-        Scene::NodeTypeFlags node_type_flags = node->GetScene()->getNodeTypeFlags(node->VGetNodeIndex());
-        std::string node_name = node->Get().Name();
-        std::string header = getSummaryForHierarchyStr(node->VGetNodeIndex(), hierarchy_node, node_type_flags, node_name);
-
-        if (ImGui::TreeNode(header.c_str())) {
-
-            if (ImGui::TreeNode("Hierarchy")) {
-			    if (ImGui::BeginTable("Hierarchy Table", 3)) {
-                    ImGui::TableNextRow();
-                    ImGui::TableSetColumnIndex(0);
-
-                    printHierarchyImGui(hierarchy_node);
-                    
-                    ImGui::EndTable();
-                }
-                        
-				ImGui::TreePop();
-            }
-
-            if (ImGui::TreeNode("Properties")) {
-                ImGui::SeparatorText("Properties");
-
-                ImGui::InputText("Name", const_cast<char*>(node_name.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
-
-                std::string node_type_flags_raw = std::to_string(node_type_flags);
-                std::string node_type_v = node_type_flags_raw + " --> "s + getNodeFlagsStr(node_type_flags);
-                ImGui::InputText("Type Flags", const_cast<char*>(node_type_v.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
-
-                ImGui::SeparatorText("Transforms");
-
-                if (ImGui::TreeNode("Local Transform")) {
-                    ImGui::PushID("Local Transform");
-                    printMatrixImGUI(node->Get().ToParent());
-        			ImGui::TreePop();
-                    ImGui::PopID();
-        		}
-
-                if (ImGui::TreeNode("Global Transform")) {
-                    ImGui::PushID("Global Transform");
-                    printMatrixImGUI(node->Get().ToRoot());
-        			ImGui::TreePop();
-                    ImGui::PopID();
-        		}
-
-                ImGui::SeparatorText("Node Types");
-
-                std::shared_ptr<SceneNode> pMeshNode = node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_MESH);
-                if(pMeshNode && ImGui::TreeNode("Mesh")) {
-                    std::shared_ptr<MeshNode> pMesh = std::dynamic_pointer_cast<MeshNode>(pMeshNode);
-                    printMeshNodeImGUI(pMesh);
-                    ImGui::TreePop();
-                }
-
-                std::shared_ptr<SceneNode> pCameraNode = node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_CAMERA);
-                if(pCameraNode && ImGui::TreeNode("Camera")) {
-                    std::shared_ptr<CameraNode> pCamera = std::dynamic_pointer_cast<CameraNode>(pCameraNode);
-                    printCameraNodeImGUI(pCamera);
-                    ImGui::TreePop();
-                }
-
-                std::shared_ptr<SceneNode> pAABBNode = node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_AABB);
-                if(pAABBNode && ImGui::TreeNode("AABB")) {
-                    std::shared_ptr<AABBNode> pAABB = std::dynamic_pointer_cast<AABBNode>(pAABBNode);
-                    printAABBNodeImGUI(pAABB);
-                    ImGui::TreePop();
-                }
-
-                std::shared_ptr<SceneNode> pLightNode = node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_LIGHT);
-                if(pLightNode && ImGui::TreeNode("Light")) {
-                    std::shared_ptr<LightNode> pLight = std::dynamic_pointer_cast<LightNode>(pLightNode);
-                    printLightNodeImGUI(pLight);
-                    ImGui::TreePop();
-                }
-                        
-				ImGui::TreePop();
-			}
-
-            if (node->GetChild() && ImGui::TreeNode("Child Hierarchy")) {
-                DrawHierarchyTreeView(node->GetChild());
-                ImGui::TreePop();
-            }
-
-            ImGui::TreePop();
-        }
-
-        node = node->GetNextSibling();
-    }
-
-}
-
 void DrawFlatHierarchy(std::shared_ptr<Scene> scene) {
     if(!scene) return;
 
@@ -219,7 +126,7 @@ bool NodeMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index) {
             DrawFlatHierarchy(scene);
         }
         if (ImGui::CollapsingHeader("Hierarchy Tree View")) {
-            DrawHierarchyTreeView(scene->getRootNode());
+            printHierarchyTreeView(scene->getRootNode());
         }
     }
     

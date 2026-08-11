@@ -32,6 +32,7 @@ std::string getBufferUsageStr(VkBufferUsageFlags buff_usage);
 std::string getMaterialTextures(uint32_t has_texture);
 std::string getNodeFlagsStr(Scene::NodeTypeFlags node_type_flags);
 std::string getSummaryForHierarchyStr(Scene::NodeIndex node_index, Scene::Hierarchy hierarchy_node, Scene::NodeTypeFlags node_type_flags, std::string node_name);
+
 void printQuatImGUI(glm::quat q);
 void printMatrixImGUI(const glm::mat4& matrix);
 void editMatrixImGUI(const glm::mat4& matrix, std::function<void(glm::bvec3 tsr, glm::vec3 tr, glm::vec3 sc, glm::quat rot)> fn);
@@ -45,3 +46,4 @@ void printCameraNodeImGUI(std::shared_ptr<CameraNode> pCamera);
 void printAABBNodeImGUI(std::shared_ptr<AABBNode> pAABB);
 void printLightNodeImGUI(std::shared_ptr<LightNode> pLight);
 void printHierarchyImGui(Scene::Hierarchy h);
+void printHierarchyTreeView(std::shared_ptr<SceneNode> start_node);

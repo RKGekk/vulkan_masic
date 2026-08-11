@@ -49,6 +49,9 @@ HumanView::HumanView(std::shared_ptr<ProcessManager> process_manager) {
 
 		m_node_menu_ui = std::make_shared<NodeMenuUI>();
 		VPushElement(m_node_menu_ui);
+
+		m_managers_menu_ui = std::make_shared<ManagersMenuUI>();
+		VPushElement(m_managers_menu_ui);
 	}
 	
 	m_current_tick = {};
