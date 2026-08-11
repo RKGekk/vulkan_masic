@@ -753,7 +753,7 @@ std::vector<glm::quat> MeshNodeLoader::GetLinearRotationAnimData(const tinygltf:
 	size_t rotation_buffer_idx = rotation_view.buffer;
 	const tinygltf::Buffer& rotation_buffer = m_gltf_model.buffers[rotation_buffer_idx];
 
-	const glm::quat* begin_ptr = reinterpret_cast<const glm::quat*>(rotation_buffer.data.data());
+	const glm::quat* begin_ptr = reinterpret_cast<const glm::quat*>(rotation_buffer.data.data() + rotation_view.byteOffset);
 	std::vector<glm::quat> rotations(begin_ptr, begin_ptr + rotation_accessor.count);
 
 	return rotations;
@@ -765,7 +765,7 @@ std::vector<MeshNodeLoader::CubicSplineQuat> MeshNodeLoader::GetCubicRotationAni
 	size_t rotation_buffer_idx = rotation_view.buffer;
 	const tinygltf::Buffer& rotation_buffer = m_gltf_model.buffers[rotation_buffer_idx];
 
-	const CubicSplineQuat* begin_ptr = reinterpret_cast<const CubicSplineQuat*>(rotation_buffer.data.data());
+	const CubicSplineQuat* begin_ptr = reinterpret_cast<const CubicSplineQuat*>(rotation_buffer.data.data() + rotation_view.byteOffset);
 	std::vector<CubicSplineQuat> rotations(begin_ptr, begin_ptr + rotation_accessor.count / 3);
 
 	return rotations;
@@ -777,7 +777,7 @@ std::vector<glm::vec3> MeshNodeLoader::GetLinearTranslationAnimData(const tinygl
 	size_t translation_buffer_idx = translation_view.buffer;
 	const tinygltf::Buffer& translation_buffer = m_gltf_model.buffers[translation_buffer_idx];
 
-	const glm::vec3* begin_ptr = reinterpret_cast<const glm::vec3*>(translation_buffer.data.data());
+	const glm::vec3* begin_ptr = reinterpret_cast<const glm::vec3*>(translation_buffer.data.data() + translation_view.byteOffset);
 	std::vector<glm::vec3> translations(begin_ptr, begin_ptr + translation_accessor.count);
 
 	return translations;
@@ -789,7 +789,7 @@ std::vector<MeshNodeLoader::CubicSplineVec3> MeshNodeLoader::GetCubicTranslation
 	size_t translation_buffer_idx = translation_view.buffer;
 	const tinygltf::Buffer& translation_buffer = m_gltf_model.buffers[translation_buffer_idx];
 
-	const CubicSplineVec3* begin_ptr = reinterpret_cast<const CubicSplineVec3*>(translation_buffer.data.data());
+	const CubicSplineVec3* begin_ptr = reinterpret_cast<const CubicSplineVec3*>(translation_buffer.data.data() + translation_view.byteOffset);
 	std::vector<CubicSplineVec3> translations(begin_ptr, begin_ptr + translation_accessor.count / 3);
 
 	return translations;

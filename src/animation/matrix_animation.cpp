@@ -76,6 +76,8 @@ void MatrixAnimation::InterpolateTime(float t, glm::mat4x4& transform) const {
 				// Multiply the tangents by the frame's time duration because of how decouples physical velocity from keyframe spacing.The primary reasons for this requirement involve mathematical unit cancellation, normalized curve shapes, and maintaining consistent animation speeds
 				glm::vec3 t0 = it0->inTangent * time_delta;
 				glm::vec3 t1 = it0->outTangent * time_delta;
+				//glm::vec3 t0 = it0->inTangent;
+				//glm::vec3 t1 = it0->outTangent;
 
 				P = glm::hermite(p0, t0, p1, t1, lerp_percent);
 			}
