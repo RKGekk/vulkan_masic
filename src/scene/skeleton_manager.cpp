@@ -16,7 +16,7 @@ void SkeletonManager::AddBone(const std::shared_ptr<BoneNode>& node) {
         if(skinned_data->inverse_bind_matrices.size() <= bone_data.joint_index) {
             skinned_data->inverse_bind_matrices.resize(bone_data.joint_index + 1u);
             skinned_data->final_matrices.resize(bone_data.joint_index + 1u);
-            skinned_data->m_dual_quats.resize(bone_data.joint_index + 1u);
+            skinned_data->dual_quats.resize(bone_data.joint_index + 1u);
         }
         skinned_data->inverse_bind_matrices[bone_data.joint_index] = bone_data.inverse_bind_matrice;
 
@@ -67,7 +67,7 @@ bool SkeletonManager::UpdateBoneData(const std::shared_ptr<BoneNode>& node) {
             if (glm::decompose(skinned_data->final_matrices[bone_data.joint_index], scale, orientation, translation, skew, perspective)) {
                 dq[0] = orientation;
                 dq[1] = glm::quat(0.0f, translation.x, translation.y, translation.z) * orientation * 0.5f;
-                skinned_data->m_dual_quats[bone_data.joint_index] = glm::mat2x4_cast(dq);
+                skinned_data->dual_quats[bone_data.joint_index] = glm::mat2x4_cast(dq);
             }
         }
 

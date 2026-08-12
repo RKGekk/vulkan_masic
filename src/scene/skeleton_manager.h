@@ -25,7 +25,7 @@ public:
         BoneNode::SkinName skeleton_name;
         std::vector<glm::mat4> inverse_bind_matrices;
         std::vector<glm::mat4> final_matrices;
-        std::vector<glm::mat2x4> m_dual_quats;
+        std::vector<glm::mat2x4> dual_quats;
         std::unordered_map<std::shared_ptr<BoneNode>, BoneNode::JointIndex> bone_to_joint_map;
         std::unordered_map<BoneNode::JointIndex, std::shared_ptr<BoneNode>> joint_to_bone_map;
     };
