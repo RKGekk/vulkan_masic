@@ -24,37 +24,44 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
             if (ImGui::CollapsingHeader("Animation Manager")) {
                 for(const auto&[clip_name, clip_data] : animation_manager->GetClipMap()) {
                     if (ImGui::TreeNode(clip_name.c_str())) {
-                        for(const std::shared_ptr<AnimationNode>& anim_node : clip_data) {
-                            printHierarchyTreeView(anim_node);
-                        }
-                        ImGui::SeparatorText("AnimationControl");
 
-                        float total_animation_time = animation_manager->GetClipTotalTime(clip_name);
-						float current_time = animation_manager->GetClipCurrentTime(clip_name);
-
-						if (ImGui::SliderFloat("Time", ((float*)&current_time), 0.0f, total_animation_time, "%.4f")) {
-							animation_manager->SetClipCurrentTime(clip_name, current_time);
+						if (ImGui::TreeNode("ControlledNodes")) {
+							for(const std::shared_ptr<AnimationNode>& anim_node : clip_data) {
+                            	printSceneNode(anim_node);
+                        	}
+							ImGui::TreePop();
 						}
 
-						ImGui::PushID("Play");
-						if (ImGui::Button("Play")) {
-							animation_manager->Play(clip_name);
-						}
-						ImGui::PopID();
+						if (ImGui::TreeNode("AnimationControl")) {
+							float total_animation_time = animation_manager->GetClipTotalTime(clip_name);
+							float current_time = animation_manager->GetClipCurrentTime(clip_name);
 
-						ImGui::SameLine();
-						ImGui::PushID("Pause");
-						if (ImGui::Button("Pause")) {
-							animation_manager->Pause(clip_name);
-						}
-						ImGui::PopID();
+							if (ImGui::SliderFloat("Time", ((float*)&current_time), 0.0f, total_animation_time, "%.4f")) {
+								animation_manager->SetClipCurrentTime(clip_name, current_time);
+							}
 
-						ImGui::SameLine();
-						ImGui::PushID("Stop");
-						if (ImGui::Button("Stop")) {
-							animation_manager->Stop(clip_name);
+							ImGui::PushID("Play");
+							if (ImGui::Button("Play")) {
+								animation_manager->Play(clip_name);
+							}
+							ImGui::PopID();
+
+							ImGui::SameLine();
+							ImGui::PushID("Pause");
+							if (ImGui::Button("Pause")) {
+								animation_manager->Pause(clip_name);
+							}
+							ImGui::PopID();
+
+							ImGui::SameLine();
+							ImGui::PushID("Stop");
+							if (ImGui::Button("Stop")) {
+								animation_manager->Stop(clip_name);
+							}
+							ImGui::PopID();
+
+							ImGui::TreePop();
 						}
-						ImGui::PopID();
                         ImGui::TreePop();
                     }
                 }

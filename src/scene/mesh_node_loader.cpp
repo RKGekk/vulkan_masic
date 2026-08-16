@@ -42,7 +42,7 @@ std::unordered_map<MeshNodeLoader::NodeIdx, MeshNodeLoader::NodeIdx> MeshNodeLoa
     	const tinygltf::Node& gltf_node = m_gltf_model.nodes[node_ct];
         int num_childs = gltf_node.children.size();
         for (int child_ct = 0; child_ct < num_childs; ++child_ct) {
-            node_parent_map[child_ct] = node_ct;
+            node_parent_map[gltf_node.children[child_ct]] = node_ct;
         }
     }
     return node_parent_map;
@@ -91,8 +91,6 @@ std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem
 		}
 	}
 
-	size_t num_scenes = m_gltf_model.scenes.size();
-
 	if (!m_gltf_model.skins.empty()) {
 		for (int skin_ct = 0; const tinygltf::Skin& gltf_skin : m_gltf_model.skins) {
 			std::vector<glm::mat4x4> inv_matrices = GetMatrices(gltf_skin);
@@ -114,6 +112,7 @@ std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem
 		m_node_to_matrix_map = make_node_to_matrix_map();
 	}
 
+	size_t num_scenes = m_gltf_model.scenes.size();
     for (int scene_idx = 0; scene_idx < num_scenes; ++scene_idx) {
     	const tinygltf::Scene gltf_current_scene = m_gltf_model.scenes[scene_idx];
     	size_t num_nodes = gltf_current_scene.nodes.size();
@@ -624,6 +623,15 @@ std::shared_ptr<SceneNode> MeshNodeLoader::MakeSingleNode(const tinygltf::Node& 
 	return transform_node;
 }
 
+std::shared_ptr<SceneNode> MeshNodeLoader::MakeSingleNode(Scene::NodeIndex parent, const std::shared_ptr<Scene>& scene, glm::mat4x4 transform) {
+	std::shared_ptr<SceneNode> transform_node = std::make_shared<SceneNode>(scene, Scene::NO_NAME, parent);
+    scene->addProperty(transform_node);
+
+	transform_node->SetTransform(transform);
+
+	return transform_node;
+}
+
 glm::mat4x4 MeshNodeLoader::MakeMatrix(const tinygltf::Node& gltf_node) const {
 	if(gltf_node.matrix.empty()) {
 		return MakeMatrix(gltf_node.scale, gltf_node.rotation, gltf_node.translation);
@@ -772,13 +780,24 @@ std::vector<MeshNodeLoader::CubicSplineQuat> MeshNodeLoader::GetCubicRotationAni
 }
 
 std::vector<glm::vec3> MeshNodeLoader::GetLinearTranslationAnimData(const tinygltf::Accessor& translation_accessor) {
+	int32_t translation_element_size = tinygltf::GetComponentSizeInBytes(translation_accessor.componentType);
+	int32_t num_of_elements_in_type = tinygltf::GetNumComponentsInType(translation_accessor.type);
 	size_t translation_view_idx = translation_accessor.bufferView;
 	const tinygltf::BufferView& translation_view = m_gltf_model.bufferViews[translation_view_idx];
+	size_t buffer_stride_bytes = translation_view.byteStride ? translation_view.byteStride : translation_element_size * num_of_elements_in_type;
 	size_t translation_buffer_idx = translation_view.buffer;
 	const tinygltf::Buffer& translation_buffer = m_gltf_model.buffers[translation_buffer_idx];
 
-	const glm::vec3* begin_ptr = reinterpret_cast<const glm::vec3*>(translation_buffer.data.data() + translation_view.byteOffset);
-	std::vector<glm::vec3> translations(begin_ptr, begin_ptr + translation_accessor.count);
+	//const glm::vec3* begin_ptr = reinterpret_cast<const glm::vec3*>(translation_buffer.data.data() + translation_view.byteOffset);
+	//std::vector<glm::vec3> translations(begin_ptr, begin_ptr + translation_accessor.count);
+	size_t ct = translation_accessor.count;
+	std::vector<glm::vec3> translations(ct);
+	for(size_t i = 0u; i < ct; ++i) {
+		const float* current_ptr = reinterpret_cast<const float*>(translation_buffer.data.data() + translation_view.byteOffset + (i * buffer_stride_bytes));
+		translations[i].x = current_ptr[0];
+		translations[i].y = current_ptr[1];
+		translations[i].z = current_ptr[2];
+	}
 
 	return translations;
 }
@@ -800,7 +819,16 @@ void MeshNodeLoader::MakeNodesHierarchy(NodeIdx current_node_idx, std::shared_pt
 	bool is_current_bone = m_skin_inv_map.count(current_node_idx);
 	bool is_current_has_anim = m_node_to_anim_map.count(current_node_idx);
 
-	std::shared_ptr<SceneNode> transform_node = MakeSingleNode(gltf_node, parent->VGetNodeIndex(), m_scene);
+	std::shared_ptr<SceneNode> transform_node;
+
+	if(gltf_node.skin == -1) {
+		transform_node = MakeSingleNode(gltf_node, parent->VGetNodeIndex(), m_scene);
+	}
+	else {
+		//transform_node = MakeSingleNode(parent->VGetNodeIndex(), m_scene, glm::mat4x4(1.0f));
+		transform_node = MakeSingleNode(m_root_node->VGetNodeIndex(), m_scene, glm::mat4x4(1.0f));
+		//transform_node = MakeSingleNode(m_root_node->VGetNodeIndex(), m_scene, m_root_node->Get().FromParent());
+	}
 	
 	if (gltf_node.mesh != -1) {
 		//const tinygltf::Mesh& gltf_mesh = m_gltf_model.meshes[gltf_node.mesh];
@@ -824,7 +852,7 @@ void MeshNodeLoader::MakeNodesHierarchy(NodeIdx current_node_idx, std::shared_pt
 	size_t child_ct = gltf_node.children.size();
 	for (size_t current_child_ct = 0u; current_child_ct < child_ct; ++current_child_ct) {
 		int current_child_idx = gltf_node.children[current_child_ct];
-		const tinygltf::Node& child_gltf_node = m_gltf_model.nodes[current_child_idx];
+		//const tinygltf::Node& child_gltf_node = m_gltf_model.nodes[current_child_idx];
 		MakeNodesHierarchy(current_child_idx, transform_node);
 	}
 }

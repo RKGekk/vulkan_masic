@@ -671,113 +671,119 @@ void printHierarchyTreeView(std::shared_ptr<SceneNode> start_node) {
     using namespace std::literals;
 
     for(std::shared_ptr<SceneNode> node = start_node; node;) {
-        const Scene::Hierarchy& hierarchy_node = node->VGetHierarchy();
-        Scene::NodeTypeFlags node_type_flags = node->GetScene()->getNodeTypeFlags(node->VGetNodeIndex());
-        std::string node_name = node->Get().Name();
-        std::string header = getSummaryForHierarchyStr(node->VGetNodeIndex(), hierarchy_node, node_type_flags, node_name);
+        
+        printSceneNode(node);
+        node = node->GetNextSibling();
+    }
+}
 
-        if (ImGui::TreeNode(header.c_str())) {
+void printSceneNode(std::shared_ptr<SceneNode> node) {
+    using namespace std;
 
-            if (ImGui::TreeNode("Hierarchy")) {
-			    if (ImGui::BeginTable("Hierarchy Table", 3)) {
-                    ImGui::TableNextRow();
-                    ImGui::TableSetColumnIndex(0);
+    const Scene::Hierarchy& hierarchy_node = node->VGetHierarchy();
+    Scene::NodeTypeFlags node_type_flags = node->GetScene()->getNodeTypeFlags(node->VGetNodeIndex());
+    std::string node_name = node->Get().Name();
+    std::string header = getSummaryForHierarchyStr(node->VGetNodeIndex(), hierarchy_node, node_type_flags, node_name);
 
-                    printHierarchyImGui(hierarchy_node);
+    if (ImGui::TreeNode(header.c_str())) {
+
+        if (ImGui::TreeNode("Hierarchy")) {
+		    if (ImGui::BeginTable("Hierarchy Table", 3)) {
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+
+                printHierarchyImGui(hierarchy_node);
                     
-                    ImGui::EndTable();
-                }
-                        
-				ImGui::TreePop();
+                ImGui::EndTable();
             }
-
-            if (ImGui::TreeNode("Properties")) {
-                ImGui::SeparatorText("Properties");
-
-                ImGui::InputText("Name", const_cast<char*>(node_name.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
-
-                std::string node_type_flags_raw = std::to_string(node_type_flags);
-                std::string node_type_v = node_type_flags_raw + " --> "s + getNodeFlagsStr(node_type_flags);
-                ImGui::InputText("Type Flags", const_cast<char*>(node_type_v.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
-
-                ImGui::SeparatorText("Transforms");
-
-                if (ImGui::TreeNode("Local Transform")) {
-                    ImGui::PushID("Local Transform");
-                    printMatrixImGUI(node->Get().ToParent());
-        			ImGui::TreePop();
-                    ImGui::PopID();
-        		}
-
-                if (ImGui::TreeNode("Global Transform")) {
-                    ImGui::PushID("Global Transform");
-                    printMatrixImGUI(node->Get().ToRoot());
-        			ImGui::TreePop();
-                    ImGui::PopID();
-        		}
-
-                ImGui::SeparatorText("Node Types");
-
-                std::shared_ptr<SceneNode> pMeshNode = node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_MESH);
-                if(pMeshNode && ImGui::TreeNode("Mesh")) {
-                    std::shared_ptr<MeshNode> pMesh = std::dynamic_pointer_cast<MeshNode>(pMeshNode);
-                    printMeshNodeImGUI(pMesh);
-                    ImGui::TreePop();
-                }
-
-                std::shared_ptr<SceneNode> pCameraNode = node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_CAMERA);
-                if(pCameraNode && ImGui::TreeNode("Camera")) {
-                    std::shared_ptr<CameraNode> pCamera = std::dynamic_pointer_cast<CameraNode>(pCameraNode);
-                    printCameraNodeImGUI(pCamera);
-                    ImGui::TreePop();
-                }
-
-                std::shared_ptr<SceneNode> pAABBNode = node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_AABB);
-                if(pAABBNode && ImGui::TreeNode("AABB")) {
-                    std::shared_ptr<AABBNode> pAABB = std::dynamic_pointer_cast<AABBNode>(pAABBNode);
-                    printAABBNodeImGUI(pAABB);
-                    ImGui::TreePop();
-                }
-
-                std::shared_ptr<SceneNode> pLightNode = node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_LIGHT);
-                if(pLightNode && ImGui::TreeNode("Light")) {
-                    std::shared_ptr<LightNode> pLight = std::dynamic_pointer_cast<LightNode>(pLightNode);
-                    printLightNodeImGUI(pLight);
-                    ImGui::TreePop();
-                }
-
-                std::shared_ptr<SceneNode> pValueBagNode = node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG);
-                if(pValueBagNode && ImGui::TreeNode("ValueBag")) {
-                    std::shared_ptr<ValueBagNode> pValueBag = std::dynamic_pointer_cast<ValueBagNode>(pValueBagNode);
-                    printValueBagNodeImGUI(pValueBag);
-                    ImGui::TreePop();
-                }
-
-                std::shared_ptr<SceneNode> pBoneNode = node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_BONE);
-                if(pBoneNode && ImGui::TreeNode("Bone")) {
-                    std::shared_ptr<BoneNode> pBone = std::dynamic_pointer_cast<BoneNode>(pBoneNode);
-                    printBoneNodeImGUI(pBone);
-                    ImGui::TreePop();
-                }
-
-                std::shared_ptr<SceneNode> pAnimationNode = node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_ANIMATION);
-                if(pAnimationNode && ImGui::TreeNode("Animation")) {
-                    std::shared_ptr<AnimationNode> pAnimation = std::dynamic_pointer_cast<AnimationNode>(pAnimationNode);
-                    printAnimationNodeImGUI(pAnimation);
-                    ImGui::TreePop();
-                }
                         
-				ImGui::TreePop();
-			}
+			ImGui::TreePop();
+        }
 
-            if (node->GetChild() && ImGui::TreeNode("Child Hierarchy")) {
-                printHierarchyTreeView(node->GetChild());
+        if (ImGui::TreeNode("Properties")) {
+            ImGui::SeparatorText("Properties");
+
+            ImGui::InputText("Name", const_cast<char*>(node_name.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
+
+            std::string node_type_flags_raw = std::to_string(node_type_flags);
+            std::string node_type_v = node_type_flags_raw + " --> "s + getNodeFlagsStr(node_type_flags);
+            ImGui::InputText("Type Flags", const_cast<char*>(node_type_v.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
+
+            ImGui::SeparatorText("Transforms");
+
+            if (ImGui::TreeNode("Local Transform")) {
+                ImGui::PushID("Local Transform");
+                printMatrixImGUI(node->Get().ToParent());
+        		ImGui::TreePop();
+                ImGui::PopID();
+        	}
+
+            if (ImGui::TreeNode("Global Transform")) {
+                ImGui::PushID("Global Transform");
+                printMatrixImGUI(node->Get().ToRoot());
+        		ImGui::TreePop();
+                ImGui::PopID();
+        	}
+
+            ImGui::SeparatorText("Node Types");
+
+            std::shared_ptr<SceneNode> pMeshNode = node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_MESH);
+            if(pMeshNode && ImGui::TreeNode("Mesh")) {
+                std::shared_ptr<MeshNode> pMesh = std::dynamic_pointer_cast<MeshNode>(pMeshNode);
+                printMeshNodeImGUI(pMesh);
                 ImGui::TreePop();
             }
 
+            std::shared_ptr<SceneNode> pCameraNode = node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_CAMERA);
+            if(pCameraNode && ImGui::TreeNode("Camera")) {
+                std::shared_ptr<CameraNode> pCamera = std::dynamic_pointer_cast<CameraNode>(pCameraNode);
+                printCameraNodeImGUI(pCamera);
+                ImGui::TreePop();
+            }
+
+            std::shared_ptr<SceneNode> pAABBNode = node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_AABB);
+            if(pAABBNode && ImGui::TreeNode("AABB")) {
+                std::shared_ptr<AABBNode> pAABB = std::dynamic_pointer_cast<AABBNode>(pAABBNode);
+                printAABBNodeImGUI(pAABB);
+                ImGui::TreePop();
+            }
+
+            std::shared_ptr<SceneNode> pLightNode = node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_LIGHT);
+            if(pLightNode && ImGui::TreeNode("Light")) {
+                std::shared_ptr<LightNode> pLight = std::dynamic_pointer_cast<LightNode>(pLightNode);
+                printLightNodeImGUI(pLight);
+                ImGui::TreePop();
+            }
+
+            std::shared_ptr<SceneNode> pValueBagNode = node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG);
+            if(pValueBagNode && ImGui::TreeNode("ValueBag")) {
+                std::shared_ptr<ValueBagNode> pValueBag = std::dynamic_pointer_cast<ValueBagNode>(pValueBagNode);
+                printValueBagNodeImGUI(pValueBag);
+                ImGui::TreePop();
+            }
+
+            std::shared_ptr<SceneNode> pBoneNode = node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_BONE);
+            if(pBoneNode && ImGui::TreeNode("Bone")) {
+                std::shared_ptr<BoneNode> pBone = std::dynamic_pointer_cast<BoneNode>(pBoneNode);
+                printBoneNodeImGUI(pBone);
+                ImGui::TreePop();
+            }
+
+            std::shared_ptr<SceneNode> pAnimationNode = node->GetScene()->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_ANIMATION);
+            if(pAnimationNode && ImGui::TreeNode("Animation")) {
+                std::shared_ptr<AnimationNode> pAnimation = std::dynamic_pointer_cast<AnimationNode>(pAnimationNode);
+                printAnimationNodeImGUI(pAnimation);
+                ImGui::TreePop();
+            }
+                        
+			ImGui::TreePop();
+		}
+
+        if (node->GetChild() && ImGui::TreeNode("Child Hierarchy")) {
+            printHierarchyTreeView(node->GetChild());
             ImGui::TreePop();
         }
 
-        node = node->GetNextSibling();
+        ImGui::TreePop();
     }
 }

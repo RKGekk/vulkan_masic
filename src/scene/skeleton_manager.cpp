@@ -56,6 +56,7 @@ bool SkeletonManager::UpdateBoneData(const std::shared_ptr<BoneNode>& node) {
         glm::mat4 model_from_root = node->getBoneDataMap().at(skin_name).m_mesh_root_node->Get().FromRoot();
         glm::mat4 to_root = node->Get().ToRoot();
         skinned_data->final_matrices[bone_data.joint_index] = model_from_root * to_root * skinned_data->inverse_bind_matrices[bone_data.joint_index];
+        //skinned_data->final_matrices[bone_data.joint_index] = to_root * skinned_data->inverse_bind_matrices[bone_data.joint_index];
 
         {
             glm::quat orientation;

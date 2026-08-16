@@ -53,3 +53,4 @@ void printValueBagNodeImGUI(std::shared_ptr<ValueBagNode> pValueBag);
 void printAnimationNodeImGUI(std::shared_ptr<AnimationNode> pAnimation);
 void printHierarchyImGui(Scene::Hierarchy h);
 void printHierarchyTreeView(std::shared_ptr<SceneNode> start_node);
+void printSceneNode(std::shared_ptr<SceneNode> start_node);

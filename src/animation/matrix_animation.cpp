@@ -73,7 +73,7 @@ void MatrixAnimation::InterpolateTime(float t, glm::mat4x4& transform) const {
 			float time_delta = next_time_pos - current_time_pos;
 			float lerp_percent = 0.5f;
 			if (time_delta > 0.0001f) {
-				lerp_percent = (t - current_time_pos) / (next_time_pos - current_time_pos);
+				lerp_percent = (t - current_time_pos) / time_delta;
 			}
 
 			glm::vec3 p0 = it0->Translation;
@@ -119,7 +119,7 @@ void MatrixAnimation::InterpolateTime(float t, glm::mat4x4& transform) const {
 			float time_delta = next_time_pos - current_time_pos;
 			float lerp_percent = 0.5f;
 			if (time_delta > 0.0001f) {
-				lerp_percent = (t - current_time_pos) / (next_time_pos - current_time_pos);
+				lerp_percent = (t - current_time_pos) / time_delta;
 			}
 
 			glm::vec3 s0 = it0->Scale;
@@ -154,7 +154,7 @@ void MatrixAnimation::InterpolateTime(float t, glm::mat4x4& transform) const {
 			float time_delta = next_time_pos - current_time_pos;
 			float lerp_percent = 0.5f;
 			if (time_delta > 0.0001f) {
-				lerp_percent = (t - current_time_pos) / (next_time_pos - current_time_pos);
+				lerp_percent = (t - current_time_pos) / time_delta;
 			}
 
 			glm::quat q0 = it0->RotationQuat;
