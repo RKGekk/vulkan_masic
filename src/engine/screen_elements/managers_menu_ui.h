@@ -4,7 +4,6 @@
 #include <memory>
 
 #include "base_ui.h"
-#include "../../scene/animation_manager.h"
 
 class BaseEngineLogic;
 
@@ -21,5 +20,5 @@ public:
 	virtual void VSetZOrder(int const zOrder) override;
 
 private:
-    //std::shared_ptr<AnimationManager> m_animation_manager;
+
 };

@@ -545,7 +545,7 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Node& g
 std::shared_ptr<BoneNode> MeshNodeLoader::MakeBoneNode(NodeIdx gltf_node_idx, Scene::NodeIndex node) {
 	using namespace std::literals;
 	std::shared_ptr<BoneNode> bone_node = std::make_shared<BoneNode>(m_scene, node);
-
+	//bone_node->setBindMatrice(bone_node->Get().ToParent());
 	for (const BoneIdentity& bone_identity : m_skin_inv_map[gltf_node_idx]) {
 		BoneNode::BoneData bone_data = {bone_identity.inv_matrix, bone_identity.joint, m_root_node};
 		bone_node->setBoneData(bone_data, bone_identity.skin_name);

@@ -643,6 +643,15 @@ void printLightNodeImGUI(std::shared_ptr<LightNode> pLight) {
 
 void printBoneNodeImGUI(std::shared_ptr<BoneNode> pBone) {
     if(!pBone) return;
+
+    for(const auto&[skin_name, bone_data] : pBone->getBoneDataMap()) {
+        if (ImGui::TreeNode("InverseBindMatrice")) {
+            printMatrixImGUI(bone_data.inverse_bind_matrice);
+            ImGui::TreePop();
+        }
+        if (ImGui::InputInt("JointIndex", (int*)(&bone_data.joint_index), 0, 0, ImGuiInputTextFlags_ReadOnly)) {}
+        printSceneNode(pBone);
+    }
 }
 
 void printValueBagNodeImGUI(std::shared_ptr<ValueBagNode> pValueBag) {

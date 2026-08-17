@@ -47,6 +47,19 @@ const std::shared_ptr<SkeletonManager::SkinnedData>& SkeletonManager::getSkinned
     return m_skinned_data.at(name);
 }
 
+const std::unordered_map<BoneNode::SkinName, std::shared_ptr<SkeletonManager::SkinnedData>>& SkeletonManager::getSkinMap() const {
+    return m_skinned_data;
+}
+
+void SkeletonManager::resetSkin(const BoneNode::SkinName& name) {
+    if(!m_skinned_data.contains(name)) return;
+
+    const std::shared_ptr<SkinnedData>& skin_data = m_skinned_data[name];
+    for(const auto&[joint_idx, bone_ptr] : skin_data->joint_to_bone_map) {
+        bone_ptr->applyBindMatrice();
+    }
+}
+
 bool SkeletonManager::UpdateBoneData(const std::shared_ptr<BoneNode>& node) {
     bool was_updated = false;
 

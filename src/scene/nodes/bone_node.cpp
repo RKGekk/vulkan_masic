@@ -2,13 +2,15 @@
 
 BoneNode::BoneNode(std::shared_ptr<Scene> scene, Scene::NodeIndex node_index) : SceneNode(std::move(scene), node_index) {
     SetNodeType(Scene::NODE_TYPE_FLAG_BONE);
+    m_bind_transform = Get().ToParent();
 }
 
 BoneNode::BoneNode(std::shared_ptr<Scene> scene, std::string name, Scene::NodeIndex parent) : SceneNode(std::move(scene), std::move(name), parent) {
     SetNodeType(Scene::NODE_TYPE_FLAG_BONE);
+    m_bind_transform = Get().ToParent();
 }
 
-BoneNode::BoneNode(std::shared_ptr<Scene> scene, std::string name, glm::mat4x4 transform, Scene::NodeIndex parent) : SceneNode(std::move(scene), std::move(name), transform, parent) {
+BoneNode::BoneNode(std::shared_ptr<Scene> scene, std::string name, glm::mat4x4 transform, Scene::NodeIndex parent) : SceneNode(std::move(scene), std::move(name), transform, parent), m_bind_transform(transform) {
     SetNodeType(Scene::NODE_TYPE_FLAG_BONE);
 }
 
@@ -42,6 +44,18 @@ void BoneNode::setInverseBindMatrice(const glm::mat4x4& inverse_bind_matrice) {
 
 void BoneNode::setInverseBindMatrice(const glm::mat4x4& inverse_bind_matrice, const SkinName& skin_name) {
     m_bone_data.at(skin_name).inverse_bind_matrice = inverse_bind_matrice;
+}
+
+const glm::mat4x4& BoneNode::getBindMatrice() const {
+    return m_bind_transform;
+}
+
+void BoneNode::setBindMatrice(glm::mat4x4 bind_matrice) {
+    m_bind_transform = bind_matrice;
+}
+
+void BoneNode::applyBindMatrice() {
+    SetTransform(m_bind_transform);
 }
 
 BoneNode::JointIndex BoneNode::getJointIndex() const {

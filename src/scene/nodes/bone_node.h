@@ -42,6 +42,10 @@ public:
     void setInverseBindMatrice(const glm::mat4x4& inverse_bind_matrice);
 	void setInverseBindMatrice(const glm::mat4x4& inverse_bind_matrice, const SkinName& skin_name);
 
+	const glm::mat4x4& getBindMatrice() const;
+	void setBindMatrice(glm::mat4x4 bind_matrice);
+	void applyBindMatrice();
+
 	JointIndex getJointIndex() const;
 	JointIndex getJointIndex(const SkinName& skin_name) const;
 	void setJointIndex(JointIndex joint_idx);
@@ -54,4 +58,5 @@ public:
 
 private:
     std::unordered_map<SkinName, BoneData> m_bone_data;
+	glm::mat4x4 m_bind_transform;
 };

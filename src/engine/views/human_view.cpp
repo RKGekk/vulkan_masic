@@ -14,6 +14,7 @@
 #include "../../events/cicadas/evt_data_key_released_event.h"
 #include "../../events/cicadas/evt_data_mouse_wheel.h"
 #include "../../scene/scene.h"
+#include "../../scene/animation_manager.h"
 #include "../../scene/skeleton_manager.h"
 
 const std::string HumanView::g_name = "Level"s;
