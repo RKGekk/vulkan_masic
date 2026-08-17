@@ -1,5 +1,7 @@
 #include "animation_manager.h"
 
+#include <cmath>
+
 AnimationManager::AnimationManager(){}
 
 void AnimationManager::Update(const GameTimerDelta& delta) {
@@ -8,6 +10,12 @@ void AnimationManager::Update(const GameTimerDelta& delta) {
     for(const ClipName& clip_name : m_state_to_name_map[ClipState::Playing]) {
         m_name_to_current_time_map[clip_name] += delta.fGetDeltaSeconds();
         float current_time = m_name_to_current_time_map[clip_name];
+        float total_time = m_name_to_total_time_map[clip_name];
+        if(current_time >= total_time && total_time > 0.0f) {
+            float times = std::trunc(current_time / total_time);
+            current_time -= total_time * times;
+            m_name_to_current_time_map[clip_name] = current_time;
+        }
         ProcessClip(clip_name, current_time);
     }
 }
