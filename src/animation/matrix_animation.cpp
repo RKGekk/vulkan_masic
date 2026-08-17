@@ -24,7 +24,7 @@ bool operator<(const KeyframeMatrixRotation& kf1, const KeyframeMatrixRotation& 
 	return kf1.TimePos < kf2.TimePos;
 }
 
-void MatrixAnimation::InterpolateTime(float t, glm::mat4x4& transform) const {
+void MatrixAnimation::InterpolateTime(float t, glm::mat4x4& transform, float blend_factor) const {
 	size_t sz1 = TranslationKeyframes.size();
 	size_t sz2 = ScaleKeyframes.size();
 	size_t sz3 = RotationKeyframes.size();
@@ -32,8 +32,8 @@ void MatrixAnimation::InterpolateTime(float t, glm::mat4x4& transform) const {
 		return;
 	}
 
-	glm::vec3 S(1.0f, 1.0f, 1.0f);
 	glm::vec3 P(0.0f, 0.0f, 0.0f);
+	glm::vec3 S(1.0f, 1.0f, 1.0f);
 	glm::quat Q(1.0f, 0.0f, 0.0f, 0.0f);
 
 	{
@@ -43,8 +43,8 @@ void MatrixAnimation::InterpolateTime(float t, glm::mat4x4& transform) const {
     	glm::vec3 skew;
     	glm::vec4 perspective;
     	if (glm::decompose(transform, scale, orientation, translation, skew, perspective)) {
-			S = scale;
 			P = translation;
+			S = scale;
 			Q = orientation;
 		}
 	}
@@ -52,18 +52,18 @@ void MatrixAnimation::InterpolateTime(float t, glm::mat4x4& transform) const {
 	if (TranslationKeyframes.size() == 0u) {
 	}
 	else if (TranslationKeyframes.size() == 1u) {
-		P = TranslationKeyframes.front().Translation;
+		P = glm::lerp(P, TranslationKeyframes.front().Translation, blend_factor);
 	}
 	else if (t >= TranslationKeyframes.rbegin()->TimePos) {
-        P = TranslationKeyframes.back().Translation;
+        P = glm::lerp(P, TranslationKeyframes.back().Translation, blend_factor);
 	}
 	else {
 		auto it1 = std::lower_bound(TranslationKeyframes.cbegin(), TranslationKeyframes.cend(), t, [](const auto it, float t) { return it.TimePos < t; });
 		if (it1 == TranslationKeyframes.cbegin()) {
-			P = it1->Translation;
+			P = glm::lerp(P, it1->Translation, blend_factor);
 		}
 		else if(std::prev(it1)->InterpolationType == KeyFrameInterpolationType::STEP) {
-			P = std::prev(it1)->Translation;
+			P = glm::lerp(P, std::prev(it1)->Translation, blend_factor);
 		}
 		else {
 			auto it0 = std::prev(it1);
@@ -81,7 +81,7 @@ void MatrixAnimation::InterpolateTime(float t, glm::mat4x4& transform) const {
 
 			if(it0->InterpolationType == KeyFrameInterpolationType::LINEAR) {
 				//P = glm::mix(p0, p1, lerp_percent);
-				P = glm::lerp(p0, p1, lerp_percent);
+				P = glm::lerp(P, glm::lerp(p0, p1, lerp_percent), blend_factor);
 			}
 			else if(it0->InterpolationType == KeyFrameInterpolationType::CUBICSPLINE) {
 				// glm::vec3 t0 = it0->Tangent;
@@ -92,24 +92,23 @@ void MatrixAnimation::InterpolateTime(float t, glm::mat4x4& transform) const {
 				//glm::vec3 t0 = it0->inTangent;
 				//glm::vec3 t1 = it0->outTangent;
 
-				P = glm::hermite(p0, t0, p1, t1, lerp_percent);
+				P = glm::lerp(P, glm::hermite(p0, t0, p1, t1, lerp_percent), blend_factor);
 			}
 		}
 	}
 
 	if (ScaleKeyframes.size() == 0u) {
-        
 	}
 	else if (ScaleKeyframes.size() == 1u) {
-        S = ScaleKeyframes.front().Scale;
+        S = glm::lerp(S, ScaleKeyframes.front().Scale, blend_factor);
 	}
 	else if (t >= ScaleKeyframes.rbegin()->TimePos) {
-        S = ScaleKeyframes.back().Scale;
+        S = glm::lerp(S, ScaleKeyframes.back().Scale, blend_factor);
 	}
 	else {
 		auto it1 = std::lower_bound(ScaleKeyframes.cbegin(), ScaleKeyframes.cend(), t, [](const auto it, float t) { return it.TimePos < t; });
 		if (it1 == ScaleKeyframes.cbegin()) {
-			S = it1->Scale;
+			S = glm::lerp(S, it1->Scale, blend_factor);
 		}
 		else {
 			auto it0 = std::prev(it1);
@@ -125,7 +124,7 @@ void MatrixAnimation::InterpolateTime(float t, glm::mat4x4& transform) const {
 			glm::vec3 s0 = it0->Scale;
 			glm::vec3 s1 = it1->Scale;
 
-			S = glm::mix(s0, s1, lerp_percent);
+			S = glm::lerp(S, glm::mix(s0, s1, lerp_percent), blend_factor);
 		}
 	}
 
@@ -133,18 +132,18 @@ void MatrixAnimation::InterpolateTime(float t, glm::mat4x4& transform) const {
 
 	}
 	else if (RotationKeyframes.size() == 1u) {
-        Q = RotationKeyframes.front().RotationQuat;
+        Q = glm::slerp(Q, RotationKeyframes.front().RotationQuat, blend_factor);
 	}
 	else if (t >= RotationKeyframes.rbegin()->TimePos) {
-        Q = RotationKeyframes.back().RotationQuat;
+        Q = glm::slerp(Q, RotationKeyframes.back().RotationQuat, blend_factor);
 	}
 	else {
 		auto it1 = std::lower_bound(RotationKeyframes.cbegin(), RotationKeyframes.cend(), t, [](const auto it, float t) { return it.TimePos < t; });
 		if (it1 == RotationKeyframes.cbegin()) {
-			Q = it1->RotationQuat;
+			Q = glm::slerp(Q, it1->RotationQuat, blend_factor);
 		}
 		else if(std::prev(it1)->InterpolationType == KeyFrameInterpolationType::STEP) {
-			Q = std::prev(it1)->RotationQuat;
+			Q = glm::slerp(Q, std::prev(it1)->RotationQuat, blend_factor);
 		}
 		else {
 			auto it0 = std::prev(it1);
@@ -165,7 +164,7 @@ void MatrixAnimation::InterpolateTime(float t, glm::mat4x4& transform) const {
     		}
 
 			if(it0->InterpolationType == KeyFrameInterpolationType::LINEAR) {
-				Q = glm::slerp(q0, q1, lerp_percent);
+				Q = glm::slerp(Q, glm::slerp(q0, q1, lerp_percent), blend_factor);
 			}
 			else if(it0->InterpolationType == KeyFrameInterpolationType::CUBICSPLINE) {
 				// glm::quat t0 = it0->Tangent;
@@ -175,7 +174,7 @@ void MatrixAnimation::InterpolateTime(float t, glm::mat4x4& transform) const {
 				glm::quat t1 = it0->outTangent * time_delta;
 
 				// Spline accumulation breaks unit length; normalization is mandatory
-				Q = glm::normalize(glm::hermite(q0, t0, q1, t1, lerp_percent));
+				Q = glm::slerp(Q, glm::normalize(glm::hermite(q0, t0, q1, t1, lerp_percent)), blend_factor);
 			}
 		}
 	}

@@ -57,7 +57,7 @@ struct KeyframeMatrixRotation {
 bool operator<(const KeyframeMatrixRotation& kf1, const KeyframeMatrixRotation& kf2);
 
 struct MatrixAnimation {
-	void InterpolateTime(float t, glm::mat4x4& transform) const;
+	void InterpolateTime(float t, glm::mat4x4& transform, float blend_factor = 1.0f) const;
 	glm::mat4x4 InterpolateTime(float t) const;
 	
 	void InterpolateNormValue(float v, glm::mat4x4& transform) const;
