@@ -76,8 +76,8 @@ const std::shared_ptr<Scene>& SceneNode::GetScene() {
 
 const std::shared_ptr<SceneNode>& SceneNode::GetParent() {
     const Scene::Hierarchy& hierarchy = m_props.m_scene->getNodeHierarchy(m_props.m_node_index);
-    if(hierarchy.next_sibling == Scene::NO_INDEX) return NULL_PTR_NODE;
-    return m_props.m_scene->getProperty(hierarchy.next_sibling, Scene::NODE_TYPE_FLAG_NONE);
+    if(hierarchy.parent == Scene::NO_INDEX) return NULL_PTR_NODE;
+    return m_props.m_scene->getProperty(hierarchy.parent, Scene::NODE_TYPE_FLAG_NONE);
 }
 
 const std::shared_ptr<SceneNode>& SceneNode::GetChild() {

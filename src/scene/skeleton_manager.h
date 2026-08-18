@@ -28,10 +28,12 @@ public:
         std::vector<glm::mat2x4> dual_quats;
         std::unordered_map<std::shared_ptr<BoneNode>, BoneNode::JointIndex> bone_to_joint_map;
         std::unordered_map<BoneNode::JointIndex, std::shared_ptr<BoneNode>> joint_to_bone_map;
+        std::vector<BoneNode::JointIndex> root_joints;
     };
 
     SkeletonManager();
     bool recalculateSkinnedData();
+    void recalculate_root_joints(BoneNode::SkinName skeleton_name);
 
     void AddBone(const std::shared_ptr<BoneNode>& node);
     void markAsChanged(const std::shared_ptr<BoneNode>& node);

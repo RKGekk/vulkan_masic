@@ -5,6 +5,8 @@ SkeletonManager::SkeletonManager() {}
 void SkeletonManager::AddBone(const std::shared_ptr<BoneNode>& node) {
     if(!node) return;
 
+    const std::shared_ptr<Scene>& scene = node->GetScene();
+
     for(const auto&[skin_name, bone_data] : node->getBoneDataMap()) {
         if(!m_skinned_data.contains(skin_name)) {
             m_skinned_data[skin_name] = std::make_shared<SkinnedData>();
@@ -89,4 +91,23 @@ bool SkeletonManager::UpdateBoneData(const std::shared_ptr<BoneNode>& node) {
     }
 
     return was_updated;
+}
+
+void SkeletonManager::recalculate_root_joints(BoneNode::SkinName skeleton_name) {
+    if(!m_skinned_data.contains(skeleton_name)) return;
+
+    const std::shared_ptr<SkinnedData>& skinned_data = m_skinned_data[skeleton_name];
+    const std::shared_ptr<Scene>& scene = skinned_data->joint_to_bone_map.begin()->second->GetScene();
+    skinned_data->root_joints.clear();
+    for(const auto&[current_idx, bone_ptr] : skinned_data->joint_to_bone_map) {
+        const std::shared_ptr<SceneNode>& parent_node = bone_ptr->GetParent();
+        if(std::shared_ptr<BoneNode> parent_bone = std::dynamic_pointer_cast<BoneNode>(scene->getProperty(parent_node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_BONE))) {
+            if(!skinned_data->bone_to_joint_map.contains(parent_bone)) {
+                skinned_data->root_joints.push_back(current_idx);
+            }
+        }
+        else {
+            skinned_data->root_joints.push_back(current_idx);
+        }
+    }
 }

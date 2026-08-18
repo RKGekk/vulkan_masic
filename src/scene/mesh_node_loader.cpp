@@ -15,6 +15,8 @@
 #include "../graphics/vulkan_renderer.h"
 #include "../graphics/api/vulkan_resources_manager.h"
 #include "light_manager.h"
+#include "skeleton_manager.h"
+#include "animation_manager.h"
 
 struct TextureMatInfo {
 	int index = -1; // required.
@@ -121,6 +123,15 @@ std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem
     		MakeNodesHierarchy(node_idx, m_root_node);
     	}
     }
+
+	for (int skin_ct = 0; const tinygltf::Skin& gltf_skin : m_gltf_model.skins) {
+		m_scene->getSkeletonManager()->recalculate_root_joints(gltf_skin.name);
+	}
+
+	for (int animation_ct = 0; animation_ct < m_gltf_model.animations.size(); ++animation_ct) {
+		const tinygltf::Animation& gltf_current_animation = m_gltf_model.animations[animation_ct];
+		m_scene->getAnimationManager()->CalcAnimRoots(gltf_current_animation.name);
+	}
 
 	return m_root_node;
 }

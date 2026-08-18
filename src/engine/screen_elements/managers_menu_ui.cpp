@@ -31,9 +31,29 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
                     if (ImGui::TreeNode(clip_name.c_str())) {
 
 						if (ImGui::TreeNode("ControlledNodes")) {
-							for(const std::shared_ptr<AnimationNode>& anim_node : clip_data) {
-                            	printSceneNode(anim_node);
-                        	}
+							if (ImGui::TreeNode("FlatView")) {
+								for(const std::shared_ptr<AnimationNode>& anim_node : clip_data) {
+                            		printSceneNode(anim_node);
+                        		}
+								ImGui::TreePop();
+							}
+							if (ImGui::TreeNode("TreeView")) {
+								for(const std::shared_ptr<AnimationNode>& anim_node : animation_manager->GetClipRoots(clip_name)) {
+                            		printSceneNode(
+										anim_node,
+										[&animation_manager, &clip_name]
+										(const std::shared_ptr<SceneNode>& child_node) {
+											const std::shared_ptr<Scene>& scene = child_node->GetScene();
+											if(std::shared_ptr<AnimationNode> child_anim = std::dynamic_pointer_cast<AnimationNode>(scene->getProperty(child_node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_ANIMATION))) {
+												return animation_manager->GetClipMap().at(clip_name).contains(child_anim);
+											}
+											return false;
+										}
+									);
+                        		}
+								ImGui::TreePop();
+							}
+							
 							ImGui::TreePop();
 						}
 
@@ -79,49 +99,113 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
 					if (ImGui::TreeNode(skin_name.c_str())) {
 						
 						if (ImGui::TreeNode("SkinData")) {
-							size_t ct = skin_data->inverse_bind_matrices.size();
-							for(size_t joint_idx = 0u; joint_idx < ct; ++joint_idx) {
 
-								const std::shared_ptr<BoneNode>& bone_node = skin_data->joint_to_bone_map.at(joint_idx);
+							if (ImGui::TreeNode("FlatView")) {
+								size_t ct = skin_data->inverse_bind_matrices.size();
+								for(size_t joint_idx = 0u; joint_idx < ct; ++joint_idx) {
+									const std::shared_ptr<BoneNode>& bone_node = skin_data->joint_to_bone_map.at(joint_idx);
 
-								const Scene::Hierarchy& hierarchy_node = bone_node->VGetHierarchy();
-    							Scene::NodeTypeFlags node_type_flags = bone_node->GetScene()->getNodeTypeFlags(bone_node->VGetNodeIndex());
-    							std::string node_name = bone_node->Get().Name();
-    							std::string header = getSummaryForHierarchyStr(bone_node->VGetNodeIndex(), hierarchy_node, node_type_flags, node_name);
+									const Scene::Hierarchy& hierarchy_node = bone_node->VGetHierarchy();
+    								Scene::NodeTypeFlags node_type_flags = bone_node->GetScene()->getNodeTypeFlags(bone_node->VGetNodeIndex());
+    								std::string node_name = bone_node->Get().Name();
+    								std::string header = getSummaryForHierarchyStr(bone_node->VGetNodeIndex(), hierarchy_node, node_type_flags, node_name);
 
-								std::string joint_str = std::to_string(joint_idx) + " joint - "s + header;
-								if(ImGui::TreeNode(joint_str.c_str())) {
-									if (ImGui::TreeNode("ToRootMatrice")) {
-										printMatrixImGUI(bone_node->Get().ToRoot());
-										ImGui::TreePop();
-									}
+									std::string joint_str = std::to_string(joint_idx) + " joint - "s + header;
+									if(ImGui::TreeNode(joint_str.c_str())) {
+										if (ImGui::TreeNode("ToRootMatrice")) {
+											printMatrixImGUI(bone_node->Get().ToRoot());
+											ImGui::TreePop();
+										}
 
-									if (ImGui::TreeNode("MeshRootMatrice")) {
-										printMatrixImGUI(bone_node->getBoneDataMap().at(skin_name).m_mesh_root_node->Get().FromRoot());
-										ImGui::TreePop();
-									}
+										if (ImGui::TreeNode("MeshRootMatrice")) {
+											printMatrixImGUI(bone_node->getBoneDataMap().at(skin_name).m_mesh_root_node->Get().FromRoot());
+											ImGui::TreePop();
+										}
 
-									if (ImGui::TreeNode("InverseBindMatrice")) {
-										printMatrixImGUI(skin_data->inverse_bind_matrices.at(joint_idx));
-										ImGui::TreePop();
-									}
+										if (ImGui::TreeNode("InverseBindMatrice")) {
+											printMatrixImGUI(skin_data->inverse_bind_matrices.at(joint_idx));
+											ImGui::TreePop();
+										}
 									
-									if (ImGui::TreeNode("FinalMatrice")) {
-										printMatrixImGUI(skin_data->final_matrices.at(joint_idx));
+										if (ImGui::TreeNode("FinalMatrice")) {
+											printMatrixImGUI(skin_data->final_matrices.at(joint_idx));
+											ImGui::TreePop();
+										}
+
+										if (ImGui::TreeNode("FinalDoubleQuaternion")) {
+											glm::dualquat dq(skin_data->dual_quats.at(joint_idx));
+											printQuatImGUI(dq.real);
+											printQuatImGUI(dq.dual);
+											ImGui::TreePop();
+										}
+										printSceneNode(skin_data->joint_to_bone_map.at(joint_idx));
+
 										ImGui::TreePop();
 									}
-
-									if (ImGui::TreeNode("FinalDoubleQuaternion")) {
-										glm::dualquat dq(skin_data->dual_quats.at(joint_idx));
-										printQuatImGUI(dq.real);
-										printQuatImGUI(dq.dual);
-										ImGui::TreePop();
-									}
-									printSceneNode(skin_data->joint_to_bone_map.at(joint_idx));
-
-									ImGui::TreePop();
 								}
+
+								ImGui::TreePop();
 							}
+
+							if (ImGui::TreeNode("TreeView")) {
+								for(size_t joint_idx : skin_data->root_joints) {
+									const std::shared_ptr<BoneNode>& bone_node = skin_data->joint_to_bone_map.at(joint_idx);
+
+									const Scene::Hierarchy& hierarchy_node = bone_node->VGetHierarchy();
+    								Scene::NodeTypeFlags node_type_flags = bone_node->GetScene()->getNodeTypeFlags(bone_node->VGetNodeIndex());
+    								std::string node_name = bone_node->Get().Name();
+    								std::string header = getSummaryForHierarchyStr(bone_node->VGetNodeIndex(), hierarchy_node, node_type_flags, node_name);
+
+									std::string joint_str = std::to_string(joint_idx) + " joint - "s + header;
+									if(ImGui::TreeNode(joint_str.c_str())) {
+										if (ImGui::TreeNode("ToRootMatrice")) {
+											printMatrixImGUI(bone_node->Get().ToRoot());
+											ImGui::TreePop();
+										}
+
+										if (ImGui::TreeNode("MeshRootMatrice")) {
+											printMatrixImGUI(bone_node->getBoneDataMap().at(skin_name).m_mesh_root_node->Get().FromRoot());
+											ImGui::TreePop();
+										}
+
+										if (ImGui::TreeNode("InverseBindMatrice")) {
+											printMatrixImGUI(skin_data->inverse_bind_matrices.at(joint_idx));
+											ImGui::TreePop();
+										}
+									
+										if (ImGui::TreeNode("FinalMatrice")) {
+											printMatrixImGUI(skin_data->final_matrices.at(joint_idx));
+											ImGui::TreePop();
+										}
+
+										if (ImGui::TreeNode("FinalDoubleQuaternion")) {
+											glm::dualquat dq(skin_data->dual_quats.at(joint_idx));
+											printQuatImGUI(dq.real);
+											printQuatImGUI(dq.dual);
+											ImGui::TreePop();
+										}
+
+										ImGui::SeparatorText("SceneData");
+
+										printSceneNode(
+											skin_data->joint_to_bone_map.at(joint_idx),
+											[&skeleton_manager, &skin_name, &skin_data]
+											(const std::shared_ptr<SceneNode>& child_node) {
+												const std::shared_ptr<Scene>& scene = child_node->GetScene();
+												if(std::shared_ptr<BoneNode> child_bone = std::dynamic_pointer_cast<BoneNode>(scene->getProperty(child_node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_BONE))) {
+													return skin_data->bone_to_joint_map.contains(child_bone);
+												}
+												return false;
+											}
+										);
+
+										ImGui::TreePop();
+									}
+								}
+
+								ImGui::TreePop();
+							}
+							
 							ImGui::TreePop();
 						}
 

@@ -30,6 +30,7 @@ public:
 
     AnimationManager();
     void Update(const GameTimerDelta& delta);
+    void CalcAnimRoots(ClipName clip_name);
 
     void AddNodeAnimation(std::shared_ptr<AnimationNode> animation_node);
 
@@ -47,6 +48,7 @@ public:
     GameTimerDelta GetClipTotalDuration(const ClipName& name) const;
 
     const std::unordered_map<ClipName, std::unordered_set<std::shared_ptr<AnimationNode>>>& GetClipMap() const;
+    const std::vector<std::shared_ptr<AnimationNode>>& GetClipRoots(const ClipName& name) const;
 
 private:
     void ProcessClip(const ClipName& clip_name, float t);
@@ -57,4 +59,5 @@ private:
     std::unordered_map<ClipName, float> m_name_to_current_time_map;
     std::unordered_map<ClipName, float> m_name_to_total_time_map;
     std::unordered_map<ClipName, std::unordered_set<std::shared_ptr<AnimationNode>>> m_anim_name_to_node_map;
+    std::unordered_map<ClipName, std::vector<std::shared_ptr<AnimationNode>>> m_anim_roots;
 };

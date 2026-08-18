@@ -686,7 +686,7 @@ void printHierarchyTreeView(std::shared_ptr<SceneNode> start_node) {
     }
 }
 
-void printSceneNode(std::shared_ptr<SceneNode> node) {
+void printSceneNode(std::shared_ptr<SceneNode> node, std::function<bool(const std::shared_ptr<SceneNode>&)> print_child_if) {
     using namespace std;
 
     const Scene::Hierarchy& hierarchy_node = node->VGetHierarchy();
@@ -788,7 +788,7 @@ void printSceneNode(std::shared_ptr<SceneNode> node) {
 			ImGui::TreePop();
 		}
 
-        if (node->GetChild() && ImGui::TreeNode("Child Hierarchy")) {
+        if (node->GetChild() && ImGui::TreeNode("Child Hierarchy") && print_child_if(node->GetChild())) {
             printHierarchyTreeView(node->GetChild());
             ImGui::TreePop();
         }

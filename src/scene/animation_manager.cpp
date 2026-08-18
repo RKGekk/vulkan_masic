@@ -12,8 +12,9 @@ void AnimationManager::Update(const GameTimerDelta& delta) {
         float current_time = m_name_to_current_time_map[clip_name];
         float total_time = m_name_to_total_time_map[clip_name];
         if(current_time >= total_time && total_time > 0.0f) {
-            float times = std::trunc(current_time / total_time);
-            current_time -= total_time * times;
+            //float times = std::trunc(current_time / total_time);
+            //current_time -= total_time * times;
+            current_time = std::fmodf(current_time, total_time);
             m_name_to_current_time_map[clip_name] = current_time;
         }
         ProcessClip(clip_name, current_time);
@@ -136,4 +137,30 @@ float AnimationManager::CountClipTotalTime(const ClipName& clip_name) const {
         if(total_time > max_time) max_time = total_time;
     }
     return max_time;
+}
+
+void AnimationManager::CalcAnimRoots(ClipName clip_name) {
+    if(!m_anim_name_to_node_map.contains(clip_name)) return;
+
+    const std::unordered_set<std::shared_ptr<AnimationNode>>& all_anim_nodes = m_anim_name_to_node_map[clip_name];
+    if(!all_anim_nodes.size()) return;
+
+    const std::shared_ptr<Scene>& scene = (*(all_anim_nodes.begin()))->GetScene();
+    std::vector<std::shared_ptr<AnimationNode>>& anim_roots = m_anim_roots[clip_name];
+    anim_roots.clear();
+    for(const std::shared_ptr<AnimationNode> anim_node : all_anim_nodes) {
+        const std::shared_ptr<SceneNode>& parent_node = anim_node->GetParent();
+        if(std::shared_ptr<AnimationNode> parent_anim = std::dynamic_pointer_cast<AnimationNode>(scene->getProperty(parent_node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_ANIMATION))) {
+            if(!all_anim_nodes.contains(parent_anim)) {
+                anim_roots.push_back(anim_node);
+            }
+        }
+        else {
+            anim_roots.push_back(anim_node);
+        }
+    }
+}
+
+const std::vector<std::shared_ptr<AnimationNode>>& AnimationManager::GetClipRoots(const ClipName& name) const {
+    return m_anim_roots.at(name);
 }
