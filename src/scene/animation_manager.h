@@ -46,7 +46,7 @@ public:
         SequenceState state;
         float sequence_current_time;
         float sequence_total_time;
-        std::vector<std::shared_ptr<TrackData>> data_tracks;
+        std::unordered_map<ClipName, std::shared_ptr<TrackData>> data_tracks;
     };
 
     AnimationManager();
@@ -55,18 +55,22 @@ public:
 
     void AddNodeAnimation(std::shared_ptr<AnimationNode> animation_node);
 
-    void AddClipToDefaultSequence(const ClipName& name);
+    void AddClipToDefaultSequence(const ClipName& name, float blend_factor = 1.0f, float animation_speed = 1.0f, float clip_current_time = 0.0f);
     void RemoveClipFromDefaultSequence(const ClipName& name);
     void AddClipToSequence(const SequenceName& seq_name, const ClipName& name);
     void RemoveClipFromSequence(const SequenceName& seq_name, const ClipName& name);
 
-    void Pause();
-    void Stop();
-    void Play();
+    void Pause(const SequenceName& seq_name);
+    void Stop(const SequenceName& seq_name);
+    void Play(const SequenceName& seq_name);
 
+    void SetClipAnimationSpeed(const SequenceName& seq_name, const ClipName& clip_name, float p);
+    void SetClipTotalTime(const SequenceName& seq_name, const ClipName& clip_name, float t);
     void SetClipCurrentTime(const SequenceName& seq_name, const ClipName& clip_name, float t);
     void SetSequenceCurrentTime(const SequenceName& seq_name, float t);
+    void SetSequenceTotalTime(const SequenceName& seq_name, float t);
 
+    float GetClipAnimationSpeed(const SequenceName& seq_name, const ClipName& clip_name) const;
     float GetClipCurrentTime(const SequenceName& seq_name, const ClipName& clip_name) const;
     float GetClipCurrentNormPos(const SequenceName& seq_name, const ClipName& clip_name) const;
     
@@ -77,11 +81,15 @@ public:
     float GetClipTotalTime(const ClipName& name) const;
     GameTimerDelta GetClipTotalDuration(const ClipName& name) const;
 
+
     const std::unordered_map<ClipName, std::unordered_set<std::shared_ptr<AnimationNode>>>& GetClipMap() const;
     const std::vector<std::shared_ptr<AnimationNode>>& GetClipRoots(const ClipName& name) const;
+    const std::shared_ptr<AnimationSequence>& GetAnimationSequence(const SequenceName& seq_name) const;
+    const std::unordered_map<SequenceName, std::shared_ptr<AnimationSequence>>& GetAnimationSequenceMap() const;
+    const std::shared_ptr<TrackData>& getTrack(const SequenceName& seq_name, const ClipName& clip_name) const;
 
 private:
-    void ProcessClip(const SequenceName& seq_name, const ClipName& clip_name, float seq_t);
+    void ProcessSequence(const std::shared_ptr<AnimationSequence>& seq);
     float CountClipTotalTime(const ClipName& name) const;
 
     std::unordered_map<SequenceState, std::unordered_set<SequenceName>> m_seq_state_to_name_map;

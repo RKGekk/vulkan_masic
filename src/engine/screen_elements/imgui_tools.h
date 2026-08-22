@@ -40,6 +40,7 @@ void printQuatImGUI(glm::quat q);
 void printMatrixImGUI(const glm::mat4& matrix);
 void editMatrixImGUI(const glm::mat4& matrix, std::function<void(glm::bvec3 tsr, glm::vec3 tr, glm::vec3 sc, glm::quat rot)> fn);
 void printDecomposedMatrixImGUI(glm::mat4 matrix);
+void printMatrixAnimationImGUI(const std::shared_ptr<MatrixAnimation>& anim_data);
 void printBoundingBoxImGUI(const BoundingBox& bb);
 void printBoundingSphereImGUI(const BoundingSphere& bs);
 void printBoundingFrustumImGUI(const BoundingFrustum& bf);

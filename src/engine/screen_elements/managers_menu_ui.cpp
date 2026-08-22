@@ -27,6 +27,45 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
 	if (ImGui::Begin("Managers Menu")) {
         if(const std::shared_ptr<AnimationManager>& animation_manager = Application::Get().GetGameLogic()->GetHumanView()->VGetScene()->getAnimationManager()) {
             if (ImGui::CollapsingHeader("Animation Manager")) {
+				if (ImGui::TreeNode("Sequences")) {
+					
+					for (const auto&[seq_name, seq_ptr] : animation_manager->GetAnimationSequenceMap()) {
+						if (ImGui::TreeNode(seq_name.c_str())) {
+
+							float sequence_total_time = seq_ptr->sequence_total_time;
+							float sequence_current_time = seq_ptr->sequence_total_time;
+
+							if (ImGui::SliderFloat("Time", ((float*)&sequence_current_time), 0.0f, sequence_total_time, "%.4f")) {
+								animation_manager->SetSequenceCurrentTime(seq_name, sequence_current_time);
+							}
+
+							ImGui::PushID("Play");
+							if (ImGui::Button("Play")) {
+								animation_manager->Play(seq_name);
+							}
+							ImGui::PopID();
+
+							ImGui::SameLine();
+							ImGui::PushID("Pause");
+							if (ImGui::Button("Pause")) {
+								animation_manager->Pause(seq_name);
+							}
+							ImGui::PopID();
+
+							ImGui::SameLine();
+							ImGui::PushID("Stop");
+							if (ImGui::Button("Stop")) {
+								animation_manager->Stop(seq_name);
+							}
+							ImGui::PopID();
+
+							
+
+							ImGui::TreePop();
+						}
+					}
+					ImGui::TreePop();
+				}
                 for(const auto&[clip_name, clip_data] : animation_manager->GetClipMap()) {
                     if (ImGui::TreeNode(clip_name.c_str())) {
 
@@ -58,7 +97,7 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
 						}
 
 						if (ImGui::TreeNode("AnimationControl")) {
-							float total_animation_time = animation_manager->GetClipTotalTime(clip_name);
+							float sequence_total_time = animation_manager->GetClipTotalTime(clip_name);
 							float current_time = animation_manager->GetClipCurrentTime(clip_name);
 
 							if (ImGui::SliderFloat("Time", ((float*)&current_time), 0.0f, total_animation_time, "%.4f")) {

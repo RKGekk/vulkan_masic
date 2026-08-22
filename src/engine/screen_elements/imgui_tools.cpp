@@ -2,6 +2,7 @@
 
 #include "../../scene/nodes/basic_camera_node.h"
 #include "../../actors/transform_component.h"
+#include "../../scene/animation_manager.h"
 
 std::string getPrimitiveTopologyStr(VkPrimitiveTopology topology) {
     switch (topology) {
@@ -503,6 +504,56 @@ void printDecomposedMatrixImGUI(glm::mat4 matrix) {
 	if (ImGui::InputFloat3("Tr", ((float*)&translation), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
 }
 
+void printMatrixAnimationImGUI(const std::shared_ptr<MatrixAnimation>& anim_data) {
+    using namespace std::literals;
+
+    if (ImGui::CollapsingHeader("Animation Channels")) {
+		int ct = 0u;
+		if (ImGui::TreeNode("Translation channels")) {
+			for (KeyframeMatrixTranslation& tkf : anim_data->TranslationKeyframes) {
+				std::string trkf_name = "Trc "s + std::to_string(ct);
+				std::string tgkf_name = "Tgc "s + std::to_string(ct);
+				if (ImGui::SliderFloat("T Time Point", ((float*)&tkf.TimePos), 0.0f, anim_data->GetTotalAnimationTime(), "%.4f")) {}
+				if (ImGui::SliderFloat3(trkf_name.c_str(), ((float*)&tkf.Translation), -2.0f, 2.0f)) {}
+				if (ImGui::SliderFloat3(tgkf_name.c_str(), ((float*)&tkf.inTangent), -3.0f, 3.0f)) {}
+				if (ImGui::SliderFloat3(tgkf_name.c_str(), ((float*)&tkf.outTangent), -3.0f, 3.0f)) {}
+			
+				++ct;
+			}
+			ImGui::TreePop();
+		}
+		ct = 0u;
+		if (ImGui::TreeNode("Rotation channels")) {
+			for (KeyframeMatrixRotation& rkf : anim_data->RotationKeyframes) {
+				std::string rkf_name = "YPRc "s + std::to_string(ct);
+				if (ImGui::SliderFloat("R Time Point", ((float*)&rkf.TimePos), 0.0f, anim_data->GetTotalAnimationTime(), "%.4f")) {}
+				glm::vec3 pyr = glm::eulerAngles(rkf.RotationQuat);
+				pyr.x = glm::degrees(pyr.x);
+				pyr.y = glm::degrees(pyr.y);
+				pyr.z = glm::degrees(pyr.z);
+				if (ImGui::SliderFloat3(rkf_name.c_str(), ((float*)&pyr), -180.0f, 180.0f)) {
+					pyr.x = glm::radians(pyr.x);
+					pyr.y = glm::radians(pyr.y);
+					pyr.z = glm::radians(pyr.z);
+					rkf.RotationQuat = glm::eulerAngleXYZ(pyr.x, pyr.y, pyr.z);
+				}
+				++ct;
+			}
+			ImGui::TreePop();
+		}
+		ct = 0u;
+		if (ImGui::TreeNode("Scale channels")) {
+			for (KeyframeMatrixScale& skf : anim_data->ScaleKeyframes) {
+				std::string skf_name = "Scc "s + std::to_string(ct);
+				if (ImGui::SliderFloat("S Time Point", ((float*)&skf.TimePos), 0.0f, anim_data->GetTotalAnimationTime(), "%.4f")) {}
+				if (ImGui::SliderFloat3(skf_name.c_str(), ((float*)&skf.Scale), 0.0001f, 2.0f)) {}
+				++ct;
+			}
+			ImGui::TreePop();
+		}
+	}
+}
+
 void printBoundingBoxImGUI(const BoundingBox& bounding_box) {
     if (ImGui::InputFloat3("Center", ((float*)&bounding_box.Center), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
     if (ImGui::InputFloat3("Extents", ((float*)&bounding_box.Extents), "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
@@ -660,6 +711,42 @@ void printValueBagNodeImGUI(std::shared_ptr<ValueBagNode> pValueBag) {
 
 void printAnimationNodeImGUI(std::shared_ptr<AnimationNode> pAnimation) {
     if(!pAnimation) return;
+
+    for (const auto&[anim_name, p_matrix_anim] : pAnimation->getAnimationMap()) {
+        ImGui::InputText("AnimationName", const_cast<char*>(anim_name.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
+
+        float total_anim_time = pAnimation->GetTotalAnimationTime(anim_name);
+        if (ImGui::InputFloat("TotalAnimationTime", ((float*)&total_anim_time) + 0, ImGuiInputTextFlags_ReadOnly)) {}
+
+        printMatrixAnimationImGUI(p_matrix_anim);
+
+        const std::shared_ptr<Scene>& scene = pAnimation->GetScene();
+        const std::shared_ptr<AnimationManager>& anim_manager = scene->getAnimationManager();
+
+        if (ImGui::TreeNode("Sequences")) {
+            for(const auto&[seq_name, p_seq] : anim_manager->GetAnimationSequenceMap()) {
+                if(!p_seq->data_tracks.contains(anim_name)) continue;
+                
+                if (ImGui::TreeNode(seq_name.c_str())) {
+                    std::string seq_state = "Playing";
+                    if(p_seq->state == AnimationManager::SequenceState::Paused) seq_state = "Paused";
+                    else if(p_seq->state == AnimationManager::SequenceState::Stoped) seq_state = "Stoped";
+
+                    ImGui::InputText("SequenceState", const_cast<char*>(seq_state.c_str()), 128, ImGuiInputTextFlags_ReadOnly);
+
+                    float sequence_current_time = p_seq->sequence_current_time;
+                    if (ImGui::InputFloat("SequenceCurrentTime", ((float*)&sequence_current_time) + 0, ImGuiInputTextFlags_ReadOnly)) {}
+
+                    float sequence_total_time = p_seq->sequence_total_time;
+                    if (ImGui::InputFloat("SequenceTotalTime", ((float*)&sequence_total_time) + 0, ImGuiInputTextFlags_ReadOnly)) {}
+
+                    const std::shared_ptr<AnimationManager::TrackData>& trk = p_seq->data_tracks.at(anim_name);
+                    float blend_factor = trk->animation_blend_factors.at(pAnimation);
+                    if (ImGui::InputFloat("BlendFactor", ((float*)&blend_factor) + 0, ImGuiInputTextFlags_ReadOnly)) {}
+                }
+            }
+        }
+    }
 }
 
 void printHierarchyImGui(Scene::Hierarchy hierarchy) {
