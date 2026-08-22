@@ -73,7 +73,7 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
 										if (ImGui::InputFloat("TotalTime", const_cast<float*>(&clip_total_time), 0.0F, clip_total_time, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
 
 										if (ImGui::SliderFloat("BlendFactor", ((float*)&blend_factor), 0.0f, 1.0f, "%.4f")) {
-											animation_manager->SetClipBlendFactor(seq_name, clip_name, blend_factor);
+											animation_manager->SetClipBlendFactorBalanced(seq_name, clip_name, blend_factor);
 										}
 
 										if (ImGui::SliderFloat("AnimationSpeed", ((float*)&clip_speed), 0.0f, 2.0f, "%.4f")) {

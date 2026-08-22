@@ -164,15 +164,45 @@ void AnimationManager::SetClipCurrentTime(const SequenceName& seq_name, const Cl
     }
 }
 
-void AnimationManager::SetClipBlendFactor(const SequenceName& seq_name, const ClipName& clip_name, BlendFactor k) {
+void AnimationManager::SetClipBlendFactorBalanced(const SequenceName& seq_name, const ClipName& clip_name, BlendFactor k) {
     if(!m_anim_name_to_node_map.contains(clip_name) || !m_sequences.contains(seq_name)) return;
 
     const std::shared_ptr<AnimationSequence>& seq = m_sequences[seq_name];
     if(!seq->data_tracks.contains(clip_name)) return;
 
-    const std::shared_ptr<TrackData>& trk = seq->data_tracks[clip_name];
-    for(auto&[anim_node, blend_factor] : trk->animation_blend_factors) {
-        blend_factor = k;
+    size_t trk_sz = seq->data_tracks.size();
+    if(trk_sz == 1u) {
+        const std::shared_ptr<TrackData>& trk = seq->data_tracks[clip_name];
+        for(auto&[anim_node, blend_factor] : trk->animation_blend_factors) {
+            blend_factor = k;
+        }
+        return;
+    }
+
+    //float ct = trk_sz;
+    float sum = 0.0f;
+    //float sum = k;
+    for(const auto&[anim_name, trk_ptr] : seq->data_tracks) {
+        if(anim_name == clip_name) continue;
+        const std::shared_ptr<AnimationNode>& roon_node = GetClipRoots(anim_name).front();
+		float blend_factor = trk_ptr->animation_blend_factors.at(roon_node);
+        sum += blend_factor;
+    }
+    //k = sum / ct;
+
+    float other = 1.0f - k;
+    float a = other / sum;
+    for(const auto&[anim_name, trk] : seq->data_tracks) {
+        if(anim_name == clip_name) {
+            for(auto&[anim_node, blend_factor] : trk->animation_blend_factors) {
+                blend_factor = k;
+            }
+        }
+        else {
+            for(auto&[anim_node, blend_factor] : trk->animation_blend_factors) {
+                blend_factor *= a;
+            }
+        }
     }
 
     if(seq->state == SequenceState::Paused) {
