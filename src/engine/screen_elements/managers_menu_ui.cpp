@@ -3,6 +3,7 @@
 #include "../../application.h"
 #include "../../scene/animation_manager.h"
 #include "../../scene/skeleton_manager.h"
+#include "../../scene/nodes/animation_node.h"
 #include "imgui_tools.h"
 
 #include <glm/gtc/quaternion.hpp>
@@ -69,6 +70,8 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
 										const std::shared_ptr<AnimationNode>& roon_node = animation_manager->GetClipRoots(clip_name).front();
 										float blend_factor = trk_ptr->animation_blend_factors.at(roon_node);
 
+										if (ImGui::InputFloat("TotalTime", const_cast<float*>(&clip_total_time), 0.0F, clip_total_time, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
+
 										if (ImGui::SliderFloat("BlendFactor", ((float*)&blend_factor), 0.0f, 1.0f, "%.4f")) {
 											animation_manager->SetClipBlendFactor(seq_name, clip_name, blend_factor);
 										}
@@ -80,7 +83,7 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
 										if (ImGui::SliderFloat("Time", ((float*)&clip_current_time), 0.0f, clip_total_time, "%.4f")) {
 											animation_manager->SetClipCurrentTime(seq_name, clip_name, clip_current_time);
 										}
-
+										ImGui::TreePop();
 									}
 								}
 								ImGui::TreePop();
@@ -91,6 +94,7 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
 					}
 					ImGui::TreePop();
 				}
+				ImGui::SeparatorText("All animations");
                 for(const auto&[clip_name, clip_data] : animation_manager->GetClipMap()) {
                     if (ImGui::TreeNode(clip_name.c_str())) {
 
@@ -122,6 +126,9 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
 						}
 
 						if (ImGui::TreeNode("AnimationControl")) {
+
+							float clip_total_time = animation_manager->GetClipTotalTime(clip_name);
+							if (ImGui::InputFloat("TotalTime", const_cast<float*>(&clip_total_time), 0.0F, clip_total_time, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
 
 							ImGui::PushID("AddToDefaultSequence");
 							if (ImGui::Button("AddToDefaultSequence")) {

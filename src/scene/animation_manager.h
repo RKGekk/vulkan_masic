@@ -46,6 +46,7 @@ public:
         SequenceState state;
         float sequence_current_time;
         float sequence_total_time;
+        float delta_time;
         std::unordered_map<ClipName, std::shared_ptr<TrackData>> data_tracks;
     };
 
