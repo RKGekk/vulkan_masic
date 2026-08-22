@@ -67,6 +67,7 @@ public:
     void SetClipAnimationSpeed(const SequenceName& seq_name, const ClipName& clip_name, float p);
     void SetClipTotalTime(const SequenceName& seq_name, const ClipName& clip_name, float t);
     void SetClipCurrentTime(const SequenceName& seq_name, const ClipName& clip_name, float t);
+    void SetClipBlendFactor(const SequenceName& seq_name, const ClipName& clip_name, BlendFactor k);
     void SetSequenceCurrentTime(const SequenceName& seq_name, float t);
     void SetSequenceTotalTime(const SequenceName& seq_name, float t);
 
@@ -80,7 +81,6 @@ public:
 
     float GetClipTotalTime(const ClipName& name) const;
     GameTimerDelta GetClipTotalDuration(const ClipName& name) const;
-
 
     const std::unordered_map<ClipName, std::unordered_set<std::shared_ptr<AnimationNode>>>& GetClipMap() const;
     const std::vector<std::shared_ptr<AnimationNode>>& GetClipRoots(const ClipName& name) const;

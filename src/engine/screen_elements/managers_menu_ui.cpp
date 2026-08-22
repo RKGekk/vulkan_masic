@@ -33,7 +33,7 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
 						if (ImGui::TreeNode(seq_name.c_str())) {
 
 							float sequence_total_time = seq_ptr->sequence_total_time;
-							float sequence_current_time = seq_ptr->sequence_total_time;
+							float sequence_current_time = seq_ptr->sequence_current_time;
 
 							if (ImGui::SliderFloat("Time", ((float*)&sequence_current_time), 0.0f, sequence_total_time, "%.4f")) {
 								animation_manager->SetSequenceCurrentTime(seq_name, sequence_current_time);
@@ -59,7 +59,32 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
 							}
 							ImGui::PopID();
 
-							
+							if (ImGui::TreeNode("SequenceTracks")) {
+								for(const auto&[clip_name, trk_ptr] : seq_ptr->data_tracks) {
+									if (ImGui::TreeNode(clip_name.c_str())) {
+										float clip_total_time = trk_ptr->clip_total_time;
+										float clip_current_time = trk_ptr->clip_current_time;
+										float clip_speed = trk_ptr->animation_speed;
+
+										const std::shared_ptr<AnimationNode>& roon_node = animation_manager->GetClipRoots(clip_name).front();
+										float blend_factor = trk_ptr->animation_blend_factors.at(roon_node);
+
+										if (ImGui::SliderFloat("BlendFactor", ((float*)&blend_factor), 0.0f, 1.0f, "%.4f")) {
+											animation_manager->SetClipBlendFactor(seq_name, clip_name, blend_factor);
+										}
+
+										if (ImGui::SliderFloat("AnimationSpeed", ((float*)&clip_speed), 0.0f, 2.0f, "%.4f")) {
+											animation_manager->SetClipAnimationSpeed(seq_name, clip_name, clip_speed);
+										}
+
+										if (ImGui::SliderFloat("Time", ((float*)&clip_current_time), 0.0f, clip_total_time, "%.4f")) {
+											animation_manager->SetClipCurrentTime(seq_name, clip_name, clip_current_time);
+										}
+
+									}
+								}
+								ImGui::TreePop();
+							}
 
 							ImGui::TreePop();
 						}
@@ -97,30 +122,17 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
 						}
 
 						if (ImGui::TreeNode("AnimationControl")) {
-							float sequence_total_time = animation_manager->GetClipTotalTime(clip_name);
-							float current_time = animation_manager->GetClipCurrentTime(clip_name);
 
-							if (ImGui::SliderFloat("Time", ((float*)&current_time), 0.0f, total_animation_time, "%.4f")) {
-								animation_manager->SetClipCurrentTime(clip_name, current_time);
-							}
-
-							ImGui::PushID("Play");
-							if (ImGui::Button("Play")) {
-								animation_manager->Play(clip_name);
+							ImGui::PushID("AddToDefaultSequence");
+							if (ImGui::Button("AddToDefaultSequence")) {
+								animation_manager->AddClipToDefaultSequence(clip_name);
 							}
 							ImGui::PopID();
 
 							ImGui::SameLine();
-							ImGui::PushID("Pause");
-							if (ImGui::Button("Pause")) {
-								animation_manager->Pause(clip_name);
-							}
-							ImGui::PopID();
-
-							ImGui::SameLine();
-							ImGui::PushID("Stop");
-							if (ImGui::Button("Stop")) {
-								animation_manager->Stop(clip_name);
+							ImGui::PushID("RemoveFromDefaultSequence");
+							if (ImGui::Button("RemoveFromDefaultSequence")) {
+								animation_manager->RemoveClipFromDefaultSequence(clip_name);
 							}
 							ImGui::PopID();
 

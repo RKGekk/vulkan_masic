@@ -157,6 +157,22 @@ void AnimationManager::SetClipCurrentTime(const SequenceName& seq_name, const Cl
     }
 }
 
+void AnimationManager::SetClipBlendFactor(const SequenceName& seq_name, const ClipName& clip_name, BlendFactor k) {
+    if(!m_anim_name_to_node_map.contains(clip_name) || !m_sequences.contains(seq_name)) return;
+
+    const std::shared_ptr<AnimationSequence>& seq = m_sequences[seq_name];
+    if(!seq->data_tracks.contains(clip_name)) return;
+
+    const std::shared_ptr<TrackData>& trk = seq->data_tracks[clip_name];
+    for(auto&[anim_node, blend_factor] : trk->animation_blend_factors) {
+        blend_factor = k;
+    }
+
+    if(seq->state == SequenceState::Paused) {
+        ProcessSequence(seq);
+    }
+}
+
 void AnimationManager::SetSequenceCurrentTime(const SequenceName& seq_name, float t) {
     if(!m_sequences.contains(seq_name)) return;
 
