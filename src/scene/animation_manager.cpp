@@ -170,28 +170,74 @@ void AnimationManager::SetClipBlendFactorBalanced(const SequenceName& seq_name, 
     const std::shared_ptr<AnimationSequence>& seq = m_sequences[seq_name];
     if(!seq->data_tracks.contains(clip_name)) return;
 
+    const std::shared_ptr<TrackData>& trk = seq->data_tracks[clip_name];
     size_t trk_sz = seq->data_tracks.size();
     if(trk_sz == 1u) {
-        const std::shared_ptr<TrackData>& trk = seq->data_tracks[clip_name];
         for(auto&[anim_node, blend_factor] : trk->animation_blend_factors) {
             blend_factor = k;
         }
         return;
     }
 
-    //float ct = trk_sz;
+    const std::shared_ptr<AnimationNode>& root_node = GetClipRoots(clip_name).front();
+    float prev_k = trk->animation_blend_factors.at(root_node);
+
+    k = std::clamp(k, 0.0f, 1.0f);
+    //if(k == prev_k) return;
+
+    if(k == 1.0f) { // remainder == 0.0f
+        for(const auto&[anim_name, trk] : seq->data_tracks) {
+            if(anim_name == clip_name) {
+                for(auto&[anim_node, blend_factor] : trk->animation_blend_factors) {
+                    blend_factor = k;
+                }
+            }
+            else {
+                for(auto&[anim_node, blend_factor] : trk->animation_blend_factors) {
+                    blend_factor = 0.0f;
+                }
+            }
+        }
+        return;
+    }
+
+    float remainder = 1.0f - k;
+    // //float ct = trk_sz;
+    float ct = ((float)trk_sz) - 1.0f;
     float sum = 0.0f;
     //float sum = k;
     for(const auto&[anim_name, trk_ptr] : seq->data_tracks) {
         if(anim_name == clip_name) continue;
         const std::shared_ptr<AnimationNode>& roon_node = GetClipRoots(anim_name).front();
 		float blend_factor = trk_ptr->animation_blend_factors.at(roon_node);
+        //sum += std::abs(blend_factor);
         sum += blend_factor;
+        //ct += 1.0f;
     }
-    //k = sum / ct;
 
-    float other = 1.0f - k;
-    float a = other / sum;
+    //k = sum / ct;
+    //float sum = 1.0f - prev_k;
+
+    if(sum == 0.0f) {
+        float amt = remainder / ct;
+        for(const auto&[anim_name, trk] : seq->data_tracks) {
+            if(anim_name == clip_name) {
+                for(auto&[anim_node, blend_factor] : trk->animation_blend_factors) {
+                    blend_factor = k;
+                }
+            }
+            else {
+                for(auto&[anim_node, blend_factor] : trk->animation_blend_factors) {
+                    blend_factor = amt;
+                }
+            }
+        }
+        return;
+    }
+    
+    //float m = (other - sum) / ct;
+    float a = remainder / sum;
+    //float amt = a / ct;
     for(const auto&[anim_name, trk] : seq->data_tracks) {
         if(anim_name == clip_name) {
             for(auto&[anim_node, blend_factor] : trk->animation_blend_factors) {
@@ -201,6 +247,7 @@ void AnimationManager::SetClipBlendFactorBalanced(const SequenceName& seq_name, 
         else {
             for(auto&[anim_node, blend_factor] : trk->animation_blend_factors) {
                 blend_factor *= a;
+                //blend_factor += m;
             }
         }
     }
