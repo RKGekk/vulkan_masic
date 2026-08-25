@@ -763,12 +763,12 @@ void printHierarchyImGui(Scene::Hierarchy hierarchy) {
     ImGui::InputInt("Level", &level, 0, 0, ImGuiInputTextFlags_ReadOnly);
 }
 
-void printHierarchyTreeView(std::shared_ptr<SceneNode> start_node) {
+void printHierarchyTreeView(std::shared_ptr<SceneNode> start_node, std::function<bool(const std::shared_ptr<SceneNode>&)> print_child_if) {
     using namespace std::literals;
 
     for(std::shared_ptr<SceneNode> node = start_node; node;) {
         
-        printSceneNode(node);
+        printSceneNode(node, print_child_if);
         node = node->GetNextSibling();
     }
 }
@@ -875,9 +875,12 @@ void printSceneNode(std::shared_ptr<SceneNode> node, std::function<bool(const st
 			ImGui::TreePop();
 		}
 
-        if (node->GetChild() && ImGui::TreeNode("Child Hierarchy") && print_child_if(node->GetChild())) {
-            printHierarchyTreeView(node->GetChild());
-            ImGui::TreePop();
+
+        if(node->GetChild() && print_child_if(node->GetChild())) {
+            if (ImGui::TreeNode("Child Hierarchy")) {
+                printHierarchyTreeView(node->GetChild(), print_child_if);
+                ImGui::TreePop();
+            }
         }
 
         ImGui::TreePop();

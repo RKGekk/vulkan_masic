@@ -67,14 +67,7 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
 										float clip_current_time = trk_ptr->clip_current_time;
 										float clip_speed = trk_ptr->animation_speed;
 
-										const std::shared_ptr<AnimationNode>& roon_node = animation_manager->GetClipRoots(clip_name).front();
-										float blend_factor = trk_ptr->animation_blend_factors.at(roon_node);
-
 										if (ImGui::InputFloat("TotalTime", const_cast<float*>(&clip_total_time), 0.0F, clip_total_time, "%.4f", ImGuiInputTextFlags_ReadOnly)) {}
-
-										if (ImGui::SliderFloat("BlendFactor", ((float*)&blend_factor), 0.0f, 1.0f, "%.4f")) {
-											animation_manager->SetClipBlendFactorBalanced(seq_name, clip_name, blend_factor);
-										}
 
 										if (ImGui::SliderFloat("AnimationSpeed", ((float*)&clip_speed), 0.0f, 2.0f, "%.4f")) {
 											animation_manager->SetClipAnimationSpeed(seq_name, clip_name, clip_speed);
@@ -83,6 +76,67 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
 										if (ImGui::SliderFloat("Time", ((float*)&clip_current_time), 0.0f, clip_total_time, "%.4f")) {
 											animation_manager->SetClipCurrentTime(seq_name, clip_name, clip_current_time);
 										}
+
+										{
+											const std::shared_ptr<AnimationNode>& root_node = animation_manager->GetClipRoots(clip_name).front();
+											float blend_factor = trk_ptr->animation_blend_factors.at(root_node);
+											if (ImGui::SliderFloat("BlendFactor", ((float*)&blend_factor), 0.0f, 1.0f, "%.4f")) {
+												animation_manager->SetClipBlendFactorBalanced(seq_name, clip_name, blend_factor);
+											}
+										}
+
+										if (ImGui::TreeNode("NodesBlendFactors")) {
+
+											if (ImGui::TreeNode("FlatView")) {
+												for(const auto&[anim_node, blend_factor]  : trk_ptr->animation_blend_factors) {
+                            						printSceneNode(
+														anim_node,
+														[&animation_manager, &seq_name, &clip_name, k = blend_factor]
+														(const std::shared_ptr<SceneNode>& child_node) {
+															const std::shared_ptr<Scene>& scene = child_node->GetScene();
+															Scene::NodeIndex current_idx = child_node->GetParent()->VGetNodeIndex();
+															std::shared_ptr<AnimationNode> current_anim = std::dynamic_pointer_cast<AnimationNode>(scene->getProperty(current_idx, Scene::NODE_TYPE_FLAG_ANIMATION));
+															std::string blend_factor_name = current_anim->Get().Name() + "_blend_factor";
+															if (ImGui::SliderFloat(blend_factor_name.c_str(), ((float*)&k), 0.0f, 1.0f, "%.4f")) {
+															 	animation_manager->SetClipAnimNodeBlendFactor(seq_name, clip_name, current_anim, k);
+															}
+															return true;
+														}
+													);
+                        						}
+												ImGui::TreePop();
+											}
+											if (ImGui::TreeNode("TreeView")) {
+												for(const std::shared_ptr<AnimationNode>& anim_node : animation_manager->GetClipRoots(clip_name)) {
+                            						printSceneNode(
+														anim_node,
+														[&animation_manager, &seq_name, &clip_name, &anim_node, &trk_ptr]
+														(const std::shared_ptr<SceneNode>& child_node) {
+															const std::shared_ptr<Scene>& scene = child_node->GetScene();
+
+															Scene::NodeIndex current_idx = child_node->GetParent()->VGetNodeIndex();
+															std::shared_ptr<AnimationNode> current_anim = std::dynamic_pointer_cast<AnimationNode>(scene->getProperty(current_idx, Scene::NODE_TYPE_FLAG_ANIMATION));
+															if(trk_ptr->animation_blend_factors.contains(current_anim)) {
+																float k = trk_ptr->animation_blend_factors.at(current_anim);
+																std::string blend_factor_name = current_anim->Get().Name() + "_blend_factor";
+																if (ImGui::SliderFloat(blend_factor_name.c_str(), ((float*)&k), 0.0f, 1.0f, "%.4f")) {
+																 	animation_manager->SetClipAnimNodeBlendFactorRecursive(seq_name, clip_name, current_anim, k);
+																}
+															}
+
+															if(std::shared_ptr<AnimationNode> child_anim = std::dynamic_pointer_cast<AnimationNode>(scene->getProperty(child_node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_ANIMATION))) {
+																return animation_manager->GetClipMap().at(clip_name).contains(child_anim);
+															}
+															return false;
+														}
+													);
+                        						}
+												ImGui::TreePop();
+											}
+
+											ImGui::TreePop();
+										}
+
 										ImGui::TreePop();
 									}
 								}

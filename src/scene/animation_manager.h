@@ -69,6 +69,8 @@ public:
     void SetClipTotalTime(const SequenceName& seq_name, const ClipName& clip_name, float t);
     void SetClipCurrentTime(const SequenceName& seq_name, const ClipName& clip_name, float t);
     void SetClipBlendFactorBalanced(const SequenceName& seq_name, const ClipName& clip_name, BlendFactor k);
+    void SetClipAnimNodeBlendFactor(const SequenceName& seq_name, const ClipName& clip_name, const std::shared_ptr<AnimationNode>& anim_node,  BlendFactor k);
+    void SetClipAnimNodeBlendFactorRecursive(const SequenceName& seq_name, const ClipName& clip_name, const std::shared_ptr<AnimationNode>& root_anim_node,  BlendFactor k);
     void SetSequenceCurrentTime(const SequenceName& seq_name, float t);
     void SetSequenceTotalTime(const SequenceName& seq_name, float t);
 

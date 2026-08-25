@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <stack>
 
 const AnimationManager::SequenceName AnimationManager::DEFAULT_SEQUENCE_NAME = "default_sequence";
 const std::shared_ptr<AnimationManager::TrackData> NO_TRACK = nullptr;
@@ -172,6 +173,8 @@ void AnimationManager::SetClipBlendFactorBalanced(const SequenceName& seq_name, 
 
     const std::shared_ptr<TrackData>& trk = seq->data_tracks[clip_name];
     size_t trk_sz = seq->data_tracks.size();
+    if(trk_sz == 0u) return;
+
     if(trk_sz == 1u) {
         for(auto&[anim_node, blend_factor] : trk->animation_blend_factors) {
             blend_factor = k;
@@ -251,6 +254,68 @@ void AnimationManager::SetClipBlendFactorBalanced(const SequenceName& seq_name, 
             }
         }
     }
+
+    if(seq->state == SequenceState::Paused) {
+        seq->delta_time = 0.0f;
+        ProcessSequence(seq);
+    }
+}
+
+void AnimationManager::SetClipAnimNodeBlendFactor(const SequenceName& seq_name, const ClipName& clip_name, const std::shared_ptr<AnimationNode>& anim_node,  BlendFactor k) {
+    if(!anim_node) return;
+    if(!m_anim_name_to_node_map.contains(clip_name) || !m_anim_name_to_node_map[clip_name].contains(anim_node) || !m_sequences.contains(seq_name)) return;
+
+    const std::shared_ptr<AnimationSequence>& seq = m_sequences[seq_name];
+    if(!seq->data_tracks.contains(clip_name)) return;
+
+    const std::shared_ptr<TrackData>& trk = seq->data_tracks[clip_name];
+    if(seq->data_tracks.size() == 0u) return;
+
+    trk->animation_blend_factors[anim_node] = k;
+
+    if(seq->state == SequenceState::Paused) {
+        seq->delta_time = 0.0f;
+        ProcessSequence(seq);
+    }
+}
+
+void AnimationManager::SetClipAnimNodeBlendFactorRecursive(const SequenceName& seq_name, const ClipName& clip_name, const std::shared_ptr<AnimationNode>& root_anim_node,  BlendFactor k) {
+    if(!root_anim_node) return;
+    if(!m_anim_name_to_node_map.contains(clip_name) || !m_sequences.contains(seq_name)) return;
+
+    const std::shared_ptr<AnimationSequence>& seq = m_sequences[seq_name];
+    if(!seq->data_tracks.contains(clip_name)) return;
+
+    const std::shared_ptr<TrackData>& trk = seq->data_tracks[clip_name];
+    if(seq->data_tracks.size() == 0u) return;
+
+    if(trk->animation_blend_factors.contains(root_anim_node)) {
+        trk->animation_blend_factors[root_anim_node] = k;
+    }
+
+    const std::shared_ptr<Scene>& scene = root_anim_node->GetScene();
+    std::stack<Scene::NodeIndex> node_stack;
+    Scene::Hierarchy root_hierarchy = root_anim_node->VGetHierarchy();
+    node_stack.push(root_hierarchy.first_child);
+
+	while (!node_stack.empty()) {
+        Scene::NodeIndex current_node_index = node_stack.top();
+        node_stack.pop();
+        if(current_node_index == Scene::NO_INDEX) continue;
+
+        std::shared_ptr<AnimationNode> child_node = std::dynamic_pointer_cast<AnimationNode>(scene->getProperty(current_node_index, Scene::NODE_TYPE_FLAG_ANIMATION));
+        if(child_node && trk->animation_blend_factors.contains(child_node)) {
+            trk->animation_blend_factors[child_node] = k;
+        }
+        
+        Scene::Hierarchy current_node_hierarchy = scene->getNodeHierarchy(current_node_index);
+        if(current_node_hierarchy.next_sibling != Scene::NO_INDEX) {
+            node_stack.push(current_node_hierarchy.next_sibling);
+        }
+        if(current_node_hierarchy.first_child != Scene::NO_INDEX) {
+            node_stack.push(current_node_hierarchy.first_child);
+        }
+	}
 
     if(seq->state == SequenceState::Paused) {
         seq->delta_time = 0.0f;

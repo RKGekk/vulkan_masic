@@ -18,10 +18,12 @@ SceneNode::~SceneNode() {}
 
 void SceneNode::Accept(IVisitor& visitor) {
     visitor.Visit(shared_from_this());
+
     Scene::Hierarchy hierarchy = m_props.m_scene->getNodeHierarchy(m_props.m_node_index);
 	for (Scene::NodeIndex child = hierarchy.first_child; child != Scene::NO_INDEX;) {
         std::shared_ptr<SceneNode> child_node = m_props.m_scene->getProperty(child);
 		child_node->Accept(visitor);
+        
         Scene::Hierarchy child_hierarchy = m_props.m_scene->getNodeHierarchy(child);
         child = child_hierarchy.next_sibling;
 	}
@@ -29,10 +31,12 @@ void SceneNode::Accept(IVisitor& visitor) {
 
 void SceneNode::Accept(std::function<void(std::shared_ptr<SceneNode>)> fn) {
     fn(shared_from_this());
+
     Scene::Hierarchy hierarchy = m_props.m_scene->getNodeHierarchy(m_props.m_node_index);
 	for (Scene::NodeIndex child = hierarchy.first_child; child != Scene::NO_INDEX;) {
         std::shared_ptr<SceneNode> child_node = m_props.m_scene->getProperty(child);
 		child_node->Accept(fn);
+        
         Scene::Hierarchy child_hierarchy = m_props.m_scene->getNodeHierarchy(child);
         child = child_hierarchy.next_sibling;
 	}
