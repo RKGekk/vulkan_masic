@@ -60,8 +60,8 @@ void InverseKinematicsSolver::addTarget(std::shared_ptr<TargetSystem> ts) {
     std::shared_ptr<SceneNode>& current_node = ts->effector_node;
     while(current_node != ts->root_turning_point) {
 
-        m_solutions_map[ts->name][current_node] = current_node->Get().ToParent();
-        //m_solutions_map[ts->name][current_node] = glm::mat4(1.0f);
+        m_solutions_map[ts->name].push_back({current_node, current_node->Get().ToParent()});
+        //m_solutions_map[ts->name].push_back({current_node, glm::mat4(1.0f)});
         current_node = current_node->GetParent();
     }
 
