@@ -258,6 +258,8 @@ set(APP_SOURCES
     "${SRC_DIR}/scene/light_manager.cpp"
     "${SRC_DIR}/scene/animation_manager.h"
     "${SRC_DIR}/scene/animation_manager.cpp"
+    "${SRC_DIR}/scene/inverse_kinematics_solver.h"
+    "${SRC_DIR}/scene/inverse_kinematics_solver.cpp"
     "${SRC_DIR}/scene/nodes/scene_node.h"
     "${SRC_DIR}/scene/nodes/scene_node.cpp"
     "${SRC_DIR}/scene/nodes/camera_node.h"

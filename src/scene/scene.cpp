@@ -4,6 +4,7 @@
 #include "light_manager.h"
 #include "animation_manager.h"
 #include "skeleton_manager.h"
+#include "inverse_kinematics_solver.h"
 
 #include <algorithm>
 #include <numeric>
@@ -25,6 +26,7 @@ Scene::Scene(std::string name) {
     m_light_manager = std::make_shared<LightManager>();
     m_animation_manager = std::make_shared<AnimationManager>();
     m_skeleton_manager = std::make_shared<SkeletonManager>();
+    m_ik_solver = std::make_shared<InverseKinematicsSolver>();
 }
 
 int Scene::addNode(NodeIndex parent_index) {
@@ -514,4 +516,8 @@ const std::shared_ptr<AnimationManager>& Scene::getAnimationManager() const {
 	
 const std::shared_ptr<SkeletonManager>& Scene::getSkeletonManager() const {
     return m_skeleton_manager;
+}
+
+const std::shared_ptr<InverseKinematicsSolver>& Scene::getIKSolver() const {
+    return m_ik_solver;
 }
