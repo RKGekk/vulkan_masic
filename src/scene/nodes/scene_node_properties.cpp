@@ -34,6 +34,10 @@ glm::vec3 SceneNodeProperties::ToRootTranslation3() const{
     return glm::vec3(m_scene->getNodeGlobalTransform(m_node_index)[3]);
 }
 
+glm::quat SceneNodeProperties::ToRootRotation() const {
+	return glm::quat_cast(m_scene->getNodeGlobalTransform(m_node_index));
+}
+
 glm::vec3 SceneNodeProperties::ToParentDirection() const {
     glm::mat4x4 just_rot = m_scene->getNodeLocalTransform(m_node_index);
 	just_rot[3][0] = 0.0f;
@@ -58,8 +62,12 @@ glm::vec3 SceneNodeProperties::ToParentUp() const {
 	return glm::vec3(just_rot * up);
 }
 
+glm::quat SceneNodeProperties::ToParentRotation() const {
+	return glm::quat_cast(m_scene->getNodeGlobalTransform(m_node_index));
+}
+
 glm::vec3 SceneNodeProperties::ToRootDirection() const {
-    glm::mat4x4 just_rot = m_scene->getNodeGlobalTransform(m_node_index);
+    glm::mat4 just_rot = m_scene->getNodeGlobalTransform(m_node_index);
 	just_rot[3][0] = 0.0f;
 	just_rot[3][1] = 0.0f;
 	just_rot[3][2] = 0.0f;

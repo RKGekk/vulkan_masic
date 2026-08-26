@@ -1,3 +1,5 @@
+#pragma once
+
 #define GLM_ENABLE_EXPERIMENTAL
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -29,21 +31,15 @@ public:
         std::shared_ptr<SceneNode> effector_node;
     };
 
-    struct SolutionPart {
-        std::shared_ptr<SceneNode> node;
-        glm::mat4 local_transform;
-        bool solved;
-    };
-
     InverseKinematicsSolver();
 
-    void solve(const TargetName& target_name);
+    bool solveCCD(const TargetName& target_name);
 
     void addTarget(std::shared_ptr<TargetSystem> ts);
     void applySolution(const TargetName& target_name);
-    const std::vector<SolutionPart>& getSolution(const TargetName& target_name) const;
+    const std::unordered_map<std::shared_ptr<SceneNode>, glm::mat4>& getSolution(const TargetName& target_name) const;
 
 private:
     std::unordered_map<TargetName, std::shared_ptr<TargetSystem>> m_target_map;
-    std::unordered_map<TargetName, std::vector<SolutionPart>> m_solutions_map;
+    std::unordered_map<TargetName, std::unordered_map<std::shared_ptr<SceneNode>, glm::mat4>> m_solutions_map;
 };

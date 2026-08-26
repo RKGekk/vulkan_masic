@@ -5,10 +5,11 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
 #include <glm/glm.hpp>
+#include "glm/gtc/quaternion.hpp"
+#include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/ext.hpp>
 
 #include <memory>
 #include <string>
@@ -35,8 +36,12 @@ public:
 	const glm::vec4& ToRootTranslation4() const;
 	glm::vec3 ToRootTranslation3() const;
 
+	glm::quat ToRootRotation() const;
+
 	glm::vec3 ToParentDirection() const;
 	glm::vec3 ToParentUp() const;
+
+	glm::quat ToParentRotation() const;
 
 	glm::vec3 ToRootDirection() const;
 	glm::vec3 ToRootUp() const;
