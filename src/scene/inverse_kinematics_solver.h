@@ -26,9 +26,14 @@ public:
         TargetName name;
         glm::vec3 world_target;
         size_t iterations;
-        float treshold;
+        float tolerance;
         std::shared_ptr<SceneNode> root_turning_point;
         std::shared_ptr<SceneNode> effector_node;
+    };
+
+    struct SolutionPart {
+        std::shared_ptr<SceneNode> node;
+        glm::mat4 local_transform;
     };
 
     InverseKinematicsSolver();
@@ -41,5 +46,5 @@ public:
 
 private:
     std::unordered_map<TargetName, std::shared_ptr<TargetSystem>> m_target_map;
-    std::unordered_map<TargetName, std::unordered_map<std::shared_ptr<SceneNode>, glm::mat4>> m_solutions_map;
+    std::unordered_map<TargetName, std::vector<SolutionPart>> m_solutions_map;
 };
