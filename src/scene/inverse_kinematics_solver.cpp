@@ -30,6 +30,7 @@ bool InverseKinematicsSolver::solveCCD(const TargetName& target_name) {
     std::shared_ptr<SceneNode>& current_node = ts->effector_node;
     for(size_t i = 0u; i < iterations; ++i) {
         while(current_node != root_turning_point) {
+            effector_world_pos = effector_node->Get().ToRootTranslation3();
             glm::vec3 current_world_pos = current_node->Get().ToRootTranslation3();
             glm::quat current_rotation = current_node->Get().ToRootRotation();
 
