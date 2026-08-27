@@ -35,7 +35,7 @@ pugi::xml_node CoordComponent::VGenerateXml() {
 	return pugi::xml_node();
 }
 
-const std::shared_ptr<SceneNode>& CoordComponent::VGetSceneNode() {
+std::shared_ptr<SceneNode> CoordComponent::VGetSceneNode() {
     return m_loaded_scene_node;
 }
 

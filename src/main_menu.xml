@@ -26,6 +26,15 @@
       <ModelComponent>
         <FilePath>objects/woman.gltf</FilePath>
       </ModelComponent>
+      <InverseKinematicsComponent>
+        <TargetSystem name="RightArmReach">
+          <root_turning_point_node_name>RightShoulder</root_turning_point_node_name>
+          <effector_node_name>RightHandIndex4</effector_node_name>
+          <iterations>2</iterations>
+          <tolerance>0.00001</tolerance>
+          <world_target x="0.0" y="3.0" z="1.0" />
+        </TargetSystem>
+      </InverseKinematicsComponent>
     </Actor>
 
     <Actor name="light_in_scene_object">

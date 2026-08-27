@@ -4,10 +4,10 @@
 
 EvtData_New_Scene_Component::EvtData_New_Scene_Component() {}
 
-EvtData_New_Scene_Component::EvtData_New_Scene_Component(ActorId actorId, ComponentId componentId, std::weak_ptr<SceneNode> pSceneNode) {
+EvtData_New_Scene_Component::EvtData_New_Scene_Component(ActorId actorId, ComponentId componentId, std::shared_ptr<SceneNode> pSceneNode) {
     m_componentId = componentId;
     m_actorId = actorId;
-    m_pSceneNode = pSceneNode;
+    m_pSceneNode = std::move(pSceneNode);
 }
 
 void EvtData_New_Scene_Component::VSerialize(std::ostream& out) const {}
@@ -33,7 +33,7 @@ ComponentId EvtData_New_Scene_Component::GetComponentId() const {
     return m_componentId;
 }
 
-std::weak_ptr<SceneNode> EvtData_New_Scene_Component::GetSceneNode() const {
+const std::shared_ptr<SceneNode>& EvtData_New_Scene_Component::GetSceneNode() const {
     return m_pSceneNode;
 }
 

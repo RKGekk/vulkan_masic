@@ -84,7 +84,7 @@ StrongActorPtr BaseEngineLogic::VCreateActor(const pugi::xml_node& actor_data, c
 		if (pActor->GetName() != "NoName") { m_actors_names.insert(std::make_pair(pActor->GetName(), pActor)); }
 
 		std::vector<std::weak_ptr<BaseSceneNodeComponent>> scene_components = pActor->GetDynamicComponents<BaseSceneNodeComponent>();
-		for(std::weak_ptr<BaseSceneNodeComponent>& weak_scene_com : scene_components) {
+		for(std::weak_ptr<BaseSceneNodeComponent> weak_scene_com : scene_components) {
 			std::shared_ptr<BaseSceneNodeComponent> scene_component = weak_scene_com.lock();
 			if(scene_component) {
 				std::shared_ptr<EvtData_New_Scene_Component> pNewSceneNodeEvent = std::make_shared<EvtData_New_Scene_Component>(actid, scene_component->VGetId(), scene_component->VGetSceneNode());

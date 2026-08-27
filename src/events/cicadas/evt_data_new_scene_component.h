@@ -14,14 +14,14 @@ class SceneNode;
 class EvtData_New_Scene_Component : public BaseEventData {
     ActorId m_actorId = INVALID_ACTOR_ID;
     ComponentId m_componentId = INVALID_COMPONENT_ID;
-    std::weak_ptr<SceneNode> m_pSceneNode;
+    std::shared_ptr<SceneNode> m_pSceneNode;
 
 public:
     inline static const EventTypeId sk_EventType = 0x34790278;
     //inline static const std::string sk_EventName = "EvtData_New_Scene_Component";
 
     EvtData_New_Scene_Component();
-    explicit EvtData_New_Scene_Component(ActorId actorId, ComponentId componentId, std::weak_ptr<SceneNode> pSceneNode);
+    explicit EvtData_New_Scene_Component(ActorId actorId, ComponentId componentId, std::shared_ptr<SceneNode> pSceneNode);
 
     virtual void VSerialize(std::ostream& out) const override;
     virtual void VDeserialize(std::istream& in) override;
@@ -31,7 +31,7 @@ public:
 
     ActorId GetActorId() const;
     ComponentId GetComponentId() const;
-    std::weak_ptr<SceneNode> GetSceneNode() const;
+    const std::shared_ptr<SceneNode>& GetSceneNode() const;
 
     friend std::ostream& operator<<(std::ostream& os, const EvtData_New_Scene_Component& evt);
 };

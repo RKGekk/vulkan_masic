@@ -41,7 +41,7 @@ public:
 	pugi::xml_node VGenerateXml() override;
 
 	virtual const std::shared_ptr<BasicCameraNode>& VGetCameraNode();
-	const std::shared_ptr<SceneNode>& VGetSceneNode() override;
+	std::shared_ptr<SceneNode> VGetSceneNode() override;
 
 	virtual float GetFov();
 	virtual void SetFov(float fov);
