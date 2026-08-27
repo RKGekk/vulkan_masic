@@ -69,7 +69,7 @@ public:
     void markAsChanged(NodeIndex node_index);
     int findNodeByName(const std::string& name) const;
 
-	const std::string getSceneName() const;
+	const std::string& getSceneName() const;
 
     const std::string& getNodeName(NodeIndex node_index) const;
 	void setNodeName(NodeIndex node_index, std::string name);
@@ -92,6 +92,7 @@ public:
 	NodeTypeFlags getNodeTypeFlags(NodeIndex node_index) const;
 
 	const std::shared_ptr<Properties>& getProperties(NodeIndex node_index);
+	const std::shared_ptr<SceneNode>& getProperty(std::string node_name, NodeType node_type = NODE_TYPE_FLAG_NONE);
 	const std::shared_ptr<SceneNode>& getProperty(NodeIndex node_index, NodeType node_type = NODE_TYPE_FLAG_NONE);
 	std::shared_ptr<SceneNode> getRootNode();
 	void addProperty(std::shared_ptr<SceneNode> property, NodeIndex node_index = NO_INDEX);

@@ -2,7 +2,7 @@
 
 #include "../../application.h"
 #include "../../engine/base_engine_logic.h"
-#include "../../actors/camera_component.h"
+#include "../../actors/components/camera_component.h"
 #include "../../scene/nodes/basic_camera_node.h"
 #include "../../scene/nodes/value_bag_node.h"
 #include "../../scene/skeleton_manager.h"

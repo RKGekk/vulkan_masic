@@ -5,10 +5,10 @@
 #include "../../application.h"
 #include "../../actors/actor.h"
 #include "../base_engine_logic.h"
-#include "../../actors/transform_component.h"
-#include "../../actors/transform_animation_component.h"
-#include "../../actors/camera_component.h"
-#include "../../actors/model_component.h"
+#include "../../actors/components/transform_component.h"
+#include "../../actors/components/transform_animation_component.h"
+#include "../../actors/components/camera_component.h"
+#include "../../actors/components/model_component.h"
 #include "imgui_tools.h"
 
 ActorMenuUI::ActorMenuUI() : m_actor_id(INVALID_ACTOR_ID) {

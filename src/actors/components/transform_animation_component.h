@@ -11,8 +11,8 @@
 #include <glm/gtx/euler_angles.hpp>
 
 #include "actor_component.h"
-#include "../animation/matrix_animation.h"
-#include "../scene/nodes/animation_node.h"
+#include "../../animation/matrix_animation.h"
+#include "../../scene/nodes/animation_node.h"
 
 #include <pugixml.hpp>
 

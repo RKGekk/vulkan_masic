@@ -1,9 +1,9 @@
 #include "model_component.h"
 
 #include "transform_component.h"
-#include "../application.h"
-#include "../graphics/vulkan_renderer.h"
-#include "../scene/mesh_node_loader.h"
+#include "../../application.h"
+#include "../../graphics/vulkan_renderer.h"
+#include "../../scene/mesh_node_loader.h"
 
 #include <cassert>
 #include <unordered_map>
@@ -32,7 +32,7 @@ pugi::xml_node ModelComponent::VGenerateXml() {
 	return pugi::xml_node();
 }
 
-std::shared_ptr<SceneNode> ModelComponent::VGetSceneNode() {
+const std::shared_ptr<SceneNode>& ModelComponent::VGetSceneNode() {
     return m_loaded_scene_node;
 }
 

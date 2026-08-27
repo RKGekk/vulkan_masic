@@ -1,7 +1,7 @@
 #include "imgui_tools.h"
 
 #include "../../scene/nodes/basic_camera_node.h"
-#include "../../actors/transform_component.h"
+#include "../../actors/components/transform_component.h"
 #include "../../scene/animation_manager.h"
 
 std::string getPrimitiveTopologyStr(VkPrimitiveTopology topology) {

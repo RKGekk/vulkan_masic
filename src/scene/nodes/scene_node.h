@@ -28,7 +28,8 @@ public:
 	virtual ~SceneNode();
 
 	virtual void Accept(IVisitor& visitor);
-	virtual void Accept(std::function<void(std::shared_ptr<SceneNode>)> fn);
+	virtual void Accept(std::function<void(const std::shared_ptr<SceneNode>&)> fn);
+	virtual const std::shared_ptr<SceneNode>& FindIf(std::function<bool(const std::shared_ptr<SceneNode>&)> fn);
 
 	virtual bool VOnRestore();
 	virtual bool VOnUpdate();

@@ -1,11 +1,12 @@
 #include "actor_factory.h"
 
-#include "transform_component.h"
-#include "camera_component.h"
-#include "model_component.h"
-#include "coord_arrow_component.h"
-#include "transform_animation_component.h"
-#include "light_component.h"
+#include "components/transform_component.h"
+#include "components/camera_component.h"
+#include "components/model_component.h"
+#include "components/coord_arrow_component.h"
+#include "components/transform_animation_component.h"
+#include "components/light_component.h"
+#include "components/inverse_kinematics_component.h"
 
 unsigned int ActorFactory::GetNextActorId() {
     return ++m_last_actorId;
@@ -20,6 +21,7 @@ ActorFactory::ActorFactory() {
     m_component_factory.Register<CoordComponent>(CoordComponent::GetIdFromName(CoordComponent::g_name), CoordComponent::g_name);
     m_component_factory.Register<TransformAnimationComponent>(TransformAnimationComponent::GetIdFromName(TransformAnimationComponent::g_name), TransformAnimationComponent::g_name);
     m_component_factory.Register<LightComponent>(LightComponent::GetIdFromName(LightComponent::g_name), LightComponent::g_name);
+    m_component_factory.Register<InverseKinematicsComponent>(ActorComponent::GetIdFromName(InverseKinematicsComponent::g_name), InverseKinematicsComponent::g_name);
 }
 
 std::unordered_map<std::string, std::pair<std::shared_ptr<ActorComponent>, pugi::xml_node>> ActorFactory::getAllComponents(pugi::xml_node actor_node) {

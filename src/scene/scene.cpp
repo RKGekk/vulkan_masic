@@ -104,7 +104,7 @@ int Scene::findNodeByName(const std::string& name) const {
     return NO_INDEX;
 }
 
-const std::string Scene::getSceneName() const {
+const std::string& Scene::getSceneName() const {
     return m_node_names[0];
 }
 

@@ -8,8 +8,8 @@
 
 #include <pugixml.hpp>
 
-#include "actor.h"
-#include "../tools/game_timer.h"
+#include "../actor.h"
+#include "../../tools/game_timer.h"
 
 using ComponentDependecyList = std::vector<std::string>;
 

@@ -42,7 +42,7 @@ public:
 
     void addTarget(std::shared_ptr<TargetSystem> ts);
     void applySolution(const TargetName& target_name);
-    const std::unordered_map<std::shared_ptr<SceneNode>, glm::mat4>& getSolution(const TargetName& target_name) const;
+    const std::vector<SolutionPart>& getSolution(const TargetName& target_name) const;
 
 private:
     std::unordered_map<TargetName, std::shared_ptr<TargetSystem>> m_target_map;

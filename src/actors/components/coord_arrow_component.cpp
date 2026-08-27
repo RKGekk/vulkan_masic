@@ -2,11 +2,11 @@
 
 #include "transform_component.h"
 #include "transform_animation_component.h"
-#include "../application.h"
-#include "../graphics/vulkan_renderer.h"
-#include "../scene/mesh_node_loader.h"
-#include "../scene/mesh_node_geometry_generator.h"
-#include "../scene/nodes/value_bag_node.h"
+#include "../../application.h"
+#include "../../graphics/vulkan_renderer.h"
+#include "../../scene/mesh_node_loader.h"
+#include "../../scene/mesh_node_geometry_generator.h"
+#include "../../scene/nodes/value_bag_node.h"
 
 #include <cassert>
 #include <unordered_map>
@@ -35,7 +35,7 @@ pugi::xml_node CoordComponent::VGenerateXml() {
 	return pugi::xml_node();
 }
 
-std::shared_ptr<SceneNode> CoordComponent::VGetSceneNode() {
+const std::shared_ptr<SceneNode>& CoordComponent::VGetSceneNode() {
     return m_loaded_scene_node;
 }
 

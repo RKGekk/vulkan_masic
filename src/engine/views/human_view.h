@@ -7,7 +7,7 @@
 #include "iengine_view.h"
 #include "../base_engine_state.h"
 #include "../controllers/movement_controller.h"
-#include "../../actors/camera_component.h"
+#include "../../actors/components/camera_component.h"
 #include "../../procs/process_manager.h"
 #include "../../graphics/drawables/imgui_drawable.h"
 #include "../../graphics/drawables/scene_drawable.h"

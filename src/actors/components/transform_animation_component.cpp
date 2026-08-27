@@ -1,7 +1,7 @@
 #include "transform_animation_component.h"
 #include "transform_component.h"
 
-#include "../tools/string_tools.h"
+#include "../../tools/string_tools.h"
 
 const std::string TransformAnimationComponent::g_name = "TransformAnimationComponent";
 

@@ -1,6 +1,6 @@
 #include "movement_controller.h"
 
-#include "../../actors/transform_component.h"
+#include "../../actors/components/transform_component.h"
 #include "../../tools/memory_utility.h"
 
 MovementController::MovementController(std::shared_ptr<Actor> object) : m_object(object) {

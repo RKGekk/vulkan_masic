@@ -19,7 +19,7 @@
 
 #include "actor_component.h"
 #include "base_scene_node_component.h"
-#include "../scene/nodes/light_node.h"
+#include "../../scene/nodes/light_node.h"
 
 class LightComponent : public BaseSceneNodeComponent {
 public:
@@ -33,7 +33,7 @@ public:
 	const std::string& VGetName() const override;
 	pugi::xml_node VGenerateXml() override;
 
-    std::shared_ptr<SceneNode> VGetSceneNode() override;
+    const std::shared_ptr<SceneNode>& VGetSceneNode() override;
 	const ComponentDependecyList& VGetComponentDependecy() const override;
 
 protected:

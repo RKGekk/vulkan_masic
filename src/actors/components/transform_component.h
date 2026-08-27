@@ -11,7 +11,7 @@
 #include <glm/gtx/euler_angles.hpp>
 
 #include "actor_component.h"
-#include "../scene/nodes/scene_node.h"
+#include "../../scene/nodes/scene_node.h"
 
 #include <pugixml.hpp>
 

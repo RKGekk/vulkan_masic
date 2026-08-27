@@ -1,9 +1,9 @@
 #include "camera_component.h"
 
-#include "../tools/string_tools.h"
-#include "../scene/nodes/camera_node.h"
-#include "../scene/nodes/basic_camera_node.h"
-#include "../application.h"
+#include "../../tools/string_tools.h"
+#include "../../scene/nodes/camera_node.h"
+#include "../../scene/nodes/basic_camera_node.h"
+#include "../../application.h"
 #include "transform_component.h"
 
 const std::string CameraComponent::g_name = "CameraComponent";
@@ -60,7 +60,7 @@ const std::shared_ptr<BasicCameraNode>& CameraComponent::VGetCameraNode() {
 	return m_camera_node;
 }
 
-std::shared_ptr<SceneNode> CameraComponent::VGetSceneNode() {
+const std::shared_ptr<SceneNode>& CameraComponent::VGetSceneNode() {
 	return m_camera_node;
 }
 

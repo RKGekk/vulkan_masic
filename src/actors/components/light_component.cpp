@@ -1,10 +1,10 @@
 #include "light_component.h"
 
 #include "transform_component.h"
-#include "../application.h"
-#include "../graphics/vulkan_renderer.h"
-#include "../scene/mesh_node_loader.h"
-#include "../tools/string_tools.h"
+#include "../../application.h"
+#include "../../graphics/vulkan_renderer.h"
+#include "../../scene/mesh_node_loader.h"
+#include "../../tools/string_tools.h"
 
 #include <cassert>
 #include <unordered_map>
@@ -33,7 +33,7 @@ pugi::xml_node LightComponent::VGenerateXml() {
 	return pugi::xml_node();
 }
 
-std::shared_ptr<SceneNode> LightComponent::VGetSceneNode() {
+const std::shared_ptr<SceneNode>& LightComponent::VGetSceneNode() {
     return m_light_scene_node;
 }
 

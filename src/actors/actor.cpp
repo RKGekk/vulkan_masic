@@ -1,6 +1,6 @@
 #include "actor.h"
 
-#include "actor_component.h"
+#include "components/actor_component.h"
 #include "../events/cicadas/evt_data_new_actor.h"
 #include "../events/cicadas/evt_data_destroy_actor.h"
 #include "../events/ievent_manager.h"

@@ -1,6 +1,6 @@
 #include "actor_component.h"
 
-#include "actor.h"
+#include "../actor.h"
 
 ActorComponent::~ActorComponent() {
 	m_pOwner.reset();

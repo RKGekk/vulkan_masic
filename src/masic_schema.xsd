@@ -2591,6 +2591,24 @@
                                                 </xs:attribute>
                                             </xs:complexType>
                                         </xs:element>
+                                        <xs:element name="InverseKinematicsComponent" minOccurs="0" maxOccurs="1">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element name="TargetSystem">
+                                                        <xs:complexType>
+                                                            <xs:sequence>
+                                                                <xs:element name="root_turning_point_node_name" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
+                                                                <xs:element name="effector_node_name" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
+                                                                <xs:element name="iterations" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"></xs:element>
+                                                                <xs:element name="tolerance" type="xs:float" minOccurs="1" maxOccurs="1"></xs:element>
+                                                                <xs:element name="world_target" type="target:Vec3ComplexType" minOccurs="1" maxOccurs="1"></xs:element>
+                                                            </xs:sequence>
+                                                            <xs:attribute name="name" use="required" type="xs:string"></xs:attribute>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
                                         <xs:element name="CoordArrowComponent" minOccurs="0" maxOccurs="1"></xs:element>
                                         <xs:element name="TransformAnimationComponent" minOccurs="0" maxOccurs="1">
                                             <xs:complexType>

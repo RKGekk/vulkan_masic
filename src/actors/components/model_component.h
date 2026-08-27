@@ -19,24 +19,25 @@
 
 #include "actor_component.h"
 #include "base_scene_node_component.h"
-#include "../scene/nodes/mesh_node.h"
+#include "../../scene/nodes/mesh_node.h"
 
-class CoordComponent : public BaseSceneNodeComponent {
+class ModelComponent : public BaseSceneNodeComponent {
 public:
 	static const std::string g_name;
 
-	CoordComponent();
-	CoordComponent(const pugi::xml_node& data);
-	virtual ~CoordComponent();
+	ModelComponent();
+	ModelComponent(const pugi::xml_node& data);
+	virtual ~ModelComponent();
 
 	bool VInit(const pugi::xml_node& data) override;
 	const std::string& VGetName() const override;
 	pugi::xml_node VGenerateXml() override;
 
-    std::shared_ptr<SceneNode> VGetSceneNode() override;
+    const std::shared_ptr<SceneNode>& VGetSceneNode() override;
 	const ComponentDependecyList& VGetComponentDependecy() const override;
 
-	void setLineWidth(float width);
+	const std::string& GetResourceName();
+	const std::string& GetResourceDirecory();
 
 protected:
 	virtual void VDelegatePostInit() override;
@@ -46,8 +47,6 @@ private:
 
 	std::string m_resource_name;
 	std::string m_resource_directory;
-	float m_line_width;
 
 	std::shared_ptr<SceneNode> m_loaded_scene_node;
-	std::vector<std::shared_ptr<SceneNode>> m_anim_vis_scene_nodes;
 };
