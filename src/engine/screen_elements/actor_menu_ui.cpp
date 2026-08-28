@@ -9,6 +9,7 @@
 #include "../../actors/components/transform_animation_component.h"
 #include "../../actors/components/camera_component.h"
 #include "../../actors/components/model_component.h"
+#include "../../actors/components/inverse_kinematics_component.h"
 #include "imgui_tools.h"
 
 ActorMenuUI::ActorMenuUI() : m_actor_id(INVALID_ACTOR_ID) {
@@ -83,6 +84,15 @@ bool ActorMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index) {
 
 					const std::string& resource_name = mc->GetResourceName();
 					ImGui::Text("%s", resource_name.c_str());
+				}
+				std::shared_ptr<InverseKinematicsComponent> ikc = act->GetComponent<InverseKinematicsComponent>().lock();
+				if(ikc) {
+					ImGui::SeparatorText("InverseKinematicsComponent");
+
+					glm::vec3 ikc_target = ikc->getTarget();
+					if(ImGui::SliderFloat3("Fov", ((float*)&ikc_target), -3.0f, 3.0f)) {
+						ikc->SetTarget(ikc_target);
+					}
 				}
 				std::shared_ptr<TransformAnimationComponent> ac = act->GetComponent<TransformAnimationComponent>().lock();
 				if(ac) {

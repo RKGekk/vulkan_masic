@@ -34,6 +34,10 @@ public:
     virtual pugi::xml_node VGenerateXml() override;
     virtual void VPostInit() override;
 
+    void Apply();
+    void SetTarget(glm::vec3 world_target);
+    glm::vec3 getTarget() const;
+
 private:
     bool Init(const pugi::xml_node& data);
 

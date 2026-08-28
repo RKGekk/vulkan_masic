@@ -16,10 +16,9 @@ bool InverseKinematicsSolver::solveCCD(const TargetName& target_name) {
     if(solution_part.size() == 0u) return false;
 
     const std::shared_ptr<TargetSystem>& ts = m_target_map[target_name];
-    std::vector<SolutionPart>& solutions = m_solutions_map[target_name];
 
-    SolutionPart& es = solutions[0u];
-    glm::vec3 effector_world_pos = glm::vec3(es.gloabal_transform[3u]);
+    SolutionPart& effector_sol = solution_part[0u];
+    glm::vec3 effector_world_pos = glm::vec3(effector_sol.gloabal_transform[3u]);
     glm::vec3 target_world_pos = ts->world_target;
     float tolerance = ts->tolerance;
     float distance = glm::length(target_world_pos - effector_world_pos);
@@ -27,12 +26,12 @@ bool InverseKinematicsSolver::solveCCD(const TargetName& target_name) {
     if(solution_part.size() == 1u) return false;
 
     size_t iterations = ts->iterations;
-    size_t sz = solutions.size();
+    size_t sz = solution_part.size();
     for(size_t iteration = 1u; iteration < iterations; ++iteration) {
         for(size_t i = 1u; i < sz; ++i) {
-            SolutionPart& s = solutions[i];
+            SolutionPart& s = solution_part[i];
             
-            effector_world_pos = glm::vec3(es.gloabal_transform[3u]);
+            effector_world_pos = glm::vec3(effector_sol.gloabal_transform[3u]);
             glm::vec3 current_world_pos = glm::vec3(s.gloabal_transform[3u]);
             glm::quat current_world_rotation = glm::quat_cast(s.gloabal_transform);
 
@@ -40,10 +39,10 @@ bool InverseKinematicsSolver::solveCCD(const TargetName& target_name) {
             glm::vec3 to_target = glm::normalize(target_world_pos - current_world_pos);
             glm::quat effector_to_target = glm::rotation(to_effector, to_target);
             glm::quat local_rotation_op = current_world_rotation * effector_to_target * glm::conjugate(current_world_rotation);
-            s.local_transform *= glm::mat4_cast(local_rotation_op);
+            s.local_transform = s.local_transform * glm::mat4_cast(local_rotation_op);
 
             for(int j = i; j >= 0; --j) {
-                SolutionPart& sj = solutions[j];
+                SolutionPart& sj = solution_part[j];
                 sj.gloabal_transform = sj.parent_gloabal_transform * sj.local_transform;
             }
         }
@@ -53,7 +52,7 @@ bool InverseKinematicsSolver::solveCCD(const TargetName& target_name) {
 }
 
 void InverseKinematicsSolver::addTarget(std::shared_ptr<TargetSystem> ts) {
-    const std::string& ts_name = ts->name;
+    std::string ts_name = ts->name;
     m_target_map[ts_name] = std::move(ts);
     recalcTarget(ts_name);
 }
@@ -76,10 +75,10 @@ void InverseKinematicsSolver::recalcTarget(const TargetName& target_name) {
         size_t sz = solutions.size();
         for(size_t i = 0u; i < sz; ++i) {
             SolutionPart& s = solutions[i];
-            s.node = current_node;
-            s.local_transform = current_node->Get().ToParent();
-            s.gloabal_transform = current_node->Get().ToRoot();
-            current_node = current_node->GetParent();
+            //s.node = current_node;
+            s.local_transform = s.node->Get().ToParent();
+            s.gloabal_transform = s.node->Get().ToRoot();
+            //current_node = current_node->GetParent();
         }
     }
 }
@@ -94,4 +93,15 @@ void InverseKinematicsSolver::applySolution(const TargetName& target_name) {
 
 const std::vector<InverseKinematicsSolver::SolutionPart>& InverseKinematicsSolver::getSolution(const TargetName& target_name) const {
     return m_solutions_map.at(target_name);
+}
+
+const std::unordered_map<InverseKinematicsSolver::TargetName, std::shared_ptr<InverseKinematicsSolver::TargetSystem>>& InverseKinematicsSolver::getTargetMap() const {
+    return m_target_map;
+}
+
+void InverseKinematicsSolver::setTarget(const TargetName& target_name, glm::vec3 world_target) {
+    if(!m_target_map.contains(target_name)) return;
+    m_target_map[target_name]->world_target = world_target;
+    solveCCD(target_name);
+    applySolution(target_name);
 }

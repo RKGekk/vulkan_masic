@@ -43,6 +43,27 @@ void InverseKinematicsComponent::VPostInit() {
     
 }
 
+void InverseKinematicsComponent::Apply() {
+    for(const auto&[targen_name, target_system] : m_iksolver->getTargetMap()) {
+        m_iksolver->recalcTarget(targen_name);
+        m_iksolver->solveCCD(targen_name);
+        m_iksolver->applySolution(targen_name);
+    }
+}
+
+void InverseKinematicsComponent::SetTarget(glm::vec3 target) {
+    for(const auto&[targen_name, target_system] : m_iksolver->getTargetMap()) {
+        m_iksolver->setTarget(targen_name, target);
+        m_iksolver->recalcTarget(targen_name);
+        m_iksolver->solveCCD(targen_name);
+        m_iksolver->applySolution(targen_name);
+    }
+}
+
+glm::vec3 InverseKinematicsComponent::getTarget() const {
+    return (*m_iksolver->getTargetMap().begin()).second->world_target;
+}
+
 bool InverseKinematicsComponent::Init(const pugi::xml_node& data) {
     //const std::shared_ptr<Scene>& scene_ptr = Application::Get().GetGameLogic()->GetHumanView()->VGetScene();
     std::shared_ptr<Actor> act = GetOwner();
@@ -54,7 +75,8 @@ bool InverseKinematicsComponent::Init(const pugi::xml_node& data) {
     for (pugi::xml_node target_system_node = data.first_child(); target_system_node; target_system_node = target_system_node.next_sibling()) {
 
         std::shared_ptr<InverseKinematicsSolver::TargetSystem> target_system = std::make_shared<InverseKinematicsSolver::TargetSystem>();
-        target_system->name = target_system_node.attribute("name").as_string();
+        std::string ts_name = target_system_node.attribute("name").as_string();
+        target_system->name = ts_name;
         target_system->world_target = posfromattr3f(target_system_node.child("world_target"));
         target_system->iterations = target_system_node.child("iterations").text().as_uint();
         target_system->tolerance = target_system_node.child("tolerance").text().as_float();
@@ -68,6 +90,7 @@ bool InverseKinematicsComponent::Init(const pugi::xml_node& data) {
         target_system->effector_node = effector_node;
 
         m_iksolver->addTarget(std::move(target_system));
+        //m_iksolver->solveCCD(ts_name);
     }
 
 	m_initialized = true;

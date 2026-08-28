@@ -5,6 +5,7 @@
 #include "../actors/components/transform_component.h"
 #include "../actors/components/model_component.h"
 #include "../actors/components/base_scene_node_component.h"
+#include "../actors/components/inverse_kinematics_component.h"
 #include "../application.h"
 #include "../application_options.h"
 #include "../procs/exec_process.h"
@@ -337,6 +338,14 @@ void BaseEngineLogic::EnvironmentLoadedDelegate(IEventDataPtr pEventData) {}
 
 void BaseEngineLogic::SphereParticleContactDelegate(IEventDataPtr pEventData) {}
 
+void BaseEngineLogic::NewActorDelegate(IEventDataPtr pEventData) {
+	std::shared_ptr<EvtData_New_Actor> pCastEventData = std::static_pointer_cast<EvtData_New_Actor>(pEventData);
+
+	std::shared_ptr<InverseKinematicsComponent> mc = m_actors.at(pCastEventData->GetActorId())->GetComponent<InverseKinematicsComponent>(ActorComponent::GetIdFromName("InverseKinematicsComponent")).lock();
+	if (!mc) return;
+	mc->Apply();
+}
+
 std::unique_ptr<ActorFactory> BaseEngineLogic::VCreateActorFactory() {
 	return std::make_unique<ActorFactory>();
 }
@@ -353,6 +362,7 @@ void BaseEngineLogic::RegisterAllDelegates() {
 	pGlobalEventManager->VAddListener({ connect_arg<&BaseEngineLogic::RequestStartGameDelegate>, this }, EvtData_Request_Start_Game::sk_EventType);
 	pGlobalEventManager->VAddListener({ connect_arg<&BaseEngineLogic::EnvironmentLoadedDelegate>, this }, EvtData_Environment_Loaded::sk_EventType);
 	pGlobalEventManager->VAddListener({ connect_arg<&BaseEngineLogic::SphereParticleContactDelegate>, this }, EvtData_Sphere_Particle_Contact::sk_EventType);
+	pGlobalEventManager->VAddListener({ connect_arg<&BaseEngineLogic::NewActorDelegate>, this }, EvtData_New_Actor::sk_EventType);
 }
 
 void BaseEngineLogic::VRegisterEvents() {
@@ -372,4 +382,5 @@ void BaseEngineLogic::RemoveAllDelegates() {
 	pGlobalEventManager->VRemoveListener({ connect_arg<&BaseEngineLogic::RequestStartGameDelegate>, this }, EvtData_Request_Start_Game::sk_EventType);
 	pGlobalEventManager->VRemoveListener({ connect_arg<&BaseEngineLogic::EnvironmentLoadedDelegate>, this }, EvtData_Environment_Loaded::sk_EventType);
 	pGlobalEventManager->VRemoveListener({ connect_arg<&BaseEngineLogic::SphereParticleContactDelegate>, this }, EvtData_Sphere_Particle_Contact::sk_EventType);
+	pGlobalEventManager->VRemoveListener({ connect_arg<&BaseEngineLogic::NewActorDelegate>, this }, EvtData_New_Actor::sk_EventType);
 }

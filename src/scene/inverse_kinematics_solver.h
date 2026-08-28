@@ -46,6 +46,8 @@ public:
     void recalcTarget(const TargetName& target_name);
     void applySolution(const TargetName& target_name);
     const std::vector<SolutionPart>& getSolution(const TargetName& target_name) const;
+    const std::unordered_map<TargetName, std::shared_ptr<TargetSystem>>& getTargetMap() const;
+    void setTarget(const TargetName& target_name, glm::vec3 world_target);
 
 private:
     std::unordered_map<TargetName, std::shared_ptr<TargetSystem>> m_target_map;

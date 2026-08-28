@@ -69,6 +69,7 @@ public:
 	void RequestStartGameDelegate(IEventDataPtr pEventData);
 	void EnvironmentLoadedDelegate(IEventDataPtr pEventData);
 	void SphereParticleContactDelegate(IEventDataPtr pEventData);
+	void NewActorDelegate(IEventDataPtr pEventData);
 
 protected:
 	virtual std::unique_ptr<ActorFactory> VCreateActorFactory();
