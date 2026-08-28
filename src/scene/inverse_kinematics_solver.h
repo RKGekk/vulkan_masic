@@ -34,6 +34,8 @@ public:
     struct SolutionPart {
         std::shared_ptr<SceneNode> node;
         glm::mat4 local_transform;
+        glm::mat4 gloabal_transform;
+        glm::mat4 parent_gloabal_transform;
     };
 
     InverseKinematicsSolver();
@@ -41,6 +43,7 @@ public:
     bool solveCCD(const TargetName& target_name);
 
     void addTarget(std::shared_ptr<TargetSystem> ts);
+    void recalcTarget(const TargetName& target_name);
     void applySolution(const TargetName& target_name);
     const std::vector<SolutionPart>& getSolution(const TargetName& target_name) const;
 

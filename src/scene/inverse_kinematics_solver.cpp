@@ -10,45 +10,42 @@ struct StackFrame {
 };
 
 bool InverseKinematicsSolver::solveCCD(const TargetName& target_name) {
+    if(!m_target_map.contains(target_name)) return false;
     if(!m_solutions_map.contains(target_name)) return false;
     std::vector<SolutionPart>& solution_part = m_solutions_map[target_name];
     if(solution_part.size() == 0u) return false;
 
-    const std::shared_ptr<TargetSystem>& ts = m_target_map.at(target_name);
-    const std::shared_ptr<SceneNode>& effector_node = ts->effector_node;
-    const std::shared_ptr<SceneNode>& root_turning_point = ts->root_turning_point;
+    const std::shared_ptr<TargetSystem>& ts = m_target_map[target_name];
+    std::vector<SolutionPart>& solutions = m_solutions_map[target_name];
 
-    glm::vec3 effector_world_pos = effector_node->Get().ToRootTranslation3();
+    SolutionPart& es = solutions[0u];
+    glm::vec3 effector_world_pos = glm::vec3(es.gloabal_transform[3u]);
     glm::vec3 target_world_pos = ts->world_target;
     float tolerance = ts->tolerance;
     float distance = glm::length(target_world_pos - effector_world_pos);
     if(distance < tolerance) return true;
     if(solution_part.size() == 1u) return false;
 
-    int current_sol_idx = solution_part.size() - 1u;
     size_t iterations = ts->iterations;
-    std::shared_ptr<SceneNode>& current_node = ts->effector_node;
-    for(size_t i = 0u; i < iterations; ++i) {
-        while(current_node != root_turning_point) {
-            effector_world_pos = effector_node->Get().ToRootTranslation3();
-            glm::vec3 current_world_pos = current_node->Get().ToRootTranslation3();
-            glm::quat current_rotation = current_node->Get().ToRootRotation();
+    size_t sz = solutions.size();
+    for(size_t iteration = 1u; iteration < iterations; ++iteration) {
+        for(size_t i = 1u; i < sz; ++i) {
+            SolutionPart& s = solutions[i];
+            
+            effector_world_pos = glm::vec3(es.gloabal_transform[3u]);
+            glm::vec3 current_world_pos = glm::vec3(s.gloabal_transform[3u]);
+            glm::quat current_world_rotation = glm::quat_cast(s.gloabal_transform);
 
             glm::vec3 to_effector = glm::normalize(effector_world_pos - current_world_pos);
             glm::vec3 to_target = glm::normalize(target_world_pos - current_world_pos);
             glm::quat effector_to_target = glm::rotation(to_effector, to_target);
-            glm::quat local_rotation_op = current_rotation * effector_to_target * glm::conjugate(current_rotation);
-            //glm::quat local_rotation = current_node->Get().ToParentRotation() * local_rotation_op;
+            glm::quat local_rotation_op = current_world_rotation * effector_to_target * glm::conjugate(current_world_rotation);
+            s.local_transform *= glm::mat4_cast(local_rotation_op);
 
-            //solution_part[current_sol_idx].local_transform = glm::mat4_cast(local_rotation);
-            for(int j = current_sol_idx; j >= 0; --j) {
-                glm::mat4 local_transform = solution_part[current_sol_idx].local_transform * glm::mat4_cast(local_rotation_op);
-                solution_part[current_sol_idx].local_transform = local_transform;
+            for(int j = i; j >= 0; --j) {
+                SolutionPart& sj = solutions[j];
+                sj.gloabal_transform = sj.parent_gloabal_transform * sj.local_transform;
             }
-
-            ++current_sol_idx;
-            //current_node = current_node->GetParent();
-            current_node = solution_part[current_sol_idx].node;
         }
     }
 
@@ -56,16 +53,35 @@ bool InverseKinematicsSolver::solveCCD(const TargetName& target_name) {
 }
 
 void InverseKinematicsSolver::addTarget(std::shared_ptr<TargetSystem> ts) {
+    const std::string& ts_name = ts->name;
+    m_target_map[ts_name] = std::move(ts);
+    recalcTarget(ts_name);
+}
+
+void InverseKinematicsSolver::recalcTarget(const TargetName& target_name) {
+    if(!m_target_map.contains(target_name)) return;
+    const std::shared_ptr<TargetSystem>& ts = m_target_map[target_name];
     const std::shared_ptr<Scene> scene = ts->root_turning_point->GetScene();
     std::shared_ptr<SceneNode>& current_node = ts->effector_node;
-    while(current_node != ts->root_turning_point) {
-
-        m_solutions_map[ts->name].push_back({current_node, current_node->Get().ToParent()});
-        //m_solutions_map[ts->name].push_back({current_node, glm::mat4(1.0f)});
-        current_node = current_node->GetParent();
+    if(!m_solutions_map.contains(target_name)) {
+        std::vector<SolutionPart>& solutions = m_solutions_map[target_name];
+        while(current_node != ts->root_turning_point) {
+            solutions.push_back({current_node, current_node->Get().ToParent(), current_node->Get().ToRoot(), current_node->GetParent()->Get().ToRoot()});
+            current_node = current_node->GetParent();
+        }
+        solutions.push_back({ts->root_turning_point, ts->root_turning_point->Get().ToParent(), ts->root_turning_point->Get().ToRoot(), ts->root_turning_point->GetParent()->Get().ToRoot()});
     }
-
-    m_target_map[ts->name] = std::move(ts);
+    else {
+        std::vector<SolutionPart>& solutions = m_solutions_map[target_name];
+        size_t sz = solutions.size();
+        for(size_t i = 0u; i < sz; ++i) {
+            SolutionPart& s = solutions[i];
+            s.node = current_node;
+            s.local_transform = current_node->Get().ToParent();
+            s.gloabal_transform = current_node->Get().ToRoot();
+            current_node = current_node->GetParent();
+        }
+    }
 }
 
 void InverseKinematicsSolver::applySolution(const TargetName& target_name) {
