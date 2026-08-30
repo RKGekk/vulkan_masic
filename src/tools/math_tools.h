@@ -17,3 +17,5 @@ glm::quat calculateTangent(glm::vec3 angular_velocity, glm::quat current_quat);
 // q_tangent: the 4D tangent output from a spline or derivative
 // q_current: the current orientation (normalized)
 glm::vec3 quatTangentToVec3(glm::quat q_tangent, glm::quat q_current);
+
+glm::quat getRotation(glm::mat4 m);

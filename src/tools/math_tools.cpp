@@ -21,3 +21,15 @@ glm::vec3 quatTangentToVec3(glm::quat q_tangent, glm::quat q_current) {
     // 2. The vec3 tangent (angular velocity) is the imaginary part
     return glm::vec3(omegaQuat.x, omegaQuat.y, omegaQuat.z);
 }
+
+glm::quat getRotation(glm::mat4 m) {
+    glm::mat3 rotMatrix = glm::mat3(m); // Pull 3x3 (discards translation)
+
+    // Normalize each column vector to strip out scaling
+    rotMatrix[0] = glm::normalize(rotMatrix[0]);
+    rotMatrix[1] = glm::normalize(rotMatrix[1]);
+    rotMatrix[2] = glm::normalize(rotMatrix[2]);
+
+    // Safely cast the unscaled matrix to a quaternion
+    return glm::quat_cast(rotMatrix); 
+}

@@ -1,6 +1,7 @@
 #include "inverse_kinematics_solver.h"
 
 #include "nodes/scene_node.h"
+#include "../tools/math_tools.h"
 
 InverseKinematicsSolver::InverseKinematicsSolver() {}
 
@@ -33,18 +34,28 @@ bool InverseKinematicsSolver::solveCCD(const TargetName& target_name) {
             
             effector_world_pos = glm::vec3(effector_sol.gloabal_transform[3u]);
             glm::vec3 current_world_pos = glm::vec3(s.gloabal_transform[3u]);
-            glm::quat current_world_rotation = glm::quat_cast(s.gloabal_transform);
+            //glm::quat current_world_rotation = glm::quat_cast(s.gloabal_transform);
+            glm::quat current_world_rotation = getRotation(s.gloabal_transform);
 
             glm::vec3 to_effector = glm::normalize(effector_world_pos - current_world_pos);
             glm::vec3 to_target = glm::normalize(target_world_pos - current_world_pos);
             glm::quat effector_to_target = glm::rotation(to_effector, to_target);
-            glm::quat local_rotation_op = current_world_rotation * effector_to_target * glm::conjugate(current_world_rotation);
-            s.local_transform = s.local_transform * glm::mat4_cast(local_rotation_op);
 
-            for(int j = i; j >= 0; --j) {
+            glm::quat co_rotation = glm::conjugate(current_world_rotation);
+            //glm::quat local_rotation_op = current_world_rotation * effector_to_target * co_rotation;
+            glm::quat local_rotation_op = co_rotation * effector_to_target * current_world_rotation;
+            glm::mat4 local_rot_mat = glm::mat4_cast(local_rotation_op);
+            s.local_transform = s.local_transform * local_rot_mat;
+            //s.local_transform = glm::mat4_cast(local_rotation_op) * s.local_transform;
+            //s.local_transform = s.local_transform * glm::mat4_cast(effector_to_target);
+
+            for(int j = i; j > 0; --j) {
                 SolutionPart& sj = solution_part[j];
                 sj.gloabal_transform = sj.parent_gloabal_transform * sj.local_transform;
+                SolutionPart& sjc = solution_part[j-1];
+                sjc.parent_gloabal_transform = sj.gloabal_transform;
             }
+            effector_sol.gloabal_transform = effector_sol.parent_gloabal_transform * effector_sol.local_transform;
         }
     }
 
@@ -78,6 +89,7 @@ void InverseKinematicsSolver::recalcTarget(const TargetName& target_name) {
             //s.node = current_node;
             s.local_transform = s.node->Get().ToParent();
             s.gloabal_transform = s.node->Get().ToRoot();
+            s.parent_gloabal_transform = s.node->GetParent()->Get().ToRoot();
             //current_node = current_node->GetParent();
         }
     }
