@@ -22,17 +22,21 @@ bool InverseKinematicsSolver::solveCCD(const TargetName& target_name) {
     glm::vec3 effector_world_pos = glm::vec3(effector_sol.gloabal_transform[3u]);
     glm::vec3 target_world_pos = ts->world_target;
     float tolerance = ts->tolerance;
-    float distance = glm::length(target_world_pos - effector_world_pos);
-    if(distance < tolerance) return true;
-    if(solution_part.size() == 1u) return false;
+    //float distance = glm::length(target_world_pos - effector_world_pos);
+    //if(distance < tolerance) return true;
+    //if(solution_part.size() == 1u) return false;
 
     size_t iterations = ts->iterations;
     size_t sz = solution_part.size();
-    for(size_t iteration = 1u; iteration < iterations; ++iteration) {
+    for(size_t iteration = 0u; iteration < iterations; ++iteration) {
         for(size_t i = 1u; i < sz; ++i) {
+            
+            float distance = glm::length(target_world_pos - effector_world_pos);
+            if(distance < tolerance) return true;
+
             SolutionPart& s = solution_part[i];
             
-            effector_world_pos = glm::vec3(effector_sol.gloabal_transform[3u]);
+            //effector_world_pos = glm::vec3(effector_sol.gloabal_transform[3u]);
             glm::vec3 current_world_pos = glm::vec3(s.gloabal_transform[3u]);
             //glm::quat current_world_rotation = glm::quat_cast(s.gloabal_transform);
             glm::quat current_world_rotation = getRotation(s.gloabal_transform);
@@ -56,6 +60,8 @@ bool InverseKinematicsSolver::solveCCD(const TargetName& target_name) {
                 sjc.parent_gloabal_transform = sj.gloabal_transform;
             }
             effector_sol.gloabal_transform = effector_sol.parent_gloabal_transform * effector_sol.local_transform;
+
+            effector_world_pos = glm::vec3(effector_sol.gloabal_transform[3u]);
         }
     }
 

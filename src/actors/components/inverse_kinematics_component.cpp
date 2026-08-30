@@ -3,6 +3,7 @@
 #include "../../tools/string_tools.h"
 #include "../../application.h"
 #include "model_component.h"
+#include "../../scene/skeleton_manager.h"
 
 const std::string InverseKinematicsComponent::g_name = "InverseKinematicsComponent";
 
@@ -52,6 +53,10 @@ void InverseKinematicsComponent::Apply() {
 }
 
 void InverseKinematicsComponent::SetTarget(glm::vec3 target) {
+    // std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->GetHumanView()->VGetScene();
+	// for(const auto&[skin_name, skin_data] : scene_ptr->getSkeletonManager()->getSkinMap()) {
+	// 	scene_ptr->getSkeletonManager()->resetSkin(skin_name);
+	// }
     for(const auto&[targen_name, target_system] : m_iksolver->getTargetMap()) {
         m_iksolver->setTarget(targen_name, target);
         m_iksolver->recalcTarget(targen_name);

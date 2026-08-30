@@ -21,6 +21,7 @@
 #include "../events/cicadas/evt_data_request_start_game.h"
 #include "../events/cicadas/evt_data_sphere_particle_contact.h"
 #include "screen_elements/screen_element_scene.h"
+#include "../scene/skeleton_manager.h"
 
 BaseEngineLogic::BaseEngineLogic() {
 	m_last_actor_id = 0u;
@@ -341,9 +342,10 @@ void BaseEngineLogic::SphereParticleContactDelegate(IEventDataPtr pEventData) {}
 void BaseEngineLogic::NewActorDelegate(IEventDataPtr pEventData) {
 	std::shared_ptr<EvtData_New_Actor> pCastEventData = std::static_pointer_cast<EvtData_New_Actor>(pEventData);
 
-	std::shared_ptr<InverseKinematicsComponent> mc = m_actors.at(pCastEventData->GetActorId())->GetComponent<InverseKinematicsComponent>(ActorComponent::GetIdFromName("InverseKinematicsComponent")).lock();
-	if (!mc) return;
-	mc->Apply();
+	std::shared_ptr<InverseKinematicsComponent> ikc = m_actors.at(pCastEventData->GetActorId())->GetComponent<InverseKinematicsComponent>(ActorComponent::GetIdFromName("InverseKinematicsComponent")).lock();
+	if (!ikc) return;
+	
+	ikc->Apply();
 }
 
 std::unique_ptr<ActorFactory> BaseEngineLogic::VCreateActorFactory() {
