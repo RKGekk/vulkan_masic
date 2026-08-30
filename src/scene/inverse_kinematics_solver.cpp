@@ -30,7 +30,7 @@ bool InverseKinematicsSolver::solveCCD(const TargetName& target_name) {
     size_t sz = solution_part.size();
     for(size_t iteration = 0u; iteration < iterations; ++iteration) {
         for(size_t i = 1u; i < sz; ++i) {
-            
+
             float distance = glm::length(target_world_pos - effector_world_pos);
             if(distance < tolerance) return true;
 
@@ -43,6 +43,9 @@ bool InverseKinematicsSolver::solveCCD(const TargetName& target_name) {
 
             glm::vec3 to_effector = glm::normalize(effector_world_pos - current_world_pos);
             glm::vec3 to_target = glm::normalize(target_world_pos - current_world_pos);
+            float et_dot = glm::dot(to_effector, to_target);
+            if(et_dot < tolerance) continue;
+
             glm::quat effector_to_target = glm::rotation(to_effector, to_target);
 
             glm::quat co_rotation = glm::conjugate(current_world_rotation);
@@ -120,6 +123,6 @@ const std::unordered_map<InverseKinematicsSolver::TargetName, std::shared_ptr<In
 void InverseKinematicsSolver::setTarget(const TargetName& target_name, glm::vec3 world_target) {
     if(!m_target_map.contains(target_name)) return;
     m_target_map[target_name]->world_target = world_target;
-    solveCCD(target_name);
-    applySolution(target_name);
+    //solveCCD(target_name);
+    //applySolution(target_name);
 }
