@@ -51,8 +51,16 @@ bool InverseKinematicsSolver::solveCCD(const TargetName& target_name) {
             glm::quat co_rotation = glm::conjugate(current_world_rotation);
             //glm::quat local_rotation_op = current_world_rotation * effector_to_target * co_rotation;
             glm::quat local_rotation_op = co_rotation * effector_to_target * current_world_rotation;
+            //glm::quat parent_rot = getRotation(s.parent_gloabal_transform);
+            //glm::quat co_rotation = glm::conjugate(parent_rot);
+            //glm::quat local_rotation_op = co_rotation * effector_to_target * parent_rot;
+            //glm::quat local_rotation_op = parent_rot * effector_to_target * co_rotation;
+            //glm::quat new_local_rot = local_rotation_op * current_world_rotation;
+            
             glm::mat4 local_rot_mat = glm::mat4_cast(local_rotation_op);
+            //glm::mat4 local_rot_mat = glm::mat4_cast(new_local_rot);
             s.local_transform = s.local_transform * local_rot_mat;
+            //s.local_transform = local_rot_mat * s.local_transform;
             //s.local_transform = glm::mat4_cast(local_rotation_op) * s.local_transform;
             //s.local_transform = s.local_transform * glm::mat4_cast(effector_to_target);
 
