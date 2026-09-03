@@ -230,7 +230,7 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
 										}
 
 										if (ImGui::TreeNode("MeshRootMatrice")) {
-											printMatrixImGUI(bone_node->getBoneDataMap().at(skin_name).m_mesh_root_node->Get().FromRoot());
+											printMatrixImGUI(bone_node->getBoneDataMap().at(skin_name).mesh_root_node->Get().FromRoot());
 											ImGui::TreePop();
 										}
 
@@ -276,7 +276,7 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
 										}
 
 										if (ImGui::TreeNode("MeshRootMatrice")) {
-											printMatrixImGUI(bone_node->getBoneDataMap().at(skin_name).m_mesh_root_node->Get().FromRoot());
+											printMatrixImGUI(bone_node->getBoneDataMap().at(skin_name).mesh_root_node->Get().FromRoot());
 											ImGui::TreePop();
 										}
 

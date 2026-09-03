@@ -25,7 +25,7 @@ public:
 	struct BoneData {
 		glm::mat4 inverse_bind_matrice;
 		JointIndex joint_index;
-		std::shared_ptr<SceneNode> m_mesh_root_node;
+		std::shared_ptr<SceneNode> mesh_root_node;
 	};
 
 	BoneNode(std::shared_ptr<Scene> scene, Scene::NodeIndex node_index);
