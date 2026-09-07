@@ -62,6 +62,19 @@ void SkeletonManager::resetSkin(const BoneNode::SkinName& name) {
     }
 }
 
+std::unordered_set<BoneNode::SkinName> SkeletonManager::getMeshSkins(const std::shared_ptr<SceneNode>& mesh_root_node) const {
+    std::unordered_set<BoneNode::SkinName> result;
+    for (const auto&[skin_name, skinned_data] : m_skinned_data) {
+        const std::shared_ptr<BoneNode>& bone_node = (*skinned_data->bone_to_joint_map.begin()).first;
+        for(const auto&[skin_in_bone_name, bone_data] : bone_node->getBoneDataMap()) {
+            if(bone_data.mesh_root_node == mesh_root_node) {
+                result.insert(skin_in_bone_name);
+            }
+        }
+    }
+    return result;
+}
+
 bool SkeletonManager::UpdateBoneData(const std::shared_ptr<BoneNode>& node) {
     bool was_updated = false;
 

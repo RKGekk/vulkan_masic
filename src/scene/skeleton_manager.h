@@ -41,6 +41,7 @@ public:
     const std::shared_ptr<SkinnedData>& getSkinnedData(const BoneNode::SkinName& name) const;
     const std::unordered_map<BoneNode::SkinName, std::shared_ptr<SkinnedData>>& getSkinMap() const;
     void resetSkin(const BoneNode::SkinName& name);
+    std::unordered_set<BoneNode::SkinName> getMeshSkins(const std::shared_ptr<SceneNode>& mesh_root_node) const;
 
 private:
     bool UpdateBoneData(const std::shared_ptr<BoneNode>& node);
