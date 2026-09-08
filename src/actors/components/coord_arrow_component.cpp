@@ -91,5 +91,7 @@ bool CoordComponent::Init(const pugi::xml_node& data) {
 		m_anim_vis_scene_nodes.push_back(std::move(new_node));
 	}
 
+	m_initialized = true;
+
 	return !!m_loaded_scene_node;
 }

@@ -84,5 +84,7 @@ bool LightComponent::Init(const pugi::xml_node& light_node_data) {
 
 	scene->addProperty(m_light_scene_node);
 
+	m_initialized = true;
+
 	return !!m_light_scene_node;
 }

@@ -85,6 +85,7 @@ bool BoneDrawComponent::Init(const pugi::xml_node& data) {
 
 	m_bone_scene_nodes.push_back(std::move(new_node));
 	
+	m_initialized = true;
 
 	return !!m_loaded_scene_node;
 }

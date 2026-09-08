@@ -36,6 +36,8 @@ bool CameraComponent::Init(const pugi::xml_node& data) {
 	m_camera_node = std::make_shared<BasicCameraNode>(scene_ptr, node_index, fov, aspect_ratio, near_plane, far_plane);
 	scene_ptr->addProperty(m_camera_node);
 
+	m_initialized = true;
+
 	return true;
 }
 

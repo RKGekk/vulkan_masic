@@ -69,5 +69,7 @@ bool ModelComponent::Init(const pugi::xml_node& data) {
     MeshNodeLoader node_loader;
     m_loaded_scene_node = node_loader.ImportSceneNode(p, shader_manager, transform_node);
 
+	m_initialized = true;
+
 	return !!m_loaded_scene_node;
 }
