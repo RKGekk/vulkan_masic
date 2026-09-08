@@ -67,19 +67,24 @@ bool BoneDrawComponent::Init(const pugi::xml_node& data) {
 	std::shared_ptr<TransformComponent> tc = act->GetComponent<TransformComponent>(ActorComponent::GetIdFromName("TransformComponent")).lock();
 	std::shared_ptr<ModelComponent> mc = act->GetComponent<ModelComponent>(ActorComponent::GetIdFromName("ModelComponent")).lock();
 
-    std::shared_ptr<SceneNode> transform_node = tc->GetSceneNode();
-	const std::shared_ptr<Scene>& scene = transform_node->GetScene();
+	const std::shared_ptr<Scene>& scene = tc->GetSceneNode()->GetScene();
+    //std::shared_ptr<SceneNode> transform_node = tc->GetSceneNode();
+	std::shared_ptr<SceneNode> bone_transform_scene_node = std::make_shared<SceneNode>(scene, "bone_transform"s, glm::mat4(1.0f));
+    scene->addProperty(bone_transform_scene_node);
+
+	//const std::shared_ptr<Scene>& scene = transform_node->GetScene();
 	scene->recalculateGlobalTransforms();
 	const std::shared_ptr<SkeletonManager>& seleton_manager = scene->getSkeletonManager();
 
-    m_loaded_scene_node = transform_node;
+    //m_loaded_scene_node = transform_node;
 
-	if(!mc) return !!m_loaded_scene_node;
+	if(!mc) return !!mc;
 
 	MeshNodeGeometryGenerator geometry_gen;
 	std::string skin_name = *seleton_manager->getMeshSkins(mc->VGetSceneNode()).begin();
-	std::shared_ptr<SceneNode> new_node = geometry_gen.GenerateBoneLine(act->GetName() + "_bone_line"s, skin_name, m_line_width, shader_manager, transform_node);
+	std::shared_ptr<SceneNode> new_node = geometry_gen.GenerateBoneLine(act->GetName() + "_bone_line"s, skin_name, m_line_width, shader_manager, bone_transform_scene_node);
 	std::shared_ptr<MeshNode> mesh_node = std::dynamic_pointer_cast<MeshNode>(new_node->GetScene()->getProperty(new_node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_MESH));
+	m_loaded_scene_node = new_node;
 
 	Application::Get().GetGameLogic()->GetHumanView()->VGetScene()->AddRenderNode(mesh_node);
 

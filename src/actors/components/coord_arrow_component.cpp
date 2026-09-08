@@ -83,6 +83,7 @@ bool CoordComponent::Init(const pugi::xml_node& data) {
 
 		std::shared_ptr<SceneNode> spline_transform_scene_node = std::make_shared<SceneNode>(transform_node->GetScene(), "spline_transform"s, glm::mat4(1.0f));
     	transform_node->GetScene()->addProperty(spline_transform_scene_node);
+		
 		std::shared_ptr<SceneNode> new_node = geometry_gen.GenerateSceneNodeSpline(act->GetName() + "_anim_spline"s, m_line_width, anim->TranslationKeyframes, 16u, shader_manager, spline_transform_scene_node);
 		std::shared_ptr<MeshNode> mesh_node = std::dynamic_pointer_cast<MeshNode>(new_node->GetScene()->getProperty(new_node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_MESH));
 
