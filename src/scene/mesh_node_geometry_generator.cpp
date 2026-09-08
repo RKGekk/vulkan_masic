@@ -21,7 +21,7 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLine(const std
     VulkanRenderer& renderer = app.GetRenderer();
     m_device = renderer.GetDevice();
     m_scene = Application::Get().GetGameLogic()->GetHumanView()->VGetScene();
-	m_shader_manager = std::move(shader_manager);
+	m_shader_manager = shader_manager;
 	m_default_vertex_shader_name = "line_vertex_shader"s;
     m_root_node = root_transform;
     //m_root_node = root_transform->GetParent();
@@ -87,7 +87,7 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLine(const std
         std::stack<std::shared_ptr<BoneNode>> node_stack;
         node_stack.push(root_bone);
         while(!node_stack.empty()) {
-            const std::shared_ptr<BoneNode>& current_bone = node_stack.top();
+            std::shared_ptr<BoneNode> current_bone = node_stack.top();
             const Scene::Hierarchy& current_bone_hierarchy = m_scene->getNodeHierarchy(current_bone->VGetNodeIndex());
             node_stack.pop();
 

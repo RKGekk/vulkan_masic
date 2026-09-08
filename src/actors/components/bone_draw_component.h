@@ -44,10 +44,8 @@ protected:
 private:
     bool Init(const pugi::xml_node& data);
 
-	std::string m_resource_name;
-	std::string m_resource_directory;
 	float m_line_width;
 
 	std::shared_ptr<SceneNode> m_loaded_scene_node;
-	std::vector<std::shared_ptr<SceneNode>> m_anim_vis_scene_nodes;
+	std::vector<std::shared_ptr<SceneNode>> m_bone_scene_nodes;
 };

@@ -64,7 +64,7 @@ bool CoordComponent::Init(const pugi::xml_node& data) {
 	std::filesystem::path p(m_resource_name);
 	m_resource_directory = p.parent_path().string();
 
-    std::shared_ptr<VulkanShadersManager> shader_manager = Application::Get().GetRenderer().getShadersManager();
+    const std::shared_ptr<VulkanShadersManager>& shader_manager = Application::Get().GetRenderer().getShadersManager();
 
     std::shared_ptr<Actor> act = GetOwner();
 	std::shared_ptr<TransformComponent> tc = act->GetComponent<TransformComponent>(ActorComponent::GetIdFromName("TransformComponent")).lock();
