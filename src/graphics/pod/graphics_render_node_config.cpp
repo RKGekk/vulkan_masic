@@ -102,31 +102,91 @@ bool GraphicsRenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device,
         }
     }
 
-    IndexCountType m_index_count_type = IndexCountType::ALL;
-    uint32_t m_index_count = 1u;
-    uint32_t m_first_index = 0u;
-    int32_t m_vertex_offset = 0;
+    std::string draw_type_str = node_data.child("DrawType").first_child().name();
+    if(draw_type_str == "Draw"s) {
+        m_draw_type = DrawType::DRAW;
+    }
+    else if(draw_type_str == "DrawIndexed"s) {
+        m_draw_type = DrawType::DRAW_INDEXED;
+    }
+    else if(draw_type_str == "DrawIndirect"s) {
+        m_draw_type = DrawType::DRAW_INDIRECT;
+    }
+    else if(draw_type_str == "DrawIndirect"s) {
+        m_draw_type = DrawType::DRAW_INDIRE_CTCOUNT;
+    }
+    else {
+        m_draw_type = DrawType::DRAW_INDEXED;
+    }
 
-    pugi::xml_node index_count_type_node = node_data.child("IndexCountType");
-    if(index_count_type_node) {
+    m_index_count_type = IndexCountType::ALL;
+    m_vertex_count_type = VertexCountType::ALL;
+    m_instance_count_type = InstanceCountType::ALL;
+    m_index_count = 0u;
+    m_first_index = 0u;
+    m_vertex_count = 0u;
+    m_vertex_offset = 0;
+    m_instance_count = 1u;
+    m_first_instance = 0u;
 
-        std::string index_count_type = index_count_type_node.attribute("type").as_string();
+    pugi::xml_node draw_type_node = node_data.child("DrawType").child("Draw");
+    if(draw_type_node) {
+
+        std::string vertex_count_type = draw_type_node.attribute("type").as_string();
+        if(vertex_count_type == "all") m_vertex_count_type = VertexCountType::ALL;
+        else if(vertex_count_type == "exact") m_vertex_count_type = VertexCountType::EXACT;
+        
+        pugi::xml_node vertex_count_node = draw_type_node.child("VertexCount");
+        if(vertex_count_node) {
+            m_vertex_count = vertex_count_node.text().as_uint();
+        }
+
+        pugi::xml_node instance_count_node = draw_type_node.child("InstanceCount");
+        if(instance_count_node) {
+            m_instance_count = instance_count_node.text().as_uint();
+        }
+
+        pugi::xml_node vertex_offset_node = draw_type_node.child("FirstVertex");
+        if(vertex_offset_node) {
+            m_vertex_offset = vertex_offset_node.text().as_int();
+        }
+
+        pugi::xml_node first_instance_node = draw_type_node.child("FirstInstance");
+        if(first_instance_node) {
+            m_first_instance = first_instance_node.text().as_uint();
+        }
+    }
+
+    pugi::xml_node draw_indexed_type_node = node_data.child("DrawType").child("DrawIndexed");
+    if(draw_indexed_type_node) {
+
+        std::string index_count_type = draw_indexed_type_node.attribute("type").as_string();
         if(index_count_type == "all") m_index_count_type = IndexCountType::ALL;
         else if(index_count_type == "exact") m_index_count_type = IndexCountType::EXACT;
         
-        pugi::xml_node index_count_node = index_count_type_node.child("IndexCount");
+        pugi::xml_node index_count_node = draw_indexed_type_node.child("IndexCount");
         if(index_count_node) {
             m_index_count = index_count_node.text().as_uint();
         }
 
-        pugi::xml_node first_index_node = index_count_type_node.child("FirstIndex");
+        pugi::xml_node instance_count_node = draw_indexed_type_node.child("InstanceCount");
+        if(instance_count_node) {
+            m_instance_count = instance_count_node.text().as_uint();
+        }
+
+        pugi::xml_node first_index_node = draw_indexed_type_node.child("FirstIndex");
         if(first_index_node) {
             m_first_index = first_index_node.text().as_uint();
         }
 
-        pugi::xml_node vertex_offset_node = index_count_type_node.child("VertexOffset");
+        pugi::xml_node vertex_offset_node = draw_indexed_type_node.child("VertexOffset");
         if(vertex_offset_node) {
             m_vertex_offset = vertex_offset_node.text().as_int();
+        }
+
+        pugi::xml_node first_instance_node = draw_indexed_type_node.child("FirstInstance");
+        if(first_instance_node) {
+            m_first_instance = first_instance_node.text().as_uint();
         }
     }
 
@@ -224,6 +284,14 @@ uint32_t GraphicsRenderNodeConfig::getIndexCount() const {
     return m_index_count;
 }
 
+GraphicsRenderNodeConfig::DrawType GraphicsRenderNodeConfig::getDrawType() const {
+    return m_draw_type;
+}
+
+void GraphicsRenderNodeConfig::setDrawType(GraphicsRenderNodeConfig::DrawType draw_type) {
+    m_draw_type = draw_type;
+}
+
 void GraphicsRenderNodeConfig::setIndexCount(uint32_t index_count) {
     m_index_count_type = IndexCountType::EXACT;
     m_index_count = index_count;
@@ -241,8 +309,42 @@ int32_t GraphicsRenderNodeConfig::getVertexOffset() const {
     return m_vertex_offset;
 }
 
+GraphicsRenderNodeConfig::VertexCountType GraphicsRenderNodeConfig::getVertexCountType() const {
+    return m_vertex_count_type;
+}
+    
+uint32_t GraphicsRenderNodeConfig::getVertexCount() const {
+    return m_vertex_count;
+}
+
+void GraphicsRenderNodeConfig::setVertexCount(uint32_t vtx_count) {
+    m_vertex_count_type = VertexCountType::EXACT;
+    m_vertex_count = vtx_count;
+}
+
 void GraphicsRenderNodeConfig::setVertexOffset(int32_t vertex_offset) {
     m_vertex_offset = vertex_offset;
+}
+
+GraphicsRenderNodeConfig::InstanceCountType GraphicsRenderNodeConfig::getInstanceCountType() const {
+    return m_instance_count_type;
+}
+
+uint32_t GraphicsRenderNodeConfig::getInstanceCount() const {
+    return m_instance_count;
+}
+
+uint32_t GraphicsRenderNodeConfig::setInstanceCount(uint32_t inst_ct) {
+    m_instance_count_type = InstanceCountType::EXACT;
+    m_instance_count = inst_ct;
+}
+
+uint32_t GraphicsRenderNodeConfig::getFirstInstance() const {
+    return m_first_instance;
+}
+
+void GraphicsRenderNodeConfig::setFirstInstance(uint32_t first_instance) {
+    m_first_instance = first_instance;
 }
 
 const std::shared_ptr<FramebufferConfig>& GraphicsRenderNodeConfig::getFramebufferConfig() const {

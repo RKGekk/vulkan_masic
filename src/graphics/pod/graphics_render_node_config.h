@@ -25,7 +25,10 @@ class GraphicsRenderNodeConfig {
 public:
     enum class ExtentSource { AUTO, AS_SWAPCHAIN, EXACT };
     enum class IndexCountType { ALL, EXACT };
+    enum class VertexCountType { ALL, EXACT };
+    enum class InstanceCountType { ALL, EXACT };
     enum class CreationPoint { RENDER_NODE_CREATION_TIME, EXTERNAL};
+    enum class DrawType { DRAW, DRAW_INDEXED, DRAW_INDIRECT, DRAW_INDIRE_CTCOUNT };
 
     struct UpdateMetadata {
         std::string name;
@@ -63,8 +66,21 @@ public:
     void setIndexCount(uint32_t index_count);
     uint32_t getFirstIndex() const;
     void setFirstIndex(uint32_t first_index);
+
+    DrawType getDrawType() const;
+    void setDrawType(DrawType draw_type);
+
+    VertexCountType getVertexCountType() const;
+    uint32_t getVertexCount() const;
+    void setVertexCount(uint32_t vtx_count);
     int32_t getVertexOffset() const;
     void setVertexOffset(int32_t vertex_offset);
+
+    InstanceCountType getInstanceCountType() const;
+    uint32_t getInstanceCount() const;
+    uint32_t setInstanceCount(uint32_t inst_ct);
+    uint32_t getFirstInstance() const;
+    void setFirstInstance(uint32_t first_instance);
 
     const std::shared_ptr<FramebufferConfig>& getFramebufferConfig() const;
     const std::vector<std::shared_ptr<FramebufferConfig::FrameBufferAttachment>>& getAttachmentsConfig() const;
@@ -87,9 +103,15 @@ private:
     ExtentSource m_scissor_source;
 
     IndexCountType m_index_count_type;
+    VertexCountType m_vertex_count_type;
+    InstanceCountType m_instance_count_type;
+    DrawType m_draw_type;
     uint32_t m_index_count;
     uint32_t m_first_index;
+    uint32_t m_vertex_count;
     int32_t m_vertex_offset;
+    uint32_t m_instance_count;
+    uint32_t m_first_instance;
 
     std::unordered_map<std::string, std::shared_ptr<UpdateMetadata>> m_bindings_metadata;
 };

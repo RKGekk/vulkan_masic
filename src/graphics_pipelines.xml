@@ -652,6 +652,45 @@
             </Buffer>
         </ResourceType>
 
+        <ResourceType name="basic_instance_resource">
+            <Buffer>
+                <BufferUsageFlags>
+                    <Flag>transfer_dst</Flag>
+                    <Flag>vertex_buffer</Flag>
+                </BufferUsageFlags>
+                <Size dynamic="false" deffered="true">0</Size>
+                <MemoryProperties>
+                    <Property>device_local</Property>
+                </MemoryProperties>
+            </Buffer>
+        </ResourceType>
+
+        <ResourceType name="static_vertex_resource">
+            <Buffer>
+                <BufferUsageFlags>
+                    <Flag>transfer_dst</Flag>
+                    <Flag>vertex_buffer</Flag>
+                </BufferUsageFlags>
+                <Size dynamic="false" deffered="false">144</Size>
+                <MemoryProperties>
+                    <Property>device_local</Property>
+                </MemoryProperties>
+            </Buffer>
+        </ResourceType>
+
+        <ResourceType name="static_index_resource">
+            <Buffer>
+                <BufferUsageFlags>
+                    <Flag>transfer_dst</Flag>
+                    <Flag>index_buffer</Flag>
+                </BufferUsageFlags>
+                <Size dynamic="false" deffered="false">24</Size>
+                <MemoryProperties>
+                    <Property>device_local</Property>
+                </MemoryProperties>
+            </Buffer>
+        </ResourceType>
+
         <ResourceType name="basic_index_resource">
             <Buffer>
                 <BufferUsageFlags>
@@ -1084,6 +1123,70 @@
 
         <Shader name="line_pixel_shader">
             <FilePath file_name="line.frag"></FilePath>
+            <EntryPointName>main</EntryPointName>
+            <Stage>fragment</Stage>
+            <SpecializationConstants>
+                <Constant name="kNonLinearColorSpace">
+                    <ConstantID>0</ConstantID>
+                    <GLSLFormat>bool</GLSLFormat>
+                    <InternalFormat>r8g8b8a8_uint</InternalFormat>
+                    <Value>true</Value>
+                </Constant>
+            </SpecializationConstants>
+        </Shader>
+
+        <Shader name="line_instanced_dq_vertex_shader">
+            <FilePath file_name="line_instanced_dq.vert"></FilePath>
+            <EntryPointName>main</EntryPointName>
+            <Stage>vertex</Stage>
+            <InputAttributeDescription>
+                <Binding num="0" 
+                         vertex_buffer_bind_name="vertex"
+                         index_buffer_bind_name="index"
+                         input_rate="vertex"
+                         vertex_buffer_resource_type="static_vertex_resource"
+                         index_buffer_resource_type="static_index_resource"
+                         index_type="uint32"
+                >
+                    <Attribute name="in_pc_mix">
+                        <Location>0</Location>
+                        <GLSLFormat>float</GLSLFormat>
+                        <InternalFormat>r32_sfloat</InternalFormat>
+                        <Semantic num="0">OTHER</Semantic>
+                    </Attribute>
+                    <Attribute name="in_side">
+                        <Location>1</Location>
+                        <GLSLFormat>float</GLSLFormat>
+                        <InternalFormat>r32_sfloat</InternalFormat>
+                        <Semantic num="1">OTHER</Semantic>
+                    </Attribute>
+                </Binding>
+                <Binding num="1"
+                         vertex_buffer_bind_name="instance"
+                         input_rate="instance"
+                         vertex_buffer_resource_type="basic_instance_resource">
+                    <Attribute name="in_parent_joint_idx">
+                        <Location>3</Location>
+                        <GLSLFormat>uint</GLSLFormat>
+                        <InternalFormat>r32_uint</InternalFormat>
+                        <Semantic num="2">OTHER</Semantic>
+                    </Attribute>
+                    <Attribute name="in_child_joint_idx">
+                        <Location>4</Location>
+                        <GLSLFormat>uint</GLSLFormat>
+                        <InternalFormat>r32_uint</InternalFormat>
+                        <Semantic num="3">OTHER</Semantic>
+                    </Attribute>
+                </Binding>
+            </InputAttributeDescription>
+            <DescriptorSet>
+                <Set slot="0">line_descriptor_set</Set>
+            </DescriptorSet>
+            <PushConstantName>line_push_constants</PushConstantName>
+        </Shader>
+
+        <Shader name="line_instanced_dq_pixel_shader">
+            <FilePath file_name="line_instanced_dq.frag"></FilePath>
             <EntryPointName>main</EntryPointName>
             <Stage>fragment</Stage>
             <SpecializationConstants>
@@ -1558,6 +1661,77 @@
             </RenderPass>
         </GraphicsPipeline>
 
+        <GraphicsPipeline name="line_instanced_dq_pipeline">
+            <Shaders>
+                <Shader>line_instanced_dq_vertex_shader</Shader>
+                <Shader>line_instanced_dq_pixel_shader</Shader>
+            </Shaders>
+            <InputAssembly>
+                <Topology>triangle_list</Topology>
+                <PrimitiveRestartEnable>false</PrimitiveRestartEnable>
+            </InputAssembly>
+            <RasterizationState>
+                <DepthClampEnable>false</DepthClampEnable>
+                <RasterizerDiscardEnable>false</RasterizerDiscardEnable>
+                <PolygonMode>fill</PolygonMode>
+                <CullMode><Flags><Flag>none</Flag></Flags></CullMode>
+                <FrontFace>clockwise</FrontFace>
+                <DepthBiasEnable>false</DepthBiasEnable>
+                <DepthBiasConstantFactor>0.0</DepthBiasConstantFactor>
+                <DepthBiasClamp>0.0</DepthBiasClamp>
+                <DepthBiasSlopeFactor>0.0</DepthBiasSlopeFactor>
+                <LineWidth>1.0</LineWidth>
+            </RasterizationState>
+            <MultisampleState sample_count_as_device="true">
+                <SampleCount>16_bit</SampleCount>
+                <SampleShadingEnable>false</SampleShadingEnable>
+                <alphaToCoverageEnable>false</alphaToCoverageEnable>
+                <alphaToOneEnable>false</alphaToOneEnable>
+            </MultisampleState>
+            <DepthStencilState>
+                <DepthTestEnable>true</DepthTestEnable>
+                <DepthWriteEnable>true</DepthWriteEnable>
+                <DepthCompareOp>always</DepthCompareOp>
+                <DepthBoundsTestEnable>false</DepthBoundsTestEnable>
+                <StencilTestEnable>false</StencilTestEnable>
+                <MinDepthBounds>0.0</MinDepthBounds>
+                <MaxDepthBounds>1.0</MaxDepthBounds>
+            </DepthStencilState>
+            <ColorBlendState>
+                <LogicOpEnable>false</LogicOpEnable>
+                <LogicOp>copy</LogicOp>
+                <Attachments>
+                    <Attachment name="color_attachment">
+                        <BlendEnable>false</BlendEnable>
+                        <SrcColorBlendFactor>one</SrcColorBlendFactor>
+                        <DstColorBlendFactor>zero</DstColorBlendFactor>
+                        <ColorBlendOp>add</ColorBlendOp>
+                        <SrcAlphaBlendFactor>one</SrcAlphaBlendFactor>
+                        <DstAlphaBlendFactor>zero</DstAlphaBlendFactor>
+                        <AlphaBlendOp>add</AlphaBlendOp>
+                        <ColorWriteMask>
+                            <Mask>r_bit</Mask>
+                            <Mask>g_bit</Mask>
+                            <Mask>b_bit</Mask>
+                            <Mask>a_bit</Mask>
+                        </ColorWriteMask>
+                    </Attachment>
+                </Attachments>
+                <BlendConstant1>0.0</BlendConstant1>
+                <BlendConstant2>0.0</BlendConstant2>
+                <BlendConstant3>0.0</BlendConstant3>
+                <BlendConstant4>0.0</BlendConstant4>
+            </ColorBlendState>
+            <DynamicState>
+                <Dynamic>viewport</Dynamic>
+                <Dynamic>scissor</Dynamic>
+            </DynamicState>
+            <RenderPass>
+                <RenderPassName>basic_mulisample_render_pass_opaque_clear</RenderPassName>
+                <SubpassName>only_subpass</SubpassName>
+            </RenderPass>
+        </GraphicsPipeline>
+
         <GraphicsPipeline name="basic_diffuse_pipeline">
             <Shaders>
                 <Shader>basic_diffuse_vertex_shader</Shader>
@@ -1949,12 +2123,14 @@
 
         <GraphicsRenderNode name="basiccolor_render">
             <Pipeline>basic_color_pipeline</Pipeline>
+            <DrawType>
+                <DrawIndexed type="all"></DrawIndexed>
+            </DrawType>
             <FrameBufferName>basic_mulisample_render_framebuffer</FrameBufferName>
             <DynamicStates>
                 <Viewport source="auto"></Viewport>
                 <Scissor source="auto"></Scissor>
             </DynamicStates>
-            <IndexCountType type="all"></IndexCountType>
             <DescriptorResourcesCreateAndUpdate>
                 <LayoutBinding name="uniform" resource_creation_point="RenderNodeCreationTime">
                     <Buffer>
@@ -1967,12 +2143,34 @@
 
         <GraphicsRenderNode name="line_render">
             <Pipeline>line_pipeline</Pipeline>
+            <DrawType>
+                <DrawIndexed type="all"></DrawIndexed>
+            </DrawType>
             <FrameBufferName>basic_mulisample_render_framebuffer</FrameBufferName>
             <DynamicStates>
                 <Viewport source="auto"></Viewport>
                 <Scissor source="auto"></Scissor>
             </DynamicStates>
-            <IndexCountType type="all"></IndexCountType>
+            <DescriptorResourcesCreateAndUpdate>
+                <LayoutBinding name="ubo" resource_creation_point="RenderNodeCreationTime">
+                    <Buffer>
+                        <BufferResourceType>basic_uniform_resource</BufferResourceType>
+                        <UpdateFunctionName>mvp_matrices_update</UpdateFunctionName>
+                    </Buffer>
+                </LayoutBinding>
+            </DescriptorResourcesCreateAndUpdate>
+        </GraphicsRenderNode>
+
+        <GraphicsRenderNode name="lineinstanceddq_render">
+            <Pipeline>line_instanced_dq_pipeline</Pipeline>
+            <DrawType>
+                <Draw type="all"></Draw>
+            </DrawType>
+            <FrameBufferName>basic_mulisample_render_framebuffer</FrameBufferName>
+            <DynamicStates>
+                <Viewport source="auto"></Viewport>
+                <Scissor source="auto"></Scissor>
+            </DynamicStates>
             <DescriptorResourcesCreateAndUpdate>
                 <LayoutBinding name="ubo" resource_creation_point="RenderNodeCreationTime">
                     <Buffer>
@@ -1985,12 +2183,14 @@
 
         <GraphicsRenderNode name="mesh_render">
             <Pipeline>basic_diffuse_pipeline</Pipeline>
+            <DrawType>
+                <DrawIndexed type="all"></DrawIndexed>
+            </DrawType>
             <FrameBufferName>basic_mulisample_render_framebuffer</FrameBufferName>
             <DynamicStates>
                 <Viewport source="auto"></Viewport>
                 <Scissor source="auto"></Scissor>
             </DynamicStates>
-            <IndexCountType type="all"></IndexCountType>
             <DescriptorResourcesCreateAndUpdate>
                 <LayoutBinding name="uniform" resource_creation_point="RenderNodeCreationTime">
                     <Buffer>
@@ -2013,12 +2213,14 @@
 
         <GraphicsRenderNode name="phong_render">
             <Pipeline>basic_phong_pipeline</Pipeline>
+            <DrawType>
+                <DrawIndexed type="all"></DrawIndexed>
+            </DrawType>
             <FrameBufferName>basic_mulisample_render_framebuffer</FrameBufferName>
             <DynamicStates>
                 <Viewport source="auto"></Viewport>
                 <Scissor source="auto"></Scissor>
             </DynamicStates>
-            <IndexCountType type="all"></IndexCountType>
             <DescriptorResourcesCreateAndUpdate>
                 <LayoutBinding name="ubo" resource_creation_point="RenderNodeCreationTime">
                     <Buffer>
@@ -2059,12 +2261,14 @@
 
         <GraphicsRenderNode name="animphong_render">
             <Pipeline>phong_anim_pipeline</Pipeline>
+            <DrawType>
+                <DrawIndexed type="all"></DrawIndexed>
+            </DrawType>
             <FrameBufferName>basic_mulisample_render_framebuffer</FrameBufferName>
             <DynamicStates>
                 <Viewport source="auto"></Viewport>
                 <Scissor source="auto"></Scissor>
             </DynamicStates>
-            <IndexCountType type="all"></IndexCountType>
             <DescriptorResourcesCreateAndUpdate>
                 <LayoutBinding name="ubo" resource_creation_point="RenderNodeCreationTime">
                     <Buffer>
@@ -2111,12 +2315,14 @@
 
         <GraphicsRenderNode name="animphongdq_render">
             <Pipeline>phong_anim_dq_pipeline</Pipeline>
+            <DrawType>
+                <DrawIndexed type="all"></DrawIndexed>
+            </DrawType>
             <FrameBufferName>basic_mulisample_render_framebuffer</FrameBufferName>
             <DynamicStates>
                 <Viewport source="auto"></Viewport>
                 <Scissor source="auto"></Scissor>
             </DynamicStates>
-            <IndexCountType type="all"></IndexCountType>
             <DescriptorResourcesCreateAndUpdate>
                 <LayoutBinding name="ubo" resource_creation_point="RenderNodeCreationTime">
                     <Buffer>
@@ -2163,16 +2369,14 @@
 
         <GraphicsRenderNode name="imgui_renderer">
             <Pipeline>imgui_pipeline</Pipeline>
+            <DrawType>
+                <DrawIndexed type="all"></DrawIndexed>
+            </DrawType>
             <FrameBufferName>basic_mulisample_render_framebuffer</FrameBufferName>
             <DynamicStates>
                 <Viewport source="auto"></Viewport>
                 <Scissor source="auto"></Scissor>
             </DynamicStates>
-            <IndexCountType type="exact">
-                <IndexCount>1</IndexCount>
-                <FirstIndex>0</FirstIndex>
-                <VertexOffset>0</VertexOffset>
-            </IndexCountType>
             <DescriptorResourcesCreateAndUpdate>
                 <LayoutBinding name="uniform" resource_creation_point="RenderNodeCreationTime">
                     <Buffer>

@@ -32,6 +32,7 @@ public:
 
     //std::shared_ptr<SceneNode> GenerateSceneNodeLine(const std::string& mesh_name, float line_width, const std::shared_ptr<VulkanShadersManager>& shader_manager, const std::shared_ptr<SceneNode>& root_transform);
     std::shared_ptr<SceneNode> GenerateBoneLine(const std::string& mesh_name, const std::string& skeleton_name, float line_width, const std::shared_ptr<VulkanShadersManager>& shader_manager, const std::shared_ptr<SceneNode>& root_transform);
+    std::shared_ptr<SceneNode> GenerateBoneLineInstanced(const std::string& mesh_name, const std::string& skeleton_name, float line_width, const std::shared_ptr<VulkanShadersManager>& shader_manager, const std::shared_ptr<SceneNode>& root_transform);
     //std::shared_ptr<SceneNode> GenerateSceneNodeSpline(std::shared_ptr<VulkanShadersManager> shader_manager, std::shared_ptr<SceneNode> root_transform);
     std::shared_ptr<SceneNode> GenerateSceneNodeSpline(const std::string& mesh_name, float line_width, const std::vector<KeyframeMatrixTranslation>& keyframes, size_t points_per_spline, const std::shared_ptr<VulkanShadersManager>& shader_manager, const std::shared_ptr<SceneNode>& root_transform);
     //std::shared_ptr<SceneNode> GenerateSceneNodeBox(std::shared_ptr<VulkanShadersManager> shader_manager, std::shared_ptr<SceneNode> root_transform);

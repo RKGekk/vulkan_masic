@@ -238,12 +238,28 @@ void VertexFormat::setVertexBufferBindingName(std::string name) {
     m_vertex_buffer_binding_name = std::move(name);
 }
 
+uint32_t VertexFormat::getVertexBufferOffset() const {
+    return m_vertex_buffer_offset;
+}
+
+void VertexFormat::setVertexBufferOffset(uint32_t offset) {
+    m_vertex_buffer_offset = offset;
+}
+
 const std::string& VertexFormat::getIndexBufferBindingName() const {
     return m_index_buffer_binding_name;
 }
 
 void VertexFormat::setIndexBufferBindingName(std::string name) {
     m_index_buffer_binding_name = std::move(name);
+}
+
+uint32_t VertexFormat::getIndexBufferOffset() const {
+    return m_index_buffer_offset;
+}
+
+void VertexFormat::setIndexBufferOffset(uint32_t offset) {
+    m_index_buffer_offset = offset;
 }
 
 const std::string& VertexFormat::getVertexBufferResourceType() const {

@@ -723,21 +723,22 @@
 
     <xs:complexType name="InputAttributeDescriptionComplexType">
         <xs:sequence>
-            <xs:element name="Binding">
+            <xs:element name="Binding" minOccurs="0" maxOccurs="unbounded">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element name="Attribute" type="target:InputAttributeComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
                     </xs:sequence>
                     <xs:attribute name="num" type="xs:unsignedInt" use="required"></xs:attribute>
                     <xs:attribute name="vertex_buffer_bind_name" type="xs:string" use="required"></xs:attribute>
-                    <xs:attribute name="index_buffer_bind_name" type="xs:string" use="required"></xs:attribute>
+                    <xs:attribute name="vertex_buffer_offset" type="xs:unsignedInt" use="optional"></xs:attribute>
+                    <xs:attribute name="index_buffer_bind_name" type="xs:string" use="optional"></xs:attribute>
+                    <xs:attribute name="index_buffer_offset" type="xs:unsignedInt" use="optional"></xs:attribute>
                     <xs:attribute name="input_rate" type="target:VertexInputRateSimpleType" use="required"></xs:attribute>
                     <xs:attribute name="vertex_buffer_resource_type" type="xs:string" use="required"></xs:attribute>
                     <xs:attribute name="index_buffer_resource_type" type="xs:string" use="optional"></xs:attribute>
-                    <xs:attribute name="index_type" type="target:IndexTypeSimpleType" use="required"></xs:attribute>
+                    <xs:attribute name="index_type" type="target:IndexTypeSimpleType" use="optional"></xs:attribute>
                 </xs:complexType>
             </xs:element>
-
         </xs:sequence>
     </xs:complexType>
 
@@ -2237,6 +2238,55 @@
     <xs:complexType name="GraphicsRenderNodeComplexType">
         <xs:sequence>
             <xs:element name="Pipeline" type="xs:string"></xs:element>
+            <xs:element name="DrawType">
+                <xs:complexType>
+                    <xs:choice>
+                        <xs:element name="Draw">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="VertexCount" type="xs:unsignedInt" minOccurs="0" maxOccurs="1"></xs:element>
+                                    <xs:element name="InstanceCount" type="xs:unsignedInt" minOccurs="0" maxOccurs="1"></xs:element>
+                                    <xs:element name="FirstVertex" type="xs:unsignedInt" minOccurs="0" maxOccurs="1"></xs:element>
+                                    <xs:element name="FirstInstance" type="xs:integer" minOccurs="0" maxOccurs="1"></xs:element>
+                                </xs:sequence>
+                                <xs:attribute name="type" use="required">
+                                    <xs:simpleType>
+                                        <xs:restriction base="xs:string">
+                                            <xs:enumeration value="all"></xs:enumeration>
+                                            <xs:enumeration value="exact"></xs:enumeration>
+                                        </xs:restriction>
+                                    </xs:simpleType>
+                                </xs:attribute>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="DrawIndexed">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="IndexCount" type="xs:unsignedInt" minOccurs="0" maxOccurs="1"></xs:element>
+                                    <xs:element name="InstanceCount" type="xs:unsignedInt" minOccurs="0" maxOccurs="1"></xs:element>
+                                    <xs:element name="FirstIndex" type="xs:unsignedInt" minOccurs="0" maxOccurs="1"></xs:element>
+                                    <xs:element name="VertexOffset" type="xs:integer" minOccurs="0" maxOccurs="1"></xs:element>
+                                    <xs:element name="FirstInstance" type="xs:integer" minOccurs="0" maxOccurs="1"></xs:element>
+                                </xs:sequence>
+                                <xs:attribute name="type" use="required">
+                                    <xs:simpleType>
+                                        <xs:restriction base="xs:string">
+                                            <xs:enumeration value="all"></xs:enumeration>
+                                            <xs:enumeration value="exact"></xs:enumeration>
+                                        </xs:restriction>
+                                    </xs:simpleType>
+                                </xs:attribute>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="DrawIndirect">
+                            
+                        </xs:element>
+                        <xs:element name="DrawIndirectCount">
+                            
+                        </xs:element>
+                    </xs:choice>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="FrameBufferName" type="xs:string" minOccurs="1" maxOccurs="1"></xs:element>
             <xs:element name="DynamicStates" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
@@ -2244,23 +2294,6 @@
                         <xs:element name="Viewport" minOccurs="0" maxOccurs="1" type="target:ViewportComplexType"></xs:element>
                         <xs:element name="Scissor" minOccurs="0" maxOccurs="1" type="target:Rect2DComplexType"></xs:element>
                     </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="IndexCountType" minOccurs="1" maxOccurs="1">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element name="IndexCount" type="xs:unsignedInt" minOccurs="0" maxOccurs="1"></xs:element>
-                        <xs:element name="FirstIndex" type="xs:unsignedInt" minOccurs="0" maxOccurs="1"></xs:element>
-                        <xs:element name="VertexOffset" type="xs:integer" minOccurs="0" maxOccurs="1"></xs:element>
-                    </xs:sequence>
-                    <xs:attribute name="type" use="required">
-                        <xs:simpleType>
-                            <xs:restriction base="xs:string">
-                                <xs:enumeration value="all"></xs:enumeration>
-                                <xs:enumeration value="exact"></xs:enumeration>
-                            </xs:restriction>
-                        </xs:simpleType>
-                    </xs:attribute>
                 </xs:complexType>
             </xs:element>
             <xs:element name="DescriptorResourcesCreateAndUpdate" minOccurs="0" maxOccurs="1">

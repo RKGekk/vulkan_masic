@@ -119,8 +119,14 @@ public:
     const std::string& getVertexBufferBindingName() const;
     void setVertexBufferBindingName(std::string name);
 
+    uint32_t getVertexBufferOffset() const;
+    void setVertexBufferOffset(uint32_t offset);
+
     const std::string& getIndexBufferBindingName() const;
     void setIndexBufferBindingName(std::string name);
+
+    uint32_t getIndexBufferOffset() const;
+    void setIndexBufferOffset(uint32_t offset);
 
     const std::string& getVertexBufferResourceType() const;
     void setVertexBufferResourceType(std::string res_type);
@@ -133,7 +139,9 @@ private:
     size_t m_binding_num;
     VkIndexType m_index_type;
     std::string m_vertex_buffer_binding_name;
+    uint32_t m_vertex_buffer_offset;
     std::string m_index_buffer_binding_name;
+    uint32_t m_index_buffer_offset;
     std::string m_vertex_buffer_resource_type;
     std::string m_index_buffer_resource_type;
 

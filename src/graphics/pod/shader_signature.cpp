@@ -47,10 +47,31 @@ bool ShaderSignature::init(std::shared_ptr<VulkanResourcesManager>& resources_ma
             vf.setInputRate(getVertexInputRate(binding_node.attribute("input_rate").as_string()));
             vf.setBindingNum(binding_node.attribute("num").as_int());
             vf.setVertexBufferBindingName(binding_node.attribute("vertex_buffer_bind_name").as_string());
-            vf.setIndexBufferBindingName(binding_node.attribute("index_buffer_bind_name").as_string());
+            if(pugi::xml_attribute vtx_buff_offset_attr = binding_node.attribute("vertex_buffer_offset")) {
+                vf.setVertexBufferOffset(vtx_buff_offset_attr.as_uint());
+            }
+            else {
+                vf.setVertexBufferOffset(0u);
+            }
+            if(pugi::xml_attribute idx_buff_attr = binding_node.attribute("index_buffer_bind_name")) {
+                vf.setIndexBufferBindingName(idx_buff_attr.as_string());
+            }
+            if(pugi::xml_attribute idx_buff_offset_attr = binding_node.attribute("index_buffer_offset")) {
+                vf.setIndexBufferOffset(idx_buff_offset_attr.as_uint());
+            }
+            else {
+                vf.setIndexBufferOffset(0u);
+            }
             vf.setVertexBufferResourceType(binding_node.attribute("vertex_buffer_resource_type").as_string());
-            vf.setIndexBufferResourceType(binding_node.attribute("index_buffer_resource_type").as_string());
-            vf.setIndexType(getIndexType(binding_node.attribute("index_type").as_string()));
+            if(pugi::xml_attribute idx_buff_res_attr = binding_node.attribute("index_buffer_resource_type")) {
+                vf.setIndexBufferResourceType(idx_buff_res_attr.as_string());
+            }
+            if(pugi::xml_attribute idx_buff_type_attr = binding_node.attribute("index_type")) {
+                vf.setIndexType(getIndexType(idx_buff_type_attr.as_string()));
+            }
+            else {
+                vf.setIndexType(VkIndexType::VK_INDEX_TYPE_UINT32);
+            }
 
             for (pugi::xml_node attribute_node = binding_node.first_child(); attribute_node; attribute_node = attribute_node.next_sibling()) {
                 int location = attribute_node.child("Location").text().as_int(0);
