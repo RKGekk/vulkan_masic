@@ -21,7 +21,7 @@ public:
     void destroy();
 
     const VkPipelineShaderStageCreateInfo& getShaderInfo() const;
-    std::shared_ptr<ShaderSignature> getShaderSignature() const;
+    const std::shared_ptr<ShaderSignature>& getShaderSignature() const;
 
 private:
     VkShaderModule CreateShaderModule(const std::vector<char>& buffer) const;

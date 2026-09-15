@@ -137,12 +137,14 @@ public:
 private:
     VkVertexInputRate m_input_rate = VK_VERTEX_INPUT_RATE_VERTEX;
     size_t m_binding_num;
-    VkIndexType m_index_type;
+
     std::string m_vertex_buffer_binding_name;
     uint32_t m_vertex_buffer_offset;
+    std::string m_vertex_buffer_resource_type;
+
+    VkIndexType m_index_type;
     std::string m_index_buffer_binding_name;
     uint32_t m_index_buffer_offset;
-    std::string m_vertex_buffer_resource_type;
     std::string m_index_buffer_resource_type;
 
     std::vector<SemanticName> m_semantic_pos;

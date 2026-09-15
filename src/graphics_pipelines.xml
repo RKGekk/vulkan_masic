@@ -1144,10 +1144,7 @@
                          vertex_buffer_bind_name="vertex"
                          index_buffer_bind_name="index"
                          input_rate="vertex"
-                         vertex_buffer_resource_type="static_vertex_resource"
-                         index_buffer_resource_type="static_index_resource"
-                         index_type="uint32"
-                >
+                         vertex_buffer_resource_type="static_vertex_resource">
                     <Attribute name="in_pc_mix">
                         <Location>0</Location>
                         <GLSLFormat>float</GLSLFormat>

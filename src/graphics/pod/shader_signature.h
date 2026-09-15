@@ -22,8 +22,6 @@ public:
 
     bool init(std::shared_ptr<VulkanResourcesManager>& resources_manager, const pugi::xml_node& shader_data);
 
-    const VertexFormat& getVertexFormat() const;
-
     const std::string& getName() const;
     const std::string& getFileName() const;
     const std::string& getEntryPointName() const;

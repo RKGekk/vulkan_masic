@@ -65,7 +65,7 @@ const VkPipelineShaderStageCreateInfo& VulkanShader::getShaderInfo() const {
     return m_shader_info;
 }
 
-std::shared_ptr<ShaderSignature> VulkanShader::getShaderSignature() const {
+const std::shared_ptr<ShaderSignature>& VulkanShader::getShaderSignature() const {
     return m_shader_signature;
 }
 

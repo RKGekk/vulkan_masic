@@ -288,149 +288,27 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLineInstanced(
         1.0f,  -1.0f  // V3
     };
     std::vector<BoneInstanceDataType> instance_data;
+    instance_data.reserve(total_bones);
     
-    for(size_t b = 0u; BoneNode::JointIndex joint_idx : skin_data->root_joints) {
-        const std::shared_ptr<BoneNode>& root_bone = skin_data->joint_to_bone_map.at(joint_idx);
-        if(!root_bone) continue;
-        const BoneNode::BoneData bone_data = root_bone->getBoneDataMap().at(skeleton_name);
-        glm::mat4 model_from_root = bone_data.mesh_root_node->Get().FromRoot();
-        //glm::mat4 root_transform = glm::mat4(1.0f);
+    for(const auto&[current_bone, current_joint_idx] : skin_data->bone_to_joint_map) {
+        const Scene::Hierarchy& current_bone_hierarchy = m_scene->getNodeHierarchy(current_bone->VGetNodeIndex());
 
-        std::stack<std::shared_ptr<BoneNode>> node_stack;
-        node_stack.push(root_bone);
-        while(!node_stack.empty()) {
-            std::shared_ptr<BoneNode> current_bone = node_stack.top();
-            node_stack.pop();
-            if(!current_bone) continue;
-            const Scene::Hierarchy& current_bone_hierarchy = m_scene->getNodeHierarchy(current_bone->VGetNodeIndex());
-
-            const std::shared_ptr<SceneNode>& sibling_node = m_scene->getProperty(current_bone_hierarchy.next_sibling, Scene::NODE_TYPE_FLAG_BONE);
-            if(sibling_node) {
-                std::shared_ptr<BoneNode> sibling_bone = std::dynamic_pointer_cast<BoneNode>(sibling_node);
-                node_stack.push(sibling_bone);
-
-                const std::shared_ptr<SceneNode>& parent_node = m_scene->getProperty(current_bone_hierarchy.parent, Scene::NODE_TYPE_FLAG_BONE);
-                std::shared_ptr<BoneNode> parent_bone = std::dynamic_pointer_cast<BoneNode>(parent_node);
-                if(skin_data->bone_to_joint_map.contains(sibling_bone) && parent_node && skin_data->bone_to_joint_map.contains(parent_bone)) {
-
-                    const glm::mat4& to_root0 = sibling_bone->Get().ToRoot();
-                    glm::mat4 final_sceleton_space0 = model_from_root * to_root0;
-                    glm::vec3 pos0 = glm::vec3(final_sceleton_space0[3]);
-                    glm::vec4 color0 = glm::vec4(1.0f, 0.0f, 0.0f, 0.5f);
-
-                    const glm::mat4& to_root1 = parent_bone->Get().ToRoot();
-                    glm::mat4 final_sceleton_space1 = model_from_root * to_root1;
-                    glm::vec3 pos1 = glm::vec3(final_sceleton_space1[3]);
-                    glm::vec4 color1 = glm::vec4(1.0f, 0.0f, 0.0f, 0.5f);
-
-                    size_t line_start = b * vertex_stride * vertices_per_line;
-
-                    size_t vertex0_index = line_start + 0u * 0u;
-                    size_t vertex1_index = line_start + next_vertex_start * 1u;
-                    size_t vertex2_index = line_start + next_vertex_start * 2u;
-                    size_t vertex3_index = line_start + next_vertex_start * 3u;
-
-                    for (size_t current_component_num = 0; current_component_num < pos_num_of_elements_to_copy; ++current_component_num) {
-                        vertex_data[vertex0_index + pos_offset + current_component_num] = pos0[current_component_num];
-                        vertex_data[vertex1_index + pos_offset + current_component_num] = pos0[current_component_num];
-                        vertex_data[vertex2_index + pos_offset + current_component_num] = pos1[current_component_num];
-                        vertex_data[vertex3_index + pos_offset + current_component_num] = pos1[current_component_num];
-                    }
-                    for (size_t current_component_num = 0; current_component_num < color_num_of_elements_to_copy; ++current_component_num) {
-                        vertex_data[vertex0_index + color_offset + current_component_num] = color0[current_component_num];
-                        vertex_data[vertex1_index + color_offset + current_component_num] = color0[current_component_num];
-                        vertex_data[vertex2_index + color_offset + current_component_num] = color1[current_component_num];
-                        vertex_data[vertex3_index + color_offset + current_component_num] = color1[current_component_num];
-                    }
-                    for (size_t current_component_num = 0; current_component_num < target_num_of_elements_to_copy; ++current_component_num) {
-                        vertex_data[vertex0_index + target_offset + current_component_num] = pos1[current_component_num];
-                        vertex_data[vertex1_index + target_offset + current_component_num] = pos1[current_component_num];
-                        vertex_data[vertex2_index + target_offset + current_component_num] = pos0[current_component_num];
-                        vertex_data[vertex3_index + target_offset + current_component_num] = pos0[current_component_num];
-                    }
-                    for (size_t current_component_num = 0; current_component_num < side_num_of_elements_to_copy; ++current_component_num) {
-                        vertex_data[vertex0_index + side_offset + current_component_num] = -1.0f;
-                        vertex_data[vertex1_index + side_offset + current_component_num] = 1.0f;
-                        vertex_data[vertex2_index + side_offset + current_component_num] = -1.0f;
-                        vertex_data[vertex3_index + side_offset + current_component_num] = 1.0f;
-                    }
-
-                    indices.push_back(0 + b * vertices_per_line);
-                    indices.push_back(1 + b * vertices_per_line);
-                    indices.push_back(2 + b * vertices_per_line);
-                    indices.push_back(2 + b * vertices_per_line);
-                    indices.push_back(0 + b * vertices_per_line);
-                    indices.push_back(3 + b * vertices_per_line);
-
-                    ++b;
-                }
-            }
-
-            const std::shared_ptr<SceneNode>& child_node = m_scene->getProperty(current_bone_hierarchy.first_child, Scene::NODE_TYPE_FLAG_BONE);
-            if(child_node) {
-                std::shared_ptr<BoneNode> child_bone = std::dynamic_pointer_cast<BoneNode>(child_node);
-                node_stack.push(child_bone);
-
-                if(skin_data->bone_to_joint_map.contains(child_bone)) {
-                    const glm::mat4& to_root0 = current_bone->Get().ToRoot();
-                    glm::mat4 final_sceleton_space0 = model_from_root * to_root0;
-                    glm::vec3 pos0 = glm::vec3(final_sceleton_space0[3]);
-                    glm::vec4 color0 = glm::vec4(1.0f, 0.0f, 0.0f, 0.5f);
-
-                    const glm::mat4& to_root1 = child_bone->Get().ToRoot();
-                    glm::mat4 final_sceleton_space1 = model_from_root * to_root1;
-                    glm::vec3 pos1 = glm::vec3(final_sceleton_space1[3]);
-                    glm::vec4 color1 = glm::vec4(1.0f, 0.0f, 0.0f, 0.5f);
-
-                    size_t line_start = b * vertex_stride * vertices_per_line;
-
-                    size_t vertex0_index = line_start + 0u * 0u;
-                    size_t vertex1_index = line_start + next_vertex_start * 1u;
-                    size_t vertex2_index = line_start + next_vertex_start * 2u;
-                    size_t vertex3_index = line_start + next_vertex_start * 3u;
-
-                    for (size_t current_component_num = 0; current_component_num < pos_num_of_elements_to_copy; ++current_component_num) {
-                        vertex_data[vertex0_index + pos_offset + current_component_num] = pos0[current_component_num];
-                        vertex_data[vertex1_index + pos_offset + current_component_num] = pos0[current_component_num];
-                        vertex_data[vertex2_index + pos_offset + current_component_num] = pos1[current_component_num];
-                        vertex_data[vertex3_index + pos_offset + current_component_num] = pos1[current_component_num];
-                    }
-                    for (size_t current_component_num = 0; current_component_num < color_num_of_elements_to_copy; ++current_component_num) {
-                        vertex_data[vertex0_index + color_offset + current_component_num] = color0[current_component_num];
-                        vertex_data[vertex1_index + color_offset + current_component_num] = color0[current_component_num];
-                        vertex_data[vertex2_index + color_offset + current_component_num] = color1[current_component_num];
-                        vertex_data[vertex3_index + color_offset + current_component_num] = color1[current_component_num];
-                    }
-                    for (size_t current_component_num = 0; current_component_num < target_num_of_elements_to_copy; ++current_component_num) {
-                        vertex_data[vertex0_index + target_offset + current_component_num] = pos1[current_component_num];
-                        vertex_data[vertex1_index + target_offset + current_component_num] = pos1[current_component_num];
-                        vertex_data[vertex2_index + target_offset + current_component_num] = pos0[current_component_num];
-                        vertex_data[vertex3_index + target_offset + current_component_num] = pos0[current_component_num];
-                    }
-                    for (size_t current_component_num = 0; current_component_num < side_num_of_elements_to_copy; ++current_component_num) {
-                        vertex_data[vertex0_index + side_offset + current_component_num] = -1.0f;
-                        vertex_data[vertex1_index + side_offset + current_component_num] = 1.0f;
-                        vertex_data[vertex2_index + side_offset + current_component_num] = -1.0f;
-                        vertex_data[vertex3_index + side_offset + current_component_num] = 1.0f;
-                    }
-
-                    indices.push_back(0 + b * vertices_per_line);
-                    indices.push_back(1 + b * vertices_per_line);
-                    indices.push_back(2 + b * vertices_per_line);
-                    indices.push_back(2 + b * vertices_per_line);
-                    indices.push_back(0 + b * vertices_per_line);
-                    indices.push_back(3 + b * vertices_per_line);
-
-                    ++b;
-                }
+        const std::shared_ptr<SceneNode>& parent_node = m_scene->getProperty(current_bone_hierarchy.parent, Scene::NODE_TYPE_FLAG_BONE);
+        if(parent_node) {
+            std::shared_ptr<BoneNode> parent_bone = std::dynamic_pointer_cast<BoneNode>(parent_node);
+            if(parent_bone && skin_data->bone_to_joint_map.contains(parent_bone)) {
+                BoneInstanceDataType inst_data;
+                inst_data.parent_joint_idx = parent_bone->getJointIndex(skeleton_name);
+                inst_data.child_joint_idx = current_bone->getJointIndex(skeleton_name);
+                instance_data.push_back(inst_data);
             }
         }
     }
 
     const void* vertex_data_ptr = vertex_data.data();
 
-    std::shared_ptr<VulkanBuffer> vertex_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(vertex_data_ptr, num_vertices * model_data->GetVertexFormat().getVertexSize(), mesh_name + "_line_vertex_buffer_"s, "basic_vertex_resource");
-	std::shared_ptr<VulkanBuffer> index_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(indices.data(), indices.size() * sizeof(uint32_t), mesh_name + "_line_index_buffer"s, "basic_index_resource");
+    std::shared_ptr<VulkanBuffer> vertex_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(vertex_data_ptr, 6u * model_data->GetVertexFormat().getVertexSize(), mesh_name + "_linedq_vertex_buffer_"s, "static_vertex_resource");
+    std::shared_ptr<VulkanBuffer> instance_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(vertex_data_ptr, num_vertices * model_data->GetVertexFormat().getVertexSize(), mesh_name + "_line_vertex_buffer_"s, "basic_vertex_resource");
 
 	model_data->SetVertexBuffer(std::move(vertex_buffer));
 	model_data->SetIndexBuffer(std::move(index_buffer));

@@ -36,10 +36,14 @@ public:
 	void SetVertexBuffer(std::shared_ptr<VulkanBuffer> vertex_buffer);
 	const std::shared_ptr<VulkanBuffer>& GetVertexBuffer() const;
 
+	void SetInstanceBuffer(std::shared_ptr<VulkanBuffer> instance_buffer);
+	const std::shared_ptr<VulkanBuffer>& GetInstanceBuffer() const;
+
 	void SetIndexBuffer(std::shared_ptr<VulkanBuffer> index_buffer);
 	const std::shared_ptr<VulkanBuffer>& GetIndexBuffer() const;
 
 	size_t GetIndexCount() const;
+	size_t GetInstanceCount() const;
 	size_t GetVertexCount() const;
 
 	void SetMaterial(std::shared_ptr<Material> material);
@@ -59,6 +63,7 @@ public:
 private:
 	std::shared_ptr<VulkanBuffer> m_vertex_buffer;
 	std::shared_ptr<VulkanBuffer> m_index_buffer;
+	std::shared_ptr<VulkanBuffer> m_instance_buffer;
 	VertexFormat m_vertex_format;
 	std::shared_ptr<Material> m_material;
 

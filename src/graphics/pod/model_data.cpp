@@ -23,6 +23,14 @@ void ModelData::SetVertexBuffer(std::shared_ptr<VulkanBuffer> vertex_buffer) {
     m_vertex_buffer = std::move(vertex_buffer);
 }
 
+void ModelData::SetInstanceBuffer(std::shared_ptr<VulkanBuffer> instance_buffer) {
+    m_instance_buffer = std::move(instance_buffer);
+}
+
+const std::shared_ptr<VulkanBuffer>& ModelData::GetInstanceBuffer() const {
+    return m_instance_buffer;
+}
+
 void ModelData::SetIndexBuffer(std::shared_ptr<VulkanBuffer> index_buffer) {
     m_index_buffer = std::move(index_buffer);
 }
@@ -38,6 +46,15 @@ size_t ModelData::GetIndexCount() const {
     }
 
     return index_count;
+}
+
+size_t ModelData::GetInstanceCount() const {
+    size_t instance_count = 1u;
+    if(m_instance_buffer) {
+        instance_count = m_instance_buffer->getNotAlignedSize() / ;
+    }
+
+    return instance_count;
 }
 
 size_t ModelData::GetVertexCount() const {

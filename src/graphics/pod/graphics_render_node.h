@@ -38,6 +38,7 @@ private:
     uint32_t m_first_binding;
     uint32_t m_vertex_count;
     uint32_t m_instance_count;
+    size_t m_index_buffer_bind_num;
 
     std::shared_ptr<GraphicsRenderNodeConfig> m_node_config;
     std::shared_ptr<VulkanFramebuffer> m_frame_buffer;

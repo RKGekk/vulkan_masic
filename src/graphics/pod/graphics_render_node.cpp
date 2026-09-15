@@ -71,12 +71,15 @@ void GraphicsRenderNode::render(CommandBatch& command_buffer, unsigned image_ind
         );
     }
 
-    const std::vector<VertexFormat>& vertex_formats_array = m_pipeline->getShader(VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getInputAttributes();
+    const std::shared_ptr<ShaderSignature>& vertex_shader_signature = m_pipeline->getShader(VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature();
+    const std::vector<VertexFormat>& vertex_formats_array = vertex_shader_signature->getInputAttributes();
+
     m_vertex_buffers.clear();
     m_vertex_buffers_offsets.clear();
     m_first_binding = vertex_formats_array.front().getBindingNum();
     m_vertex_count = 0u;
     m_instance_count = 1u;
+    m_index_buffer_bind_num = 0u;
     for (const VertexFormat& vf : vertex_formats_array) {
         if(vf.getBindingNum() < m_first_binding) {
             m_first_binding = vf.getBindingNum();
@@ -85,13 +88,19 @@ void GraphicsRenderNode::render(CommandBatch& command_buffer, unsigned image_ind
         std::shared_ptr<VulkanBuffer> vertex_buffer = getReadAttachedBufferResource(vertex_buffer_name);
         m_vertex_buffers.push_back(vertex_buffer->getBuffer());
         m_vertex_buffers_offsets.push_back(vf.getVertexBufferOffset());
+        
         if(vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX) {
             m_vertex_count = vertex_buffer->getNotAlignedSize() / vf.getVertexSize();
+
+            if(m_node_config->getDrawType() == GraphicsRenderNodeConfig::DrawType::DRAW_INDEXED && !vf.getIndexBufferBindingName().empty()) {
+                m_index_buffer_bind_num = vf.getBindingNum();
+            }
         }
         else if(vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_INSTANCE) {
             m_instance_count = vertex_buffer->getNotAlignedSize() / vf.getVertexSize();
         }
     }
+
     vkCmdBindVertexBuffers(
         command_buffer.getCommandBufer(),               // commandBuffer
         m_first_binding,                                // firstBinding
@@ -121,17 +130,18 @@ void GraphicsRenderNode::render(CommandBatch& command_buffer, unsigned image_ind
         }
     }
     else if(m_node_config->getDrawType() == GraphicsRenderNodeConfig::DrawType::DRAW_INDEXED) {
-        const std::string& index_buffer_name = m_pipeline->getShader(VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getVertexFormat().getIndexBufferBindingName();
+        const VertexFormat& index_buffer_vf = vertex_shader_signature->getInputAttributes(m_index_buffer_bind_num);
+        const std::string& index_buffer_name = index_buffer_vf.getIndexBufferBindingName();
         std::shared_ptr<VulkanBuffer> index_buffer = getReadAttachedBufferResource(index_buffer_name);
         vkCmdBindIndexBuffer(
-            command_buffer.getCommandBufer(),   // commandBuffer
-            index_buffer->getBuffer(),          // buffer
-            0u,                                 // offset
-            m_pipeline->getShader(VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getVertexFormat().getIndexType() // indexType
+            command_buffer.getCommandBufer(),       // commandBuffer
+            index_buffer->getBuffer(),              // buffer
+            index_buffer_vf.getIndexBufferOffset(), // offset
+            index_buffer_vf.getIndexType()          // indexType
         );
 
         if(m_node_config->getIndexCountType() == GraphicsRenderNodeConfig::IndexCountType::ALL) {
-            uint32_t index_count = index_buffer->getNotAlignedSize() / m_pipeline->getShader(VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature()->getVertexFormat().getIndexTypeBytesCount();
+            uint32_t index_count = index_buffer->getNotAlignedSize() / index_buffer_vf.getIndexTypeBytesCount();
             vkCmdDrawIndexed(
                 command_buffer.getCommandBufer(),   // commandBuffer
                 index_count,                        // indexCount
