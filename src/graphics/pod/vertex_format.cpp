@@ -196,24 +196,6 @@ size_t VertexFormat::getVertexSize() const {
     return stride;
 }
 
-VkIndexType VertexFormat::getIndexType() const {
-    return m_index_type;
-}
-
-uint32_t VertexFormat::getIndexTypeBytesCount() const {
-    switch (m_index_type) {
-        case VK_INDEX_TYPE_UINT16 : return 2u;
-        case VK_INDEX_TYPE_UINT32 : return 4u;
-        case VK_INDEX_TYPE_NONE_KHR : return 0u;
-        case VK_INDEX_TYPE_UINT8_KHR : return 1u;
-        default : return 0;
-    }
-}
-
-void VertexFormat::setIndexType(VkIndexType idx_type) {
-    m_index_type = idx_type;
-}
-
 VkVertexInputRate VertexFormat::getInputRate() const {
     return m_input_rate;
 }
@@ -222,11 +204,11 @@ void VertexFormat::setInputRate(VkVertexInputRate rate) {
     m_input_rate = rate;
 }
 
-size_t VertexFormat::getBindingNum() const {
+VertexFormat::BindingNum VertexFormat::getBindingNum() const {
     return m_binding_num;
 }
 
-void VertexFormat::setBindingNum(size_t num) {
+void VertexFormat::setBindingNum(BindingNum num) {
     m_binding_num = num;
 }
 
@@ -246,34 +228,10 @@ void VertexFormat::setVertexBufferOffset(uint32_t offset) {
     m_vertex_buffer_offset = offset;
 }
 
-const std::string& VertexFormat::getIndexBufferBindingName() const {
-    return m_index_buffer_binding_name;
-}
-
-void VertexFormat::setIndexBufferBindingName(std::string name) {
-    m_index_buffer_binding_name = std::move(name);
-}
-
-uint32_t VertexFormat::getIndexBufferOffset() const {
-    return m_index_buffer_offset;
-}
-
-void VertexFormat::setIndexBufferOffset(uint32_t offset) {
-    m_index_buffer_offset = offset;
-}
-
 const std::string& VertexFormat::getVertexBufferResourceType() const {
     return m_vertex_buffer_resource_type;
 }
 
 void VertexFormat::setVertexBufferResourceType(std::string res_type) {
     m_vertex_buffer_resource_type = std::move(res_type);
-}
-    
-const std::string& VertexFormat::getIndexBufferResourceType() const {
-    return m_index_buffer_resource_type;
-}
-
-void VertexFormat::setIndexBufferResourceType(std::string res_type) {
-    m_index_buffer_resource_type = std::move(res_type);
 }

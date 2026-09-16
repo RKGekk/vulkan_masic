@@ -38,11 +38,12 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLine(const std
     std::shared_ptr<MeshNode> mesh_node = std::make_shared<MeshNode>(m_scene, new_node->VGetNodeIndex());
 	m_scene->addProperty(mesh_node);
 
-    std::shared_ptr<ShaderSignature> shader_signature = m_shader_manager->getShader(m_default_vertex_shader_name)->getShaderSignature();
+    const std::shared_ptr<ShaderSignature>& shader_signature = m_shader_manager->getShader(m_default_vertex_shader_name)->getShaderSignature();
+    VertexFormat::BindingNum vertex_binding = shader_signature->getFirstInputAttribute([](const VertexFormat& vf){ return vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX; });
     std::shared_ptr<ModelData> model_data = std::make_shared<ModelData>();
 	model_data->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-    const VertexFormat& shader_vertex_format = shader_signature->getVertexFormat();
-    model_data->SetVertexFormat(shader_vertex_format);
+    const VertexFormat& shader_vertex_format = shader_signature->getInputAttributes(vertex_binding);
+    model_data->SetShaderSignature(shader_signature);
     std::shared_ptr<Material> material = std::make_shared<Material>("line");
     model_data->SetMaterial(material);
     
@@ -217,10 +218,10 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLine(const std
 
     const void* vertex_data_ptr = vertex_data.data();
 
-    std::shared_ptr<VulkanBuffer> vertex_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(vertex_data_ptr, num_vertices * model_data->GetVertexFormat().getVertexSize(), mesh_name + "_line_vertex_buffer_"s, "basic_vertex_resource");
+    std::shared_ptr<VulkanBuffer> vertex_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(vertex_data_ptr, num_vertices * shader_signature->getInputAttributes(vertex_binding).getVertexSize(), mesh_name + "_line_vertex_buffer_"s, "basic_vertex_resource");
 	std::shared_ptr<VulkanBuffer> index_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(indices.data(), indices.size() * sizeof(uint32_t), mesh_name + "_line_index_buffer"s, "basic_index_resource");
 
-	model_data->SetVertexBuffer(std::move(vertex_buffer));
+	model_data->SetVertexBuffer(std::move(vertex_buffer), vertex_binding);
 	model_data->SetIndexBuffer(std::move(index_buffer));
 		
     model_data->SetName(mesh_name);
@@ -269,11 +270,14 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLineInstanced(
     std::shared_ptr<MeshNode> mesh_node = std::make_shared<MeshNode>(m_scene, new_node->VGetNodeIndex());
 	m_scene->addProperty(mesh_node);
 
-    std::shared_ptr<ShaderSignature> shader_signature = m_shader_manager->getShader(m_default_vertex_shader_name)->getShaderSignature();
+    const std::shared_ptr<ShaderSignature>& shader_signature = m_shader_manager->getShader(m_default_vertex_shader_name)->getShaderSignature();
+
+    VertexFormat::BindingNum vertex_binding = shader_signature->getFirstInputAttribute([](const VertexFormat& vf){ return vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX; });
+    VertexFormat::BindingNum instance_binding = shader_signature->getFirstInputAttribute([](const VertexFormat& vf){ return vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_INSTANCE; });
+
     std::shared_ptr<ModelData> model_data = std::make_shared<ModelData>();
 	model_data->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-    const VertexFormat& shader_vertex_format = shader_signature->getVertexFormat();
-    model_data->SetVertexFormat(shader_vertex_format);
+    model_data->SetShaderSignature(shader_signature);
     std::shared_ptr<Material> material = std::make_shared<Material>("lineinstanceddq");
     model_data->SetMaterial(material);
 
@@ -307,11 +311,11 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLineInstanced(
 
     const void* vertex_data_ptr = vertex_data.data();
 
-    std::shared_ptr<VulkanBuffer> vertex_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(vertex_data_ptr, 6u * model_data->GetVertexFormat().getVertexSize(), mesh_name + "_linedq_vertex_buffer_"s, "static_vertex_resource");
-    std::shared_ptr<VulkanBuffer> instance_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(vertex_data_ptr, num_vertices * model_data->GetVertexFormat().getVertexSize(), mesh_name + "_line_vertex_buffer_"s, "basic_vertex_resource");
+    std::shared_ptr<VulkanBuffer> vertex_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(vertex_data_ptr, 6u * shader_signature->getInputAttributes(vertex_binding).getVertexSize(), mesh_name + "_linedq_vertex_buffer_"s, "static_vertex_resource");
+    std::shared_ptr<VulkanBuffer> instance_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(vertex_data_ptr, total_bones * shader_signature->getInputAttributes(instance_binding).getVertexSize(), mesh_name + "_line_vertex_buffer_"s, "basic_instance_resource");
 
-	model_data->SetVertexBuffer(std::move(vertex_buffer));
-	model_data->SetIndexBuffer(std::move(index_buffer));
+	model_data->SetVertexBuffer(std::move(vertex_buffer), vertex_binding);
+	model_data->SetVertexBuffer(std::move(instance_buffer), instance_binding);
 		
     model_data->SetName(mesh_name);
     //model_data->calculateBoundingBox();
@@ -352,11 +356,12 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateSceneNodeSpline(co
     std::shared_ptr<MeshNode> mesh_node = std::make_shared<MeshNode>(m_scene, new_node->VGetNodeIndex());
 	m_scene->addProperty(mesh_node);
 
-    std::shared_ptr<ShaderSignature> shader_signature = m_shader_manager->getShader(m_default_vertex_shader_name)->getShaderSignature();
+    const std::shared_ptr<ShaderSignature>& shader_signature = m_shader_manager->getShader(m_default_vertex_shader_name)->getShaderSignature();
+    VertexFormat::BindingNum vertex_binding = shader_signature->getFirstInputAttribute([](const VertexFormat& vf){ return vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX; });
     std::shared_ptr<ModelData> model_data = std::make_shared<ModelData>();
 	model_data->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-    const VertexFormat& shader_vertex_format = shader_signature->getVertexFormat();
-    model_data->SetVertexFormat(shader_vertex_format);
+    const VertexFormat& shader_vertex_format = shader_signature->getInputAttributes(vertex_binding);
+    model_data->SetShaderSignature(shader_signature);
     std::shared_ptr<Material> material = std::make_shared<Material>("line");
     model_data->SetMaterial(material);
     
@@ -450,10 +455,10 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateSceneNodeSpline(co
 
     const void* vertex_data_ptr = vertex_data.data();
 
-    std::shared_ptr<VulkanBuffer> vertex_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(vertex_data_ptr, num_vertices * model_data->GetVertexFormat().getVertexSize(), mesh_name + "_line_vertex_buffer_"s, "basic_vertex_resource");
+    std::shared_ptr<VulkanBuffer> vertex_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(vertex_data_ptr, num_vertices * shader_signature->getInputAttributes(vertex_binding).getVertexSize(), mesh_name + "_line_vertex_buffer_"s, "basic_vertex_resource");
 	std::shared_ptr<VulkanBuffer> index_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(indices.data(), indices.size() * sizeof(uint32_t), mesh_name + "_line_index_buffer"s, "basic_index_resource");
 
-	model_data->SetVertexBuffer(std::move(vertex_buffer));
+	model_data->SetVertexBuffer(std::move(vertex_buffer), vertex_binding);
 	model_data->SetIndexBuffer(std::move(index_buffer));
 		
     model_data->SetName(mesh_name);

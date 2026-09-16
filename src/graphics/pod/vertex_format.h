@@ -63,6 +63,8 @@ enum class VertexAttributeGLSLFormat : int32_t {
 
 class VertexFormat {
 public:
+    using BindingNum = size_t;
+
     static size_t getBytesForType(VkFormat format);
     static size_t GetNumComponentsInGLSLType(VertexAttributeGLSLFormat glsl_format);
 
@@ -106,15 +108,11 @@ public:
     size_t getVertexAttribCount() const;
     size_t getVertexSize() const;
 
-    VkIndexType getIndexType() const;
-    uint32_t getIndexTypeBytesCount() const;
-    void setIndexType(VkIndexType idx_type);
-
     VkVertexInputRate getInputRate() const;
     void setInputRate(VkVertexInputRate rate);
 
-    size_t getBindingNum() const;
-    void setBindingNum(size_t num);
+    BindingNum getBindingNum() const;
+    void setBindingNum(BindingNum num);
 
     const std::string& getVertexBufferBindingName() const;
     void setVertexBufferBindingName(std::string name);
@@ -122,30 +120,16 @@ public:
     uint32_t getVertexBufferOffset() const;
     void setVertexBufferOffset(uint32_t offset);
 
-    const std::string& getIndexBufferBindingName() const;
-    void setIndexBufferBindingName(std::string name);
-
-    uint32_t getIndexBufferOffset() const;
-    void setIndexBufferOffset(uint32_t offset);
-
     const std::string& getVertexBufferResourceType() const;
     void setVertexBufferResourceType(std::string res_type);
 
-    const std::string& getIndexBufferResourceType() const;
-    void setIndexBufferResourceType(std::string res_type);
-
 private:
     VkVertexInputRate m_input_rate = VK_VERTEX_INPUT_RATE_VERTEX;
-    size_t m_binding_num;
+    BindingNum m_binding_num;
 
     std::string m_vertex_buffer_binding_name;
     uint32_t m_vertex_buffer_offset;
     std::string m_vertex_buffer_resource_type;
-
-    VkIndexType m_index_type;
-    std::string m_index_buffer_binding_name;
-    uint32_t m_index_buffer_offset;
-    std::string m_index_buffer_resource_type;
 
     std::vector<SemanticName> m_semantic_pos;
     std::vector<std::string> m_name_pos;

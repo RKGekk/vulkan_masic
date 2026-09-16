@@ -7,8 +7,8 @@
 
 ModelData::ModelData() : m_primitive_topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST) {}
 
-const std::shared_ptr<VulkanBuffer>& ModelData::GetVertexBuffer() const {
-    return m_vertex_buffer;
+const std::shared_ptr<VulkanBuffer>& ModelData::GetVertexBuffer(VertexFormat::BindingNum binding) const {
+    return m_vertex_buffers.at(binding);
 }
 
 void ModelData::SetPrimitiveTopology(VkPrimitiveTopology primitive_toplogy) {
@@ -19,16 +19,8 @@ VkPrimitiveTopology ModelData::GetPrimitiveTopology() const {
     return m_primitive_topology;
 }
 
-void ModelData::SetVertexBuffer(std::shared_ptr<VulkanBuffer> vertex_buffer) {
-    m_vertex_buffer = std::move(vertex_buffer);
-}
-
-void ModelData::SetInstanceBuffer(std::shared_ptr<VulkanBuffer> instance_buffer) {
-    m_instance_buffer = std::move(instance_buffer);
-}
-
-const std::shared_ptr<VulkanBuffer>& ModelData::GetInstanceBuffer() const {
-    return m_instance_buffer;
+void ModelData::SetVertexBuffer(std::shared_ptr<VulkanBuffer> vertex_buffer, VertexFormat::BindingNum binding) {
+    m_vertex_buffers[binding] = std::move(vertex_buffer);
 }
 
 void ModelData::SetIndexBuffer(std::shared_ptr<VulkanBuffer> index_buffer) {
@@ -42,7 +34,7 @@ const std::shared_ptr<VulkanBuffer>& ModelData::GetIndexBuffer() const {
 size_t ModelData::GetIndexCount() const {
     size_t index_count = 0u;
     if (m_index_buffer) {
-        index_count = m_index_buffer->getNotAlignedSize() / m_vertex_format.getIndexTypeBytesCount();;
+        index_count = m_index_buffer->getNotAlignedSize() / m_shader_signature.getIndexTypeBytesCount();;
     }
 
     return index_count;
@@ -50,8 +42,14 @@ size_t ModelData::GetIndexCount() const {
 
 size_t ModelData::GetInstanceCount() const {
     size_t instance_count = 1u;
-    if(m_instance_buffer) {
-        instance_count = m_instance_buffer->getNotAlignedSize() / ;
+    if (!m_vertex_buffers.empty()) {
+        for(const auto& [binding_num, vulkan_buffer] : m_vertex_buffers) {
+            const VertexFormat& vf = m_shader_signature.getInputAttributes(binding_num);
+            if(vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_INSTANCE) {
+                instance_count = vulkan_buffer->getNotAlignedSize() / vf.getVertexSize();
+                break;
+            }
+        }
     }
 
     return instance_count;
@@ -60,8 +58,14 @@ size_t ModelData::GetInstanceCount() const {
 size_t ModelData::GetVertexCount() const {
     size_t vertex_count = 0u;
 
-    if (m_vertex_buffer) {
-        vertex_count = m_vertex_buffer->getNotAlignedSize() /  m_vertex_format.getVertexSize();
+    if (!m_vertex_buffers.empty()) {
+        for(const auto& [binding_num, vulkan_buffer] : m_vertex_buffers) {
+            const VertexFormat& vf = m_shader_signature.getInputAttributes(binding_num);
+            if(vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX) {
+                vertex_count = vulkan_buffer->getNotAlignedSize() / vf.getVertexSize();
+                break;
+            }
+        }
     }
 
     return vertex_count;
@@ -83,6 +87,10 @@ const BoundingBox& ModelData::GetAABB() const {
     return m_AABB;
 }
 
+void ModelData::SetSphere(const BoundingSphere& sphere) {
+    m_sphere = sphere;
+}
+
 const BoundingSphere& ModelData::GetSphere() const {
     return m_sphere;
 }
@@ -95,10 +103,10 @@ void ModelData::SetName(std::string name) {
     m_name = std::move(name);
 }
 
-const VertexFormat& ModelData::GetVertexFormat() {
-    return m_vertex_format;
+const std::shared_ptr<ShaderSignature>& ModelData::GetShaderSignature() const {
+    return m_shader_signature;
 }
 
-void ModelData::SetVertexFormat(const VertexFormat& format) {
-    m_vertex_format = format;
+void ModelData::SetShaderSignature(std::shared_ptr<ShaderSignature> format) {
+    m_shader_signature = std::move(format);
 }

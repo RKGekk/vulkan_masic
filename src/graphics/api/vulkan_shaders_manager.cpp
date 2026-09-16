@@ -1,5 +1,7 @@
 #include "vulkan_shaders_manager.h"
 
+std::shared_ptr<VulkanShader> NULL_PTR_SHADER;
+
 bool VulkanShadersManager::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<VulkanResourcesManager>& resources_manager, const std::string& rg_file_name) {
     m_device = device;
 
@@ -30,8 +32,8 @@ void VulkanShadersManager::destroy() {
     }
 }
 
-std::shared_ptr<VulkanShader> VulkanShadersManager::getShader(const std::string& name) const {
-    if(!m_shader_name_map.contains(name)) return nullptr;
+const std::shared_ptr<VulkanShader>& VulkanShadersManager::getShader(const std::string& name) const {
+    if(!m_shader_name_map.contains(name)) return NULL_PTR_SHADER;
     size_t shader_pos = m_shader_name_map.at(name);
     return m_shaders.at(shader_pos);
 }

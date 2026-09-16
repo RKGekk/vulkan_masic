@@ -731,15 +731,15 @@
                     <xs:attribute name="num" type="xs:unsignedInt" use="required"></xs:attribute>
                     <xs:attribute name="vertex_buffer_bind_name" type="xs:string" use="required"></xs:attribute>
                     <xs:attribute name="vertex_buffer_offset" type="xs:unsignedInt" use="optional"></xs:attribute>
-                    <xs:attribute name="index_buffer_bind_name" type="xs:string" use="optional"></xs:attribute>
-                    <xs:attribute name="index_buffer_offset" type="xs:unsignedInt" use="optional"></xs:attribute>
                     <xs:attribute name="input_rate" type="target:VertexInputRateSimpleType" use="required"></xs:attribute>
                     <xs:attribute name="vertex_buffer_resource_type" type="xs:string" use="required"></xs:attribute>
-                    <xs:attribute name="index_buffer_resource_type" type="xs:string" use="optional"></xs:attribute>
-                    <xs:attribute name="index_type" type="target:IndexTypeSimpleType" use="optional"></xs:attribute>
                 </xs:complexType>
             </xs:element>
         </xs:sequence>
+        <xs:attribute name="index_buffer_bind_name" type="xs:string" use="optional"></xs:attribute>
+        <xs:attribute name="index_buffer_offset" type="xs:unsignedInt" use="optional"></xs:attribute>
+        <xs:attribute name="index_buffer_resource_type" type="xs:string" use="optional"></xs:attribute>
+        <xs:attribute name="index_type" type="target:IndexTypeSimpleType" use="optional"></xs:attribute>
     </xs:complexType>
 
     <xs:complexType name="ShaderComplexType">

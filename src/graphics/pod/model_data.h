@@ -17,11 +17,12 @@
 #include "../../physics/bounding_box.h"
 #include "../../physics/bounding_sphere.h"
 #include "material.h"
-#include "vertex_format.h"
+#include "shader_signature.h"
 
 #include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 class VulkanBuffer;
 
@@ -33,11 +34,8 @@ public:
 	void SetPrimitiveTopology(VkPrimitiveTopology primitive_toplogy);
 	VkPrimitiveTopology GetPrimitiveTopology() const;
 
-	void SetVertexBuffer(std::shared_ptr<VulkanBuffer> vertex_buffer);
-	const std::shared_ptr<VulkanBuffer>& GetVertexBuffer() const;
-
-	void SetInstanceBuffer(std::shared_ptr<VulkanBuffer> instance_buffer);
-	const std::shared_ptr<VulkanBuffer>& GetInstanceBuffer() const;
+	void SetVertexBuffer(std::shared_ptr<VulkanBuffer> vertex_buffer, VertexFormat::BindingNum binding);
+	const std::shared_ptr<VulkanBuffer>& GetVertexBuffer(VertexFormat::BindingNum binding) const;
 
 	void SetIndexBuffer(std::shared_ptr<VulkanBuffer> index_buffer);
 	const std::shared_ptr<VulkanBuffer>& GetIndexBuffer() const;
@@ -51,20 +49,20 @@ public:
 
 	void SetAABB(const BoundingBox& aabb);
 	const BoundingBox& GetAABB() const;
-    void SetSphere(const BoundingSphere& sphere) const;
+    void SetSphere(const BoundingSphere& sphere);
 	const BoundingSphere& GetSphere() const;
 
 	const std::string& GetName() const;
 	void SetName(std::string name);
 
-	const VertexFormat& GetVertexFormat();
-	void SetVertexFormat(const VertexFormat& format);
+	const std::shared_ptr<ShaderSignature>& GetShaderSignature() const;
+	void SetShaderSignature(std::shared_ptr<ShaderSignature> format);
 
 private:
-	std::shared_ptr<VulkanBuffer> m_vertex_buffer;
+	std::unordered_map<VertexFormat::BindingNum, std::shared_ptr<VulkanBuffer>> m_vertex_buffers;
 	std::shared_ptr<VulkanBuffer> m_index_buffer;
-	std::shared_ptr<VulkanBuffer> m_instance_buffer;
-	VertexFormat m_vertex_format;
+	
+	std::shared_ptr<ShaderSignature> m_shader_signature;
 	std::shared_ptr<Material> m_material;
 
 	VkPrimitiveTopology m_primitive_topology;

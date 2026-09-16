@@ -53,26 +53,7 @@ bool ShaderSignature::init(std::shared_ptr<VulkanResourcesManager>& resources_ma
             else {
                 vf.setVertexBufferOffset(0u);
             }
-            if(pugi::xml_attribute idx_buff_attr = binding_node.attribute("index_buffer_bind_name")) {
-                vf.setIndexBufferBindingName(idx_buff_attr.as_string());
-            }
-            if(pugi::xml_attribute idx_buff_offset_attr = binding_node.attribute("index_buffer_offset")) {
-                vf.setIndexBufferOffset(idx_buff_offset_attr.as_uint());
-            }
-            else {
-                vf.setIndexBufferOffset(0u);
-            }
             vf.setVertexBufferResourceType(binding_node.attribute("vertex_buffer_resource_type").as_string());
-            if(pugi::xml_attribute idx_buff_res_attr = binding_node.attribute("index_buffer_resource_type")) {
-                vf.setIndexBufferResourceType(idx_buff_res_attr.as_string());
-            }
-            if(pugi::xml_attribute idx_buff_type_attr = binding_node.attribute("index_type")) {
-                vf.setIndexType(getIndexType(idx_buff_type_attr.as_string()));
-            }
-            else {
-                vf.setIndexType(VkIndexType::VK_INDEX_TYPE_UINT32);
-            }
-
             for (pugi::xml_node attribute_node = binding_node.first_child(); attribute_node; attribute_node = attribute_node.next_sibling()) {
                 int location = attribute_node.child("Location").text().as_int(0);
                 VertexAttributeGLSLFormat attr_glsl_format = getInputAttributeGLSLFormat(attribute_node.child("GLSLFormat").text().as_string());
@@ -84,6 +65,25 @@ bool ShaderSignature::init(std::shared_ptr<VulkanResourcesManager>& resources_ma
             }
             m_input_attributes.push_back(std::move(vf));
 		}
+
+        if(pugi::xml_attribute idx_buff_attr = input_attributes_desc_node.attribute("index_buffer_bind_name")) {
+            setIndexBufferBindingName(idx_buff_attr.as_string());
+        }
+        if(pugi::xml_attribute idx_buff_offset_attr = input_attributes_desc_node.attribute("index_buffer_offset")) {
+            setIndexBufferOffset(idx_buff_offset_attr.as_uint());
+        }
+        else {
+            setIndexBufferOffset(0u);
+        }
+        if(pugi::xml_attribute idx_buff_res_attr = input_attributes_desc_node.attribute("index_buffer_resource_type")) {
+            setIndexBufferResourceType(idx_buff_res_attr.as_string());
+        }
+        if(pugi::xml_attribute idx_buff_type_attr = input_attributes_desc_node.attribute("index_type")) {
+            setIndexType(::getIndexType(idx_buff_type_attr.as_string()));
+        }
+        else {
+            setIndexType(VkIndexType::VK_INDEX_TYPE_UINT32);
+        }
     }
 
     pugi::xml_node descriptor_set_node = shader_data.child("DescriptorSet");
@@ -136,10 +136,6 @@ bool ShaderSignature::init(std::shared_ptr<VulkanResourcesManager>& resources_ma
     return true;
 }
 
-const VertexFormat& ShaderSignature::getVertexFormat() const {
-    return m_input_attributes.front();
-}
-
 const std::string& ShaderSignature::getName() const {
     return m_name;
 }
@@ -168,12 +164,63 @@ const VertexFormat& ShaderSignature::getInputAttributes(size_t binding) const {
     return m_input_attributes.at(binding);
 }
 
+VertexFormat::BindingNum ShaderSignature::getFirstInputAttribute(std::function<bool(const VertexFormat&)> fn) const {
+    for(const VertexFormat& fmt : m_input_attributes) {
+        if(fn(fmt)) {
+            return fmt.getBindingNum();
+        }
+    }
+    return -1;
+}
+
 const std::vector<VertexFormat>& ShaderSignature::getInputAttributes() const {
     return m_input_attributes;
 }
 
 size_t ShaderSignature::getNumInputAttributeBindings() const {
     return m_input_attributes.size();
+}
+
+VkIndexType ShaderSignature::getIndexType() const {
+    return m_index_type;
+}
+
+uint32_t ShaderSignature::getIndexTypeBytesCount() const {
+    switch (m_index_type) {
+        case VK_INDEX_TYPE_UINT16 : return 2u;
+        case VK_INDEX_TYPE_UINT32 : return 4u;
+        case VK_INDEX_TYPE_NONE_KHR : return 0u;
+        case VK_INDEX_TYPE_UINT8_KHR : return 1u;
+        default : return 0;
+    }
+}
+
+void ShaderSignature::setIndexType(VkIndexType idx_type) {
+    m_index_type = idx_type;
+}
+
+const std::string& ShaderSignature::getIndexBufferBindingName() const {
+    return m_index_buffer_binding_name;
+}
+
+void ShaderSignature::setIndexBufferBindingName(std::string name) {
+    m_index_buffer_binding_name = std::move(name);
+}
+
+uint32_t ShaderSignature::getIndexBufferOffset() const {
+    return m_index_buffer_offset;
+}
+
+void ShaderSignature::setIndexBufferOffset(uint32_t offset) {
+    m_index_buffer_offset = offset;
+}
+
+const std::string& ShaderSignature::getIndexBufferResourceType() const {
+    return m_index_buffer_resource_type;
+}
+
+void ShaderSignature::setIndexBufferResourceType(std::string res_type) {
+    m_index_buffer_resource_type = std::move(res_type);
 }
 
 const std::unordered_map<ShaderSignature::SlotNumber, std::string>& ShaderSignature::getDescSetNames() const {
