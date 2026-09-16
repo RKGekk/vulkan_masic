@@ -6,7 +6,7 @@ layout (constant_id = 0) const bool kNonLinearColorSpace = true;
 layout(push_constant) uniform UniformRegisters {
     vec2 u_resolution; // Viewport Size in pixels (e.g. 1920.0, 1080.0)
     float u_line_width; // Dynamic Thickness adjustment in pixels
-    vec4 u_color // Line Color
+    vec4 u_color; // Line Color
 } registers;
 
 

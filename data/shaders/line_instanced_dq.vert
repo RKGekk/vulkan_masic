@@ -9,7 +9,7 @@ layout(set = 0, binding = 0) uniform UniformBufferObject {
 layout(push_constant) uniform UniformRegisters {
     vec2 u_resolution; // Viewport Size in pixels (e.g. 1920.0, 1080.0)
     float u_line_width; // Dynamic Thickness adjustment in pixels
-    vec4 u_color // Line Color
+    vec4 u_color; // Line Color
 } registers;
 
 layout(std430, set = 0, binding = 5) readonly buffer JointDualQuats {
@@ -48,7 +48,7 @@ void main() {
 
     vec2 position_screen = (position_clip.xy / position_clip.w) * registers.u_resolution;
     vec2 target_screen = (target_clip.xy / target_clip.w) * registers.u_resolution;
-    vec4 current_point_clip = mix(position_screen, target_screen, in_pc_mix);
+    vec4 current_point_clip = mix(position_clip, target_clip, in_pc_mix);
     vec2 current_point_screen = mix(position_screen, target_screen, in_pc_mix);
 
     vec2 line_direction = target_screen - position_screen;

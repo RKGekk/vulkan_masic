@@ -334,7 +334,7 @@ uint32_t GraphicsRenderNodeConfig::getInstanceCount() const {
     return m_instance_count;
 }
 
-uint32_t GraphicsRenderNodeConfig::setInstanceCount(uint32_t inst_ct) {
+void GraphicsRenderNodeConfig::setInstanceCount(uint32_t inst_ct) {
     m_instance_count_type = InstanceCountType::EXACT;
     m_instance_count = inst_ct;
 }

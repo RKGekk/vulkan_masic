@@ -37,7 +37,7 @@ public:
     const VkGraphicsPipelineCreateInfo& getPipelineInfo() const;
     const std::shared_ptr<VulkanRenderPass>& getRenderPass();
     VkPipelineVertexInputStateCreateInfo getInputInfo() const;
-    std::shared_ptr<VulkanShader> getShader(VkShaderStageFlagBits stage);
+    const std::shared_ptr<VulkanShader>& getShader(VkShaderStageFlagBits stage) const;
     const std::unordered_map<VkShaderStageFlagBits, std::shared_ptr<VulkanShader>>& getShaders() const;
     const std::unordered_map<uint32_t, std::shared_ptr<DescSetLayout>>& getDescLayouts() const;
 

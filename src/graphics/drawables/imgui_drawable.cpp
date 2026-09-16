@@ -115,7 +115,9 @@ std::shared_ptr<GraphicsRenderNode> ImGUIDrawable::makeRenderable(uint32_t image
     render_node = std::make_shared<GraphicsRenderNode>();
     render_node->init(m_device, "imgui_renderer"s, true, Application::GetRenderer().getFrameData(image_index)->render_graph);
 
-    std::shared_ptr<VulkanShader> vertex_shader = render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
+    const std::shared_ptr<VulkanShader>& vertex_shader = render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
+    const std::shared_ptr<ShaderSignature>& shader_signature = vertex_shader->getShaderSignature();
+    VertexFormat::BindingNum vertex_binding = shader_signature->getFirstInputAttribute([](const VertexFormat& vf){ return vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX; });
     std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames().at(0));
 
     render_node->add_update_function(
@@ -125,8 +127,8 @@ std::shared_ptr<GraphicsRenderNode> ImGUIDrawable::makeRenderable(uint32_t image
         }
     );
 
-    render_node->addReadDependency(m_per_frame[image_index]->vertex_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getVertexBufferBindingName());
-    render_node->addReadDependency(m_per_frame[image_index]->index_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getIndexBufferBindingName());
+    render_node->addReadDependency(m_per_frame[image_index]->vertex_buffer, shader_signature->getInputAttributes(vertex_binding).getVertexBufferBindingName());
+    render_node->addReadDependency(m_per_frame[image_index]->index_buffer, shader_signature->getIndexBufferBindingName());
     render_node->addReadDependency(m_per_frame[image_index]->uniform_buffer, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER));
     render_node->addReadDependency(m_font_texture, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
     render_node->addWriteDependency(swapchain_images[image_index], "resolve_attachment");

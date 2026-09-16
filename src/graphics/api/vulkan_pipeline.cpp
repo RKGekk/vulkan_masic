@@ -17,6 +17,8 @@
 #include <stdexcept>
 #include <unordered_set>
 
+std::shared_ptr<VulkanShader> NULL_PTR_SHADER;
+
 bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& pipeline_data, VkExtent2D viewport_extent, std::shared_ptr<VulkanRenderPass> render_pass, uint32_t subpass, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager) {
     using namespace std::literals;
     
@@ -176,8 +178,8 @@ VkPipelineVertexInputStateCreateInfo VulkanPipeline::getInputInfo() const {
     return m_input_info;
 }
 
-std::shared_ptr<VulkanShader> VulkanPipeline::getShader(VkShaderStageFlagBits stage) {
-    if(!m_shaders.contains(stage)) return nullptr;
+const std::shared_ptr<VulkanShader>& VulkanPipeline::getShader(VkShaderStageFlagBits stage) const {
+    if(!m_shaders.contains(stage)) return NULL_PTR_SHADER;
     return m_shaders.at(stage);
 }
 

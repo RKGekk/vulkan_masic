@@ -34,7 +34,7 @@ const std::shared_ptr<VulkanBuffer>& ModelData::GetIndexBuffer() const {
 size_t ModelData::GetIndexCount() const {
     size_t index_count = 0u;
     if (m_index_buffer) {
-        index_count = m_index_buffer->getNotAlignedSize() / m_shader_signature.getIndexTypeBytesCount();;
+        index_count = m_index_buffer->getNotAlignedSize() / m_shader_signature->getIndexTypeBytesCount();;
     }
 
     return index_count;
@@ -44,7 +44,7 @@ size_t ModelData::GetInstanceCount() const {
     size_t instance_count = 1u;
     if (!m_vertex_buffers.empty()) {
         for(const auto& [binding_num, vulkan_buffer] : m_vertex_buffers) {
-            const VertexFormat& vf = m_shader_signature.getInputAttributes(binding_num);
+            const VertexFormat& vf = m_shader_signature->getInputAttributes(binding_num);
             if(vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_INSTANCE) {
                 instance_count = vulkan_buffer->getNotAlignedSize() / vf.getVertexSize();
                 break;
@@ -60,7 +60,7 @@ size_t ModelData::GetVertexCount() const {
 
     if (!m_vertex_buffers.empty()) {
         for(const auto& [binding_num, vulkan_buffer] : m_vertex_buffers) {
-            const VertexFormat& vf = m_shader_signature.getInputAttributes(binding_num);
+            const VertexFormat& vf = m_shader_signature->getInputAttributes(binding_num);
             if(vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX) {
                 vertex_count = vulkan_buffer->getNotAlignedSize() / vf.getVertexSize();
                 break;

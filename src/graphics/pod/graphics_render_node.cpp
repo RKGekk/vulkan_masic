@@ -79,7 +79,6 @@ void GraphicsRenderNode::render(CommandBatch& command_buffer, unsigned image_ind
     m_first_binding = vertex_formats_array.front().getBindingNum();
     m_vertex_count = 0u;
     m_instance_count = 1u;
-    m_index_buffer_bind_num = 0u;
     for (const VertexFormat& vf : vertex_formats_array) {
         if(vf.getBindingNum() < m_first_binding) {
             m_first_binding = vf.getBindingNum();
@@ -91,10 +90,6 @@ void GraphicsRenderNode::render(CommandBatch& command_buffer, unsigned image_ind
         
         if(vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX) {
             m_vertex_count = vertex_buffer->getNotAlignedSize() / vf.getVertexSize();
-
-            if(m_node_config->getDrawType() == GraphicsRenderNodeConfig::DrawType::DRAW_INDEXED && !vf.getIndexBufferBindingName().empty()) {
-                m_index_buffer_bind_num = vf.getBindingNum();
-            }
         }
         else if(vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_INSTANCE) {
             m_instance_count = vertex_buffer->getNotAlignedSize() / vf.getVertexSize();
@@ -130,18 +125,17 @@ void GraphicsRenderNode::render(CommandBatch& command_buffer, unsigned image_ind
         }
     }
     else if(m_node_config->getDrawType() == GraphicsRenderNodeConfig::DrawType::DRAW_INDEXED) {
-        const VertexFormat& index_buffer_vf = vertex_shader_signature->getInputAttributes(m_index_buffer_bind_num);
-        const std::string& index_buffer_name = index_buffer_vf.getIndexBufferBindingName();
+        const std::string& index_buffer_name = vertex_shader_signature->getIndexBufferBindingName();
         std::shared_ptr<VulkanBuffer> index_buffer = getReadAttachedBufferResource(index_buffer_name);
         vkCmdBindIndexBuffer(
             command_buffer.getCommandBufer(),       // commandBuffer
             index_buffer->getBuffer(),              // buffer
-            index_buffer_vf.getIndexBufferOffset(), // offset
-            index_buffer_vf.getIndexType()          // indexType
+            vertex_shader_signature->getIndexBufferOffset(), // offset
+            vertex_shader_signature->getIndexType()          // indexType
         );
 
         if(m_node_config->getIndexCountType() == GraphicsRenderNodeConfig::IndexCountType::ALL) {
-            uint32_t index_count = index_buffer->getNotAlignedSize() / index_buffer_vf.getIndexTypeBytesCount();
+            uint32_t index_count = index_buffer->getNotAlignedSize() / vertex_shader_signature->getIndexTypeBytesCount();
             vkCmdDrawIndexed(
                 command_buffer.getCommandBufer(),   // commandBuffer
                 index_count,                        // indexCount

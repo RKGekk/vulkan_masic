@@ -78,7 +78,7 @@ public:
 
     InstanceCountType getInstanceCountType() const;
     uint32_t getInstanceCount() const;
-    uint32_t setInstanceCount(uint32_t inst_ct);
+    void setInstanceCount(uint32_t inst_ct);
     uint32_t getFirstInstance() const;
     void setFirstInstance(uint32_t first_instance);
 

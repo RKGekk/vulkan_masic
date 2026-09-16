@@ -54,11 +54,13 @@ bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
         m_render_nodes[i] = std::make_shared<GraphicsRenderNode>();
         m_render_nodes[i]->init(device, "mesh_render"s, false, Application::GetRenderer().getFrameData(i)->render_graph);
 
-        std::shared_ptr<VulkanShader> vertex_shader = m_render_nodes[i]->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
+        const std::shared_ptr<VulkanShader>& vertex_shader = m_render_nodes[i]->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
+        const std::shared_ptr<ShaderSignature>& shader_signature = vertex_shader->getShaderSignature();
+        VertexFormat::BindingNum vertex_binding = shader_signature->getFirstInputAttribute([](const VertexFormat& vf){ return vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX; });
         std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames().at(0));
 
-        m_render_nodes[i]->addReadDependency(m_vertex_buffers[i], vertex_shader->getShaderSignature()->getVertexFormat().getVertexBufferBindingName());
-        m_render_nodes[i]->addReadDependency(m_index_buffers[i], vertex_shader->getShaderSignature()->getVertexFormat().getIndexBufferBindingName());
+        m_render_nodes[i]->addReadDependency(m_vertex_buffers[i], shader_signature->getInputAttributes(vertex_binding).getVertexBufferBindingName());
+        m_render_nodes[i]->addReadDependency(m_index_buffers[i], shader_signature->getIndexBufferBindingName());
         m_render_nodes[i]->addReadDependency(m_uniform_buffers[i], desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER));
         m_render_nodes[i]->addReadDependency(m_texture, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
         m_render_nodes[i]->addWriteDependency(swapchain_images[i], "resolve_attachment");
