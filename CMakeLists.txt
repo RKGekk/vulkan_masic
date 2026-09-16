@@ -153,6 +153,8 @@ set(APP_SOURCES
     "${SRC_DIR}/actors/components/inverse_kinematics_component.cpp"
     "${SRC_DIR}/actors/components/bone_draw_component.h"
     "${SRC_DIR}/actors/components/bone_draw_component.cpp"
+    "${SRC_DIR}/actors/components/bone_draw_dq_component.h"
+    "${SRC_DIR}/actors/components/bone_draw_dq_component.cpp"
     "${SRC_DIR}/actors/components/coord_arrow_component.h"
     "${SRC_DIR}/actors/components/coord_arrow_component.cpp"
     "${SRC_DIR}/actors/components/light_component.h"

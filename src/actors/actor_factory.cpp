@@ -8,6 +8,7 @@
 #include "components/light_component.h"
 #include "components/inverse_kinematics_component.h"
 #include "components/bone_draw_component.h"
+#include "components/bone_draw_dq_component.h"
 
 unsigned int ActorFactory::GetNextActorId() {
     return ++m_last_actorId;
@@ -24,6 +25,7 @@ ActorFactory::ActorFactory() {
     m_component_factory.Register<LightComponent>(LightComponent::GetIdFromName(LightComponent::g_name), LightComponent::g_name);
     m_component_factory.Register<InverseKinematicsComponent>(ActorComponent::GetIdFromName(InverseKinematicsComponent::g_name), InverseKinematicsComponent::g_name);
     m_component_factory.Register<BoneDrawComponent>(ActorComponent::GetIdFromName(BoneDrawComponent::g_name), BoneDrawComponent::g_name);
+    m_component_factory.Register<BoneDrawDQComponent>(ActorComponent::GetIdFromName(BoneDrawDQComponent::g_name), BoneDrawDQComponent::g_name);
 }
 
 std::unordered_map<std::string, std::pair<std::shared_ptr<ActorComponent>, pugi::xml_node>> ActorFactory::getAllComponents(pugi::xml_node actor_node) {

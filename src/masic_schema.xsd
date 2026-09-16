@@ -2644,6 +2644,7 @@
                                         </xs:element>
                                         <xs:element name="CoordArrowComponent" minOccurs="0" maxOccurs="1"></xs:element>
                                         <xs:element name="BoneDrawComponent" minOccurs="0" maxOccurs="1"></xs:element>
+                                        <xs:element name="BoneDrawDQComponent" minOccurs="0" maxOccurs="1"></xs:element>
                                         <xs:element name="TransformAnimationComponent" minOccurs="0" maxOccurs="1">
                                             <xs:complexType>
                                                 <xs:sequence>
