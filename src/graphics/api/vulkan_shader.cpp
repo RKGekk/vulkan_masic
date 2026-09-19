@@ -6,6 +6,8 @@
 
 #include <filesystem>
 
+std::shared_ptr<VulkanShader> VulkanShader::NULL_PTR_SHADER = nullptr;
+
 bool VulkanShader::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<VulkanResourcesManager>& resources_manager, const pugi::xml_node& shader_data) {
     std::shared_ptr<ShaderSignature> shader_signature = std::make_shared<ShaderSignature>();
     shader_signature->init(resources_manager, shader_data);

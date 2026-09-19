@@ -5,6 +5,7 @@
 
 #include <pugixml.hpp>
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -15,6 +16,8 @@ class VulkanDevice;
 
 class VulkanShader {
 public:
+    static std::shared_ptr<VulkanShader> NULL_PTR_SHADER;
+
     bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<VulkanResourcesManager>& resources_manager, const pugi::xml_node& shader_data);
     bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<VulkanResourcesManager>& resources_manager, std::shared_ptr<ShaderSignature> shader_signature);
 

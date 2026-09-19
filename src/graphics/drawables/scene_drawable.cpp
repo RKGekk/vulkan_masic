@@ -114,12 +114,6 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
 
             std::shared_ptr<Renderable> renderable = std::make_shared<Renderable>();
             per_frame_data->renderables.push_back(renderable);
-            renderable->mesh_node = model;
-            
-            renderable->texture = material->GetTexture();
-
-            renderable->vertex_buffer = model_data->GetVertexBuffer();
-            renderable->index_buffer = model_data->GetIndexBuffer();
 
             std::string render_name = makeRenderNodeName(material);
             if(!Application::GetRenderer().getFrameData(frame)->render_graph->hasGraphicsRenderNodeConfig(render_name)) {
@@ -130,10 +124,18 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             renderable->render_node->init(m_device, render_name, false, Application::GetRenderer().getFrameData(frame)->render_graph);
 
             const std::shared_ptr<GraphicsRenderNodeConfig>& render_node_cfg = renderable->render_node->getGraphicsRenderNodeConfig();
+            const std::shared_ptr<VulkanShader>& vertex_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
+            const std::shared_ptr<ShaderSignature>& shader_signature = vertex_shader->getShaderSignature();
+            VertexFormat::BindingNum vertex_binding = shader_signature->getFirstInputAttribute([](const VertexFormat& vf){ return vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX; });
 
-            std::shared_ptr<VulkanShader> vertex_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
-            if(vertex_shader && vertex_shader->getShaderSignature()->getPushConstants()) {
-                renderable->const_params.push_back(vertex_shader->getShaderSignature()->getPushConstants());
+            renderable->mesh_node = model;
+            renderable->texture = material->GetTexture();
+
+            renderable->vertex_buffer = model_data->GetVertexBuffer(vertex_binding);
+            renderable->index_buffer = model_data->GetIndexBuffer();
+
+            if(vertex_shader && shader_signature->getPushConstants()) {
+                renderable->const_params.push_back(shader_signature->getPushConstants());
             }
 
             std::shared_ptr<VulkanShader> pixel_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_FRAGMENT_BIT);
@@ -146,10 +148,10 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             }
             
             if(renderable->vertex_buffer) {
-                renderable->render_node->addReadDependency(renderable->vertex_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getVertexBufferBindingName());
+                renderable->render_node->addReadDependency(renderable->vertex_buffer, shader_signature->getInputAttributes(vertex_binding).getVertexBufferBindingName());
             }
             if(renderable->index_buffer) {
-                renderable->render_node->addReadDependency(renderable->index_buffer, vertex_shader->getShaderSignature()->getVertexFormat().getIndexBufferBindingName());
+                renderable->render_node->addReadDependency(renderable->index_buffer, shader_signature->getIndexBufferBindingName());
             }
 
             renderable->render_node->add_update_function(
