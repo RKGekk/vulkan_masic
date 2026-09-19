@@ -292,7 +292,9 @@ VkPipelineVertexInputStateCreateInfo VulkanPipeline::getVertexInputInfo(const st
     if(!m_shaders.contains(VK_SHADER_STAGE_VERTEX_BIT)) return VkPipelineVertexInputStateCreateInfo{};
 
     const std::shared_ptr<VulkanShader>& vertex_shader = m_shaders.at(VK_SHADER_STAGE_VERTEX_BIT);
-    for(size_t b = 0u; b < vertex_shader->getShaderSignature()->getNumInputAttributeBindings(); ++b) {
+    const std::shared_ptr<ShaderSignature>& vs_shader_signature = vertex_shader->getShaderSignature();
+    size_t total_bindings = vs_shader_signature->getNumInputAttributeBindings();
+    for(size_t b = 0u; b < total_bindings; ++b) {
         const VertexFormat& vertex_format = vertex_shader->getShaderSignature()->getInputAttributes(b);
         VkVertexInputBindingDescription binding_desc{};
         binding_desc.binding = b;
@@ -300,13 +302,12 @@ VkPipelineVertexInputStateCreateInfo VulkanPipeline::getVertexInputInfo(const st
         binding_desc.inputRate = vertex_format.getInputRate();
         m_input_binding_descs.push_back(binding_desc);
     
-        size_t sz = vertex_format.getVertexAttribCount();
-        for (size_t i = 0; i < sz; ++i) {
+        for(const auto&[location, semantic] : vertex_format.getPosSemanticMap()) {
             VkVertexInputAttributeDescription attribute_desc{};
             attribute_desc.binding = b;
-            attribute_desc.location = i;
-            attribute_desc.format = vertex_format.getAttribInternalFormat(i);
-            attribute_desc.offset = vertex_format.getOffset(i);
+            attribute_desc.location = location;
+            attribute_desc.format = vertex_format.getAttribInternalFormat(location);
+            attribute_desc.offset = vertex_format.getOffset(location);
     
             m_input_attribute_descs.push_back(attribute_desc);
         }

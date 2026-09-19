@@ -3,6 +3,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <map>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -64,49 +65,45 @@ enum class VertexAttributeGLSLFormat : int32_t {
 class VertexFormat {
 public:
     using BindingNum = size_t;
+    using Location = size_t;
 
     static size_t getBytesForType(VkFormat format);
     static size_t GetNumComponentsInGLSLType(VertexAttributeGLSLFormat glsl_format);
 
     void addVertexAttribute(SemanticName semantic_name, VertexAttributeGLSLFormat glsl_format, VkFormat internal_format, std::string name);
-    void setVertexAttribute(SemanticName semantic_name, VertexAttributeGLSLFormat glsl_format, VkFormat internal_format, int location, std::string name);
+    void setVertexAttribute(SemanticName semantic_name, VertexAttributeGLSLFormat glsl_format, VkFormat internal_format, Location location, std::string name);
 
     bool checkVertexAttribExist(SemanticName semantic) const;
     size_t getVertexAttribPos(SemanticName semantic) const;
-    SemanticName getPosSemantic(size_t pos) const;
+    SemanticName getPosSemantic(Location pos) const;
 
-    VertexAttributeGLSLFormat getAttribGLSLFormat (size_t pos) const;
-    VkFormat getAttribInternalFormat (size_t pos) const;
+    VertexAttributeGLSLFormat getAttribGLSLFormat (Location pos) const;
+    VkFormat getAttribInternalFormat (Location pos) const;
     VertexAttributeGLSLFormat getAttribGLSLFormat (SemanticName semantic) const;
     VkFormat getAttribInternalFormat (SemanticName semantic) const;
 
-    const std::string& getAttribName(size_t pos) const;
+    const std::string& getAttribName(Location pos) const;
 
     size_t GetNumComponentsInGLSLType(SemanticName semantic) const;
     size_t GetNumComponentsInVkType(SemanticName semantic) const;
     size_t GetComponentSizeInVkType(SemanticName semantic) const;
 
     size_t getOffset(SemanticName semantic) const;
-    size_t getOffset(size_t pos) const;
+    size_t getOffset(Location pos) const;
 
     template<typename ElementType>
     size_t getOffset(SemanticName semantic) const {
         size_t offset = -1;
         if(!m_semantic_pos_map.count(semantic)) return offset;
-        offset = 0u;
-        size_t to = m_semantic_pos_map.at(semantic);
-        for(size_t i = 0u; i < to; ++i) {
-            VkFormat curr_format = m_internal_format_pos.at(i);
-            size_t bytes_ct = getBytesForType(curr_format);
-            size_t target_type_size = sizeof(ElementType);
-            size_t size_in_target_type = bytes_ct / target_type_size;
-            offset += size_in_target_type;
-        }
-        return offset;
+        offset = getOffset(semantic);
+        size_t target_type_size = sizeof(ElementType);
+        
+        return offset / target_type_size;
     };
 
     size_t getVertexAttribCount() const;
     size_t getVertexSize() const;
+    const std::map<Location, SemanticName>& getPosSemanticMap() const;
 
     VkVertexInputRate getInputRate() const;
     void setInputRate(VkVertexInputRate rate);
@@ -131,9 +128,9 @@ private:
     uint32_t m_vertex_buffer_offset;
     std::string m_vertex_buffer_resource_type;
 
-    std::vector<SemanticName> m_semantic_pos;
-    std::vector<std::string> m_name_pos;
-    std::vector<VertexAttributeGLSLFormat> m_glsl_format_pos;
-    std::vector<VkFormat> m_internal_format_pos;
-    std::unordered_map<SemanticName, size_t> m_semantic_pos_map;
+    std::unordered_map<Location, std::string> m_name_pos_map;
+    std::unordered_map<Location, VertexAttributeGLSLFormat> m_glsl_format_pos_map;
+    std::unordered_map<Location, VkFormat> m_internal_format_pos_map;
+    std::map<Location, SemanticName> m_pos_semantic_map;
+    std::unordered_map<SemanticName, Location> m_semantic_pos_map;
 };

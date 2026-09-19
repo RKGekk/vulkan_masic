@@ -19,8 +19,8 @@ layout(std430, set = 0, binding = 5) readonly buffer JointDualQuats {
 layout(location = 0) in float in_pc_mix;
 layout(location = 1) in float in_side;
 
-layout(location = 3) in uint in_parent_joint_idx;
-layout(location = 4) in uint in_child_joint_idx;
+layout(location = 2) in uint in_parent_joint_idx;
+layout(location = 3) in uint in_child_joint_idx;
 
 const float epsilon = 0.00001f;
 

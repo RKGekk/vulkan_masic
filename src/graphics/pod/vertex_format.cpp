@@ -84,28 +84,24 @@ size_t VertexFormat::GetNumComponentsInGLSLType(VertexAttributeGLSLFormat glsl_f
 }
 
 void VertexFormat::addVertexAttribute(SemanticName semantic_name, VertexAttributeGLSLFormat glsl_format, VkFormat internal_format, std::string name) {
-    size_t pos = m_semantic_pos.size();
-
-    m_semantic_pos.push_back(semantic_name);
-    m_glsl_format_pos.push_back(glsl_format);
-    m_internal_format_pos.push_back(internal_format);
-    m_semantic_pos_map[semantic_name] = pos;
-    m_name_pos.push_back(std::move(name));
-}
-
-void VertexFormat::setVertexAttribute(SemanticName semantic_name, VertexAttributeGLSLFormat glsl_format, VkFormat internal_format, int location, std::string name) {
-    if(m_semantic_pos.size() <= location) {
-        m_semantic_pos.resize(location + 1);
-        m_glsl_format_pos.resize(location + 1);
-        m_internal_format_pos.resize(location + 1);
-        m_name_pos.resize(location + 1);
+    size_t pos = 0u;
+    if(m_pos_semantic_map.size() > 0u) {
+        pos = (*(m_pos_semantic_map.end())).first + 1u;
     }
 
-    m_semantic_pos[location] = semantic_name;
-    m_glsl_format_pos[location] = glsl_format;
-    m_internal_format_pos[location] = internal_format;
+    m_pos_semantic_map[pos] = semantic_name;
+    m_glsl_format_pos_map[pos] = glsl_format;
+    m_internal_format_pos_map[pos] = internal_format;
+    m_semantic_pos_map[semantic_name] = pos;
+    m_name_pos_map[pos] = std::move(name);
+}
+
+void VertexFormat::setVertexAttribute(SemanticName semantic_name, VertexAttributeGLSLFormat glsl_format, VkFormat internal_format, Location location, std::string name) {
+    m_pos_semantic_map[location] = semantic_name;
+    m_glsl_format_pos_map[location] = glsl_format;
+    m_internal_format_pos_map[location] = internal_format;
     m_semantic_pos_map[semantic_name] = location;
-    m_name_pos[location] = std::move(name);
+    m_name_pos_map[location] = std::move(name);
 }
 
 bool VertexFormat::checkVertexAttribExist(SemanticName semantic) const {
@@ -116,30 +112,30 @@ size_t VertexFormat::getVertexAttribPos(SemanticName semantic) const {
     return m_semantic_pos_map.at(semantic);
 }
 
-SemanticName VertexFormat::getPosSemantic(size_t pos) const {
-    return m_semantic_pos.at(pos);
+SemanticName VertexFormat::getPosSemantic(Location pos) const {
+    return m_pos_semantic_map.at(pos);
 }
 
-VertexAttributeGLSLFormat VertexFormat::getAttribGLSLFormat (size_t pos) const {
-    return m_glsl_format_pos.at(pos);
+VertexAttributeGLSLFormat VertexFormat::getAttribGLSLFormat (Location pos) const {
+    return m_glsl_format_pos_map.at(pos);
 }
 
-VkFormat VertexFormat::getAttribInternalFormat (size_t pos) const {
-    return m_internal_format_pos.at(pos);
+VkFormat VertexFormat::getAttribInternalFormat (Location pos) const {
+    return m_internal_format_pos_map.at(pos);
 }
 
-const std::string& VertexFormat::getAttribName(size_t pos) const {
-    return m_name_pos.at(pos);
+const std::string& VertexFormat::getAttribName(Location pos) const {
+    return m_name_pos_map.at(pos);
 }
 
 VertexAttributeGLSLFormat VertexFormat::getAttribGLSLFormat (SemanticName semantic) const {
     if(!m_semantic_pos_map.count(semantic)) return VertexAttributeGLSLFormat::FLOAT;
-    return m_glsl_format_pos.at(m_semantic_pos_map.at(semantic));
+    return m_glsl_format_pos_map.at(m_semantic_pos_map.at(semantic));
 }
 
 VkFormat VertexFormat::getAttribInternalFormat (SemanticName semantic) const {
     if(!m_semantic_pos_map.count(semantic)) return VK_FORMAT_R8G8B8A8_UNORM;
-    return m_internal_format_pos.at(m_semantic_pos_map.at(semantic));
+    return m_internal_format_pos_map.at(m_semantic_pos_map.at(semantic));
 }
 
 size_t VertexFormat::GetNumComponentsInGLSLType(SemanticName semantic) const {
@@ -160,20 +156,21 @@ size_t VertexFormat::getOffset(SemanticName semantic) const {
     size_t offset = 0u;
     if(!m_semantic_pos_map.count(semantic)) return offset;
 
-    size_t to = m_semantic_pos_map.at(semantic);
-    for(size_t i = 0u; i < to; ++i) {
-        VkFormat curr_format = m_internal_format_pos.at(i);
+    for(const auto&[location, current_semantic] : m_pos_semantic_map) {
+        if(current_semantic == semantic) return offset;
+        VkFormat curr_format = m_internal_format_pos_map.at(location);
         size_t bytes_ct = VulkanDevice::getBytesCount(curr_format);
         offset += bytes_ct;
     }
     return offset;
 }
 
-size_t VertexFormat::getOffset(size_t pos) const {
+size_t VertexFormat::getOffset(Location pos) const {
     size_t offset = 0u;
 
-    for(size_t i = 0u; i < pos; ++i) {
-        VkFormat curr_format = m_internal_format_pos.at(i);
+    for(const auto&[location, semantic] : m_pos_semantic_map) {
+        if(pos == location) return offset;
+        VkFormat curr_format = m_internal_format_pos_map.at(location);
         size_t bytes_ct = VulkanDevice::getBytesCount(curr_format);
         offset += bytes_ct;
     }
@@ -181,19 +178,22 @@ size_t VertexFormat::getOffset(size_t pos) const {
 }
 
 size_t VertexFormat::getVertexAttribCount() const {
-    return m_semantic_pos.size();
+    return m_semantic_pos_map.size();
 }
 
 size_t VertexFormat::getVertexSize() const {
     size_t stride = 0u;
 
-    size_t sz = m_semantic_pos.size();
-    for(size_t i = 0u; i < sz; ++i) {
-        VkFormat curr_format = m_internal_format_pos.at(i);
+    for(const auto&[location, semantic] : m_pos_semantic_map) {
+        VkFormat curr_format = m_internal_format_pos_map.at(location);
         size_t bytes_ct = VulkanDevice::getBytesCount(curr_format);
         stride += bytes_ct;
     }
     return stride;
+}
+
+const std::map<VertexFormat::Location, SemanticName>& VertexFormat::getPosSemanticMap() const {
+    return m_pos_semantic_map;
 }
 
 VkVertexInputRate VertexFormat::getInputRate() const {

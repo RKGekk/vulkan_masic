@@ -351,6 +351,10 @@
                         <GLSLFormat>float</GLSLFormat>
                         <InternalFormat>r32_sfloat</InternalFormat>
                     </Constant>
+                    <Constant field_name="u_color">
+                        <GLSLFormat>vec4</GLSLFormat>
+                        <InternalFormat>r32g32b32a32_sfloat</InternalFormat>
+                    </Constant>
                 </Constants>
             </PushConstant>
         </ResourceType>
@@ -1146,13 +1150,13 @@
                          input_rate="instance"
                          vertex_buffer_resource_type="basic_instance_resource">
                     <Attribute name="in_parent_joint_idx">
-                        <Location>3</Location>
+                        <Location>2</Location>
                         <GLSLFormat>uint</GLSLFormat>
                         <InternalFormat>r32_uint</InternalFormat>
                         <Semantic num="2">OTHER</Semantic>
                     </Attribute>
                     <Attribute name="in_child_joint_idx">
-                        <Location>4</Location>
+                        <Location>3</Location>
                         <GLSLFormat>uint</GLSLFormat>
                         <InternalFormat>r32_uint</InternalFormat>
                         <Semantic num="3">OTHER</Semantic>

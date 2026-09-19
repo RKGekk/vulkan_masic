@@ -9,6 +9,7 @@ layout(set = 0, binding = 0) uniform UniformBufferObject {
 layout(push_constant) uniform UniformRegisters {
     vec2 u_resolution; // Viewport Size in pixels (e.g. 1920.0, 1080.0)
     float u_line_width; // Dynamic Thickness adjustment in pixels
+    vec4 u_color; // Line Color
 } registers;
 
 layout(location = 0) in vec3 in_position;
