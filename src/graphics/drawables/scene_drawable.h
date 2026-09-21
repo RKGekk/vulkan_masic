@@ -44,7 +44,7 @@ public:
     struct Renderable {
         std::shared_ptr<MeshNode> mesh_node;
         std::unordered_map<std::string, std::shared_ptr<VulkanBuffer>> uniform_buffers;
-        std::shared_ptr<VulkanBuffer> vertex_buffer;
+        std::unordered_map<VertexFormat::BindingNum, std::shared_ptr<VulkanBuffer>> vertex_buffers;
         std::shared_ptr<VulkanBuffer> index_buffer;
         std::shared_ptr<VulkanImageBuffer> texture;
         std::vector<std::shared_ptr<VulkanPushConstant>> const_params;

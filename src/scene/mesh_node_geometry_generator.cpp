@@ -237,6 +237,8 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLine(const std
     resolution.y = (float)Application::Get().GetApplicationOptions().ScreenHeight;
     value_bag_node->AppendValue("u_resolution"s, sizeof(glm::vec2), &resolution);
     value_bag_node->AppendValue("u_line_width"s, sizeof(float), &line_width);
+    glm::vec4 line_color = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+    value_bag_node->AppendValue("u_color"s, sizeof(glm::vec4), &line_color);
 
 	return new_node;
 }
@@ -254,7 +256,7 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLineInstanced(
     m_device = renderer.GetDevice();
     m_scene = Application::Get().GetGameLogic()->GetHumanView()->VGetScene();
 	m_shader_manager = shader_manager;
-	m_default_vertex_shader_name = "line_instanced_dq"s;
+	m_default_vertex_shader_name = "line_instanced_dq_vertex_shader"s;
     m_root_node = root_transform;
     //m_root_node = root_transform->GetParent();
 
@@ -330,6 +332,8 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLineInstanced(
     resolution.y = (float)Application::Get().GetApplicationOptions().ScreenHeight;
     value_bag_node->AppendValue("u_resolution"s, sizeof(glm::vec2), &resolution);
     value_bag_node->AppendValue("u_line_width"s, sizeof(float), &line_width);
+    glm::vec4 line_color = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+    value_bag_node->AppendValue("u_color"s, sizeof(glm::vec4), &line_color);
 
 	return new_node;
 }
@@ -474,6 +478,8 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateSceneNodeSpline(co
     resolution.y = (float)Application::Get().GetApplicationOptions().ScreenHeight;
     value_bag_node->AppendValue("u_resolution"s, sizeof(glm::vec2), &resolution);
     value_bag_node->AppendValue("u_line_width"s, sizeof(float), &line_width);
+    glm::vec4 line_color = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+    value_bag_node->AppendValue("u_color"s, sizeof(glm::vec4), &line_color);
 
 	return new_node;
 }

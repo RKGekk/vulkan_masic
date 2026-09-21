@@ -126,13 +126,18 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             const std::shared_ptr<GraphicsRenderNodeConfig>& render_node_cfg = renderable->render_node->getGraphicsRenderNodeConfig();
             const std::shared_ptr<VulkanShader>& vertex_shader = renderable->render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
             const std::shared_ptr<ShaderSignature>& shader_signature = vertex_shader->getShaderSignature();
-            VertexFormat::BindingNum vertex_binding = shader_signature->getFirstInputAttribute([](const VertexFormat& vf){ return vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX; });
+            //VertexFormat::BindingNum vertex_binding = shader_signature->getFirstInputAttribute([](const VertexFormat& vf){ return vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX; });
+            //VertexFormat::BindingNum instance_binding = shader_signature->getFirstInputAttribute([](const VertexFormat& vf){ return vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_INSTANCE; });
 
             renderable->mesh_node = model;
             renderable->texture = material->GetTexture();
 
-            renderable->vertex_buffer = model_data->GetVertexBuffer(vertex_binding);
-            renderable->index_buffer = model_data->GetIndexBuffer();
+
+            for(const VertexFormat& vf : shader_signature->getInputAttributes()) {
+                VertexFormat::BindingNum binding_num = vf.getBindingNum();
+                renderable->vertex_buffers[binding_num] = model_data->GetVertexBuffer(binding_num);
+                renderable->render_node->addReadDependency(renderable->vertex_buffers[binding_num], shader_signature->getInputAttributes(binding_num).getVertexBufferBindingName());
+            }
 
             if(vertex_shader && shader_signature->getPushConstants()) {
                 renderable->const_params.push_back(shader_signature->getPushConstants());
@@ -147,9 +152,7 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                 updatePushConstants(frame, renderable_id);
             }
             
-            if(renderable->vertex_buffer) {
-                renderable->render_node->addReadDependency(renderable->vertex_buffer, shader_signature->getInputAttributes(vertex_binding).getVertexBufferBindingName());
-            }
+            renderable->index_buffer = model_data->GetIndexBuffer();
             if(renderable->index_buffer) {
                 renderable->render_node->addReadDependency(renderable->index_buffer, shader_signature->getIndexBufferBindingName());
             }
