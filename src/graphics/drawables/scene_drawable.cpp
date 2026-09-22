@@ -132,7 +132,6 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             renderable->mesh_node = model;
             renderable->texture = material->GetTexture();
 
-
             for(const VertexFormat& vf : shader_signature->getInputAttributes()) {
                 VertexFormat::BindingNum binding_num = vf.getBindingNum();
                 renderable->vertex_buffers[binding_num] = model_data->GetVertexBuffer(binding_num);

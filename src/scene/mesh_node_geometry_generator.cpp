@@ -312,9 +312,10 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLineInstanced(
     }
 
     const void* vertex_data_ptr = vertex_data.data();
+    const void* instance_data_ptr = instance_data.data();
 
     std::shared_ptr<VulkanBuffer> vertex_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(vertex_data_ptr, 6u * shader_signature->getInputAttributes(vertex_binding).getVertexSize(), mesh_name + "_linedq_vertex_buffer_"s, "static_vertex_resource");
-    std::shared_ptr<VulkanBuffer> instance_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(vertex_data_ptr, total_bones * shader_signature->getInputAttributes(instance_binding).getVertexSize(), mesh_name + "_line_vertex_buffer_"s, "basic_instance_resource");
+    std::shared_ptr<VulkanBuffer> instance_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(instance_data_ptr, total_bones * shader_signature->getInputAttributes(instance_binding).getVertexSize(), mesh_name + "_line_vertex_buffer_"s, "basic_instance_resource");
 
 	model_data->SetVertexBuffer(std::move(vertex_buffer), vertex_binding);
 	model_data->SetVertexBuffer(std::move(instance_buffer), instance_binding);

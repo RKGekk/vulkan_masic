@@ -135,9 +135,9 @@ std::shared_ptr<BufferConfig> BufferConfig::makeInstance(std::string name, VkDev
     if(m_deffered_size) {
         instance_ptr->m_buffer_info.size = buffer_size;
         instance_ptr->m_alignment = 1u;
-        instance_ptr->m_not_aligned_size = buffer_size;
     }
 
+    instance_ptr->m_not_aligned_size = buffer_size;
     instance_ptr->m_dynamic_size = m_dynamic_size;
     instance_ptr->m_deffered_size = false;
     instance_ptr->m_memory_properties = m_memory_properties;
