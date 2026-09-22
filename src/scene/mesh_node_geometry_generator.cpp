@@ -271,6 +271,7 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLineInstanced(
 
     std::shared_ptr<MeshNode> mesh_node = std::make_shared<MeshNode>(m_scene, new_node->VGetNodeIndex());
 	m_scene->addProperty(mesh_node);
+    mesh_node->SetSkinName(skeleton_name);
 
     const std::shared_ptr<ShaderSignature>& shader_signature = m_shader_manager->getShader(m_default_vertex_shader_name)->getShaderSignature();
 

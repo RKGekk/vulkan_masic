@@ -2,6 +2,14 @@
 
 #define MaxLights 9
 
+layout(push_constant) uniform UniformRegisters {
+    vec4 u_ambient_light;
+    vec2 u_resolution; // Viewport Size in pixels (e.g. 1920.0, 1080.0)
+    uint u_num_dir_lights;
+    uint u_num_point_lights;
+    uint u_num_spot_lights;
+} registers;
+
 layout(set = 0, binding = 1) uniform InvMatrixBufferObject {
     mat4 inv_model;
     mat4 inv_view;
@@ -13,14 +21,6 @@ layout(set = 0, binding = 2) uniform MaterialBufferObject {
 } material;
 
 layout(set = 0, binding = 3) uniform sampler2D texure_sampler;
-
-layout(push_constant) uniform UniformRegisters {
-    vec4 u_ambient_light;
-    vec2 u_resolution; // Viewport Size in pixels (e.g. 1920.0, 1080.0)
-    uint u_num_dir_lights;
-    uint u_num_point_lights;
-    uint u_num_spot_lights;
-} registers;
 
 struct Light {
     vec4 strength;

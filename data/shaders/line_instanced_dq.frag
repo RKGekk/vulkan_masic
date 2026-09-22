@@ -9,7 +9,6 @@ layout(push_constant) uniform UniformRegisters {
     vec4 u_color; // Line Color
 } registers;
 
-
 void main() {
     vec4 c = vec4(registers.u_color.rgb, 1.0);
     // Render UI in linear color space to sRGB framebuffer.

@@ -312,7 +312,28 @@
                 </LayoutBinding>
             </Layout>
         </DescriptorSet>
-        
+
+        <DescriptorSet name="linedq_descriptor_set" allocator="basic_alloc">
+            <Layout>
+                <LayoutBinding name="ubo">
+                    <Binding>0</Binding>
+                    <DescriptorType>uniform_buffer</DescriptorType>
+                    <DescriptorCount>1</DescriptorCount>
+                    <ShaderStageFlags>
+                        <Flag>vertex</Flag>
+                    </ShaderStageFlags>
+                </LayoutBinding>
+                <LayoutBinding name="joint_ssbo">
+                    <Binding>1</Binding>
+                    <DescriptorType>storage_buffer</DescriptorType>
+                    <DescriptorCount>1</DescriptorCount>
+                    <ShaderStageFlags>
+                        <Flag>vertex</Flag>
+                    </ShaderStageFlags>
+                </LayoutBinding>
+            </Layout>
+        </DescriptorSet>
+
         <DescriptorSet name="imgui_descriptor_set" allocator="imgui_alloc">
             <Layout>
                 <LayoutBinding name="uniform">
@@ -1164,7 +1185,7 @@
                 </Binding>
             </InputAttributeDescription>
             <DescriptorSet>
-                <Set slot="0">line_descriptor_set</Set>
+                <Set slot="0">linedq_descriptor_set</Set>
             </DescriptorSet>
             <PushConstantName>line_push_constants</PushConstantName>
         </Shader>
@@ -2160,6 +2181,12 @@
                     <Buffer>
                         <BufferResourceType>basic_uniform_resource</BufferResourceType>
                         <UpdateFunctionName>mvp_matrices_update</UpdateFunctionName>
+                    </Buffer>
+                </LayoutBinding>
+                <LayoutBinding name="joint_ssbo" resource_creation_point="RenderNodeCreationTime">
+                    <Buffer>
+                        <BufferResourceType>joint_storage_resource</BufferResourceType>
+                        <UpdateFunctionName>joint_dq_update</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
             </DescriptorResourcesCreateAndUpdate>

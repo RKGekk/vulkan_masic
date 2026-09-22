@@ -60,6 +60,9 @@ enum class VertexAttributeGLSLFormat : int32_t {
     BOOL_VEC2 = 17,
     BOOL_VEC3 = 18,
     BOOL_VEC4 = 19,
+    FLOAT_MAT2 = 20,
+    FLOAT_MAT3 = 21,
+    FLOAT_MAT4 = 24
 };
 
 class VertexFormat {

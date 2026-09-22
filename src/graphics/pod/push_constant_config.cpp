@@ -19,14 +19,19 @@ bool PushConstantConfig::init(std::string name, const pugi::xml_node& const_data
     
     uint32_t offset = 0u;
     m_raw_size = 0u;
-    uint32_t m_largest_member_alignment = 4u;
+    m_largest_member_alignment = 4u;
     for (pugi::xml_node constant_node = push_constants_node.first_child(); constant_node; constant_node = constant_node.next_sibling()) {
         ShaderConstant shader_constant{};
         shader_constant.vk_format = getFormat(constant_node.child("InternalFormat").text().as_string());
         shader_constant.glsl_format = getInputAttributeGLSLFormat(constant_node.child("GLSLFormat").text().as_string());
         shader_constant.size = VulkanDevice::getBytesCount(shader_constant.vk_format);
-        shader_constant.offset = offset;
         shader_constant.allignment = getGLSLAlignment(shader_constant.glsl_format);
+        //offset = (offset + shader_constant.allignment - 1u) & ~(shader_constant.allignment - 1u);
+        uint32_t reminder = offset % shader_constant.allignment;
+        if(reminder) {
+            offset += shader_constant.allignment - reminder;
+        }
+        shader_constant.offset = offset;
         shader_constant.name = constant_node.attribute("field_name").as_string();
         if(shader_constant.allignment > m_largest_member_alignment) m_largest_member_alignment = shader_constant.allignment;
 
@@ -34,8 +39,7 @@ bool PushConstantConfig::init(std::string name, const pugi::xml_node& const_data
         m_push_constants_metadata.push_back(shader_constant);
         m_push_constants_names_map[shader_constant.name] = constant_id;
 
-        //offset += bytes_for_type;
-        offset += shader_constant.allignment;
+        offset += shader_constant.size;
         m_raw_size += shader_constant.size;
 	}
     m_total_size = m_push_constants_metadata.back().offset + m_push_constants_metadata.back().size;
@@ -70,6 +74,8 @@ uint32_t PushConstantConfig::getGLSLAlignment(VertexAttributeGLSLFormat glsl_for
         case VertexAttributeGLSLFormat::INT_VEC4 : return 16u;
         case VertexAttributeGLSLFormat::UINT_VEC4 : return 16u;
         case VertexAttributeGLSLFormat::BOOL_VEC4 : return 16u;
+
+        case VertexAttributeGLSLFormat::FLOAT_MAT4 : return 16u;
 
         default : return 4u;
     }
