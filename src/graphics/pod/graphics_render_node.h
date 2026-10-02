@@ -21,6 +21,8 @@ public:
 
     virtual void render(CommandBatch& command_buffer, unsigned image_index) override;
     virtual void finishRenderNode() override;
+    virtual void updateDescriptors() override;
+    void initFramebuffer();
 
     const std::shared_ptr<VulkanPipeline>& getPipeline();
     VkFramebuffer getVkFramebuffer() const;

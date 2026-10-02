@@ -36,7 +36,7 @@ HumanView::HumanView(std::shared_ptr<ProcessManager> process_manager) {
 	RegisterAllDelegates();
 	m_base_game_state = BaseEngineState::BGS_Initializing;
 
-	m_scene = std::make_shared<ScreenElementScene>();
+	m_screen_element_scene = std::make_shared<ScreenElementScene>();
 
 	if (m_bShow_debug_ui) {
 		m_gui = std::make_shared<ImGUIDrawable>();
@@ -64,7 +64,7 @@ HumanView::HumanView(std::shared_ptr<ProcessManager> process_manager) {
 
 HumanView::~HumanView() {
 	RemoveAllDelegates();
-	m_scene.reset();
+	//m_screen_element_scene.reset();
 	m_gui->destroy();
 }
 
@@ -120,9 +120,14 @@ void HumanView::VOnUpdate(const GameTimerDelta& delta, uint32_t image_index) {
 	for (ScreenElementList::iterator i = m_screen_elements.begin(); i != m_screen_elements.end(); ++i) {
 		(*i)->VOnUpdate(delta, image_index);
 	}
-	m_scene->getAnimationManager()->Update(delta);
-	m_scene->recalculateGlobalTransforms();
-	m_scene->getSkeletonManager()->recalculateSkinnedData();
+	const std::shared_ptr<Scene>& scene = m_screen_element_scene->getScene();
+	scene->getAnimationManager()->Update(delta);
+	scene->recalculateGlobalTransforms();
+    if(const std::shared_ptr<CameraComponent>& camera_component = VGetCamera()) {
+		const std::shared_ptr<BasicCameraNode>& camera_node = camera_component->VGetCameraNode();
+    	scene->getLightManager()->CalcLighting(std::static_pointer_cast<CameraNode>(camera_node));
+	}
+	scene->getSkeletonManager()->recalculateSkinnedData();
 }
 
 EngineViewType HumanView::VGetType() {
@@ -182,11 +187,11 @@ void HumanView::VSetControlledActor(std::shared_ptr<Actor> actor) {
 	}
 }
 
-std::shared_ptr<CameraComponent> HumanView::VGetCamera() {
+const std::shared_ptr<CameraComponent>& HumanView::VGetCamera() {
 	if (!m_camera.expired()) {
 		return m_camera.lock();
 	}
-	return nullptr;
+	return CameraComponent::NULL_CAMERA_PTR;
 }
 
 void HumanView::VSetCameraByName(std::string camera_name) {
@@ -200,7 +205,7 @@ void HumanView::VSetCameraByName(std::string camera_name) {
 }
 
 const std::shared_ptr<ScreenElementScene>& HumanView::VGetScene() {
-	return m_scene;
+	return m_screen_element_scene;
 }
 
 const std::string& HumanView::VGetName() {
@@ -528,13 +533,13 @@ bool HumanView::VLoadGameDelegate(const pugi::xml_node& pLevel_data) {
 			}
 		}
 	}
-	VPushElement(m_scene);
+	VPushElement(m_screen_element_scene);
 
 	if(std::shared_ptr<CameraComponent> cam = m_camera.lock()) {
 		VSetControlledActor(cam->GetOwner());
 	}
 
-	m_scene->VOnRestore();
+	m_screen_element_scene->VOnRestore();
 
 	return true;
 }

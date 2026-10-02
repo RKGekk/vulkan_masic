@@ -301,14 +301,12 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLineInstanced(
         const Scene::Hierarchy& current_bone_hierarchy = m_scene->getNodeHierarchy(current_bone->VGetNodeIndex());
 
         const std::shared_ptr<SceneNode>& parent_node = m_scene->getProperty(current_bone_hierarchy.parent, Scene::NODE_TYPE_FLAG_BONE);
-        if(parent_node) {
-            std::shared_ptr<BoneNode> parent_bone = std::dynamic_pointer_cast<BoneNode>(parent_node);
-            if(parent_bone && skin_data->bone_to_joint_map.contains(parent_bone)) {
-                BoneInstanceDataType inst_data;
-                inst_data.parent_joint_idx = parent_bone->getJointIndex(skeleton_name);
-                inst_data.child_joint_idx = current_bone->getJointIndex(skeleton_name);
-                instance_data.push_back(inst_data);
-            }
+        std::shared_ptr<BoneNode> parent_bone = std::dynamic_pointer_cast<BoneNode>(parent_node);
+        if(parent_bone && skin_data->bone_to_joint_map.contains(parent_bone)) {
+            BoneInstanceDataType inst_data;
+            inst_data.parent_joint_idx = parent_bone->getJointIndex(skeleton_name);
+            inst_data.child_joint_idx = current_bone->getJointIndex(skeleton_name);
+            instance_data.push_back(inst_data);
         }
     }
 

@@ -13,7 +13,7 @@ bool DescSetLayout::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_n
     
     pugi::xml_node layout_node = descriptor_sets_node.child("Layout");
 	for (pugi::xml_node layout_binding_node = layout_node.first_child(); layout_binding_node; layout_binding_node = layout_binding_node.next_sibling()) {
-        std::string layout_binding_name = layout_binding_node.attribute("name").as_string();
+        BindingName layout_binding_name = layout_binding_node.attribute("name").as_string();
 
         VkDescriptorSetLayoutBinding layout_binding{};
         layout_binding.binding = layout_binding_node.child("Binding").text().as_int();
@@ -111,7 +111,7 @@ VkDescriptorSetLayoutBinding DescSetLayout::getBinding(DescSetLayout::BindingNum
     return {};
 }
 
-VkDescriptorSetLayoutBinding DescSetLayout::getBinding(const std::string& binding_name) const {
+VkDescriptorSetLayoutBinding DescSetLayout::getBinding(const BindingName& binding_name) const {
     if(m_binding_name_map.contains(binding_name)) {
         return m_bindings.at(m_binding_num_to_idx_map.at(m_binding_name_map.at(binding_name)));
     }
@@ -129,12 +129,12 @@ bool DescSetLayout::haveBindingNum(DescSetLayout::BindingNum binding_num) const 
     return m_binding_num_to_idx_map.contains(binding_num);
 }
 
-bool DescSetLayout::haveBindingName(const std::string& binding_name) const {
+bool DescSetLayout::haveBindingName(const BindingName& binding_name) const {
     return m_binding_name_map.contains(binding_name);
 }
 
-const std::string& DescSetLayout::getBindingName(VkDescriptorType desc_type) const {
-    static const std::string empty = "";
+const DescSetLayout::BindingName& DescSetLayout::getBindingName(VkDescriptorType desc_type) const {
+    static const BindingName empty = "";
     for(const VkDescriptorSetLayoutBinding& binding : m_bindings) {
         if(binding.descriptorType == desc_type) {
             return m_binding_num_to_name_map.at(binding.binding);
@@ -143,15 +143,15 @@ const std::string& DescSetLayout::getBindingName(VkDescriptorType desc_type) con
     return empty;
 }
 
-const std::string& DescSetLayout::getBindingName(DescSetLayout::BindingNum binding_num) const {
+const DescSetLayout::BindingName& DescSetLayout::getBindingName(DescSetLayout::BindingNum binding_num) const {
     return m_binding_num_to_name_map.at(binding_num);
 }
 
-DescSetLayout::BindingNum DescSetLayout::getBindingNum(const std::string& binding_name) const {
+DescSetLayout::BindingNum DescSetLayout::getBindingNum(const BindingName& binding_name) const {
     return m_binding_name_map.at(binding_name);
 }
 
-const std::unordered_map<std::string, DescSetLayout::BindingNum>& DescSetLayout::getBindingMap() const {
+const std::unordered_map<DescSetLayout::BindingName, DescSetLayout::BindingNum>& DescSetLayout::getBindingMap() const {
     return m_binding_name_map;
 }
 

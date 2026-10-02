@@ -12,6 +12,7 @@ class VulkanDevice;
 class RenderResource {
 public:
     using ResourceName = std::string;
+    static const std::shared_ptr<RenderResource> ROSOURCE_NULL_PTR;
 
     enum class Type : uint32_t {
         BUFFER,

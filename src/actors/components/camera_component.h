@@ -30,6 +30,7 @@ class CameraComponent : public BaseSceneNodeComponent {
 public:
 	static const std::string g_name;
 	static const std::vector<std::string> g_dependency_list;
+	static const std::shared_ptr<CameraComponent> NULL_CAMERA_PTR;
 
 	CameraComponent();
 	CameraComponent(const pugi::xml_node& data);

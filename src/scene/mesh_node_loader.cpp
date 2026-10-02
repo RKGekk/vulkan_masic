@@ -99,6 +99,7 @@ std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem
 			for (int joint_ct = 0; int bone_node_idx : gltf_skin.joints) {
 				BoneIdentity bone_identity{};
 				bone_identity.joint = joint_ct;
+				bone_identity.bind_matrix = glm::inverse(inv_matrices[joint_ct]);
 				bone_identity.inv_matrix = inv_matrices[joint_ct];
 				bone_identity.skin_name = gltf_skin.name;
 				bone_identity.skin_id = skin_ct;
@@ -473,6 +474,7 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Node& g
     std::shared_ptr<MeshNode> mesh_node = std::make_shared<MeshNode>(m_scene, node);
 	m_scene->addProperty(mesh_node);
     const std::string& mesh_name = gltf_mesh.name;
+	
 
 	if(gltf_node.skin != -1) {
 		const tinygltf::Skin& gltf_skin = m_gltf_model.skins[gltf_node.skin];
@@ -537,7 +539,7 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Node& g
 		model_data->SetVertexBuffer(std::move(vertex_buffer), vertex_binding);
 		model_data->SetIndexBuffer(std::move(index_buffer));
 		
-    	model_data->SetName(m_model_path.string() + "/node"s + std::to_string(node) + "/"s + mesh_name);
+    	model_data->SetName(m_model_path.string() + "/node"s + std::to_string(node) + "/"s + mesh_name + "/primitive"s + std::to_string(prim_idx));
     	//model_data->calculateBoundingBox();
 
     	mesh_node->AddMesh(model_data);
@@ -559,7 +561,8 @@ std::shared_ptr<BoneNode> MeshNodeLoader::MakeBoneNode(NodeIdx gltf_node_idx, Sc
 	std::shared_ptr<BoneNode> bone_node = std::make_shared<BoneNode>(m_scene, node);
 	//bone_node->setBindMatrice(bone_node->Get().ToParent());
 	for (const BoneIdentity& bone_identity : m_skin_inv_map[gltf_node_idx]) {
-		BoneNode::BoneData bone_data = {bone_identity.inv_matrix, bone_identity.joint, m_root_node};
+
+		BoneNode::BoneData bone_data = {bone_identity.bind_matrix, bone_identity.inv_matrix, bone_identity.joint, m_root_node};
 		bone_node->setBoneData(bone_data, bone_identity.skin_name);
 	}
 

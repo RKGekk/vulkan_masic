@@ -293,7 +293,17 @@ std::shared_ptr<RenderResource> VulkanResourcesManager::getResource(const std::s
 	else if(m_buffer_map.contains(resource_global_name)) {
 		return m_buffer_map[resource_global_name];
 	}
+	else if(m_push_constant_map.contains(resource_global_name)) {
+		return m_push_constant_map[resource_global_name];
+	}
 	return nullptr;
+}
+
+bool VulkanResourcesManager::hasResource(const std::string& resource_global_name) const {
+	if(m_image_map.contains(resource_global_name) || m_buffer_map.contains(resource_global_name) || m_push_constant_map.contains(resource_global_name)) {
+		return true;
+	}
+	return false;
 }
 
 const std::shared_ptr<ImageBufferConfig> VulkanResourcesManager::getImageBufferConfigTemplate(const std::string& template_name) const {

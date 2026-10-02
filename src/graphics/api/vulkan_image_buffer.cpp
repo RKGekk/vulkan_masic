@@ -23,9 +23,10 @@
 //#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image.h>
 
+const std::shared_ptr<VulkanImageBuffer> VulkanImageBuffer::IMAGE_BUFFER_NULL_PTR = nullptr;
+
 VulkanImageBuffer::VulkanImageBuffer(std::shared_ptr<VulkanDevice> device, std::string name) : m_device(std::move(device)), m_name(std::move(name)) {}
 VulkanImageBuffer::VulkanImageBuffer(std::shared_ptr<VulkanDevice> device) : m_device(std::move(device)), m_name(std::to_string(rand())) {}
-
 
 bool VulkanImageBuffer::init(VkImage image, std::shared_ptr<ImageBufferConfig> image_buffer_config) {
 

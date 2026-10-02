@@ -38,6 +38,8 @@ public:
 
     using UpdateFunctionName = std::string;
     using DescriptorSetSlot = uint32_t;
+    using DescSetLayoutBindingName = std::string;
+    using UpdateFunctionSigature = std::function<void(std::shared_ptr<VulkanBuffer>&, const DescSetLayoutBindingName&)>;
 
     virtual bool init(std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) = 0;
     virtual void destroy() = 0;
@@ -46,6 +48,7 @@ public:
 
     void addReadDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as, bool only_read = true);
     void addWriteDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as);
+    void changeReadDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as);
     void changeWriteDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as);
 
     bool isReadGlobal(const GlobalName& name) const;
@@ -60,15 +63,18 @@ public:
     const AttachMap& getWrittenAttachmentMap() const;
 
     const std::unordered_map<uint32_t, std::shared_ptr<VulkanDescriptor>>& getDescriptors() const;
-    std::shared_ptr<VulkanDescriptor>& getDescriptor(DescriptorSetSlot slot);
+    const std::shared_ptr<VulkanDescriptor>& getDescriptor(DescriptorSetSlot slot) const;
+    const std::shared_ptr<VulkanDescriptor>& getDescriptor(const std::string& desc_name) const;
+    const std::shared_ptr<VulkanDescriptor>& getDescriptorLayout(const std::string& desc_lyout_bind_name) const;
     void setDescriptor(DescriptorSetSlot slot, std::shared_ptr<VulkanDescriptor> desc);
-    void add_update_function(const UpdateFunctionName& func_name, std::function<void(std::shared_ptr<VulkanBuffer>&)> fn);
-    std::function<void(std::shared_ptr<VulkanBuffer>&)>& getUpdateFunction(const UpdateFunctionName& func_name);
-    const std::unordered_map<UpdateFunctionName, std::function<void(std::shared_ptr<VulkanBuffer>&)>>& getUpdateFunctionsMap() const;
+    void add_update_function(const UpdateFunctionName& func_name, UpdateFunctionSigature fn);
+    UpdateFunctionSigature& getUpdateFunction(const UpdateFunctionName& func_name);
+    const std::unordered_map<UpdateFunctionName, UpdateFunctionSigature>& getUpdateFunctionsMap() const;
 
+    virtual void updateDescriptors() = 0;
     virtual void finishRenderNode() = 0;
 
-    std::shared_ptr<RenderResource> getAttachedResource(const LocalName& attached_as) const;
+    const std::shared_ptr<RenderResource>& getAttachedResource(const LocalName& attached_as) const;
     std::shared_ptr<VulkanImageBuffer> getAttachedImageResource(const LocalName& attached_as) const;
     std::shared_ptr<VulkanImageBuffer> getWrittenAttachedImageResource(const LocalName& name) const;
     std::shared_ptr<VulkanImageBuffer> getReadAttachedImageResource(const LocalName& name) const;
@@ -100,7 +106,5 @@ private:
 
     std::unordered_map<DescriptorSetSlot, std::shared_ptr<VulkanDescriptor>> m_descs;
     std::unordered_map<std::string, DescriptorSetSlot> m_desc_name_to_slot_map;
-    std::unordered_map<std::string, std::shared_ptr<VulkanDescriptor>> m_desc_name_map;
-    std::unordered_map<std::string, std::shared_ptr<VulkanDescriptor>> m_desc_layout_name_map;
     std::unordered_map<UpdateFunctionName, std::function<void(std::shared_ptr<VulkanBuffer>&)>> m_update_functions;
 };

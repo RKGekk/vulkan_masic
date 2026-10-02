@@ -8,6 +8,8 @@
 #include "../vulkan_renderer.h"
 #include "vulkan_resources_manager.h"
 
+const std::shared_ptr<VulkanBuffer> VulkanBuffer::BUFFER_NULL_PTR = nullptr;
+
 VulkanBuffer::VulkanBuffer(std::shared_ptr<VulkanDevice> device, std::string name) : m_device(std::move(device)), m_name(std::move(name)) {}
 VulkanBuffer::VulkanBuffer(std::shared_ptr<VulkanDevice> device) : m_device(std::move(device)), m_name(std::to_string(rand())) {};
 
@@ -170,6 +172,14 @@ void VulkanBuffer::update(const void* src_data, VkDeviceSize buffer_size) {
         m_buffer_config->setSizeDynamic(true);
         return;
     }
+    if (buffer_size > m_buffer_config->getBufferInfo().size) {
+        destroy();
+        m_buffer_config->setNotAlignedSize(buffer_size);
+        m_buffer_config->setAlignedSize(buffer_size);
+        init(src_data, m_buffer_config);
+        return;
+    }
+
     if(!src_data) {
         return;
     }
@@ -212,6 +222,14 @@ void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, Vk
         m_buffer_config->setSizeDynamic(true);
         return;
     }
+    if (buffer_size > m_buffer_config->getBufferInfo().size) {
+        destroy();
+        m_buffer_config->setNotAlignedSize(buffer_size);
+        m_buffer_config->setAlignedSize(buffer_size);
+        init(src_data, m_buffer_config);
+        return;
+    }
+
     if(!src_data) {
         return;
     }

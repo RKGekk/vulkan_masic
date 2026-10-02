@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <memory>
 #include <stdexcept>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -49,7 +50,6 @@ struct PerFrame {
 
     std::shared_ptr<VulkanImageBuffer> out_color_image;
     std::shared_ptr<VulkanImageBuffer> out_depth_image;
-    std::shared_ptr<VulkanBuffer> light_buffer;
 
     VkSemaphore swapchain_available_sem;
     VkFence swapchain_available_fen;

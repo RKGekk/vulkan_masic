@@ -16,6 +16,8 @@ class BufferConfig;
 
 class VulkanBuffer : public RenderResource {
 public:
+    static const std::shared_ptr<VulkanBuffer> BUFFER_NULL_PTR;
+
     VulkanBuffer(std::shared_ptr<VulkanDevice> device, std::string name);
     VulkanBuffer(std::shared_ptr<VulkanDevice> device);
 

@@ -37,18 +37,59 @@ vec3 getSkinPos(uint joint) {
     );
 }
 
+vec3 getPositionFromDQ(mat2x4 dq) {
+    vec4 qr = dq[0]; // Real part (Rotation)
+    vec4 qd = dq[1]; // Dual part (Translation)
+    
+    // Conjugate of qr
+    vec4 qr_conj = vec4(-qr.xyz, qr.w);
+    
+    // Quaternion multiplication: qd * qr_conj
+    vec3 cross_prod = cross(qd.xyz, qr_conj.xyz) + qd.w * qr_conj.xyz + qr_conj.w * qd.xyz;
+    
+    // Skin Space position calculation
+    return 2.0 * cross_prod;
+}
+
+mat4 getSkinMatrix(uint joint) {
+    mat2x4 bone = joint_ssbo.joint_dqs[joint];
+
+    vec4 r = bone[0]; // rotation
+    vec4 t = bone[1]; // translation
+
+    return mat4(
+        1.0 - (2.0 * r.y * r.y) - (2.0 * r.z * r.z),                  (2.0 * r.x * r.y) + (2.0 * r.w * r.z),                  (2.0 * r.x * r.z) - (2.0 * r.w * r.y),            0.0,
+              (2.0 * r.x * r.y) - (2.0 * r.w * r.z),            1.0 - (2.0 * r.x * r.x) - (2.0 * r.z * r.z),                  (2.0 * r.y * r.z) + (2.0 * r.w * r.x),            0.0,
+              (2.0 * r.x * r.z) + (2.0 * r.w * r.y),                  (2.0 * r.y * r.z) - (2.0 * r.w * r.x),            1.0 - (2.0 * r.x * r.x) - (2.0 * r.y * r.y),            0.0,
+        2.0 * (-t.w * r.x + t.x * r.w - t.y * r.z + t.z * r.y), 2.0 * (-t.w * r.y + t.x * r.z + t.y * r.w - t.z * r.x), 2.0 * (-t.w * r.z - t.x * r.y + t.y * r.x + t.z * r.w), 1.0
+    );
+}
+
 void main() {
     mat4 mvp = ubo.proj * ubo.view * ubo.model;
+    //mat4 mvp = ubo.model * ubo.view * ubo.proj;
+
+    //mat4 parent_skin = getSkinMatrix(in_parent_joint_idx);
+    //mat4 child_skin = getSkinMatrix(in_child_joint_idx);
+
+    //vec3 parent_skin_space = vec3(parent_skin[3]);
+    //vec3 child_skin_space = vec3(child_skin[3]);;
 
     vec3 parent_skin_space = getSkinPos(in_parent_joint_idx);
     vec3 child_skin_space = getSkinPos(in_child_joint_idx);
+    //vec3 parent_skin_space = getPositionFromDQ(joint_ssbo.joint_dqs[in_parent_joint_idx]);
+    //vec3 child_skin_space = getPositionFromDQ(joint_ssbo.joint_dqs[in_child_joint_idx]);
+    
+
+    //vec4 position_clip = (mvp * parent_skin)[3];
+    //vec4 target_clip  = (mvp * child_skin)[3];
 
     vec4 position_clip = mvp * vec4(parent_skin_space, 1.0f);
     vec4 target_clip  = mvp * vec4(child_skin_space, 1.0f);
+    vec4 current_point_clip = mix(position_clip, target_clip, in_pc_mix);
 
     vec2 position_screen = (position_clip.xy / position_clip.w) * registers.u_resolution;
     vec2 target_screen = (target_clip.xy / target_clip.w) * registers.u_resolution;
-    vec4 current_point_clip = mix(position_clip, target_clip, in_pc_mix);
     vec2 current_point_screen = mix(position_screen, target_screen, in_pc_mix);
 
     vec2 line_direction = target_screen - position_screen;

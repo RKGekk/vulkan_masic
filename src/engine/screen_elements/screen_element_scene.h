@@ -9,7 +9,7 @@
 class SceneDrawable;
 class MeshNode;
 
-class ScreenElementScene : public IScreenElement, public Scene {
+class ScreenElementScene : public IScreenElement {
 public:
 	ScreenElementScene();
 	virtual ~ScreenElementScene();
@@ -30,6 +30,8 @@ public:
 	void NewModelComponentDelegate(IEventDataPtr pEventData);
 
 	void AddRenderNode(std::shared_ptr<MeshNode> pMesh);
+	const std::shared_ptr<Scene>& getScene() const;
+	const std::shared_ptr<SceneDrawable>& getSceneDrawable() const;
 
 protected:
 	void ModifiedSceneNode(std::shared_ptr<SceneNode> node);
@@ -40,7 +42,8 @@ private:
 	uint32_t m_width;
 	uint32_t m_height;
 
-	std::shared_ptr<SceneDrawable> m_scene_draw;
+	std::shared_ptr<Scene> m_scene;
+	std::shared_ptr<SceneDrawable> m_scene_drawable;
 
 private:
 	void RegisterAllDelegates();

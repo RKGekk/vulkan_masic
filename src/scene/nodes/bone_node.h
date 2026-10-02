@@ -23,6 +23,7 @@ public:
 	using SkinName = std::string;
 
 	struct BoneData {
+		glm::mat4 bind_matrice;
 		glm::mat4 inverse_bind_matrice;
 		JointIndex joint_index;
 		std::shared_ptr<SceneNode> mesh_root_node;

@@ -33,6 +33,14 @@ void RenderNode::addWriteDependency(std::shared_ptr<RenderResource> resource, Lo
     m_written_attached[attached_as] = std::move(attachment_slot);
 }
 
+void RenderNode::changeReadDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as) {
+    AttachmentSlot attachment_slot = {resource, attached_as};
+    m_read_resources[resource->getName()] = attachment_slot;
+    m_read_attached[attached_as] = std::move(attachment_slot);
+
+    updateDescriptors();
+}
+
 void RenderNode::changeWriteDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as) {
     AttachmentSlot attachment_slot = {resource, attached_as};
     m_written_resources[resource->getName()] = attachment_slot;
@@ -76,15 +84,24 @@ const std::unordered_map<uint32_t, std::shared_ptr<VulkanDescriptor>>& RenderNod
     return m_descs;
 }
 
-std::shared_ptr<VulkanDescriptor>& RenderNode::getDescriptor(DescriptorSetSlot slot) {
-    return m_descs[slot];
+const std::shared_ptr<VulkanDescriptor>& RenderNode::getDescriptor(DescriptorSetSlot slot) const {
+    if(!m_descs.contains(slot)) return VulkanDescriptor::NULL_PTR_DESC;
+    return m_descs.at(slot);
+}
+
+const std::shared_ptr<VulkanDescriptor>& RenderNode::getDescriptor(const std::string& desc_name) const {
+    if(m_desc_name_to_slot_map.contains(desc_name)) return VulkanDescriptor::NULL_PTR_DESC;
+    return getDescriptor(m_desc_name_to_slot_map.at(desc_name));
+}
+
+const std::shared_ptr<VulkanDescriptor>& RenderNode::getDescriptorLayout(const std::string& desc_lyout_bind_name) const {
+    acvsadv
 }
 
 void RenderNode::setDescriptor(DescriptorSetSlot slot, std::shared_ptr<VulkanDescriptor> desc) {
-    for(const auto& [desc_set_layout_binding_name, binding_num] : desc->getBindings()->getBindingMap()) {
+    // for(const auto& [desc_set_layout_binding_name, binding_num] : desc->getBindings()->getBindingMap()) {
         
-    }
-    m_desc_name_map[desc->getName()] = desc;
+    // }
     m_desc_name_to_slot_map[desc->getName()] = slot;
     m_descs[slot] = std::move(desc);
 }
@@ -101,7 +118,7 @@ const std::unordered_map<RenderNode::UpdateFunctionName, std::function<void(std:
     return m_update_functions;
 }
 
-std::shared_ptr<RenderResource> RenderNode::getAttachedResource(const RenderNode::LocalName& attached_as) const {
+const std::shared_ptr<RenderResource>& RenderNode::getAttachedResource(const RenderNode::LocalName& attached_as) const {
     if(isReadAttached(attached_as)) {
         return m_read_attached.at(attached_as).resource;
     }
@@ -110,7 +127,7 @@ std::shared_ptr<RenderResource> RenderNode::getAttachedResource(const RenderNode
         return m_written_attached.at(attached_as).resource;
     }
 
-    return nullptr;
+    return RenderResource::ROSOURCE_NULL_PTR;
 }
 
 std::shared_ptr<VulkanImageBuffer> RenderNode::getAttachedImageResource(const RenderNode::LocalName& attached_as) const {
@@ -122,15 +139,21 @@ std::shared_ptr<VulkanImageBuffer> RenderNode::getAttachedImageResource(const Re
         return getWrittenAttachedImageResource(attached_as);
     }
 
-    return nullptr;
+    return VulkanImageBuffer::IMAGE_BUFFER_NULL_PTR;
 }
 
 std::shared_ptr<VulkanImageBuffer> RenderNode::getWrittenAttachedImageResource(const RenderNode::LocalName& name) const {
-    return std::dynamic_pointer_cast<VulkanImageBuffer>(m_written_attached.at(name).resource);
+    if(m_written_attached.contains(name)) {
+        return std::dynamic_pointer_cast<VulkanImageBuffer>(m_written_attached.at(name).resource);
+    }
+    return VulkanImageBuffer::IMAGE_BUFFER_NULL_PTR;
 }
 
 std::shared_ptr<VulkanImageBuffer> RenderNode::getReadAttachedImageResource(const RenderNode::LocalName& name) const {
-    return std::dynamic_pointer_cast<VulkanImageBuffer>(m_read_attached.at(name).resource);
+    if(m_read_attached.contains(name)) {
+        return std::dynamic_pointer_cast<VulkanImageBuffer>(m_read_attached.at(name).resource);
+    }
+    return VulkanImageBuffer::IMAGE_BUFFER_NULL_PTR;
 }
 
 std::shared_ptr<VulkanBuffer> RenderNode::getAttachedBufferResource(const RenderNode::LocalName& attached_as) const {
@@ -142,15 +165,21 @@ std::shared_ptr<VulkanBuffer> RenderNode::getAttachedBufferResource(const Render
         return getWrittenAttachedBufferResource(attached_as);
     }
 
-    return nullptr;
+    return VulkanBuffer::BUFFER_NULL_PTR;
 }
 
 std::shared_ptr<VulkanBuffer> RenderNode::getWrittenAttachedBufferResource(const RenderNode::LocalName& name) const {
-    return std::dynamic_pointer_cast<VulkanBuffer>(m_written_attached.at(name).resource);
+    if(m_written_attached.contains(name)) {
+        return std::dynamic_pointer_cast<VulkanBuffer>(m_written_attached.at(name).resource);
+    }
+    return VulkanBuffer::BUFFER_NULL_PTR;
 }
 
 std::shared_ptr<VulkanBuffer> RenderNode::getReadAttachedBufferResource(const RenderNode::LocalName& name) const {
-    return std::dynamic_pointer_cast<VulkanBuffer>(m_read_attached.at(name).resource);
+    if(m_read_attached.contains(name)) {
+        return std::dynamic_pointer_cast<VulkanBuffer>(m_read_attached.at(name).resource);
+    }
+    return VulkanBuffer::BUFFER_NULL_PTR;
 }
 
 void RenderNode::setExecutionBypass(bool bypass) {

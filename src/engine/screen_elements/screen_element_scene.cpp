@@ -14,19 +14,16 @@
 #include "../../scene/nodes/camera_node.h"
 #include "../../graphics/pod/render_node.h"
 
-ScreenElementScene::ScreenElementScene() : Scene("ScreenElementScene") {
-    VulkanRenderer& renderer = Application::GetRenderer();
-	std::shared_ptr<VulkanDevice> device = renderer.GetDevice();
-
-    m_scene_draw = std::make_shared<SceneDrawable>();
-    m_scene_draw->init(device, renderer.getSwapchain()->getMaxFrames(), getLightManager());
+ScreenElementScene::ScreenElementScene() {
+    m_scene = std::make_shared<Scene>("ScreenElementScene");
+    m_scene_drawable = std::make_shared<SceneDrawable>();
+    m_scene_drawable->init(m_scene);
 
     RegisterAllDelegates();
 };
 
 ScreenElementScene::~ScreenElementScene() {
     RemoveAllDelegates();
-    m_scene_draw->destroy();
 };
 
 bool ScreenElementScene::VOnRestore() {
@@ -38,12 +35,7 @@ bool ScreenElementScene::VOnLostDevice() {
 };
 
 void ScreenElementScene::VOnUpdate(const GameTimerDelta& delta, uint32_t image_index) {
-    Application& app = Application::Get();
-    const std::shared_ptr<BaseEngineLogic>& game_logic = app.GetGameLogic();
-    const std::shared_ptr<CameraComponent>& camera_component = game_logic->GetHumanView()->VGetCamera();
-    const std::shared_ptr<BasicCameraNode>& camera_node = camera_component->VGetCameraNode();
-    getLightManager()->CalcLighting(std::static_pointer_cast<CameraNode>(camera_node));
-    m_scene_draw->update(delta, image_index);
+    m_scene_drawable->update(delta, image_index);
 };
 
 bool ScreenElementScene::VOnRender(const GameTimerDelta& delta, uint32_t image_index) {
@@ -74,7 +66,15 @@ void ScreenElementScene::NewModelComponentDelegate(IEventDataPtr pEventData) {
 }
 
 void ScreenElementScene::AddRenderNode(std::shared_ptr<MeshNode> pMesh) {
-    m_scene_draw->addRendeNode(std::move(pMesh));
+    m_scene_drawable->addRendeNode(std::move(pMesh));
+}
+
+const std::shared_ptr<Scene>& ScreenElementScene::getScene() const {
+    return m_scene;
+}
+
+const std::shared_ptr<SceneDrawable>& ScreenElementScene::getSceneDrawable() const {
+    return m_scene_drawable;
 }
 
 void ScreenElementScene::ModifiedSceneNode(std::shared_ptr<SceneNode> node) {};
@@ -83,11 +83,11 @@ void ScreenElementScene::NewModelComponent(std::shared_ptr<SceneNode> root_node)
     using namespace std::literals;
 
     std::shared_ptr<Scene> scene = root_node->GetScene();
-    root_node->Accept([scene, drawable = m_scene_draw](std::shared_ptr<SceneNode> node){
+    root_node->Accept([scene, this](std::shared_ptr<SceneNode> node){
         std::shared_ptr<SceneNode> pMeshNode = scene->getProperty(node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_MESH);
         if(pMeshNode) {
             std::shared_ptr<MeshNode> pMesh = std::dynamic_pointer_cast<MeshNode>(pMeshNode);
-            drawable->addRendeNode(pMesh);
+            m_scene_drawable->addRendeNode(std::move(pMesh));
         }
     });
 }

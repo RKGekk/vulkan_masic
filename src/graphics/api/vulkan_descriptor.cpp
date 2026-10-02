@@ -1,5 +1,7 @@
 #include "vulkan_descriptor.h"
 
+std::shared_ptr<VulkanDescriptor> VulkanDescriptor::NULL_PTR_DESC = nullptr;
+
 bool VulkanDescriptor::init(VkDevice device, std::shared_ptr<DescSetLayout> layout, VkDescriptorSet descriptor_set) {
     m_device = device;
     m_layout = std::move(layout);

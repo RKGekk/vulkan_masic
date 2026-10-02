@@ -35,6 +35,7 @@ class VulkanImageBuffer;
 class GraphicsRenderNode;
 class VulkanPushConstant;
 class ValueBagNode;
+class Scene;
 
 class SceneDrawable : public IVulkanDrawable {
 public:
@@ -43,12 +44,10 @@ public:
 
     struct Renderable {
         std::shared_ptr<MeshNode> mesh_node;
-        std::unordered_map<std::string, std::shared_ptr<VulkanBuffer>> uniform_buffers;
-        std::unordered_map<VertexFormat::BindingNum, std::shared_ptr<VulkanBuffer>> vertex_buffers;
-        std::shared_ptr<VulkanBuffer> index_buffer;
-        std::shared_ptr<VulkanImageBuffer> texture;
         std::vector<std::shared_ptr<VulkanPushConstant>> const_params;
         std::shared_ptr<GraphicsRenderNode> render_node;
+        std::unordered_map<std::string, std::shared_ptr<VulkanBuffer>> read_buffers;
+        std::string name;
     };
 
     struct RenderPerFrame {
@@ -56,7 +55,7 @@ public:
         std::shared_ptr<VulkanBuffer> light_buffer;
     };
 
-    bool init(std::shared_ptr<VulkanDevice> device, int max_frames, std::shared_ptr<LightManager> light_manager);
+    bool init(std::shared_ptr<Scene> scene);
 
     void reset() override;
     void destroy() override;
@@ -68,7 +67,7 @@ public:
 
 private:
     void updatePushConstants(int frame, RenderableId render_id);
-    void updateMVPMatrices(const std::shared_ptr<SceneNode>& scene_node, std::shared_ptr<VulkanBuffer>& uniform_buffer);
+    void updateMVPMatrices(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name);
     void updateInvMVPMatrices(const std::shared_ptr<SceneNode>& scene_node, std::shared_ptr<VulkanBuffer>& uniform_buffer);
     void updateMaterialProps(const std::shared_ptr<Material>& material, std::shared_ptr<VulkanBuffer>& uniform_buffer);
     void updateJointMatrices(const std::shared_ptr<MeshNode>& mesh_node, std::shared_ptr<VulkanBuffer>& uniform_buffer);
@@ -78,7 +77,7 @@ private:
     float m_rt_aspect = 1.0f;
     int m_max_frames;
     VkExtent2D m_viewport_extent;
-    std::shared_ptr<LightManager> m_light_manager;
+    std::shared_ptr<Scene> m_scene;
 
     std::vector<std::shared_ptr<RenderPerFrame>> m_per_frame;
 };

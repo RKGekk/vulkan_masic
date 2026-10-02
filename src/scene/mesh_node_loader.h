@@ -77,6 +77,7 @@ private:
 
     struct BoneIdentity {
         BoneNode::JointIndex joint;
+        glm::mat4x4 bind_matrix;
         glm::mat4x4 inv_matrix;
         std::string skin_name;
         SkinIdx skin_id;

@@ -1,10 +1,22 @@
 #include "light_manager.h"
 #include "nodes/value_bag_node.h"
-
-LightManager::LightManager() : m_dir_lights_size(0u), m_point_lights_size(0u), m_spot_lights_size(0u) {}
+#include "../application.h"
+#include "../graphics/api/vulkan_swapchain.h"
+#include "../graphics/vulkan_renderer.h"
+#include "../graphics/api/vulkan_resources_manager.h"
 
 const std::string LightManager::m_light_buffer_name = "light_ubo";
 const std::string LightManager::m_light_resource_cfg_name = "light_uniform_resource";
+
+LightManager::LightManager() : m_dir_lights_size(0u), m_point_lights_size(0u), m_spot_lights_size(0u) {
+    VulkanRenderer& renderer = Application::GetRenderer();
+    std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
+    int max_frames = renderer.getSwapchain()->getMaxFrames();
+    m_light_buffers.reserve(max_frames);
+    for(int i = 0; i < max_frames; ++i) {
+        m_light_buffers[i] = resources_manager->create_buffer(nullptr, 0, m_light_buffer_name + std::to_string(i), m_light_resource_cfg_name);
+    }
+}
 
 void LightManager::CalcLighting(const std::shared_ptr<CameraNode>& camera_node) {
     for(const auto&[light_node, idx] : m_index_map) {
@@ -122,3 +134,4 @@ const std::string& LightManager::getLightResourceCfgName() {
     using namespace std::literals;
     return m_light_resource_cfg_name;
 }
+

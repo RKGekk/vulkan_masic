@@ -7,6 +7,7 @@
 #include "transform_component.h"
 
 const std::string CameraComponent::g_name = "CameraComponent";
+const std::shared_ptr<CameraComponent> CameraComponent::NULL_CAMERA_PTR = nullptr;
 
 CameraComponent::CameraComponent() {}
 

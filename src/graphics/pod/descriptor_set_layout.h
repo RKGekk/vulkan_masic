@@ -24,6 +24,7 @@ public:
     using DescSetBindings = std::vector<VkDescriptorSetLayoutBinding>;
     using BindingNum = uint32_t;
     using BindingIndex = int;
+    using BindingName = std::string;
 
     bool init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& descriptor_sets_node);
     void destroy();
@@ -33,14 +34,14 @@ public:
     const DescSetBindings& getBindings() const;
     VkDescriptorSetLayoutBinding getBinding(VkDescriptorType desc_type) const;
     VkDescriptorSetLayoutBinding getBinding(BindingNum binding_num) const;
-    VkDescriptorSetLayoutBinding getBinding(const std::string& binding_name) const;
+    VkDescriptorSetLayoutBinding getBinding(const BindingName& binding_name) const;
     bool haveBindingType(VkDescriptorType desc_type) const;
     bool haveBindingNum(BindingNum binding_num) const;
-    bool haveBindingName(const std::string& binding_name) const;
-    const std::string& getBindingName(VkDescriptorType desc_type) const;
-    const std::string& getBindingName(BindingNum binding_num) const;
-    BindingNum getBindingNum(const std::string& binding_name) const;
-    const std::unordered_map<std::string, BindingNum>& getBindingMap() const;
+    bool haveBindingName(const BindingName& binding_name) const;
+    const BindingName& getBindingName(VkDescriptorType desc_type) const;
+    const BindingName& getBindingName(BindingNum binding_num) const;
+    BindingNum getBindingNum(const BindingName& binding_name) const;
+    const std::unordered_map<BindingName, BindingNum>& getBindingMap() const;
     const std::vector<std::shared_ptr<VulkanSampler>>& getImmutableSamplers() const;
     const std::vector<VkSampler>& getImmutableSamplersPtr() const;
     VkDescriptorSetLayoutCreateInfo getDescriptorSetLayoutInfo() const;
@@ -53,10 +54,9 @@ private:
     std::string m_allocator_name;
 
     DescSetBindings m_bindings;
-    std::unordered_map<std::string, BindingNum> m_binding_name_map;
-    std::unordered_map<BindingNum, std::string> m_binding_num_to_name_map;
+    std::unordered_map<BindingName, BindingNum> m_binding_name_map;
+    std::unordered_map<BindingNum, BindingName> m_binding_num_to_name_map;
     std::unordered_map<BindingNum, BindingIndex> m_binding_num_to_idx_map;
-
     
     std::vector<std::shared_ptr<VulkanSampler>> m_immutable_samplers;
     std::vector<VkSampler> m_immutable_samplers_ptr;

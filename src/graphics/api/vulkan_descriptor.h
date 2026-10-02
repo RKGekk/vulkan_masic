@@ -12,6 +12,7 @@
 
 class VulkanDescriptor {
 public:
+    static std::shared_ptr<VulkanDescriptor> NULL_PTR_DESC;
 
     bool init(VkDevice device, std::shared_ptr<DescSetLayout> layout, VkDescriptorSet descriptor_set);
     void destroy();

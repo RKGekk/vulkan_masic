@@ -23,6 +23,7 @@ class SkeletonManager {
 public:
     struct SkinnedData {
         BoneNode::SkinName skeleton_name;
+        std::vector<glm::mat4> bind_matrices;
         std::vector<glm::mat4> inverse_bind_matrices;
         std::vector<glm::mat4> final_matrices;
         std::vector<glm::mat2x4> dual_quats;
@@ -43,8 +44,14 @@ public:
     void resetSkin(const BoneNode::SkinName& name);
     std::unordered_set<BoneNode::SkinName> getMeshSkins(const std::shared_ptr<SceneNode>& mesh_root_node) const;
 
+    static const std::string& getLightBufferName();
+    static const std::string& getLightResourceCfgName();
+
 private:
     bool UpdateBoneData(const std::shared_ptr<BoneNode>& node);
+
+    static const std::string m_joint_buffer_name;
+    static const std::string m_light_resource_cfg_name;
 
     std::unordered_map<BoneNode::SkinName, std::shared_ptr<SkinnedData>> m_skinned_data;
     std::unordered_set<std::shared_ptr<BoneNode>> m_dirty_at_bone;

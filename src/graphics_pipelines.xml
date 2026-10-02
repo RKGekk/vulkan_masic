@@ -235,9 +235,9 @@
                         <Flag>fragment</Flag>
                     </ShaderStageFlags>
                 </LayoutBinding>
-                <LayoutBinding name="joint_ubo">
+                <LayoutBinding name="joint_ssbo">
                     <Binding>5</Binding>
-                    <DescriptorType>uniform_buffer</DescriptorType>
+                    <DescriptorType>storage_buffer</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
                     <ShaderStageFlags>
                         <Flag>vertex</Flag>
@@ -289,7 +289,7 @@
                         <Flag>fragment</Flag>
                     </ShaderStageFlags>
                 </LayoutBinding>
-                <LayoutBinding name="joint_ssbo">
+                <LayoutBinding name="joint_dq_ssbo">
                     <Binding>5</Binding>
                     <DescriptorType>storage_buffer</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
@@ -323,8 +323,16 @@
                         <Flag>vertex</Flag>
                     </ShaderStageFlags>
                 </LayoutBinding>
-                <LayoutBinding name="joint_ssbo">
+                <LayoutBinding name="joint_dq_ssbo">
                     <Binding>1</Binding>
+                    <DescriptorType>storage_buffer</DescriptorType>
+                    <DescriptorCount>1</DescriptorCount>
+                    <ShaderStageFlags>
+                        <Flag>vertex</Flag>
+                    </ShaderStageFlags>
+                </LayoutBinding>
+                <LayoutBinding name="joint_bind_ssbo">
+                    <Binding>2</Binding>
                     <DescriptorType>storage_buffer</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
                     <ShaderStageFlags>
@@ -625,12 +633,12 @@
             </Buffer>
         </ResourceType>
 
-        <ResourceType name="joint_uniform_resource">
+        <ResourceType name="joint_storage_resource">
             <Buffer>
                 <BufferUsageFlags>
                     <Flag>uniform_buffer</Flag>
                 </BufferUsageFlags>
-                <Size dynamic="false" deffered="false">6144</Size>
+                <Size dynamic="false" deffered="true">0</Size>
                 <MemoryProperties>
                     <Property>host_visible</Property>
                     <Property>host_coherent</Property>
@@ -638,12 +646,24 @@
             </Buffer>
         </ResourceType>
 
-        <ResourceType name="joint_storage_resource">
+        <ResourceType name="joint_bind_storage_resource">
             <Buffer>
                 <BufferUsageFlags>
                     <Flag>storage_buffer</Flag>
                 </BufferUsageFlags>
-                <Size dynamic="false" deffered="false">3072</Size>
+                <Size dynamic="false" deffered="true">0</Size>
+                <MemoryProperties>
+                    <Property>device_local</Property>
+                </MemoryProperties>
+            </Buffer>
+        </ResourceType>
+
+        <ResourceType name="joint_dq_storage_resource">
+            <Buffer>
+                <BufferUsageFlags>
+                    <Flag>storage_buffer</Flag>
+                </BufferUsageFlags>
+                <Size dynamic="false" deffered="true">0</Size>
                 <MemoryProperties>
                     <Property>host_visible</Property>
                     <Property>host_coherent</Property>
@@ -2187,6 +2207,12 @@
                     <Buffer>
                         <BufferResourceType>joint_storage_resource</BufferResourceType>
                         <UpdateFunctionName>joint_dq_update</UpdateFunctionName>
+                    </Buffer>
+                </LayoutBinding>
+                <LayoutBinding name="joint_bind_ssbo" resource_creation_point="External">
+                    <Buffer>
+                        <BufferResourceType>joint_bind_storage_resource</BufferResourceType>
+                        <UpdateFunctionName>no_name</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
             </DescriptorResourcesCreateAndUpdate>

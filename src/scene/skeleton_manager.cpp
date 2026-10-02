@@ -5,8 +5,6 @@ SkeletonManager::SkeletonManager() {}
 void SkeletonManager::AddBone(const std::shared_ptr<BoneNode>& node) {
     if(!node) return;
 
-    const std::shared_ptr<Scene>& scene = node->GetScene();
-
     for(const auto&[skin_name, bone_data] : node->getBoneDataMap()) {
         if(!m_skinned_data.contains(skin_name)) {
             m_skinned_data[skin_name] = std::make_shared<SkinnedData>();
@@ -16,10 +14,12 @@ void SkeletonManager::AddBone(const std::shared_ptr<BoneNode>& node) {
         const std::shared_ptr<SkinnedData>& skinned_data = m_skinned_data[skin_name];
 
         if(skinned_data->inverse_bind_matrices.size() <= bone_data.joint_index) {
+            skinned_data->bind_matrices.resize(bone_data.joint_index + 1u);
             skinned_data->inverse_bind_matrices.resize(bone_data.joint_index + 1u);
             skinned_data->final_matrices.resize(bone_data.joint_index + 1u);
             skinned_data->dual_quats.resize(bone_data.joint_index + 1u);
         }
+        skinned_data->inverse_bind_matrices[bone_data.joint_index] = bone_data.bind_matrice;
         skinned_data->inverse_bind_matrices[bone_data.joint_index] = bone_data.inverse_bind_matrice;
 
         skinned_data->bone_to_joint_map[node] = bone_data.joint_index;
@@ -83,6 +83,7 @@ bool SkeletonManager::UpdateBoneData(const std::shared_ptr<BoneNode>& node) {
         const std::shared_ptr<SkinnedData>& skinned_data = m_skinned_data[skin_name];
         glm::mat4 model_from_root = node->getBoneDataMap().at(skin_name).mesh_root_node->Get().FromRoot();
         glm::mat4 to_root = node->Get().ToRoot();
+        skinned_data->bind_matrices[bone_data.joint_index] = skinned_data->bind_matrices[bone_data.joint_index];
         skinned_data->final_matrices[bone_data.joint_index] = model_from_root * to_root * skinned_data->inverse_bind_matrices[bone_data.joint_index];
         //skinned_data->final_matrices[bone_data.joint_index] = to_root * skinned_data->inverse_bind_matrices[bone_data.joint_index];
 
