@@ -164,7 +164,7 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                 "mvp_matrices_update"s,
                 [&, frame, renderable_id]
                 (std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name){
-                    updateMVPMatrices(frame, renderable_id, uniform_buffer);
+                    updateMVPMatrices(frame, renderable_id, uniform_buffer, desc_set_layout_bind_name);
                 }
             );
 
@@ -172,15 +172,15 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                 "invmvp_matrices_update"s,
                 [&, frame, renderable_id]
                 (std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name){
-                    updateInvMVPMatrices(m_per_frame[frame]->renderables.at(renderable_id)->mesh_node, uniform_buffer);
+                    updateInvMVPMatrices(frame, renderable_id, uniform_buffer, desc_set_layout_bind_name);
                 }
             );
 
             render_node->add_update_function(
                 "material_prop_update"s,
-                [&, material]
+                [&, frame, renderable_id]
                 (std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name){
-                    updateMaterialProps(material, uniform_buffer);
+                    updateMaterialProps(frame, renderable_id, uniform_buffer, desc_set_layout_bind_name);
                 }
             );
 
@@ -188,7 +188,7 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                 "joint_matrices_update"s,
                 [&, frame, renderable_id]
                 (std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name){
-                    updateJointMatrices(m_per_frame[frame]->renderables.at(renderable_id)->mesh_node, uniform_buffer);
+                    updateJointMatrices(frame, renderable_id, uniform_buffer, desc_set_layout_bind_name);
                 }
             );
 
@@ -196,7 +196,7 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                 "joint_dq_update"s,
                 [&, frame, renderable_id]
                 (std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name){
-                    updateJointDQ(m_per_frame[frame]->renderables.at(renderable_id)->mesh_node, uniform_buffer);
+                    updateJointDQ(frame, renderable_id, uniform_buffer, desc_set_layout_bind_name);
                 }
             );
 
