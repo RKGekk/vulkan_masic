@@ -75,7 +75,7 @@ void ModelData::SetMaterial(std::shared_ptr<Material> material) {
     m_material = std::move(material);
 }
 
-std::shared_ptr<Material> ModelData::GetMaterial() const {
+const std::shared_ptr<Material>& ModelData::GetMaterial() const {
     return m_material;
 }
 

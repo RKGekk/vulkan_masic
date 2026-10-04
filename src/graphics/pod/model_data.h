@@ -45,7 +45,7 @@ public:
 	size_t GetVertexCount() const;
 
 	void SetMaterial(std::shared_ptr<Material> material);
-	std::shared_ptr<Material> GetMaterial() const;
+	const std::shared_ptr<Material>& GetMaterial() const;
 
 	void SetAABB(const BoundingBox& aabb);
 	const BoundingBox& GetAABB() const;

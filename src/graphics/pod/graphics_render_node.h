@@ -22,6 +22,8 @@ public:
     virtual void render(CommandBatch& command_buffer, unsigned image_index) override;
     virtual void finishRenderNode() override;
     virtual void updateDescriptors() override;
+    virtual void updateDescriptor(const std::string& desc_binding_name) override;
+    virtual void updateDescriptor(uint32_t desc_slot, uint32_t desc_binding_num) override;
     void initFramebuffer();
 
     const std::shared_ptr<VulkanPipeline>& getPipeline();

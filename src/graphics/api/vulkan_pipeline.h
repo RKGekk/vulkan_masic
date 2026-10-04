@@ -26,6 +26,9 @@ public:
         COMPUTE
     };
 
+    using DescBindingSlot = uint32_t;
+    static const DescBindingSlot NOT_BINDED_SLOT;
+
     bool init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& pipeline_data, VkExtent2D viewport_extent, std::shared_ptr<VulkanRenderPass> render_pass, uint32_t subpass, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager);
     void destroy();
 
@@ -39,7 +42,12 @@ public:
     VkPipelineVertexInputStateCreateInfo getInputInfo() const;
     const std::shared_ptr<VulkanShader>& getShader(VkShaderStageFlagBits stage) const;
     const std::unordered_map<VkShaderStageFlagBits, std::shared_ptr<VulkanShader>>& getShaders() const;
-    const std::unordered_map<uint32_t, std::shared_ptr<DescSetLayout>>& getDescLayouts() const;
+
+    const std::unordered_map<DescBindingSlot, std::shared_ptr<DescSetLayout>>& getDescLayouts() const;
+    const std::shared_ptr<DescSetLayout>& getDescLayout(DescBindingSlot slot) const;
+    const std::shared_ptr<DescSetLayout>& getDescLayout(const std::string& desc_binding_name) const;
+    bool hasDescBinding(const std::string& desc_binding_name) const;
+    DescBindingSlot getDescBindingSlot(const std::string& desc_binding_name) const;
 
     bool has_push_constants() const;
     void build_push_constants();

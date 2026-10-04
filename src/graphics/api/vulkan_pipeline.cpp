@@ -17,6 +17,8 @@
 #include <stdexcept>
 #include <unordered_set>
 
+const VulkanPipeline::DescBindingSlot VulkanPipeline::NOT_BINDED_SLOT = -1;
+
 bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& pipeline_data, VkExtent2D viewport_extent, std::shared_ptr<VulkanRenderPass> render_pass, uint32_t subpass, std::shared_ptr<VulkanDescriptorsManager> desc_manager, std::shared_ptr<VulkanShadersManager> shader_manager) {
     using namespace std::literals;
     
@@ -187,6 +189,36 @@ const std::unordered_map<VkShaderStageFlagBits, std::shared_ptr<VulkanShader>>& 
 
 const std::unordered_map<uint32_t, std::shared_ptr<DescSetLayout>>& VulkanPipeline::getDescLayouts() const {
     return m_desc_slot_to_layout_map;
+}
+
+const std::shared_ptr<DescSetLayout>& VulkanPipeline::getDescLayout(uint32_t slot) const {
+    return m_desc_slot_to_layout_map.at(slot);
+}
+
+const std::shared_ptr<DescSetLayout>& VulkanPipeline::getDescLayout(const std::string& desc_binding_name) const {
+    for (const auto&[slot, desc_set_layout] : m_desc_slot_to_layout_map) {
+        if(desc_set_layout->haveBindingName(desc_binding_name)) {
+            return desc_set_layout;
+        }
+    }
+}
+
+bool VulkanPipeline::hasDescBinding(const std::string& desc_binding_name) const {
+    for (const auto&[slot, desc_set_layout] : m_desc_slot_to_layout_map) {
+        if(desc_set_layout->haveBindingName(desc_binding_name)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+uint32_t VulkanPipeline::getDescBindingSlot(const std::string& desc_binding_name) const {
+    for (const auto&[slot, desc_set_layout] : m_desc_slot_to_layout_map) {
+        if(desc_set_layout->haveBindingName(desc_binding_name)) {
+            return slot;
+        }
+    }
+    return NOT_BINDED_SLOT;
 }
 
 bool VulkanPipeline::has_push_constants() const {

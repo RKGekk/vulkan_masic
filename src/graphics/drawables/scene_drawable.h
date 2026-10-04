@@ -44,6 +44,7 @@ public:
 
     struct Renderable {
         std::shared_ptr<MeshNode> mesh_node;
+        size_t mesh_id;
         std::vector<std::shared_ptr<VulkanPushConstant>> const_params;
         std::shared_ptr<GraphicsRenderNode> render_node;
         std::unordered_map<std::string, std::shared_ptr<VulkanBuffer>> read_buffers;
@@ -67,11 +68,15 @@ public:
 
 private:
     void updatePushConstants(int frame, RenderableId render_id);
+
+    void updateDescBuffer(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name, const void* src_data, VkDeviceSize buffer_size, std::string object_name);
+
     void updateMVPMatrices(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name);
-    void updateInvMVPMatrices(const std::shared_ptr<SceneNode>& scene_node, std::shared_ptr<VulkanBuffer>& uniform_buffer);
-    void updateMaterialProps(const std::shared_ptr<Material>& material, std::shared_ptr<VulkanBuffer>& uniform_buffer);
-    void updateJointMatrices(const std::shared_ptr<MeshNode>& mesh_node, std::shared_ptr<VulkanBuffer>& uniform_buffer);
-    void updateJointDQ(const std::shared_ptr<MeshNode>& mesh_node, std::shared_ptr<VulkanBuffer>& uniform_buffer);
+    void updateInvMVPMatrices(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name);
+    void updateMaterialProps(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name);
+
+    void updateJointMatrices(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name);
+    void updateJointDQ(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name);
 
     std::shared_ptr<VulkanDevice> m_device;
     float m_rt_aspect = 1.0f;

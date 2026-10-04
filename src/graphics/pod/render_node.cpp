@@ -94,27 +94,31 @@ const std::shared_ptr<VulkanDescriptor>& RenderNode::getDescriptor(const std::st
     return getDescriptor(m_desc_name_to_slot_map.at(desc_name));
 }
 
-const std::shared_ptr<VulkanDescriptor>& RenderNode::getDescriptorLayout(const std::string& desc_lyout_bind_name) const {
-    acvsadv
+const std::shared_ptr<VulkanDescriptor>& RenderNode::getDescriptorByLayoutName(const std::string& desc_lyout_bind_name) const {
+    if(m_desc_layout_name_to_slot_map.contains(desc_lyout_bind_name)) {
+        return m_descs.at(m_desc_layout_name_to_slot_map.at(desc_lyout_bind_name));
+    }
+    return VulkanDescriptor::NULL_PTR_DESC;
 }
 
 void RenderNode::setDescriptor(DescriptorSetSlot slot, std::shared_ptr<VulkanDescriptor> desc) {
-    // for(const auto& [desc_set_layout_binding_name, binding_num] : desc->getBindings()->getBindingMap()) {
-        
-    // }
+    for(const auto& [desc_set_layout_binding_name, binding_num] : desc->getBindings()->getBindingMap()) {
+        m_desc_layout_name_to_slot_map[desc_set_layout_binding_name] = slot;
+    }
     m_desc_name_to_slot_map[desc->getName()] = slot;
     m_descs[slot] = std::move(desc);
+
 }
 
-void RenderNode::add_update_function(const UpdateFunctionName& func_name, std::function<void(std::shared_ptr<VulkanBuffer>&)> fn) {
+void RenderNode::add_update_function(const UpdateFunctionName& func_name, UpdateFunctionSigature fn) {
     m_update_functions[func_name] = fn;
 }
 
-std::function<void(std::shared_ptr<VulkanBuffer>&)>& RenderNode::getUpdateFunction(const UpdateFunctionName& func_name) {
+RenderNode::UpdateFunctionSigature& RenderNode::getUpdateFunction(const UpdateFunctionName& func_name) {
     return m_update_functions[func_name];
 }
 
-const std::unordered_map<RenderNode::UpdateFunctionName, std::function<void(std::shared_ptr<VulkanBuffer>&)>>& RenderNode::getUpdateFunctionsMap() const {
+const std::unordered_map<RenderNode::UpdateFunctionName, RenderNode::UpdateFunctionSigature>& RenderNode::getUpdateFunctionsMap() const {
     return m_update_functions;
 }
 

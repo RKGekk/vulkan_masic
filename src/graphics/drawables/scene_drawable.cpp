@@ -106,8 +106,8 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
         m_per_frame[frame]->renderables.reserve(m_per_frame[frame]->renderables.size() + msz);
     }
     for (size_t i = 0u; i < msz; ++i) {
-        std::shared_ptr<ModelData> model_data = mesh_list.at(i);
-        std::shared_ptr<Material> material = model_data->GetMaterial();
+        const std::shared_ptr<ModelData>& model_data = mesh_list.at(i);
+        const std::shared_ptr<Material>& material = model_data->GetMaterial();
 
         for(int frame = 0; frame < m_max_frames; ++frame) {
             std::shared_ptr<PerFrame>& global_frame_data = renderer.getFrameData(frame);
@@ -117,6 +117,8 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
 
             std::shared_ptr<Renderable> renderable = std::make_shared<Renderable>();
             per_frame_data->renderables.push_back(renderable);
+
+            renderable->mesh_id = i;
 
             std::string render_name = makeRenderNodeName(material);
             if(!frame_render_graph->hasGraphicsRenderNodeConfig(render_name)) {
@@ -267,6 +269,32 @@ void SceneDrawable::updatePushConstants(int frame, RenderableId render_id) {
     }
 }
 
+void SceneDrawable::updateDescBuffer(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name, const void* src_data, VkDeviceSize buffer_size, std::string object_name) {
+    if(!uniform_buffer) {
+        // проверить размер и обновить буффер и дескрипторы
+        VulkanRenderer& renderer = Application::GetRenderer();
+        std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
+        const std::shared_ptr<GraphicsRenderNode>& render_node = m_per_frame[frame]->renderables.at(render_id)->render_node;
+        std::shared_ptr<GraphicsRenderNodeConfig>& render_node_cfg = render_node->getGraphicsRenderNodeConfig();
+        const std::shared_ptr<GraphicsRenderNodeConfig::UpdateMetadata>& update_metadata = render_node_cfg->getBindingsMetadata().at(desc_set_layout_bind_name);
+        const std::shared_ptr<VulkanDescriptor>& desc = render_node->getDescriptorByLayoutName(desc_set_layout_bind_name);
+        const std::shared_ptr<DescSetLayout>& desc_set_layout = desc->getBindings();
+        VkDescriptorSetLayoutBinding vk_desc_bind = desc_set_layout->getBinding(desc_set_layout_bind_name);
+        std::string mvp_buffer_name;
+        if(vk_desc_bind.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) {
+            mvp_buffer_name = object_name + "_"s + desc_set_layout_bind_name + "_uniform_frame_"s + std::to_string(frame);
+        }
+        else if(vk_desc_bind.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER) {
+            mvp_buffer_name = object_name + "_"s + desc_set_layout_bind_name + "_storage_frame_"s + std::to_string(frame);
+        }
+        std::shared_ptr<VulkanBuffer> bo = resources_manager->create_buffer(src_data, buffer_size, mvp_buffer_name, update_metadata->buffer_resource_type_name);
+        render_node->addReadDependency(std::move(bo), desc_set_layout_bind_name);
+        render_node->updateDescriptor(desc_set_layout_bind_name);
+    }
+
+    uniform_buffer->update(src_data, buffer_size);
+}
+
 void SceneDrawable::updateMVPMatrices(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name) {
     Application& app = Application::Get();
     const std::shared_ptr<BaseEngineLogic>& game_logic = app.GetGameLogic();
@@ -282,35 +310,17 @@ void SceneDrawable::updateMVPMatrices(int frame, RenderableId render_id, std::sh
     ubo.proj = camera_node->GetProjection();
     //ubo.proj[1][1] *= -1.0f;
 
-    if(!uniform_buffer) {
-        // проверить размер и обновить буффер и дескрипторы
-        VulkanRenderer& renderer = Application::GetRenderer();
-        std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
-        const std::shared_ptr<GraphicsRenderNode>& render_node = m_per_frame[frame]->renderables.at(render_id)->render_node;
-        render_node->getDescriptor();
-        const std::shared_ptr<DescSetLayout>& desc_set_layout = renderer.getDescriptorsManager()->getDescSetLayout(desc_set_name);
-
-        if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) {
-            std::string mvp_uniform_name = mesh_node->Get().Name() + "_"s + desc_layout_bind_name + "_uniform_frame_"s + std::to_string(frame);
-            std::shared_ptr<VulkanBuffer> ubo = resources_manager->create_buffer(nullptr, 0, model_data->GetName() + desc_layout_bind_name + "_uniform_frame_"s + std::to_string(frame), update_metadata->buffer_resource_type_name);
-            render_node->addReadDependency(std::move(ubo), desc_layout_bind_name);
-        }
-        else if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER && can_instance) {
-            std::shared_ptr<VulkanBuffer> ssbo = resources_manager->create_buffer(nullptr, 0, model_data->GetName() + desc_layout_bind_name + "_storage_frame_"s + std::to_string(frame), update_metadata->buffer_resource_type_name);
-            render_node->addReadDependency(std::move(ssbo), desc_layout_bind_name);
-        }
-    }
-
-    uniform_buffer->update(&ubo, sizeof(SceneUniformBufferObject));
+    updateDescBuffer(frame, render_id, uniform_buffer, desc_set_layout_bind_name, &ubo, sizeof(SceneUniformBufferObject), mesh_node->Get().Name());
 }
 
 
-void SceneDrawable::updateInvMVPMatrices(const std::shared_ptr<SceneNode>& scene_node, std::shared_ptr<VulkanBuffer>& uniform_buffer) {\
+void SceneDrawable::updateInvMVPMatrices(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name) {
     Application& app = Application::Get();
     const std::shared_ptr<BaseEngineLogic>& game_logic = app.GetGameLogic();
     const std::shared_ptr<CameraComponent>& camera_component = game_logic->GetHumanView()->VGetCamera();
     const std::shared_ptr<BasicCameraNode>& camera_node = camera_component->VGetCameraNode();
-    const SceneNodeProperties& node_props = scene_node->Get();
+    const std::shared_ptr<MeshNode>& mesh_node = m_per_frame[frame]->renderables.at(render_id)->mesh_node;
+    const SceneNodeProperties& node_props = mesh_node->Get();
     
     SceneUniformBufferObject ubo{};
     ubo.model = node_props.FromRoot();
@@ -318,31 +328,38 @@ void SceneDrawable::updateInvMVPMatrices(const std::shared_ptr<SceneNode>& scene
     ubo.proj = camera_node->GetInvProjection();
     //ubo.proj[1][1] *= -1.0f;
 
-    uniform_buffer->update(&ubo, sizeof(SceneUniformBufferObject));
+    updateDescBuffer(frame, render_id, uniform_buffer, desc_set_layout_bind_name, &ubo, sizeof(SceneUniformBufferObject), mesh_node->Get().Name());
 }
 
-void SceneDrawable::updateMaterialProps(const std::shared_ptr<Material>& material, std::shared_ptr<VulkanBuffer>& uniform_buffer) {
-    PhongMaterial mat;
+void SceneDrawable::updateMaterialProps(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name) {
+    const std::shared_ptr<Renderable>& renderable = m_per_frame[frame]->renderables.at(render_id);
+    const std::shared_ptr<MeshNode>& mesh_node = renderable->mesh_node;
+    std::shared_ptr<ModelData> model_data = mesh_node->GetMesh(renderable->mesh_id);
+    const std::shared_ptr<Material>& material = model_data->GetMaterial();
 
+    PhongMaterial mat;
     mat.fresnelR0_roughness = material->GetReflectance();
     mat.fresnelR0_roughness.a = material->GetRoughnessFactor();
 
-    uniform_buffer->update(&mat, sizeof(PhongMaterial));
+    updateDescBuffer(frame, render_id, uniform_buffer, desc_set_layout_bind_name, &mat, sizeof(PhongMaterial), mesh_node->Get().Name());
 }
 
-void SceneDrawable::updateJointMatrices(const std::shared_ptr<MeshNode>& mesh_node, std::shared_ptr<VulkanBuffer>& buffer_ptr) {
+void SceneDrawable::updateJointMatrices(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name) {
+    const std::shared_ptr<Renderable>& renderable = m_per_frame[frame]->renderables.at(render_id);
+    const std::shared_ptr<MeshNode>& mesh_node = renderable->mesh_node;
     if(mesh_node->GetSkinName().empty()) return;
 
     const std::shared_ptr<SkeletonManager>& skeleton_manager = m_scene->getSkeletonManager();
     const std::shared_ptr<SkeletonManager::SkinnedData>& skinned_data = skeleton_manager->getSkinnedData(mesh_node->GetSkinName());
-    buffer_ptr->update(skinned_data->final_matrices.data(), skinned_data->final_matrices.size() * sizeof(glm::mat4));
+    updateDescBuffer(frame, render_id, uniform_buffer, desc_set_layout_bind_name, skinned_data->final_matrices.data(), skinned_data->final_matrices.size() * sizeof(glm::mat4), mesh_node->Get().Name());
 }
 
-void SceneDrawable::updateJointDQ(const std::shared_ptr<MeshNode>& mesh_node, std::shared_ptr<VulkanBuffer>& buffer_ptr) {
+void SceneDrawable::updateJointDQ(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name) {
+    const std::shared_ptr<Renderable>& renderable = m_per_frame[frame]->renderables.at(render_id);
+    const std::shared_ptr<MeshNode>& mesh_node = renderable->mesh_node;
     if(mesh_node->GetSkinName().empty()) return;
 
     const std::shared_ptr<SkeletonManager>& skeleton_manager = m_scene->getSkeletonManager();
-
     const std::shared_ptr<SkeletonManager::SkinnedData>& skinned_data = skeleton_manager->getSkinnedData(mesh_node->GetSkinName());
-    buffer_ptr->update(skinned_data->dual_quats.data(), skinned_data->dual_quats.size() * sizeof(glm::mat2x4));
+    updateDescBuffer(frame, render_id, uniform_buffer, desc_set_layout_bind_name, skinned_data->dual_quats.data(), skinned_data->dual_quats.size() * sizeof(glm::mat2x4), mesh_node->Get().Name());
 }

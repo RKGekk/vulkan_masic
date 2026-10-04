@@ -65,13 +65,15 @@ public:
     const std::unordered_map<uint32_t, std::shared_ptr<VulkanDescriptor>>& getDescriptors() const;
     const std::shared_ptr<VulkanDescriptor>& getDescriptor(DescriptorSetSlot slot) const;
     const std::shared_ptr<VulkanDescriptor>& getDescriptor(const std::string& desc_name) const;
-    const std::shared_ptr<VulkanDescriptor>& getDescriptorLayout(const std::string& desc_lyout_bind_name) const;
+    const std::shared_ptr<VulkanDescriptor>& getDescriptorByLayoutName(const std::string& desc_lyout_bind_name) const;
     void setDescriptor(DescriptorSetSlot slot, std::shared_ptr<VulkanDescriptor> desc);
     void add_update_function(const UpdateFunctionName& func_name, UpdateFunctionSigature fn);
     UpdateFunctionSigature& getUpdateFunction(const UpdateFunctionName& func_name);
     const std::unordered_map<UpdateFunctionName, UpdateFunctionSigature>& getUpdateFunctionsMap() const;
 
     virtual void updateDescriptors() = 0;
+    virtual void updateDescriptor(const std::string& desc_binding_name) = 0;
+    virtual void updateDescriptor(uint32_t desc_slot, uint32_t desc_binding_num) = 0;
     virtual void finishRenderNode() = 0;
 
     const std::shared_ptr<RenderResource>& getAttachedResource(const LocalName& attached_as) const;
@@ -106,5 +108,6 @@ private:
 
     std::unordered_map<DescriptorSetSlot, std::shared_ptr<VulkanDescriptor>> m_descs;
     std::unordered_map<std::string, DescriptorSetSlot> m_desc_name_to_slot_map;
-    std::unordered_map<UpdateFunctionName, std::function<void(std::shared_ptr<VulkanBuffer>&)>> m_update_functions;
+    std::unordered_map<std::string, DescriptorSetSlot> m_desc_layout_name_to_slot_map;
+    std::unordered_map<UpdateFunctionName, UpdateFunctionSigature> m_update_functions;
 };
