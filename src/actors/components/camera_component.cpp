@@ -25,7 +25,7 @@ bool CameraComponent::Init(const pugi::xml_node& data) {
 	float far_plane = data.child("Far").text().as_float(1.0f);
 	float aspect_ratio = Application::Get().GetApplicationOptions().GetAspect();
 
-	std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->GetHumanView()->VGetScene();
+	const std::shared_ptr<Scene>& scene_ptr = Application::Get().GetGameLogic()->GetHumanView()->VGetScene()->getScene();
 
 	std::shared_ptr<TransformComponent> tc = act->GetComponent<TransformComponent>(ActorComponent::GetIdFromName("TransformComponent")).lock();
 	if (!tc) {

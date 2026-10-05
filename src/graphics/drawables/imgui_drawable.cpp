@@ -108,7 +108,7 @@ void ImGUIDrawable::destroy() {
 }
 
 
-std::shared_ptr<GraphicsRenderNode> ImGUIDrawable::makeRenderable(uint32_t image_index) {
+std::shared_ptr<GraphicsRenderNode> ImGUIDrawable::makeRenderable(uint32_t image_index, int cmd_i) {
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
 
     std::shared_ptr<GraphicsRenderNode> render_node;
@@ -122,8 +122,9 @@ std::shared_ptr<GraphicsRenderNode> ImGUIDrawable::makeRenderable(uint32_t image
 
     render_node->add_update_function(
         "imgui_uniform_update_fn"s,
-        [&, frame = image_index](std::shared_ptr<VulkanBuffer>& uniform_buffer){
-            updateUniform(uniform_buffer);
+        [&, frame = image_index, cmd_idx = cmd_i]
+        (std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name){
+            updateUniform(uniform_buffer, desc_set_layout_bind_name, frame, cmd_idx);
         }
     );
 
@@ -139,7 +140,7 @@ std::shared_ptr<GraphicsRenderNode> ImGUIDrawable::makeRenderable(uint32_t image
     return render_node;
 }
 
-void ImGUIDrawable::updateUniform(std::shared_ptr<VulkanBuffer>& uniform_buffer) {
+void ImGUIDrawable::updateUniform(std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name, uint32_t frame, int cmd_i) {
     ImDrawData* dd = ImGui::GetDrawData();
     const float L = dd->DisplayPos.x;
     const float R = dd->DisplayPos.x + dd->DisplaySize.x;
@@ -147,6 +148,30 @@ void ImGUIDrawable::updateUniform(std::shared_ptr<VulkanBuffer>& uniform_buffer)
     const float B = dd->DisplayPos.y + dd->DisplaySize.y;
     ImGuiUniformBufferObject bindData;
     bindData.LRTB = {L, R, T, B};
+
+    if(!uniform_buffer) {
+        // проверить размер и обновить буффер и дескрипторы
+        VulkanRenderer& renderer = Application::GetRenderer();
+        std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
+        const std::shared_ptr<GraphicsRenderNode>& render_node = m_per_frame[frame]->renderables.at(cmd_i);
+        std::shared_ptr<GraphicsRenderNodeConfig>& render_node_cfg = render_node->getGraphicsRenderNodeConfig();
+        const std::shared_ptr<GraphicsRenderNodeConfig::UpdateMetadata>& update_metadata = render_node_cfg->getBindingsMetadata().at(desc_set_layout_bind_name);
+        const std::shared_ptr<VulkanDescriptor>& desc = render_node->getDescriptorByLayoutName(desc_set_layout_bind_name);
+        const std::shared_ptr<DescSetLayout>& desc_set_layout = desc->getBindings();
+        VkDescriptorSetLayoutBinding vk_desc_bind = desc_set_layout->getBinding(desc_set_layout_bind_name);
+        std::string mvp_buffer_name;
+        if(vk_desc_bind.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) {
+            mvp_buffer_name = "ImDrawData"s + std::to_string(cmd_i) + "_"s + desc_set_layout_bind_name + "_uniform_frame_"s + std::to_string(frame);
+        }
+        else if(vk_desc_bind.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER) {
+            mvp_buffer_name = "ImDrawData"s + std::to_string(cmd_i) + "_"s + desc_set_layout_bind_name + "_storage_frame_"s + std::to_string(frame);
+        }
+        std::shared_ptr<VulkanBuffer> bo = resources_manager->create_buffer(&bindData, sizeof(ImGuiUniformBufferObject), mvp_buffer_name, update_metadata->buffer_resource_type_name);
+        render_node->addReadDependency(std::move(bo), desc_set_layout_bind_name);
+        render_node->updateDescriptor(desc_set_layout_bind_name);
+    }
+
+    
     uniform_buffer->update(&bindData, sizeof(ImGuiUniformBufferObject));
 }
 
@@ -204,7 +229,7 @@ void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
             if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y)  continue;
 
             while(per_frame->renderables.size() <= cmd_ct) {
-                std::shared_ptr<GraphicsRenderNode> renderable = makeRenderable(image_index);
+                std::shared_ptr<GraphicsRenderNode> renderable = makeRenderable(image_index, cmd_i);
                 per_frame->renderables.push_back(renderable);
                 Application::GetRenderer().addRenderNode(renderable, image_index);
             }

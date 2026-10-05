@@ -26,7 +26,7 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
     if (!m_is_visible) return true;
 
 	if (ImGui::Begin("Managers Menu")) {
-        if(const std::shared_ptr<AnimationManager>& animation_manager = Application::Get().GetGameLogic()->GetHumanView()->VGetScene()->getAnimationManager()) {
+        if(const std::shared_ptr<AnimationManager>& animation_manager = Application::Get().GetGameLogic()->GetHumanView()->VGetScene()->getScene()->getAnimationManager()) {
             if (ImGui::CollapsingHeader("Animation Manager")) {
 				if (ImGui::TreeNode("Sequences")) {
 					
@@ -205,7 +205,7 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
 		    }
         }
 
-		if(const std::shared_ptr<SkeletonManager>& skeleton_manager = Application::Get().GetGameLogic()->GetHumanView()->VGetScene()->getSkeletonManager()) {
+		if(const std::shared_ptr<SkeletonManager>& skeleton_manager = Application::Get().GetGameLogic()->GetHumanView()->VGetScene()->getScene()->getSkeletonManager()) {
 			if (ImGui::CollapsingHeader("Skeletons Manager")) {
 				for(const auto&[skin_name, skin_data] : skeleton_manager->getSkinMap()) {
 					if (ImGui::TreeNode(skin_name.c_str())) {

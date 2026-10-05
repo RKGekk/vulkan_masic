@@ -38,8 +38,7 @@ bool SceneDrawable::init(std::shared_ptr<Scene> scene) {
     VulkanRenderer& renderer = Application::GetRenderer();
 	std::shared_ptr<VulkanDevice> device = renderer.GetDevice();
 
-    VulkanRenderer& renderer = Application::GetRenderer();
-    const std::shared_ptr<VulkanSwapChain>& swapchain = Application::GetRenderer().getSwapchain();
+    const std::shared_ptr<VulkanSwapChain>& swapchain = renderer.getSwapchain();
     const std::shared_ptr<FormatConfig>& format_cfg = swapchain->getFormatConfig();
 
     m_device = std::move(device);

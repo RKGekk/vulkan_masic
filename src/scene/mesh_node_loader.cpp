@@ -58,7 +58,7 @@ std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem
     Application& app = Application::Get();
     VulkanRenderer& renderer = app.GetRenderer();
     m_device = renderer.GetDevice();
-    m_scene = Application::Get().GetGameLogic()->GetHumanView()->VGetScene();
+    m_scene = Application::Get().GetGameLogic()->GetHumanView()->VGetScene()->getScene();
 	m_shader_manager = shader_manager;
 	m_default_vertex_shader_name = "basic_diffuse_vertex_shader"s;
 

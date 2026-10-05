@@ -20,7 +20,7 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLine(const std
     Application& app = Application::Get();
     VulkanRenderer& renderer = app.GetRenderer();
     m_device = renderer.GetDevice();
-    m_scene = Application::Get().GetGameLogic()->GetHumanView()->VGetScene();
+    m_scene = Application::Get().GetGameLogic()->GetHumanView()->VGetScene()->getScene();
 	m_shader_manager = shader_manager;
 	m_default_vertex_shader_name = "line_vertex_shader"s;
     m_root_node = root_transform;
@@ -254,7 +254,7 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLineInstanced(
     Application& app = Application::Get();
     VulkanRenderer& renderer = app.GetRenderer();
     m_device = renderer.GetDevice();
-    m_scene = Application::Get().GetGameLogic()->GetHumanView()->VGetScene();
+    m_scene = Application::Get().GetGameLogic()->GetHumanView()->VGetScene()->getScene();
 	m_shader_manager = shader_manager;
 	m_default_vertex_shader_name = "line_instanced_dq_vertex_shader"s;
     m_root_node = root_transform;
@@ -344,7 +344,7 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateSceneNodeSpline(co
     Application& app = Application::Get();
     VulkanRenderer& renderer = app.GetRenderer();
     m_device = renderer.GetDevice();
-    m_scene = Application::Get().GetGameLogic()->GetHumanView()->VGetScene();
+    m_scene = Application::Get().GetGameLogic()->GetHumanView()->VGetScene()->getScene();
 	m_shader_manager = std::move(shader_manager);
 	m_default_vertex_shader_name = "line_vertex_shader"s;
     m_root_node = root_transform;

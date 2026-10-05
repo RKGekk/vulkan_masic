@@ -16,6 +16,8 @@
 #include "../../scene/scene.h"
 #include "../../scene/animation_manager.h"
 #include "../../scene/skeleton_manager.h"
+#include "../../scene/nodes/camera_node.h"
+#include "../../scene/nodes/basic_camera_node.h"
 
 const std::string HumanView::g_name = "Level"s;
 
@@ -124,8 +126,13 @@ void HumanView::VOnUpdate(const GameTimerDelta& delta, uint32_t image_index) {
 	scene->getAnimationManager()->Update(delta);
 	scene->recalculateGlobalTransforms();
     if(const std::shared_ptr<CameraComponent>& camera_component = VGetCamera()) {
-		const std::shared_ptr<BasicCameraNode>& camera_node = camera_component->VGetCameraNode();
-    	scene->getLightManager()->CalcLighting(std::static_pointer_cast<CameraNode>(camera_node));
+		std::shared_ptr<BasicCameraNode> basic_camera_node = camera_component->VGetCameraNode();
+		//std::shared_ptr<BasicCameraNode> camera_node = camera_component->VGetCameraNode();
+		std::shared_ptr<CameraNode> camera_node = std::static_pointer_cast<CameraNode>(basic_camera_node);
+		//std::shared_ptr<CameraNode> camera_node = basic_camera_node;
+		scene->getLightManager()->CalcLighting(camera_node);
+    	//scene->getLightManager()->CalcLighting(std::dynamic_pointer_cast<CameraNode>(camera_node));
+		//scene->getLightManager()->CalcLighting(camera_component->VGetCameraNode());
 	}
 	scene->getSkeletonManager()->recalculateSkinnedData();
 }
@@ -187,7 +194,7 @@ void HumanView::VSetControlledActor(std::shared_ptr<Actor> actor) {
 	}
 }
 
-const std::shared_ptr<CameraComponent>& HumanView::VGetCamera() {
+std::shared_ptr<CameraComponent> HumanView::VGetCamera() {
 	if (!m_camera.expired()) {
 		return m_camera.lock();
 	}

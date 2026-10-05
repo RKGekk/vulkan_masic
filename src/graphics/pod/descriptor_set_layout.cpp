@@ -4,6 +4,8 @@
 #include "../api/vulkan_sampler.h"
 #include "../../application.h"
 
+const std::shared_ptr<DescSetLayout> DescSetLayout::NULL_DESC_LAYOUT_PTR = nullptr;
+
 bool DescSetLayout::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_node& descriptor_sets_node) {
     using namespace std::literals;
     m_device = device;

@@ -63,7 +63,7 @@ bool LightComponent::Init(const pugi::xml_node& light_node_data) {
 		return false;
 	}
     std::shared_ptr<SceneNode> transform_node = tc->GetSceneNode();
-    const std::shared_ptr<Scene>& scene = Application::Get().GetGameLogic()->GetHumanView()->VGetScene();
+    const std::shared_ptr<Scene>& scene = Application::Get().GetGameLogic()->GetHumanView()->VGetScene()->getScene();
 
 	m_light_scene_node = std::make_shared<LightNode>(scene, transform_node->VGetNodeIndex());
 

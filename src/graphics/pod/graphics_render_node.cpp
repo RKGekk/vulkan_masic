@@ -42,7 +42,7 @@ void GraphicsRenderNode::render(CommandBatch& command_buffer, unsigned image_ind
         
         const std::string& update_fn_name = metadata->update_function_name;
         std::shared_ptr<VulkanBuffer> uniform_buffer = getAttachedBufferResource(desc_layout_binding_name);
-        getUpdateFunction(update_fn_name)(uniform_buffer);
+        getUpdateFunction(update_fn_name)(uniform_buffer, desc_layout_binding_name);
     }
     
     TransitionResourcesToProperState(command_buffer);

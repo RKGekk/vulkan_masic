@@ -118,7 +118,7 @@ bool NodeMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index) {
     std::shared_ptr<BaseEngineLogic> game_logic = app.GetGameLogic();
     std::shared_ptr<HumanView> human_view = game_logic->GetHumanView();
     if(!human_view) return true;
-    std::shared_ptr<Scene> scene = human_view->VGetScene();
+    const std::shared_ptr<Scene>& scene = human_view->VGetScene()->getScene();
     if(!scene) return true;
 
     if (ImGui::Begin("Nodes Menu")) {

@@ -71,9 +71,9 @@ public:
     UpdateFunctionSigature& getUpdateFunction(const UpdateFunctionName& func_name);
     const std::unordered_map<UpdateFunctionName, UpdateFunctionSigature>& getUpdateFunctionsMap() const;
 
-    virtual void updateDescriptors() = 0;
-    virtual void updateDescriptor(const std::string& desc_binding_name) = 0;
-    virtual void updateDescriptor(uint32_t desc_slot, uint32_t desc_binding_num) = 0;
+    virtual void updateDescriptors() {};
+    virtual void updateDescriptor(const std::string& desc_binding_name) {};
+    virtual void updateDescriptor(uint32_t desc_slot, uint32_t desc_binding_num) {};
     virtual void finishRenderNode() = 0;
 
     const std::shared_ptr<RenderResource>& getAttachedResource(const LocalName& attached_as) const;

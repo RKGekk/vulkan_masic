@@ -10,14 +10,14 @@ const std::string InverseKinematicsComponent::g_name = "InverseKinematicsCompone
 InverseKinematicsComponent::InverseKinematicsComponent() {
     using namespace std::literals;
 
-    const std::shared_ptr<Scene>& scene_ptr = Application::Get().GetGameLogic()->GetHumanView()->VGetScene();
+    const std::shared_ptr<Scene>& scene_ptr = Application::Get().GetGameLogic()->GetHumanView()->VGetScene()->getScene();
     m_iksolver = scene_ptr->getIKSolver();
 }
 
 InverseKinematicsComponent::InverseKinematicsComponent(const pugi::xml_node& data) {
     using namespace std::literals;
 
-    const std::shared_ptr<Scene>& scene_ptr = Application::Get().GetGameLogic()->GetHumanView()->VGetScene();
+    const std::shared_ptr<Scene>& scene_ptr = Application::Get().GetGameLogic()->GetHumanView()->VGetScene()->getScene();
     m_iksolver = scene_ptr->getIKSolver();
 
     Init(data);

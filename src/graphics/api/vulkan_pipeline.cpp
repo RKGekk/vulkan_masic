@@ -201,6 +201,7 @@ const std::shared_ptr<DescSetLayout>& VulkanPipeline::getDescLayout(const std::s
             return desc_set_layout;
         }
     }
+    return DescSetLayout::NULL_DESC_LAYOUT_PTR;
 }
 
 bool VulkanPipeline::hasDescBinding(const std::string& desc_binding_name) const {

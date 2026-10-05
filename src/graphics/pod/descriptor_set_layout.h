@@ -20,6 +20,7 @@ class VulkanSampler;
 
 class DescSetLayout {
 public:
+    static const std::shared_ptr<DescSetLayout> NULL_DESC_LAYOUT_PTR;
 
     using DescSetBindings = std::vector<VkDescriptorSetLayoutBinding>;
     using BindingNum = uint32_t;

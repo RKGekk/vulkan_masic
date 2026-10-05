@@ -22,7 +22,7 @@ TransformComponent::TransformComponent() {
     m_right = DEFAULT_RIGHT_VECTOR;
 
     //std::shared_ptr<Actor> act = GetOwner();
-    std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->GetHumanView()->VGetScene();
+    const std::shared_ptr<Scene>& scene_ptr = Application::Get().GetGameLogic()->GetHumanView()->VGetScene()->getScene();
     //m_scene_node = std::make_shared<SceneNode>(scene_ptr, act->GetName() + "_"s + g_name, glm::mat4(1.0f));
     m_scene_node = std::make_shared<SceneNode>(scene_ptr, g_name, glm::mat4(1.0f));
     scene_ptr->addProperty(m_scene_node);
@@ -34,7 +34,7 @@ TransformComponent::TransformComponent(const pugi::xml_node& data) {
     m_right = DEFAULT_RIGHT_VECTOR;
 
     //std::shared_ptr<Actor> act = GetOwner();
-    std::shared_ptr<Scene> scene_ptr = Application::Get().GetGameLogic()->GetHumanView()->VGetScene();
+    const std::shared_ptr<Scene>& scene_ptr = Application::Get().GetGameLogic()->GetHumanView()->VGetScene()->getScene();
     //m_scene_node = std::make_shared<SceneNode>(scene_ptr, act->GetName() + "_"s + g_name, glm::mat4(1.0f));
     m_scene_node = std::make_shared<SceneNode>(scene_ptr, g_name, glm::mat4(1.0f));
     scene_ptr->addProperty(m_scene_node);
