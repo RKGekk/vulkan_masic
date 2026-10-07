@@ -34,7 +34,7 @@ void SkeletonManager::AddBone(const std::shared_ptr<BoneNode>& node) {
         skinned_data->inverse_bind_matrices[bone_data.joint_index] = bone_data.inverse_bind_matrice;
 
         skinned_data->skin_buffer_name = "skinned_data_buffer_"s + skin_name + "_"s + std::to_string(m_skinned_data.size());
-        skinned_data->bind_buffer = resources_manager->create_buffer(nullptr, 0, skinned_data->skin_buffer_name, m_skin_resource_cfg_name);
+        skinned_data->bind_buffer = resources_manager->create_buffer(nullptr, skinned_data->bind_matrices.size() * sizeof(glm::mat4), skinned_data->skin_buffer_name, m_skin_resource_cfg_name);
 
         skinned_data->bone_to_joint_map[node] = bone_data.joint_index;
         skinned_data->joint_to_bone_map[bone_data.joint_index] = node;

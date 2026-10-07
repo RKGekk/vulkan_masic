@@ -2395,7 +2395,7 @@
                         <UpdateFunctionName>no_name</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
-                <LayoutBinding name="joint_ssbo" resource_creation_point="RenderNodeCreationTime">
+                <LayoutBinding name="joint_dq_ssbo" resource_creation_point="RenderNodeCreationTime">
                     <Buffer>
                         <BufferResourceType>joint_storage_resource</BufferResourceType>
                         <UpdateFunctionName>joint_dq_update</UpdateFunctionName>

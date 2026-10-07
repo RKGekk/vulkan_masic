@@ -35,6 +35,8 @@ struct PhongMaterial {
 bool SceneDrawable::init(std::shared_ptr<Scene> scene) {
     using namespace std::literals;
 
+    m_scene = std::move(scene);
+
     VulkanRenderer& renderer = Application::GetRenderer();
 	std::shared_ptr<VulkanDevice> device = renderer.GetDevice();
 
@@ -207,6 +209,13 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                 for (const auto&[desc_layout_bind_name, bind_num] : desc_set_layout->getBindingMap()) {
                     const VkDescriptorSetLayoutBinding& vk_layout_binding = desc_set_layout->getBinding(bind_num);
                     const std::shared_ptr<GraphicsRenderNodeConfig::UpdateMetadata>& update_metadata = render_node_cfg->getBindingsMetadata().at(desc_layout_bind_name);
+
+                    if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER && material->HasTexture()) {
+                        std::shared_ptr<VulkanImageBuffer> texture = material->GetTexture();
+                        render_node->addReadDependency(std::move(texture), desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
+                        continue;
+                    }
+
                     const std::shared_ptr<BufferConfig>& buffer_config = resources_manager->getBufferConfigTemplate(update_metadata->buffer_resource_type_name);
                     bool can_instance = update_metadata->creation_point == GraphicsRenderNodeConfig::CreationPoint::RENDER_NODE_CREATION_TIME && buffer_config->getBufferInfo().size > 0u;
 
@@ -240,10 +249,6 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                                 render_node->addReadDependency(std::move(ssbo), desc_layout_bind_name);
                             }
                         }
-                    }
-                    else if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER && material->HasTexture()) {
-                        std::shared_ptr<VulkanImageBuffer> texture = material->GetTexture();
-                        render_node->addReadDependency(std::move(texture), desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
                     }
                 }
             }
@@ -280,29 +285,32 @@ void SceneDrawable::updatePushConstants(int frame, RenderableId render_id) {
 }
 
 void SceneDrawable::updateDescBuffer(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name, const void* src_data, VkDeviceSize buffer_size, std::string object_name) {
-    if(!uniform_buffer) {
-        // проверить размер и обновить буффер и дескрипторы
-        VulkanRenderer& renderer = Application::GetRenderer();
-        std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
-        const std::shared_ptr<GraphicsRenderNode>& render_node = m_per_frame[frame]->renderables.at(render_id)->render_node;
-        std::shared_ptr<GraphicsRenderNodeConfig>& render_node_cfg = render_node->getGraphicsRenderNodeConfig();
-        const std::shared_ptr<GraphicsRenderNodeConfig::UpdateMetadata>& update_metadata = render_node_cfg->getBindingsMetadata().at(desc_set_layout_bind_name);
-        const std::shared_ptr<VulkanDescriptor>& desc = render_node->getDescriptorByLayoutName(desc_set_layout_bind_name);
-        const std::shared_ptr<DescSetLayout>& desc_set_layout = desc->getBindings();
-        VkDescriptorSetLayoutBinding vk_desc_bind = desc_set_layout->getBinding(desc_set_layout_bind_name);
-        std::string mvp_buffer_name;
-        if(vk_desc_bind.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) {
-            mvp_buffer_name = object_name + "_"s + desc_set_layout_bind_name + "_uniform_frame_"s + std::to_string(frame);
-        }
-        else if(vk_desc_bind.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER) {
-            mvp_buffer_name = object_name + "_"s + desc_set_layout_bind_name + "_storage_frame_"s + std::to_string(frame);
-        }
-        std::shared_ptr<VulkanBuffer> bo = resources_manager->create_buffer(src_data, buffer_size, mvp_buffer_name, update_metadata->buffer_resource_type_name);
-        render_node->addReadDependency(std::move(bo), desc_set_layout_bind_name);
-        render_node->updateDescriptor(desc_set_layout_bind_name);
+    if(uniform_buffer) {
+        uniform_buffer->update(src_data, buffer_size);
+        return;
     }
-
-    uniform_buffer->update(src_data, buffer_size);
+    
+    // проверить размер и обновить буффер и дескрипторы
+    VulkanRenderer& renderer = Application::GetRenderer();
+    std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
+    const std::shared_ptr<GraphicsRenderNode>& render_node = m_per_frame[frame]->renderables.at(render_id)->render_node;
+    std::shared_ptr<GraphicsRenderNodeConfig>& render_node_cfg = render_node->getGraphicsRenderNodeConfig();
+    const std::shared_ptr<GraphicsRenderNodeConfig::UpdateMetadata>& update_metadata = render_node_cfg->getBindingsMetadata().at(desc_set_layout_bind_name);
+    const std::shared_ptr<VulkanDescriptor>& desc = render_node->getDescriptorByLayoutName(desc_set_layout_bind_name);
+    const std::shared_ptr<DescSetLayout>& desc_set_layout = desc->getBindings();
+    VkDescriptorSetLayoutBinding vk_desc_bind = desc_set_layout->getBinding(desc_set_layout_bind_name);
+    std::string mvp_buffer_name;
+    if(vk_desc_bind.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) {
+        mvp_buffer_name = object_name + "_"s + desc_set_layout_bind_name + "_uniform_frame_"s + std::to_string(frame);
+    }
+    else if(vk_desc_bind.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER) {
+        mvp_buffer_name = object_name + "_"s + desc_set_layout_bind_name + "_storage_frame_"s + std::to_string(frame);
+    }
+    std::shared_ptr<VulkanBuffer> bo = resources_manager->create_buffer(src_data, buffer_size, mvp_buffer_name, update_metadata->buffer_resource_type_name);
+    //bo->update(src_data, buffer_size);
+    render_node->addReadDependency(std::move(bo), desc_set_layout_bind_name);
+    render_node->updateDescriptor(desc_set_layout_bind_name);
+    
 }
 
 void SceneDrawable::updateMVPMatrices(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name) {
