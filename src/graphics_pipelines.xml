@@ -636,7 +636,7 @@
         <ResourceType name="joint_storage_resource">
             <Buffer>
                 <BufferUsageFlags>
-                    <Flag>uniform_buffer</Flag>
+                    <Flag>storage_buffer</Flag>
                 </BufferUsageFlags>
                 <Size dynamic="false" deffered="true">0</Size>
                 <MemoryProperties>
@@ -2203,7 +2203,7 @@
                         <UpdateFunctionName>mvp_matrices_update</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
-                <LayoutBinding name="joint_ssbo" resource_creation_point="RenderNodeCreationTime">
+                <LayoutBinding name="joint_dq_ssbo" resource_creation_point="RenderNodeCreationTime">
                     <Buffer>
                         <BufferResourceType>joint_storage_resource</BufferResourceType>
                         <UpdateFunctionName>joint_dq_update</UpdateFunctionName>
@@ -2341,9 +2341,9 @@
                         <UpdateFunctionName>no_name</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
-                <LayoutBinding name="joint_ubo" resource_creation_point="RenderNodeCreationTime">
+                <LayoutBinding name="joint_ssbo" resource_creation_point="RenderNodeCreationTime">
                     <Buffer>
-                        <BufferResourceType>joint_uniform_resource</BufferResourceType>
+                        <BufferResourceType>joint_storage_resource</BufferResourceType>
                         <UpdateFunctionName>joint_matrices_update</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>

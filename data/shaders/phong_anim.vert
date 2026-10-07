@@ -1,7 +1,5 @@
 #version 450
 
-#define MaxBones 96
-
 layout(set = 0, binding = 0) uniform MatrixBufferObject {
     mat4 model;
     mat4 view;
@@ -14,9 +12,9 @@ layout(set = 0, binding = 1) uniform InvMatrixBufferObject {
     mat4 inv_proj;
 } inv_ubo;
 
-layout(set = 0, binding = 5) uniform JointBufferObject {
-    mat4 joint_array[MaxBones];
-} joint_ubo; // 64 * 96 = 6144
+layout(std430, set = 0, binding = 5) readonly buffer JointBufferObject {
+    mat4 joint_array[];
+} joint_ubo;
 
 layout(location = 0) in vec3 in_position;
 layout(location = 1) in vec3 in_normal;

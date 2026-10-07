@@ -1,9 +1,20 @@
 #include "skeleton_manager.h"
 
+#include "../application.h"
+#include "../graphics/vulkan_renderer.h"
+#include "../graphics/api/vulkan_resources_manager.h"
+
+const std::string SkeletonManager::m_skin_resource_cfg_name = "joint_bind_storage_resource";
+const std::string SkeletonManager::m_skin_desc_bind_name = "joint_bind_ssbo";
+
 SkeletonManager::SkeletonManager() {}
 
 void SkeletonManager::AddBone(const std::shared_ptr<BoneNode>& node) {
+    using namespace std::literals;
     if(!node) return;
+
+    VulkanRenderer& renderer = Application::GetRenderer();
+    std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
 
     for(const auto&[skin_name, bone_data] : node->getBoneDataMap()) {
         if(!m_skinned_data.contains(skin_name)) {
@@ -21,6 +32,9 @@ void SkeletonManager::AddBone(const std::shared_ptr<BoneNode>& node) {
         }
         skinned_data->inverse_bind_matrices[bone_data.joint_index] = bone_data.bind_matrice;
         skinned_data->inverse_bind_matrices[bone_data.joint_index] = bone_data.inverse_bind_matrice;
+
+        skinned_data->skin_buffer_name = "skinned_data_buffer_"s + skin_name + "_"s + std::to_string(m_skinned_data.size());
+        skinned_data->bind_buffer = resources_manager->create_buffer(nullptr, 0, skinned_data->skin_buffer_name, m_skin_resource_cfg_name);
 
         skinned_data->bone_to_joint_map[node] = bone_data.joint_index;
         skinned_data->joint_to_bone_map[bone_data.joint_index] = node;
@@ -75,6 +89,18 @@ std::unordered_set<BoneNode::SkinName> SkeletonManager::getMeshSkins(const std::
     return result;
 }
 
+const std::string& SkeletonManager::getSkeletonBufferName(const BoneNode::SkinName& name) const {
+    return m_skinned_data.at(name)->skin_buffer_name;
+}
+
+const std::string& SkeletonManager::getSkeletonResourceCfgName() {
+    return m_skin_resource_cfg_name;
+}
+
+const std::string& SkeletonManager::getSkeletonDescBindName() {
+    return m_skin_desc_bind_name;
+}
+
 bool SkeletonManager::UpdateBoneData(const std::shared_ptr<BoneNode>& node) {
     bool was_updated = false;
 
@@ -85,6 +111,7 @@ bool SkeletonManager::UpdateBoneData(const std::shared_ptr<BoneNode>& node) {
         glm::mat4 to_root = node->Get().ToRoot();
         skinned_data->bind_matrices[bone_data.joint_index] = skinned_data->bind_matrices[bone_data.joint_index];
         skinned_data->final_matrices[bone_data.joint_index] = model_from_root * to_root * skinned_data->inverse_bind_matrices[bone_data.joint_index];
+        skinned_data->bind_buffer->update(skinned_data->bind_matrices.data(), sizeof(glm::mat4) * skinned_data->bind_matrices.size());
         //skinned_data->final_matrices[bone_data.joint_index] = to_root * skinned_data->inverse_bind_matrices[bone_data.joint_index];
 
         {

@@ -14,7 +14,11 @@ layout(set = 0, binding = 0) uniform UniformBufferObject {
 
 layout(std430, set = 0, binding = 1) readonly buffer JointDualQuats {
     mat2x4 joint_dqs[];
-} joint_ssbo;
+} joint_dq_ssbo;
+
+layout(std430, set = 0, binding = 5) readonly buffer JointBufferObject {
+    mat4 joint_array[];
+} joint_bind_ssbo;
 
 layout(location = 0) in float in_pc_mix;
 layout(location = 1) in float in_side;
@@ -25,7 +29,7 @@ layout(location = 3) in uint in_child_joint_idx;
 const float epsilon = 0.00001f;
 
 vec3 getSkinPos(uint joint) {
-    mat2x4 bone = joint_ssbo.joint_dqs[joint];
+    mat2x4 bone = joint_dq_ssbo.joint_dqs[joint];
 
     vec4 r = bone[0]; // rotation
     vec4 t = bone[1]; // translation
@@ -52,7 +56,7 @@ vec3 getPositionFromDQ(mat2x4 dq) {
 }
 
 mat4 getSkinMatrix(uint joint) {
-    mat2x4 bone = joint_ssbo.joint_dqs[joint];
+    mat2x4 bone = joint_dq_ssbo.joint_dqs[joint];
 
     vec4 r = bone[0]; // rotation
     vec4 t = bone[1]; // translation

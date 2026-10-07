@@ -14,7 +14,7 @@ LightManager::LightManager() : m_dir_lights_size(0u), m_point_lights_size(0u), m
     int max_frames = renderer.getSwapchain()->getMaxFrames();
     m_light_buffers.reserve(max_frames);
     for(int i = 0; i < max_frames; ++i) {
-        m_light_buffers[i] = resources_manager->create_buffer(nullptr, 0, m_light_buffer_name + std::to_string(i), m_light_resource_cfg_name);
+        m_light_buffers.push_back(resources_manager->create_buffer(nullptr, 0, m_light_buffer_name + std::to_string(i), m_light_resource_cfg_name));
     }
 }
 

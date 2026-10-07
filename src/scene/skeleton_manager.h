@@ -30,6 +30,8 @@ public:
         std::unordered_map<std::shared_ptr<BoneNode>, BoneNode::JointIndex> bone_to_joint_map;
         std::unordered_map<BoneNode::JointIndex, std::shared_ptr<BoneNode>> joint_to_bone_map;
         std::vector<BoneNode::JointIndex> root_joints;
+        std::shared_ptr<VulkanBuffer> bind_buffer;
+        std::string skin_buffer_name;
     };
 
     SkeletonManager();
@@ -44,14 +46,15 @@ public:
     void resetSkin(const BoneNode::SkinName& name);
     std::unordered_set<BoneNode::SkinName> getMeshSkins(const std::shared_ptr<SceneNode>& mesh_root_node) const;
 
-    static const std::string& getLightBufferName();
-    static const std::string& getLightResourceCfgName();
+    const std::string& getSkeletonBufferName(const BoneNode::SkinName& name) const;
+    static const std::string& getSkeletonResourceCfgName();
+    static const std::string& getSkeletonDescBindName();
 
 private:
     bool UpdateBoneData(const std::shared_ptr<BoneNode>& node);
 
-    static const std::string m_joint_buffer_name;
-    static const std::string m_light_resource_cfg_name;
+    static const std::string m_skin_resource_cfg_name;
+    static const std::string m_skin_desc_bind_name;
 
     std::unordered_map<BoneNode::SkinName, std::shared_ptr<SkinnedData>> m_skinned_data;
     std::unordered_set<std::shared_ptr<BoneNode>> m_dirty_at_bone;

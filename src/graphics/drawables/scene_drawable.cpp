@@ -96,10 +96,12 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
     VulkanRenderer& renderer = Application::GetRenderer();
     std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = renderer.getSwapchain()->getSwapchainImages();
-    std::shared_ptr<Scene> scene = model->GetScene();
-
+    const std::shared_ptr<Scene>& scene = model->GetScene();
+    const std::shared_ptr<SkeletonManager>& skeleton_manager = scene->getSkeletonManager();
+    
     std::shared_ptr<ValueBagNode> value_bag_node = std::dynamic_pointer_cast<ValueBagNode>(scene->getProperty(model->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG));
     const MeshNode::MeshList& mesh_list = model->GetMeshes();
+    bool has_skeleton = model->GetSkinName().size() > 0u;
     size_t msz = mesh_list.size();
     for(int frame = 0; frame < m_max_frames; ++frame) {
         m_per_frame[frame]->renderables.reserve(m_per_frame[frame]->renderables.size() + msz);
@@ -186,16 +188,16 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             render_node->add_update_function(
                 "joint_matrices_update"s,
                 [&, frame, renderable_id]
-                (std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name){
-                    updateJointMatrices(frame, renderable_id, uniform_buffer, desc_set_layout_bind_name);
+                (std::shared_ptr<VulkanBuffer>& joint_buffer, const std::string& desc_set_layout_bind_name){
+                    updateJointMatrices(frame, renderable_id, joint_buffer, desc_set_layout_bind_name);
                 }
             );
 
             render_node->add_update_function(
                 "joint_dq_update"s,
                 [&, frame, renderable_id]
-                (std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name){
-                    updateJointDQ(frame, renderable_id, uniform_buffer, desc_set_layout_bind_name);
+                (std::shared_ptr<VulkanBuffer>& joint_dq_buffer, const std::string& desc_set_layout_bind_name){
+                    updateJointDQ(frame, renderable_id, joint_dq_buffer, desc_set_layout_bind_name);
                 }
             );
 
@@ -224,10 +226,19 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                         render_node->addReadDependency(std::move(ssbo), desc_layout_bind_name);
                     }
                     else if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER && update_metadata->creation_point == GraphicsRenderNodeConfig::CreationPoint::EXTERNAL) {
-                        std::string ssbo_global_name = desc_layout_bind_name + std::to_string(frame);
-                        if(resources_manager->hasResource(ssbo_global_name)) {
-                            std::shared_ptr<VulkanBuffer> ssbo = resources_manager->getBufferResource(ssbo_global_name);
-                            render_node->addReadDependency(std::move(ssbo), desc_layout_bind_name);
+                        if(has_skeleton && desc_layout_bind_name == SkeletonManager::getSkeletonDescBindName()) {
+                            std::string ssbo_global_name = skeleton_manager->getSkeletonBufferName(model->GetSkinName());
+                            if(resources_manager->hasResource(ssbo_global_name)) {
+                                std::shared_ptr<VulkanBuffer> ssbo = resources_manager->getBufferResource(ssbo_global_name);
+                                render_node->addReadDependency(std::move(ssbo), desc_layout_bind_name);
+                            }
+                        }
+                        else {
+                            std::string ssbo_global_name = desc_layout_bind_name + std::to_string(frame);
+                            if(resources_manager->hasResource(ssbo_global_name)) {
+                                std::shared_ptr<VulkanBuffer> ssbo = resources_manager->getBufferResource(ssbo_global_name);
+                                render_node->addReadDependency(std::move(ssbo), desc_layout_bind_name);
+                            }
                         }
                     }
                     else if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER && material->HasTexture()) {
