@@ -16,7 +16,7 @@ layout(std430, set = 0, binding = 1) readonly buffer JointDualQuats {
     mat2x4 joint_dqs[];
 } joint_dq_ssbo;
 
-layout(std430, set = 0, binding = 5) readonly buffer JointBufferObject {
+layout(std430, set = 0, binding = 2) readonly buffer JointBufferObject {
     mat4 joint_array[];
 } joint_bind_ssbo;
 
@@ -75,12 +75,14 @@ void main() {
 
     //mat4 parent_skin = getSkinMatrix(in_parent_joint_idx);
     //mat4 child_skin = getSkinMatrix(in_child_joint_idx);
+    mat4 parent_skin = getSkinMatrix(in_parent_joint_idx) * joint_bind_ssbo.joint_array[in_parent_joint_idx];
+    mat4 child_skin = getSkinMatrix(in_child_joint_idx) * joint_bind_ssbo.joint_array[in_child_joint_idx];
 
-    //vec3 parent_skin_space = vec3(parent_skin[3]);
-    //vec3 child_skin_space = vec3(child_skin[3]);;
+    vec3 parent_skin_space = vec3(parent_skin[3]);
+    vec3 child_skin_space = vec3(child_skin[3]);;
 
-    vec3 parent_skin_space = getSkinPos(in_parent_joint_idx);
-    vec3 child_skin_space = getSkinPos(in_child_joint_idx);
+    //vec3 parent_skin_space = getSkinPos(in_parent_joint_idx);
+    //vec3 child_skin_space = getSkinPos(in_child_joint_idx);
     //vec3 parent_skin_space = getPositionFromDQ(joint_ssbo.joint_dqs[in_parent_joint_idx]);
     //vec3 child_skin_space = getPositionFromDQ(joint_ssbo.joint_dqs[in_child_joint_idx]);
     

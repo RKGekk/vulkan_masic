@@ -30,7 +30,7 @@ void SkeletonManager::AddBone(const std::shared_ptr<BoneNode>& node) {
             skinned_data->final_matrices.resize(bone_data.joint_index + 1u);
             skinned_data->dual_quats.resize(bone_data.joint_index + 1u);
         }
-        skinned_data->inverse_bind_matrices[bone_data.joint_index] = bone_data.bind_matrice;
+        skinned_data->bind_matrices[bone_data.joint_index] = bone_data.bind_matrice;
         skinned_data->inverse_bind_matrices[bone_data.joint_index] = bone_data.inverse_bind_matrice;
 
         skinned_data->skin_buffer_name = "skinned_data_buffer_"s + skin_name + "_"s + std::to_string(m_skinned_data.size());
