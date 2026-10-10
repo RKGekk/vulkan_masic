@@ -130,7 +130,7 @@ void HumanView::VOnUpdate(const GameTimerDelta& delta, uint32_t image_index) {
 		//std::shared_ptr<BasicCameraNode> camera_node = camera_component->VGetCameraNode();
 		std::shared_ptr<CameraNode> camera_node = std::static_pointer_cast<CameraNode>(basic_camera_node);
 		//std::shared_ptr<CameraNode> camera_node = basic_camera_node;
-		scene->getLightManager()->CalcLighting(camera_node);
+		scene->getLightManager()->CalcLighting(camera_node, image_index);
     	//scene->getLightManager()->CalcLighting(std::dynamic_pointer_cast<CameraNode>(camera_node));
 		//scene->getLightManager()->CalcLighting(camera_component->VGetCameraNode());
 	}

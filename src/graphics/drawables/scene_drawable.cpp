@@ -140,6 +140,12 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             for(const VertexFormat& vf : shader_signature->getInputAttributes()) {
                 VertexFormat::BindingNum binding_num = vf.getBindingNum();
                 const std::shared_ptr<VulkanBuffer>& vertex_buffer = model_data->GetVertexBuffer(binding_num);
+                vertex_buffer->AddUpdateMetadataFn(
+                    [render_node, &shader_signature, binding_num]
+                    (const std::shared_ptr<RenderResource>& bo) {
+                        render_node->changeReadDependency(bo, shader_signature->getInputAttributes(binding_num).getVertexBufferBindingName());
+                    }
+                );
                 render_node->addReadDependency(vertex_buffer, shader_signature->getInputAttributes(binding_num).getVertexBufferBindingName());
             }
 
@@ -157,6 +163,12 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             }
             
             if(const std::shared_ptr<VulkanBuffer>& index_buffer = model_data->GetIndexBuffer()) {
+                index_buffer->AddUpdateMetadataFn(
+                    [render_node, &shader_signature]
+                    (const std::shared_ptr<RenderResource>& bo) {
+                        render_node->changeReadDependency(bo, shader_signature->getIndexBufferBindingName());
+                    }
+                );
                 render_node->addReadDependency(index_buffer, shader_signature->getIndexBufferBindingName());
             }
 
