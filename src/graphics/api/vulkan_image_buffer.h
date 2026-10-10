@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "../pod/render_resource.h"
 #include "vulkan_command_buffer.h"
@@ -47,12 +48,15 @@ public:
 
     const ResourceName& getName() const override;
     Type getType() const override;
+    
+    void AddUpdateMetadataFn(UpdateMetadataFn fn) override;
 
 protected:
 
     std::shared_ptr<VulkanDevice> m_device;
     ResourceName m_name;
 
+    std::vector<UpdateMetadataFn> m_update_functions;
     VkImage m_image;
     VkDeviceMemory m_memory;
     VkDeviceSize m_image_size;

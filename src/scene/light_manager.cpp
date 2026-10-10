@@ -18,10 +18,11 @@ LightManager::LightManager() : m_dir_lights_size(0u), m_point_lights_size(0u), m
     }
 }
 
-void LightManager::CalcLighting(const std::shared_ptr<CameraNode>& camera_node) {
+void LightManager::CalcLighting(const std::shared_ptr<CameraNode>& camera_node, uint32_t image_index) {
     for(const auto&[light_node, idx] : m_index_map) {
         m_lights[idx] = light_node->GetLightProperties();
     }
+    m_light_buffers[image_index]->update(m_lights.data(), sizeof(LightNodeProperties) * m_lights.size());
 }
 
 int LightManager::GetLightCount(const std::shared_ptr<SceneNode>& node) const {
@@ -134,4 +135,3 @@ const std::string& LightManager::getLightResourceCfgName() {
     using namespace std::literals;
     return m_light_resource_cfg_name;
 }
-

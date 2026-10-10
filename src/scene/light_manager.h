@@ -3,6 +3,7 @@
 #include "nodes/light_node.h"
 #include "nodes/camera_node.h"
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -14,7 +15,7 @@ class LightManager {
 public:
     LightManager();
 
-    void CalcLighting(const std::shared_ptr<CameraNode>& camera_node);
+    void CalcLighting(const std::shared_ptr<CameraNode>& camera_node, uint32_t image_index);
     int GetLightCount(const std::shared_ptr<SceneNode>& node) const;
     const std::vector<LightNodeProperties>& getLightsData(const std::shared_ptr<SceneNode>& node) const;
     const std::vector<LightNodeProperties>& getAllLightsData() const;

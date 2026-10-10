@@ -4,9 +4,11 @@
 #include <GLFW/glfw3.h>
 
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 #include "../pod/render_resource.h"
 #include "vulkan_command_buffer.h"
@@ -14,7 +16,7 @@
 class VulkanDevice;
 class BufferConfig;
 
-class VulkanBuffer : public RenderResource {
+class VulkanBuffer : public RenderResource, public std::enable_shared_from_this<VulkanBuffer> {
 public:
     static const std::shared_ptr<VulkanBuffer> BUFFER_NULL_PTR;
 
@@ -47,6 +49,8 @@ public:
     const ResourceName& getName() const override;
     Type getType() const override;
 
+    void AddUpdateMetadataFn(UpdateMetadataFn fn) override;
+
 protected:
     void setGlobalMemoryUpdateBarier(CommandBatch& command_buffer, VkAccessFlags dstAccessMask);
     void setMemoryUpdateBarier(CommandBatch& command_buffer, VkAccessFlags dstAccessMask);
@@ -54,6 +58,7 @@ protected:
     std::shared_ptr<VulkanDevice> m_device;
     std::string m_name;
 
+    std::vector<UpdateMetadataFn> m_update_functions;
     VkBuffer m_buffer;
     VkDeviceMemory m_memory;
     void* m_mapped;

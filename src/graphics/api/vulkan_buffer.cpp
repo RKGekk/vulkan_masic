@@ -170,6 +170,8 @@ void VulkanBuffer::update(const void* src_data, VkDeviceSize buffer_size) {
         m_buffer_config->setSizeDynamic(false);
         init(src_data, m_buffer_config);
         m_buffer_config->setSizeDynamic(true);
+        std::shared_ptr<VulkanBuffer> my_bo = shared_from_this();
+        for(auto& fn : m_update_functions) fn(my_bo);
         return;
     }
     if (buffer_size > m_buffer_config->getBufferInfo().size) {
@@ -177,6 +179,8 @@ void VulkanBuffer::update(const void* src_data, VkDeviceSize buffer_size) {
         m_buffer_config->setNotAlignedSize(buffer_size);
         m_buffer_config->setAlignedSize(buffer_size);
         init(src_data, m_buffer_config);
+        std::shared_ptr<VulkanBuffer> my_bo = shared_from_this();
+        for(auto& fn : m_update_functions) fn(my_bo);
         return;
     }
 
@@ -220,6 +224,8 @@ void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, Vk
         m_buffer_config->setSizeDynamic(false);
         init(src_data, m_buffer_config);
         m_buffer_config->setSizeDynamic(true);
+        std::shared_ptr<VulkanBuffer> my_bo = shared_from_this();
+        for(auto& fn : m_update_functions) fn(my_bo);
         return;
     }
     if (buffer_size > m_buffer_config->getBufferInfo().size) {
@@ -227,6 +233,8 @@ void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, Vk
         m_buffer_config->setNotAlignedSize(buffer_size);
         m_buffer_config->setAlignedSize(buffer_size);
         init(src_data, m_buffer_config);
+        std::shared_ptr<VulkanBuffer> my_bo = shared_from_this();
+        for(auto& fn : m_update_functions) fn(my_bo);
         return;
     }
 
@@ -287,6 +295,10 @@ const RenderResource::ResourceName& VulkanBuffer::getName() const {
 
 RenderResource::Type VulkanBuffer::getType() const {
     return RenderResource::Type::BUFFER;
+}
+
+void VulkanBuffer::AddUpdateMetadataFn(UpdateMetadataFn fn) {
+    m_update_functions.push_back(std::move(fn));
 }
 
 void VulkanBuffer::setGlobalMemoryUpdateBarier(CommandBatch& command_buffer, VkAccessFlags dstAccessMask) {

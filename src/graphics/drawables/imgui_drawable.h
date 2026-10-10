@@ -34,6 +34,8 @@ class VulkanImageBuffer;
 
 class ImGUIDrawable : public IVulkanDrawable {
 public:
+    static const std::string RENDER_NODE_CFG_NAME;
+
     struct PerFrameData {
         std::shared_ptr<VulkanBuffer> uniform_buffer;
         std::shared_ptr<VulkanBuffer> vertex_buffer;

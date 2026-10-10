@@ -41,3 +41,5 @@ const std::vector<char>& VulkanPushConstant::getData() const {
 const std::shared_ptr<PushConstantConfig>& VulkanPushConstant::getConstConfig() const {
     return m_const_config;
 }
+
+void VulkanPushConstant::AddUpdateMetadataFn(UpdateMetadataFn fn) {}

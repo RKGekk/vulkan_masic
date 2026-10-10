@@ -39,6 +39,8 @@ public:
     const std::vector<char>& getData() const;
     const std::shared_ptr<PushConstantConfig>& getConstConfig() const;
 
+    void AddUpdateMetadataFn(UpdateMetadataFn fn) override;
+
 protected:
 
     std::shared_ptr<VulkanDevice> m_device;

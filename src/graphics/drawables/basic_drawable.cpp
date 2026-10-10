@@ -47,28 +47,41 @@ bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
     m_uniform_buffers.resize(max_frames);
     for(size_t i = 0u; i < max_frames; ++i) {
 
-        m_vertex_buffers[i] = Application::GetRenderer().getResourcesManager()->create_buffer(g_vertices.data(), g_vertices.size() * sizeof(Vertex), "basic_vertex_resource");
-        m_index_buffers[i] = Application::GetRenderer().getResourcesManager()->create_buffer(g_indices.data(), g_indices.size() * sizeof(uint16_t), "basic_index_resource");
-        m_uniform_buffers[i] = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, "basic_uniform_resource");
+        std::shared_ptr<GraphicsRenderNode> render_node = std::make_shared<GraphicsRenderNode>();
+        render_node->init(device, "mesh_render"s, false, Application::GetRenderer().getFrameData(i)->render_graph);
 
-        m_render_nodes[i] = std::make_shared<GraphicsRenderNode>();
-        m_render_nodes[i]->init(device, "mesh_render"s, false, Application::GetRenderer().getFrameData(i)->render_graph);
-
-        const std::shared_ptr<VulkanShader>& vertex_shader = m_render_nodes[i]->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
+        const std::shared_ptr<VulkanShader>& vertex_shader = render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
         const std::shared_ptr<ShaderSignature>& shader_signature = vertex_shader->getShaderSignature();
         VertexFormat::BindingNum vertex_binding = shader_signature->getFirstInputAttribute([](const VertexFormat& vf){ return vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX; });
         std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames().at(0));
 
-        m_render_nodes[i]->addReadDependency(m_vertex_buffers[i], shader_signature->getInputAttributes(vertex_binding).getVertexBufferBindingName());
-        m_render_nodes[i]->addReadDependency(m_index_buffers[i], shader_signature->getIndexBufferBindingName());
-        m_render_nodes[i]->addReadDependency(m_uniform_buffers[i], desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER));
-        m_render_nodes[i]->addReadDependency(m_texture, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
-        m_render_nodes[i]->addWriteDependency(swapchain_images[i], "resolve_attachment");
-        m_render_nodes[i]->addWriteDependency(Application::GetRenderer().getOutColorImage(i), "color_attachment");
-        m_render_nodes[i]->addWriteDependency(Application::GetRenderer().getOutDepthImage(i), "depth_attachment");
+        std::shared_ptr<VulkanBuffer> vertex_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(g_vertices.data(), g_vertices.size() * sizeof(Vertex), "basic_vertex_resource");
+        render_node->addReadDependency(vertex_buffer, shader_signature->getInputAttributes(vertex_binding).getVertexBufferBindingName());
+        m_vertex_buffers[i] = std::move(vertex_buffer);
 
-        m_render_nodes[i]->finishRenderNode();
-        Application::GetRenderer().addRenderNode(m_render_nodes[i], i);
+        std::shared_ptr<VulkanBuffer> index_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(g_indices.data(), g_indices.size() * sizeof(uint16_t), "basic_index_resource");
+        render_node->addReadDependency(m_index_buffers[i], shader_signature->getIndexBufferBindingName());
+        m_index_buffers[i] = std::move(index_buffer);
+
+        std::shared_ptr<VulkanBuffer> other_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, "basic_uniform_resource");
+        render_node->addReadDependency(m_uniform_buffers[i], desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER));
+        other_buffer->AddUpdateMetadataFn(
+            [render_node, &desc_set_layout_bind_name = desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)]
+            (const std::shared_ptr<RenderResource>& bo){
+                render_node->changeReadDependency(bo, desc_set_layout_bind_name);
+                render_node->updateDescriptor(desc_set_layout_bind_name);
+            }
+        );
+        m_uniform_buffers[i] = std::move(other_buffer);
+
+        render_node->addReadDependency(m_texture, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
+        render_node->addWriteDependency(swapchain_images[i], "resolve_attachment");
+        render_node->addWriteDependency(Application::GetRenderer().getOutColorImage(i), "color_attachment");
+        render_node->addWriteDependency(Application::GetRenderer().getOutDepthImage(i), "depth_attachment");
+
+        render_node->finishRenderNode();
+        Application::GetRenderer().addRenderNode(render_node, i);
+        m_render_nodes[i] = std::move(render_node);
     }
 
     return true;

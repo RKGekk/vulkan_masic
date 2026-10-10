@@ -433,3 +433,7 @@ const RenderResource::ResourceName& VulkanImageBuffer::getName() const {
 RenderResource::Type VulkanImageBuffer::getType() const {
     return RenderResource::Type::IMAGE;
 }
+
+void VulkanImageBuffer::AddUpdateMetadataFn(UpdateMetadataFn fn) {
+    m_update_functions.push_back(std::move(fn));
+}

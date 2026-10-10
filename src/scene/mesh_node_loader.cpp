@@ -533,8 +533,8 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Node& g
 
     	std::vector<char> vertices = GetVertices(primitive, shader_signature->getInputAttributes(vertex_binding));
 		const void* vertices_data = vertices.data();
-		std::shared_ptr<VulkanBuffer> vertex_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(vertices_data, num_vertices * shader_signature->getInputAttributes(vertex_binding).getVertexSize(), m_model_path.string() + "/node"s + std::to_string(node) + "/"s + mesh_name + "_vertex_buffer_primitive_"s + std::to_string(prim_idx), "basic_vertex_resource");
-		std::shared_ptr<VulkanBuffer> index_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(indices.data(), indices.size() * sizeof(uint32_t), m_model_path.string() + "/node"s + std::to_string(node) + "/"s + mesh_name + "_index_buffer_primitive_"s + std::to_string(prim_idx), "basic_index_resource");
+		std::shared_ptr<VulkanBuffer> vertex_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(vertices_data, num_vertices * shader_signature->getInputAttributes(vertex_binding).getVertexSize(), m_model_path.string() + "/node"s + std::to_string(node) + "/"s + mesh_name + "_vertex_buffer_primitive_"s + std::to_string(prim_idx), "basic_vertex_resource", [](const std::shared_ptr<VulkanBuffer>&){});
+		std::shared_ptr<VulkanBuffer> index_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(indices.data(), indices.size() * sizeof(uint32_t), m_model_path.string() + "/node"s + std::to_string(node) + "/"s + mesh_name + "_index_buffer_primitive_"s + std::to_string(prim_idx), "basic_index_resource", [](const std::shared_ptr<VulkanBuffer>&){});
 
 		model_data->SetVertexBuffer(std::move(vertex_buffer), vertex_binding);
 		model_data->SetIndexBuffer(std::move(index_buffer));

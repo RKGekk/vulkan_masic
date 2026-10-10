@@ -12,6 +12,8 @@ class VulkanDevice;
 class RenderResource {
 public:
     using ResourceName = std::string;
+    using UpdateMetadataFn = std::function<void(const std::shared_ptr<RenderResource>&)>;
+
     static const std::shared_ptr<RenderResource> ROSOURCE_NULL_PTR;
 
     enum class Type : uint32_t {
@@ -23,4 +25,5 @@ public:
     virtual void destroy() = 0;
     virtual const ResourceName& getName() const = 0;
     virtual Type getType() const = 0;
+    virtual void AddUpdateMetadataFn(UpdateMetadataFn fn) = 0;
 };
