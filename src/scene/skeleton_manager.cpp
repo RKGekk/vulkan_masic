@@ -53,6 +53,19 @@ bool SkeletonManager::recalculateSkinnedData() {
         was_updated |= UpdateBoneData(dirty_bone);
     }
 
+    if(was_updated) {
+        std::unordered_set<BoneNode::SkinName> skins;
+        for (const std::shared_ptr<BoneNode>& dirty_bone : m_dirty_at_bone) {
+            for(const auto&[skin_name, bone_data] : dirty_bone->getBoneDataMap()) {
+                skins.insert(skin_name);
+            }
+        }
+        for (const BoneNode::SkinName& dirty_skin_name : skins) {
+            const std::shared_ptr<SkinnedData>& skinned_data = m_skinned_data[dirty_skin_name];
+            skinned_data->bind_buffer->update(skinned_data->bind_matrices.data(), sizeof(glm::mat4) * skinned_data->bind_matrices.size());
+        }
+    }
+
     m_dirty_at_bone.clear();
 
     return was_updated;
@@ -110,7 +123,6 @@ bool SkeletonManager::UpdateBoneData(const std::shared_ptr<BoneNode>& node) {
         glm::mat4 to_root = node->Get().ToRoot();
         skinned_data->bind_matrices[bone_data.joint_index] = skinned_data->bind_matrices[bone_data.joint_index];
         skinned_data->final_matrices[bone_data.joint_index] = model_from_root * to_root * skinned_data->inverse_bind_matrices[bone_data.joint_index];
-        skinned_data->bind_buffer->update(skinned_data->bind_matrices.data(), sizeof(glm::mat4) * skinned_data->bind_matrices.size());
         //skinned_data->final_matrices[bone_data.joint_index] = to_root * skinned_data->inverse_bind_matrices[bone_data.joint_index];
 
         {

@@ -650,6 +650,7 @@
             <Buffer>
                 <BufferUsageFlags>
                     <Flag>storage_buffer</Flag>
+                    <Flag>transfer_dst</Flag>
                 </BufferUsageFlags>
                 <Size dynamic="false" deffered="true">0</Size>
                 <MemoryProperties>

@@ -222,7 +222,7 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
 
                     if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER && material->HasTexture()) {
                         std::shared_ptr<VulkanImageBuffer> texture = material->GetTexture();
-                        render_node->addReadDependency(std::move(texture), desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
+                        render_node->addReadDependency(std::move(texture), desc_layout_bind_name);
                         continue;
                     }
 
@@ -237,10 +237,10 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                             update_metadata->buffer_resource_type_name
                         );
                         ubo->AddUpdateMetadataFn(
-                            [render_node, &desc_set_layout_bind_name = desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)]
+                            [render_node, desc_layout_bind_name]
                             (const std::shared_ptr<RenderResource>& bo){
-                                render_node->changeReadDependency(bo, desc_set_layout_bind_name);
-                                render_node->updateDescriptor(desc_set_layout_bind_name);
+                                render_node->changeReadDependency(bo, desc_layout_bind_name);
+                                render_node->updateDescriptor(desc_layout_bind_name);
                             }
                         );
                         render_node->addReadDependency(std::move(ubo), desc_layout_bind_name);
@@ -250,10 +250,10 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                         if(resources_manager->hasResource(ubo_global_name)) {
                             const std::shared_ptr<VulkanBuffer>& ubo = resources_manager->getBufferResource(ubo_global_name);
                             ubo->AddUpdateMetadataFn(
-                                [render_node, &desc_set_layout_bind_name = desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)]
+                                [render_node, &desc_layout_bind_name]
                                 (const std::shared_ptr<RenderResource>& bo){
-                                    render_node->changeReadDependency(bo, desc_set_layout_bind_name);
-                                    render_node->updateDescriptor(desc_set_layout_bind_name);
+                                    render_node->changeReadDependency(bo, desc_layout_bind_name);
+                                    render_node->updateDescriptor(desc_layout_bind_name);
                                 }
                             );
                             render_node->addReadDependency(ubo, desc_layout_bind_name);
@@ -262,10 +262,10 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                     else if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER && can_instance) {
                         std::shared_ptr<VulkanBuffer> ssbo = resources_manager->create_buffer(nullptr, 0, model_data->GetName() + "_"s + desc_layout_bind_name + "_storage_frame_"s + std::to_string(frame), update_metadata->buffer_resource_type_name);
                         ssbo->AddUpdateMetadataFn(
-                            [&render_node, &desc_set_layout_bind_name = desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)]
+                            [&render_node, &desc_layout_bind_name]
                             (const std::shared_ptr<RenderResource>& bo){
-                                render_node->changeReadDependency(bo, desc_set_layout_bind_name);
-                                render_node->updateDescriptor(desc_set_layout_bind_name);
+                                render_node->changeReadDependency(bo, desc_layout_bind_name);
+                                render_node->updateDescriptor(desc_layout_bind_name);
                             }
                         );
                         render_node->addReadDependency(std::move(ssbo), desc_layout_bind_name);
@@ -276,10 +276,10 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                             if(resources_manager->hasResource(ssbo_global_name)) {
                                 std::shared_ptr<VulkanBuffer> ssbo = resources_manager->getBufferResource(ssbo_global_name);
                                 ssbo->AddUpdateMetadataFn(
-                                    [render_node, &desc_set_layout_bind_name = desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)]
+                                    [render_node, &desc_layout_bind_name]
                                     (const std::shared_ptr<RenderResource>& bo){
-                                        render_node->changeReadDependency(bo, desc_set_layout_bind_name);
-                                        render_node->updateDescriptor(desc_set_layout_bind_name);
+                                        render_node->changeReadDependency(bo, desc_layout_bind_name);
+                                        render_node->updateDescriptor(desc_layout_bind_name);
                                     }
                                 );
                                 render_node->addReadDependency(std::move(ssbo), desc_layout_bind_name);
@@ -289,6 +289,13 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                             std::string ssbo_global_name = desc_layout_bind_name + std::to_string(frame);
                             if(resources_manager->hasResource(ssbo_global_name)) {
                                 std::shared_ptr<VulkanBuffer> ssbo = resources_manager->getBufferResource(ssbo_global_name);
+                                ssbo->AddUpdateMetadataFn(
+                                    [render_node, &desc_layout_bind_name]
+                                    (const std::shared_ptr<RenderResource>& bo){
+                                        render_node->changeReadDependency(bo, desc_layout_bind_name);
+                                        render_node->updateDescriptor(desc_layout_bind_name);
+                                    }
+                                );
                                 render_node->addReadDependency(std::move(ssbo), desc_layout_bind_name);
                             }
                         }
@@ -351,7 +358,7 @@ void SceneDrawable::updateDescBuffer(int frame, RenderableId render_id, std::sha
     }
     std::shared_ptr<VulkanBuffer> bo = resources_manager->create_buffer(src_data, buffer_size, mvp_buffer_name, update_metadata->buffer_resource_type_name);
     bo->AddUpdateMetadataFn(
-        [render_node, &desc_set_layout_bind_name = desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)]
+        [render_node, desc_set_layout_bind_name]
         (const std::shared_ptr<RenderResource>& bo){
             render_node->changeReadDependency(bo, desc_set_layout_bind_name);
             render_node->updateDescriptor(desc_set_layout_bind_name);
