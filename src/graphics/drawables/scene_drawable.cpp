@@ -126,7 +126,8 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             }
 
             std::shared_ptr<GraphicsRenderNode> render_node = std::make_shared<GraphicsRenderNode>();
-            render_node->init(m_device, render_name, false, frame_render_graph);
+            std::string render_node_name = model_data->GetName() + "GraphicsRenderNode"s;
+            render_node->init(render_node_name, frame, m_device, render_name, false, frame_render_graph);
 
             const std::shared_ptr<GraphicsRenderNodeConfig>& render_node_cfg = render_node->getGraphicsRenderNodeConfig();
             const std::shared_ptr<VulkanPipeline>& pipeline = render_node->getPipeline();
@@ -212,13 +213,10 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                 }
             );
 
-            for(const auto&[desc_slot, desc_set_name] : vertex_shader->getShaderSignature()->getDescSetNames()) {
-                const std::shared_ptr<DescSetLayout>& desc_set_layout = renderer.getDescriptorsManager()->getDescSetLayout(desc_set_name);
-
+            for(const auto&[desc_slot, desc_set_layout] : pipeline->getDescLayouts()) {
                 for (const auto&[desc_layout_bind_name, bind_num] : desc_set_layout->getBindingMap()) {
 
                     const VkDescriptorSetLayoutBinding& vk_layout_binding = desc_set_layout->getBinding(bind_num);
-                    const std::shared_ptr<GraphicsRenderNodeConfig::UpdateMetadata>& update_metadata = render_node_cfg->getBindingsMetadata().at(desc_layout_bind_name);
 
                     if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER && material->HasTexture()) {
                         std::shared_ptr<VulkanImageBuffer> texture = material->GetTexture();
@@ -226,53 +224,15 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                         continue;
                     }
 
+                    const std::shared_ptr<GraphicsRenderNodeConfig::UpdateMetadata>& update_metadata = render_node_cfg->getBindingsMetadata().at(desc_layout_bind_name);
                     const std::shared_ptr<BufferConfig>& buffer_config = resources_manager->getBufferConfigTemplate(update_metadata->buffer_resource_type_name);
                     bool can_instance = update_metadata->creation_point == GraphicsRenderNodeConfig::CreationPoint::RENDER_NODE_CREATION_TIME && buffer_config->getBufferInfo().size > 0u;
-
-                    if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER && can_instance) {
-                        std::shared_ptr<VulkanBuffer> ubo = resources_manager->create_buffer(
-                            nullptr,
-                            0,
-                            model_data->GetName() + "/"s + desc_layout_bind_name + "_uniform_frame_"s + std::to_string(frame),
-                            update_metadata->buffer_resource_type_name
-                        );
-                        ubo->AddUpdateMetadataFn(
-                            [render_node, desc_layout_bind_name]
-                            (const std::shared_ptr<RenderResource>& bo){
-                                render_node->changeReadDependency(bo, desc_layout_bind_name);
-                                render_node->updateDescriptor(desc_layout_bind_name);
-                            }
-                        );
-                        render_node->addReadDependency(std::move(ubo), desc_layout_bind_name);
-                    }
-                    else if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER && update_metadata->creation_point == GraphicsRenderNodeConfig::CreationPoint::EXTERNAL) {
-                        std::string ubo_global_name = desc_layout_bind_name + std::to_string(frame);
-                        if(resources_manager->hasResource(ubo_global_name)) {
-                            const std::shared_ptr<VulkanBuffer>& ubo = resources_manager->getBufferResource(ubo_global_name);
-                            ubo->AddUpdateMetadataFn(
-                                [render_node, &desc_layout_bind_name]
-                                (const std::shared_ptr<RenderResource>& bo){
-                                    render_node->changeReadDependency(bo, desc_layout_bind_name);
-                                    render_node->updateDescriptor(desc_layout_bind_name);
-                                }
-                            );
-                            render_node->addReadDependency(ubo, desc_layout_bind_name);
-                        }
-                    }
-                    else if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER && can_instance) {
-                        std::shared_ptr<VulkanBuffer> ssbo = resources_manager->create_buffer(nullptr, 0, model_data->GetName() + "_"s + desc_layout_bind_name + "_storage_frame_"s + std::to_string(frame), update_metadata->buffer_resource_type_name);
-                        ssbo->AddUpdateMetadataFn(
-                            [&render_node, &desc_layout_bind_name]
-                            (const std::shared_ptr<RenderResource>& bo){
-                                render_node->changeReadDependency(bo, desc_layout_bind_name);
-                                render_node->updateDescriptor(desc_layout_bind_name);
-                            }
-                        );
-                        render_node->addReadDependency(std::move(ssbo), desc_layout_bind_name);
-                    }
-                    else if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER && update_metadata->creation_point == GraphicsRenderNodeConfig::CreationPoint::EXTERNAL) {
-                        if(has_skeleton && desc_layout_bind_name == SkeletonManager::getSkeletonDescBindName()) {
-                            std::string ssbo_global_name = skeleton_manager->getSkeletonBufferName(model->GetSkinName());
+                    bool has_skeletal_ssbo =   vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER 
+                                            && update_metadata->creation_point == GraphicsRenderNodeConfig::CreationPoint::EXTERNAL
+                                            && has_skeleton
+                                            && desc_layout_bind_name == SkeletonManager::getSkeletonDescBindName();
+                    if(has_skeletal_ssbo) {
+                        std::string ssbo_global_name = skeleton_manager->getSkeletonBufferName(model->GetSkinName());
                             if(resources_manager->hasResource(ssbo_global_name)) {
                                 std::shared_ptr<VulkanBuffer> ssbo = resources_manager->getBufferResource(ssbo_global_name);
                                 ssbo->AddUpdateMetadataFn(
@@ -284,21 +244,7 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                                 );
                                 render_node->addReadDependency(std::move(ssbo), desc_layout_bind_name);
                             }
-                        }
-                        else {
-                            std::string ssbo_global_name = desc_layout_bind_name + std::to_string(frame);
-                            if(resources_manager->hasResource(ssbo_global_name)) {
-                                std::shared_ptr<VulkanBuffer> ssbo = resources_manager->getBufferResource(ssbo_global_name);
-                                ssbo->AddUpdateMetadataFn(
-                                    [render_node, &desc_layout_bind_name]
-                                    (const std::shared_ptr<RenderResource>& bo){
-                                        render_node->changeReadDependency(bo, desc_layout_bind_name);
-                                        render_node->updateDescriptor(desc_layout_bind_name);
-                                    }
-                                );
-                                render_node->addReadDependency(std::move(ssbo), desc_layout_bind_name);
-                            }
-                        }
+                        
                     }
                 }
             }

@@ -97,11 +97,12 @@ std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem
 		for (int skin_ct = 0; const tinygltf::Skin& gltf_skin : m_gltf_model.skins) {
 			std::vector<glm::mat4x4> inv_matrices = GetMatrices(gltf_skin);
 			for (int joint_ct = 0; int bone_node_idx : gltf_skin.joints) {
+				std::string skin_name = m_model_path.string() + "/skin_"s + std::to_string(skin_ct) + "_"s + gltf_skin.name;
 				BoneIdentity bone_identity{};
 				bone_identity.joint = joint_ct;
 				bone_identity.bind_matrix = glm::inverse(inv_matrices[joint_ct]);
 				bone_identity.inv_matrix = inv_matrices[joint_ct];
-				bone_identity.skin_name = gltf_skin.name;
+				bone_identity.skin_name = std::move(skin_name);
 				bone_identity.skin_id = skin_ct;
 				m_skin_inv_map[bone_node_idx].push_back(bone_identity);
 				++joint_ct;
@@ -126,7 +127,8 @@ std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem
     }
 
 	for (int skin_ct = 0; const tinygltf::Skin& gltf_skin : m_gltf_model.skins) {
-		m_scene->getSkeletonManager()->recalculate_root_joints(gltf_skin.name);
+		std::string skin_name = m_model_path.string() + "/skin_"s + std::to_string(skin_ct) + "_"s + gltf_skin.name;
+		m_scene->getSkeletonManager()->recalculate_root_joints(skin_name);
 	}
 
 	for (int animation_ct = 0; animation_ct < m_gltf_model.animations.size(); ++animation_ct) {
@@ -478,7 +480,9 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Node& g
 
 	if(gltf_node.skin != -1) {
 		const tinygltf::Skin& gltf_skin = m_gltf_model.skins[gltf_node.skin];
-		mesh_node->SetSkinName(gltf_skin.name);
+		//mesh_node->SetSkinName(gltf_skin.name);
+		std::string skin_name = m_model_path.string() + "/skin_"s + std::to_string(gltf_node.skin) + "_"s + gltf_skin.name;
+		mesh_node->SetSkinName(std::move(skin_name));
 	}
     size_t num_primitives = gltf_mesh.primitives.size();
     for (size_t prim_idx = 0; prim_idx < num_primitives; ++prim_idx) {
@@ -539,7 +543,7 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Node& g
 		model_data->SetVertexBuffer(std::move(vertex_buffer), vertex_binding);
 		model_data->SetIndexBuffer(std::move(index_buffer));
 		
-    	model_data->SetName(m_model_path.string() + "/node"s + std::to_string(node) + "/"s + mesh_name + "/primitive"s + std::to_string(prim_idx));
+    	model_data->SetName(m_model_path.string() + "/node_"s + std::to_string(node) + "_"s + gltf_node.name + "/"s + mesh_name + "/primitive_"s + std::to_string(prim_idx));
     	//model_data->calculateBoundingBox();
 
     	mesh_node->AddMesh(model_data);

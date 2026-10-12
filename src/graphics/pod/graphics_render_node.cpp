@@ -6,6 +6,7 @@
 #include "image_buffer_config.h"
 #include "format_config.h"
 #include "render_pass_config.h"
+#include "buffer_config.h"
 #include "../../application.h"
 #include "../vulkan_renderer.h"
 #include "../api/vulkan_pipelines_manager.h"
@@ -13,16 +14,86 @@
 #include "../api/vulkan_descriptors_manager.h"
 #include "../api/vulkan_framebuffer.h"
 #include "../api/vulkan_resources_manager.h"
+#include "../../scene/skeleton_manager.h"
 
 #include <utility>
 
-bool GraphicsRenderNode::init(std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) {
+bool GraphicsRenderNode::init(std::string render_node_name, unsigned frame_index, std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) {
+    m_render_node_name = std::move(render_node_name);
+    m_frame_index = frame_index;
     m_device = std::move(device);
     m_render_graph = std::move(render_graph);
     m_node_config = instance_config ? m_render_graph.lock()->makeGraphicsRenderNodeCfgInstance(node_config_name, std::to_string(rand())) : m_render_graph.lock()->getGraphicsRenderNodeConfig(node_config_name);
     m_pipeline = m_node_config->getPipeline();
     setExecutionBypass(false);
     setExecutionOrder(0u);
+
+    VulkanRenderer& renderer = Application::GetRenderer();
+    std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
+
+    for(const auto&[desc_slot, desc_set_layout] : m_pipeline->getDescLayouts()) {
+        for (const auto&[desc_layout_bind_name, bind_num] : desc_set_layout->getBindingMap()) {
+
+            const VkDescriptorSetLayoutBinding& vk_layout_binding = desc_set_layout->getBinding(bind_num);
+            const std::shared_ptr<GraphicsRenderNodeConfig::UpdateMetadata>& update_metadata = m_node_config->getBindingsMetadata().at(desc_layout_bind_name);
+
+            const std::shared_ptr<BufferConfig>& buffer_config = resources_manager->getBufferConfigTemplate(update_metadata->buffer_resource_type_name);
+            bool can_instance = update_metadata->creation_point == GraphicsRenderNodeConfig::CreationPoint::RENDER_NODE_CREATION_TIME && buffer_config->getBufferInfo().size > 0u;
+
+            if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER && can_instance) {
+                std::string ubo_buffer_name = m_render_node_name + "/uniform/"s + desc_layout_bind_name + "/frame_"s + std::to_string(m_frame_index);
+                std::shared_ptr<VulkanBuffer> ubo = resources_manager->create_buffer(nullptr, 0, std::move(ubo_buffer_name), update_metadata->buffer_resource_type_name);
+                ubo->AddUpdateMetadataFn(
+                    [this, &desc_layout_bind_name]
+                    (const std::shared_ptr<RenderResource>& bo){
+                        changeReadDependency(bo, desc_layout_bind_name);
+                        updateDescriptor(desc_layout_bind_name);
+                    }
+                );
+                addReadDependency(std::move(ubo), desc_layout_bind_name);
+            }
+            else if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER && update_metadata->creation_point == GraphicsRenderNodeConfig::CreationPoint::EXTERNAL) {
+                std::string ubo_global_name = desc_layout_bind_name + std::to_string(m_frame_index);
+                if(resources_manager->hasResource(ubo_global_name)) {
+                    const std::shared_ptr<VulkanBuffer>& ubo = resources_manager->getBufferResource(ubo_global_name);
+                    ubo->AddUpdateMetadataFn(
+                        [this, &desc_layout_bind_name]
+                        (const std::shared_ptr<RenderResource>& bo){
+                            changeReadDependency(bo, desc_layout_bind_name);
+                            updateDescriptor(desc_layout_bind_name);
+                        }
+                    );
+                    addReadDependency(ubo, desc_layout_bind_name);
+                }
+            }
+            else if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER && can_instance) {
+                std::string ssbo_buffer_name = m_render_node_name + "/storage/"s + desc_layout_bind_name + "/frame_"s + std::to_string(m_frame_index);
+                std::shared_ptr<VulkanBuffer> ssbo = resources_manager->create_buffer(nullptr, 0, ssbo_buffer_name, update_metadata->buffer_resource_type_name);
+                ssbo->AddUpdateMetadataFn(
+                    [this, &desc_layout_bind_name]
+                    (const std::shared_ptr<RenderResource>& bo){
+                        changeReadDependency(bo, desc_layout_bind_name);
+                        updateDescriptor(desc_layout_bind_name);
+                    }
+                );
+                addReadDependency(std::move(ssbo), desc_layout_bind_name);
+            }
+            else if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER && update_metadata->creation_point == GraphicsRenderNodeConfig::CreationPoint::EXTERNAL) {
+                std::string ssbo_global_name = desc_layout_bind_name + std::to_string(m_frame_index);
+                if(resources_manager->hasResource(ssbo_global_name)) {
+                    std::shared_ptr<VulkanBuffer> ssbo = resources_manager->getBufferResource(ssbo_global_name);
+                    ssbo->AddUpdateMetadataFn(
+                        [this, &desc_layout_bind_name]
+                        (const std::shared_ptr<RenderResource>& bo){
+                            changeReadDependency(bo, desc_layout_bind_name);
+                            updateDescriptor(desc_layout_bind_name);
+                        }
+                    );
+                    addReadDependency(std::move(ssbo), desc_layout_bind_name);
+                }
+            }
+        }
+    }
 
     return true;
 }
@@ -31,7 +102,7 @@ void GraphicsRenderNode::destroy() {
     m_frame_buffer->destroy();
 }
 
-void GraphicsRenderNode::render(CommandBatch& command_buffer, unsigned image_index) {
+void GraphicsRenderNode::render(CommandBatch& command_buffer) {
     if(getExecutionBypass()) return;
 
     if(m_node_config->getDrawType() == GraphicsRenderNodeConfig::DrawType::DRAW && m_node_config->getVertexCountType() == GraphicsRenderNodeConfig::VertexCountType::EXACT && m_node_config->getVertexCount() == 0u) return;

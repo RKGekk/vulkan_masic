@@ -16,10 +16,10 @@ class VulkanFramebuffer;
 
 class GraphicsRenderNode : public RenderNode {
 public:
-    virtual bool init(std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) override;
+    virtual bool init(std::string render_node_name, unsigned frame_index, std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) override;
     virtual void destroy() override;
 
-    virtual void render(CommandBatch& command_buffer, unsigned image_index) override;
+    virtual void render(CommandBatch& command_buffer) override;
     virtual void finishRenderNode() override;
     virtual void updateDescriptors() override;
     virtual void updateDescriptor(const std::string& desc_binding_name) override;
