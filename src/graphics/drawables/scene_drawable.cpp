@@ -197,56 +197,8 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                 }
             );
 
-            render_node->add_update_function(
-                "joint_matrices_update"s,
-                [&, frame, renderable_id]
-                (std::shared_ptr<VulkanBuffer>& joint_buffer, const std::string& desc_set_layout_bind_name){
-                    updateJointMatrices(frame, renderable_id, joint_buffer, desc_set_layout_bind_name);
-                }
-            );
-
-            render_node->add_update_function(
-                "joint_dq_update"s,
-                [&, frame, renderable_id]
-                (std::shared_ptr<VulkanBuffer>& joint_dq_buffer, const std::string& desc_set_layout_bind_name){
-                    updateJointDQ(frame, renderable_id, joint_dq_buffer, desc_set_layout_bind_name);
-                }
-            );
-
-            for(const auto&[desc_slot, desc_set_layout] : pipeline->getDescLayouts()) {
-                for (const auto&[desc_layout_bind_name, bind_num] : desc_set_layout->getBindingMap()) {
-
-                    const VkDescriptorSetLayoutBinding& vk_layout_binding = desc_set_layout->getBinding(bind_num);
-
-                    if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER && material->HasTexture()) {
-                        std::shared_ptr<VulkanImageBuffer> texture = material->GetTexture();
-                        render_node->addReadDependency(std::move(texture), desc_layout_bind_name);
-                        continue;
-                    }
-
-                    const std::shared_ptr<GraphicsRenderNodeConfig::UpdateMetadata>& update_metadata = render_node_cfg->getBindingsMetadata().at(desc_layout_bind_name);
-                    const std::shared_ptr<BufferConfig>& buffer_config = resources_manager->getBufferConfigTemplate(update_metadata->buffer_resource_type_name);
-                    bool can_instance = update_metadata->creation_point == GraphicsRenderNodeConfig::CreationPoint::RENDER_NODE_CREATION_TIME && buffer_config->getBufferInfo().size > 0u;
-                    bool has_skeletal_ssbo =   vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER 
-                                            && update_metadata->creation_point == GraphicsRenderNodeConfig::CreationPoint::EXTERNAL
-                                            && has_skeleton
-                                            && desc_layout_bind_name == SkeletonManager::getSkeletonDescBindName();
-                    if(has_skeletal_ssbo) {
-                        std::string ssbo_global_name = skeleton_manager->getSkeletonBufferName(model->GetSkinName());
-                            if(resources_manager->hasResource(ssbo_global_name)) {
-                                std::shared_ptr<VulkanBuffer> ssbo = resources_manager->getBufferResource(ssbo_global_name);
-                                ssbo->AddUpdateMetadataFn(
-                                    [render_node, &desc_layout_bind_name]
-                                    (const std::shared_ptr<RenderResource>& bo){
-                                        render_node->changeReadDependency(bo, desc_layout_bind_name);
-                                        render_node->updateDescriptor(desc_layout_bind_name);
-                                    }
-                                );
-                                render_node->addReadDependency(std::move(ssbo), desc_layout_bind_name);
-                            }
-                        
-                    }
-                }
+            if(has_skeleton) {
+                skeleton_manager->DecorateRenderNode(render_node, model->GetSkinName());
             }
 
             render_node->addWriteDependency(swapchain_images[frame], "resolve_attachment");
@@ -362,24 +314,4 @@ void SceneDrawable::updateMaterialProps(int frame, RenderableId render_id, std::
     mat.fresnelR0_roughness.a = material->GetRoughnessFactor();
 
     updateDescBuffer(frame, render_id, uniform_buffer, desc_set_layout_bind_name, &mat, sizeof(PhongMaterial), mesh_node->Get().Name());
-}
-
-void SceneDrawable::updateJointMatrices(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name) {
-    const std::shared_ptr<Renderable>& renderable = m_per_frame[frame]->renderables.at(render_id);
-    const std::shared_ptr<MeshNode>& mesh_node = renderable->mesh_node;
-    if(mesh_node->GetSkinName().empty()) return;
-
-    const std::shared_ptr<SkeletonManager>& skeleton_manager = m_scene->getSkeletonManager();
-    const std::shared_ptr<SkeletonManager::SkinnedData>& skinned_data = skeleton_manager->getSkinnedData(mesh_node->GetSkinName());
-    updateDescBuffer(frame, render_id, uniform_buffer, desc_set_layout_bind_name, skinned_data->final_matrices.data(), skinned_data->final_matrices.size() * sizeof(glm::mat4), mesh_node->Get().Name());
-}
-
-void SceneDrawable::updateJointDQ(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name) {
-    const std::shared_ptr<Renderable>& renderable = m_per_frame[frame]->renderables.at(render_id);
-    const std::shared_ptr<MeshNode>& mesh_node = renderable->mesh_node;
-    if(mesh_node->GetSkinName().empty()) return;
-
-    const std::shared_ptr<SkeletonManager>& skeleton_manager = m_scene->getSkeletonManager();
-    const std::shared_ptr<SkeletonManager::SkinnedData>& skinned_data = skeleton_manager->getSkinnedData(mesh_node->GetSkinName());
-    updateDescBuffer(frame, render_id, uniform_buffer, desc_set_layout_bind_name, skinned_data->dual_quats.data(), skinned_data->dual_quats.size() * sizeof(glm::mat2x4), mesh_node->Get().Name());
 }

@@ -74,9 +74,6 @@ private:
     void updateInvMVPMatrices(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name);
     void updateMaterialProps(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name);
 
-    void updateJointMatrices(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name);
-    void updateJointDQ(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name);
-
     std::shared_ptr<VulkanDevice> m_device;
     float m_rt_aspect = 1.0f;
     int m_max_frames;

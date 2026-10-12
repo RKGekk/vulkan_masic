@@ -21,6 +21,8 @@
 
 #include "nodes/bone_node.h"
 
+class RenderNode;
+
 class SkeletonManager {
 public:
     struct SkinnedData {
@@ -56,18 +58,22 @@ public:
     const std::shared_ptr<VulkanBuffer>& getSkeletonBindBuffer(const BoneNode::SkinName& name) const;
     const std::shared_ptr<VulkanBuffer>& getSkeletonJointBuffer(const BoneNode::SkinName& name) const;
     const std::shared_ptr<VulkanBuffer>& getSkeletonDQBuffer(const BoneNode::SkinName& name) const;
+
     static const std::string& getSkeletonResourceCfgName();
-    static const std::string& getSkeletonBindDescName();
-    static const std::string& getSkeletonJointDescName();
-    static const std::string& getSkeletonDQDescName();
+    static const std::string& getSkeletonBindSSBODescName();
+    static const std::string& getSkeletonJointSSBODescName();
+    static const std::string& getSkeletonDQSSBODescName();
+
+    void DecorateRenderNode(const std::shared_ptr<RenderNode>& render_node, const BoneNode::SkinName& skin_name) const;
 
 private:
     bool UpdateBoneData(const std::shared_ptr<BoneNode>& node, bool bind_changed);
 
     static const std::string m_skin_resource_cfg_name;
-    static const std::string m_skin_bind_desc_name;
-    static const std::string m_skin_joint_desc_name;
-    static const std::string m_skin_dq_desc_name;
+
+    static const std::string m_skin_bind_ssbo_desc_name;
+    static const std::string m_skin_joint_ssbo_desc_name;
+    static const std::string m_skin_dq_ssbo_desc_name;
 
     std::unordered_map<BoneNode::SkinName, std::shared_ptr<SkinnedData>> m_skinned_data;
     std::unordered_set<std::pair<std::shared_ptr<BoneNode>, bool>> m_dirty_at_bone;

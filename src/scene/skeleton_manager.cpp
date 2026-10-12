@@ -3,10 +3,13 @@
 #include "../application.h"
 #include "../graphics/vulkan_renderer.h"
 #include "../graphics/api/vulkan_resources_manager.h"
+#include "../graphics/pod/render_node.h"
 
 const std::string SkeletonManager::m_skin_resource_cfg_name = "joint_bind_storage_resource";
-const std::string SkeletonManager::m_skin_bind_desc_name = "joint_bind_ssbo";
-const std::string SkeletonManager::m_skin_dq_desc_name = "joint_dq_ssbo";
+
+const std::string SkeletonManager::m_skin_bind_ssbo_desc_name = "joint_bind_ssbo";
+const std::string SkeletonManager::m_skin_joint_ssbo_desc_name = "joint_ssbo";
+const std::string SkeletonManager::m_skin_dq_ssbo_desc_name = "joint_dq_ssbo";
 
 SkeletonManager::SkeletonManager() {}
 
@@ -129,12 +132,67 @@ const std::string& SkeletonManager::getSkeletonResourceCfgName() {
     return m_skin_resource_cfg_name;
 }
 
-const std::string& SkeletonManager::getSkeletonBindDescName() {
-    return m_skin_bind_desc_name;
+const std::string& SkeletonManager::getSkeletonBindSSBODescName() {
+    return m_skin_bind_ssbo_desc_name;
 }
 
-const std::string& SkeletonManager::getSkeletonDQDescName() {
-    return m_skin_dq_desc_name;
+const std::string& SkeletonManager::getSkeletonJointSSBODescName() {
+    return m_skin_joint_ssbo_desc_name;
+}
+
+const std::string& SkeletonManager::getSkeletonDQSSBODescName() {
+    return m_skin_dq_ssbo_desc_name;
+}
+
+void SkeletonManager::DecorateRenderNode(const std::shared_ptr<RenderNode>& render_node, const BoneNode::SkinName& skin_name) const {
+    if(!m_skinned_data.contains(skin_name)) return;
+    const std::shared_ptr<SkinnedData> skinned_data = m_skinned_data.at(skin_name);
+    for(const auto&[desc_slot, desc] : render_node->getDescriptors()) {
+        const std::shared_ptr<DescSetLayout>& desc_set_layout = desc->getBindings();
+        for(const auto&[desc_layout_bind_name, bind_num] : desc_set_layout->getBindingMap()) {
+            const VkDescriptorSetLayoutBinding& vk_layout_binding = desc_set_layout->getBinding(bind_num);
+            
+            bool has_skeletal_bind_ssbo = vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER && desc_layout_bind_name == m_skin_bind_ssbo_desc_name;
+            bool has_skeletal_joint_ssbo = vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER && desc_layout_bind_name == m_skin_joint_ssbo_desc_name;
+            bool has_skeletal_dq_ssbo = vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER && desc_layout_bind_name == m_skin_dq_ssbo_desc_name;
+            
+            if(has_skeletal_bind_ssbo) {
+                const std::shared_ptr<VulkanBuffer>& bind_buffer = skinned_data->bind_buffer;
+                bind_buffer->AddUpdateMetadataFn(
+                    [render_node, &desc_layout_bind_name]
+                    (const std::shared_ptr<RenderResource>& bo){
+                        render_node->changeReadDependency(bo, desc_layout_bind_name);
+                        render_node->updateDescriptor(desc_layout_bind_name);
+                    }
+                );
+                render_node->addReadDependency(bind_buffer, desc_layout_bind_name);
+            }
+
+            if(has_skeletal_joint_ssbo) {
+                const std::shared_ptr<VulkanBuffer>& joint_buffer = skinned_data->joint_buffer;
+                joint_buffer->AddUpdateMetadataFn(
+                    [render_node, &desc_layout_bind_name]
+                    (const std::shared_ptr<RenderResource>& bo){
+                        render_node->changeReadDependency(bo, desc_layout_bind_name);
+                        render_node->updateDescriptor(desc_layout_bind_name);
+                    }
+                );
+                render_node->addReadDependency(joint_buffer, desc_layout_bind_name);
+            }
+
+            if(has_skeletal_dq_ssbo) {
+                const std::shared_ptr<VulkanBuffer>& dq_buffer = skinned_data->dq_buffer;
+                dq_buffer->AddUpdateMetadataFn(
+                    [render_node, &desc_layout_bind_name]
+                    (const std::shared_ptr<RenderResource>& bo){
+                        render_node->changeReadDependency(bo, desc_layout_bind_name);
+                        render_node->updateDescriptor(desc_layout_bind_name);
+                    }
+                );
+                render_node->addReadDependency(dq_buffer, desc_layout_bind_name);
+            }
+        }
+    }
 }
 
 bool SkeletonManager::UpdateBoneData(const std::shared_ptr<BoneNode>& node, bool bind_changed) {
