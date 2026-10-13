@@ -201,3 +201,7 @@ void RenderNode::setExecutionOrder(size_t order) {
 size_t RenderNode::getExecutionOrder() const {
     return m_execution_order;
 }
+
+unsigned RenderNode::getFrameNumber() const {
+    return m_frame_index;
+}

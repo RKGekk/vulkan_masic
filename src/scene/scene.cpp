@@ -77,7 +77,7 @@ void Scene::markAsChanged(NodeIndex node_index) {
 
     if(m_skeleton_manager && (getNodeTypeFlags(node_index) & NODE_TYPE_FLAG_BONE)) {
         std::shared_ptr<BoneNode> bone = std::dynamic_pointer_cast<BoneNode>(getProperty(node_index, NODE_TYPE_FLAG_BONE));
-        m_skeleton_manager->markAsChanged(bone);
+        m_skeleton_manager->markAsChanged(bone, false);
     }
 
     for (int n = m_hierarchy[node_index].first_child; n != -1; n = m_hierarchy[n].next_sibling) {

@@ -25,6 +25,16 @@ class RenderNode;
 
 class SkeletonManager {
 public:
+    using BindPoseChanged = bool;
+    using DirtyBone = std::pair<std::shared_ptr<BoneNode>, BindPoseChanged>;
+    using FrameNumber = unsigned;
+
+    struct SkeletonGraphData {
+        std::unordered_map<std::shared_ptr<BoneNode>, BoneNode::JointIndex> bone_to_joint_map;
+        std::unordered_map<BoneNode::JointIndex, std::shared_ptr<BoneNode>> joint_to_bone_map;
+        std::vector<BoneNode::JointIndex> root_joints;
+    };
+
     struct SkinnedData {
         BoneNode::SkinName skeleton_name;
 
@@ -38,26 +48,25 @@ public:
         std::vector<glm::mat2x4> dual_quats;
         std::shared_ptr<VulkanBuffer> dq_buffer;
 
-        std::unordered_map<std::shared_ptr<BoneNode>, BoneNode::JointIndex> bone_to_joint_map;
-        std::unordered_map<BoneNode::JointIndex, std::shared_ptr<BoneNode>> joint_to_bone_map;
-        std::vector<BoneNode::JointIndex> root_joints;
+        std::shared_ptr<SkeletonGraphData> skeleton_structure;
     };
+    using SkinnedDataFrame = std::unordered_map<FrameNumber, std::shared_ptr<SkinnedData>>;
 
     SkeletonManager();
-    bool recalculateSkinnedData();
+    bool recalculateSkinnedData(FrameNumber frame_number);
     void recalculate_root_joints(BoneNode::SkinName skeleton_name);
 
     void AddBone(const std::shared_ptr<BoneNode>& node);
-    void markAsChanged(const std::shared_ptr<BoneNode>& node, bool bind_changed);
+    void markAsChanged(const std::shared_ptr<BoneNode>& node, BindPoseChanged bind_changed);
 
-    const std::shared_ptr<SkinnedData>& getSkinnedData(const BoneNode::SkinName& name) const;
-    const std::unordered_map<BoneNode::SkinName, std::shared_ptr<SkinnedData>>& getSkinMap() const;
+    const std::shared_ptr<SkinnedData>& getSkinnedData(const BoneNode::SkinName& name, FrameNumber frame_number) const;
+    const std::unordered_map<BoneNode::SkinName, SkinnedDataFrame>& getSkinMap() const;
     void resetSkin(const BoneNode::SkinName& name);
     std::unordered_set<BoneNode::SkinName> getMeshSkins(const std::shared_ptr<SceneNode>& mesh_root_node) const;
 
-    const std::shared_ptr<VulkanBuffer>& getSkeletonBindBuffer(const BoneNode::SkinName& name) const;
-    const std::shared_ptr<VulkanBuffer>& getSkeletonJointBuffer(const BoneNode::SkinName& name) const;
-    const std::shared_ptr<VulkanBuffer>& getSkeletonDQBuffer(const BoneNode::SkinName& name) const;
+    const std::shared_ptr<VulkanBuffer>& getSkeletonBindBuffer(const BoneNode::SkinName& name, FrameNumber frame_number) const;
+    const std::shared_ptr<VulkanBuffer>& getSkeletonJointBuffer(const BoneNode::SkinName& name, FrameNumber frame_number) const;
+    const std::shared_ptr<VulkanBuffer>& getSkeletonDQBuffer(const BoneNode::SkinName& name, FrameNumber frame_number) const;
 
     static const std::string& getSkeletonResourceCfgName();
     static const std::string& getSkeletonBindSSBODescName();
@@ -67,7 +76,7 @@ public:
     void DecorateRenderNode(const std::shared_ptr<RenderNode>& render_node, const BoneNode::SkinName& skin_name) const;
 
 private:
-    bool UpdateBoneData(const std::shared_ptr<BoneNode>& node, bool bind_changed);
+    bool UpdateBoneData(const std::shared_ptr<BoneNode>& node, bool bind_changed, FrameNumber frame_number);
 
     static const std::string m_skin_resource_cfg_name;
 
@@ -75,6 +84,7 @@ private:
     static const std::string m_skin_joint_ssbo_desc_name;
     static const std::string m_skin_dq_ssbo_desc_name;
 
-    std::unordered_map<BoneNode::SkinName, std::shared_ptr<SkinnedData>> m_skinned_data;
-    std::unordered_set<std::pair<std::shared_ptr<BoneNode>, bool>> m_dirty_at_bone;
+    std::unordered_map<BoneNode::SkinName, SkinnedDataFrame> m_skinned_data;
+    std::unordered_map<FrameNumber, std::unordered_set<DirtyBone>> m_dirty_at_bone;
+    int m_max_frames;
 };

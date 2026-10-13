@@ -92,6 +92,8 @@ public:
     void setExecutionOrder(size_t order);
     size_t getExecutionOrder() const;
 
+    unsigned getFrameNumber() const;
+
 protected:
     std::string m_render_node_name;
     unsigned m_frame_index;

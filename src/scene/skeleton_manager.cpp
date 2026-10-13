@@ -4,6 +4,7 @@
 #include "../graphics/vulkan_renderer.h"
 #include "../graphics/api/vulkan_resources_manager.h"
 #include "../graphics/pod/render_node.h"
+#include "../graphics/api/vulkan_swapchain.h"
 
 const std::string SkeletonManager::m_skin_resource_cfg_name = "joint_bind_storage_resource";
 
@@ -11,7 +12,66 @@ const std::string SkeletonManager::m_skin_bind_ssbo_desc_name = "joint_bind_ssbo
 const std::string SkeletonManager::m_skin_joint_ssbo_desc_name = "joint_ssbo";
 const std::string SkeletonManager::m_skin_dq_ssbo_desc_name = "joint_dq_ssbo";
 
-SkeletonManager::SkeletonManager() {}
+SkeletonManager::SkeletonManager() {
+    VulkanRenderer& renderer = Application::GetRenderer();
+    const std::shared_ptr<VulkanSwapChain>& swapchain = renderer.getSwapchain();
+    m_max_frames = swapchain->getMaxFrames();
+}
+
+bool SkeletonManager::recalculateSkinnedData(FrameNumber frame_number) {
+    bool was_updated = false;
+    bool was_bind_changed = false;
+
+    std::unordered_set<std::pair<const BoneNode::SkinName&, bool>> skins;
+    for (const auto&[dirty_bone, bind_changed] : m_dirty_at_bone[frame_number]) {
+        was_updated |= UpdateBoneData(dirty_bone, bind_changed, frame_number);
+        if(was_updated) {
+            was_bind_changed |= bind_changed;
+            for(const auto&[skin_name, bone_data] : dirty_bone->getBoneDataMap()) {
+                skins.insert({skin_name, bind_changed});
+            }
+        }
+    }
+
+    for (const auto& [dirty_skin_name, bind_changed] : skins) {
+        SkinnedDataFrame& skinned_data_frame = m_skinned_data[dirty_skin_name];
+        const std::shared_ptr<SkinnedData>& skinned_data = skinned_data_frame[frame_number];
+        if(bind_changed) {
+            skinned_data->bind_buffer->update(skinned_data->bind_matrices.data(), sizeof(glm::mat4) * skinned_data->bind_matrices.size());
+        }
+        skinned_data->joint_buffer->update(skinned_data->final_matrices.data(), sizeof(glm::mat4) * skinned_data->final_matrices.size());
+        skinned_data->dq_buffer->update(skinned_data->dual_quats.data(), sizeof(glm::mat2x4) * skinned_data->dual_quats.size());
+    }
+
+    m_dirty_at_bone[frame_number].clear();
+
+    return was_updated;
+}
+
+void SkeletonManager::recalculate_root_joints(BoneNode::SkinName skeleton_name) {
+    if(!m_skinned_data.contains(skeleton_name)) return;
+
+    SkinnedDataFrame& skinned_data_frame = m_skinned_data[skeleton_name];
+    if(!skinned_data_frame.empty()) return;
+
+    const std::shared_ptr<SkinnedData>& skinned_data_to_copy = skinned_data_frame[0];
+    const std::shared_ptr<SkeletonGraphData>& skeleton_graph_data = skinned_data_to_copy->skeleton_structure;
+    const std::shared_ptr<Scene>& scene = skeleton_graph_data->joint_to_bone_map.begin()->second->GetScene();
+    std::vector<BoneNode::JointIndex> new_root_joints;
+    for(const auto&[current_idx, bone_ptr] : skeleton_graph_data->joint_to_bone_map) {
+        const std::shared_ptr<SceneNode>& parent_node = bone_ptr->GetParent();
+        if(std::shared_ptr<BoneNode> parent_bone = std::dynamic_pointer_cast<BoneNode>(scene->getProperty(parent_node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_BONE))) {
+            if(!skeleton_graph_data->bone_to_joint_map.contains(parent_bone)) {
+                new_root_joints.push_back(current_idx);
+            }
+        }
+        else {
+            new_root_joints.push_back(current_idx);
+        }
+    }
+
+    skeleton_graph_data->root_joints = new_root_joints;
+}
 
 void SkeletonManager::AddBone(const std::shared_ptr<BoneNode>& node) {
     using namespace std::literals;
@@ -22,91 +82,74 @@ void SkeletonManager::AddBone(const std::shared_ptr<BoneNode>& node) {
 
     for(const auto&[skin_name, bone_data] : node->getBoneDataMap()) {
         if(!m_skinned_data.contains(skin_name)) {
-            m_skinned_data[skin_name] = std::make_shared<SkinnedData>();
-            m_skinned_data[skin_name]->skeleton_name = skin_name;
+            SkinnedDataFrame& skinned_data_frame = m_skinned_data[skin_name];
+            std::shared_ptr<SkeletonGraphData> skeleton_graph_data = std::make_shared<SkeletonGraphData>();
+            for(int frame = 0; frame < m_max_frames; ++frame) {
+                std::shared_ptr<SkinnedData> skinned_data = std::make_shared<SkinnedData>();
+                skinned_data->skeleton_name = skin_name;
 
-            std::string skin_bind_buffer_name = "skinned_data_bind_buffer_"s + skin_name;
-            m_skinned_data[skin_name]->bind_buffer = resources_manager->create_buffer(nullptr, 1u * sizeof(glm::mat4), std::move(skin_bind_buffer_name), m_skin_resource_cfg_name);
+                std::string skin_bind_buffer_name = "skinned_data_bind_buffer_"s + skin_name;
+                skinned_data->bind_buffer = resources_manager->create_buffer(nullptr, 1u * sizeof(glm::mat4), std::move(skin_bind_buffer_name), m_skin_resource_cfg_name);
 
-            std::string skin_joint_buffer_name = "skinned_data_joint_buffer_"s + skin_name;
-            m_skinned_data[skin_name]->joint_buffer = resources_manager->create_buffer(nullptr, 1u * sizeof(glm::mat4), std::move(skin_joint_buffer_name), m_skin_resource_cfg_name);
+                std::string skin_joint_buffer_name = "skinned_data_joint_buffer_"s + skin_name;
+                skinned_data->joint_buffer = resources_manager->create_buffer(nullptr, 1u * sizeof(glm::mat4), std::move(skin_joint_buffer_name), m_skin_resource_cfg_name);
 
-            std::string skin_dq_buffer_name = "skinned_data_dq_buffer_"s + skin_name;
-            m_skinned_data[skin_name]->dq_buffer = resources_manager->create_buffer(nullptr, 1u * sizeof(glm::mat2x4), std::move(skin_dq_buffer_name), m_skin_resource_cfg_name);
+                std::string skin_dq_buffer_name = "skinned_data_dq_buffer_"s + skin_name;
+                skinned_data->dq_buffer = resources_manager->create_buffer(nullptr, 1u * sizeof(glm::mat2x4), std::move(skin_dq_buffer_name), m_skin_resource_cfg_name);
+
+                skinned_data->skeleton_structure = skeleton_graph_data;
+
+                skinned_data_frame[frame] = std::move(skinned_data);
+            }
         }
 
-        const std::shared_ptr<SkinnedData>& skinned_data = m_skinned_data[skin_name];
+        SkinnedDataFrame& skinned_data_frame = m_skinned_data[skin_name];
+        skinned_data_frame[0]->skeleton_structure->bone_to_joint_map[node] = bone_data.joint_index;
+        skinned_data_frame[0]->skeleton_structure->joint_to_bone_map[bone_data.joint_index] = node;
+        for(int frame = 0; frame < m_max_frames; ++frame) {
+            const std::shared_ptr<SkinnedData>& skinned_data = skinned_data_frame[frame];
 
-        if(skinned_data->inverse_bind_matrices.size() <= bone_data.joint_index) {
-            skinned_data->bind_matrices.resize(bone_data.joint_index + 1u);
-            skinned_data->inverse_bind_matrices.resize(bone_data.joint_index + 1u);
-            skinned_data->final_matrices.resize(bone_data.joint_index + 1u);
-            skinned_data->dual_quats.resize(bone_data.joint_index + 1u);
+            if(skinned_data->inverse_bind_matrices.size() <= bone_data.joint_index) {
+                skinned_data->bind_matrices.resize(bone_data.joint_index + 1u);
+                skinned_data->inverse_bind_matrices.resize(bone_data.joint_index + 1u);
+                skinned_data->final_matrices.resize(bone_data.joint_index + 1u);
+                skinned_data->dual_quats.resize(bone_data.joint_index + 1u);
+            }
+            skinned_data->bind_matrices[bone_data.joint_index] = bone_data.bind_matrice;
+            skinned_data->inverse_bind_matrices[bone_data.joint_index] = bone_data.inverse_bind_matrice;
         }
-        skinned_data->bind_matrices[bone_data.joint_index] = bone_data.bind_matrice;
-        skinned_data->inverse_bind_matrices[bone_data.joint_index] = bone_data.inverse_bind_matrice;
-
-        skinned_data->bone_to_joint_map[node] = bone_data.joint_index;
-        skinned_data->joint_to_bone_map[bone_data.joint_index] = node;
     }
     
     markAsChanged(node, true);
 }
 
 void SkeletonManager::markAsChanged(const std::shared_ptr<BoneNode>& node, bool bind_changed) {
-    m_dirty_at_bone.insert({node, bind_changed});
-}
-
-bool SkeletonManager::recalculateSkinnedData() {
-    bool was_updated = false;
-    bool was_bind_changed = false;
-
-    std::unordered_set<std::pair<const BoneNode::SkinName&, bool>> skins;
-    for (const auto&[dirty_bone, bind_changed] : m_dirty_at_bone) {
-        was_updated |= UpdateBoneData(dirty_bone, bind_changed);
-        if(was_updated) {
-            was_bind_changed |= bind_changed;
-            for(const auto&[skin_name, bone_data] : dirty_bone->getBoneDataMap()) {
-                skins.insert({skin_name, bind_changed});
-            }
-        }
+    for(int frame = 0; frame < m_max_frames; ++frame) {
+        m_dirty_at_bone[frame].insert({node, bind_changed});
     }
-
-    for (const auto& [dirty_skin_name, bind_changed] : skins) {
-        const std::shared_ptr<SkinnedData>& skinned_data = m_skinned_data[dirty_skin_name];
-        if(bind_changed) {
-            skinned_data->bind_buffer->update(skinned_data->bind_matrices.data(), sizeof(glm::mat4) * skinned_data->bind_matrices.size());
-        }
-        skinned_data->joint_buffer->update(skinned_data->final_matrices.data(), sizeof(glm::mat4) * skinned_data->final_matrices.size());
-        skinned_data->dq_buffer->update(skinned_data->dual_quats.data(), sizeof(glm::mat2x4) * skinned_data->dual_quats.size());
-    }
-
-    m_dirty_at_bone.clear();
-
-    return was_updated;
 }
 
-const std::shared_ptr<SkeletonManager::SkinnedData>& SkeletonManager::getSkinnedData(const BoneNode::SkinName& name) const {
-    return m_skinned_data.at(name);
+const std::shared_ptr<SkeletonManager::SkinnedData>& SkeletonManager::getSkinnedData(const BoneNode::SkinName& name, FrameNumber frame_numbe) const {
+    return m_skinned_data.at(name).at(frame_numbe);
 }
 
-const std::unordered_map<BoneNode::SkinName, std::shared_ptr<SkeletonManager::SkinnedData>>& SkeletonManager::getSkinMap() const {
+const std::unordered_map<BoneNode::SkinName, SkeletonManager::SkinnedDataFrame>& SkeletonManager::getSkinMap() const {
     return m_skinned_data;
 }
 
 void SkeletonManager::resetSkin(const BoneNode::SkinName& name) {
     if(!m_skinned_data.contains(name)) return;
 
-    const std::shared_ptr<SkinnedData>& skin_data = m_skinned_data[name];
-    for(const auto&[joint_idx, bone_ptr] : skin_data->joint_to_bone_map) {
+    const std::shared_ptr<SkinnedData>& skin_data = m_skinned_data[name][0];
+    for(const auto&[joint_idx, bone_ptr] : skin_data->skeleton_structure->joint_to_bone_map) {
         bone_ptr->applyBindMatrice();
     }
 }
 
 std::unordered_set<BoneNode::SkinName> SkeletonManager::getMeshSkins(const std::shared_ptr<SceneNode>& mesh_root_node) const {
     std::unordered_set<BoneNode::SkinName> result;
-    for (const auto&[skin_name, skinned_data] : m_skinned_data) {
-        const std::shared_ptr<BoneNode>& bone_node = (*skinned_data->bone_to_joint_map.begin()).first;
+    for (const auto&[skin_name, skinned_data_frame] : m_skinned_data) {
+        const std::shared_ptr<BoneNode>& bone_node = (*skinned_data_frame.at(0)->skeleton_structure->bone_to_joint_map.begin()).first;
         for(const auto&[skin_in_bone_name, bone_data] : bone_node->getBoneDataMap()) {
             if(bone_data.mesh_root_node == mesh_root_node) {
                 result.insert(skin_in_bone_name);
@@ -116,16 +159,16 @@ std::unordered_set<BoneNode::SkinName> SkeletonManager::getMeshSkins(const std::
     return result;
 }
 
-const std::shared_ptr<VulkanBuffer>& SkeletonManager::getSkeletonBindBuffer(const BoneNode::SkinName& name) const {
-    return m_skinned_data.at(name)->bind_buffer;
+const std::shared_ptr<VulkanBuffer>& SkeletonManager::getSkeletonBindBuffer(const BoneNode::SkinName& name, FrameNumber frame_number) const {
+    return m_skinned_data.at(name).at(frame_number)->bind_buffer;
 }
 
-const std::shared_ptr<VulkanBuffer>& SkeletonManager::getSkeletonJointBuffer(const BoneNode::SkinName& name) const {
-    return m_skinned_data.at(name)->joint_buffer;
+const std::shared_ptr<VulkanBuffer>& SkeletonManager::getSkeletonJointBuffer(const BoneNode::SkinName& name, FrameNumber frame_number) const {
+    return m_skinned_data.at(name).at(frame_number)->joint_buffer;
 }
 
-const std::shared_ptr<VulkanBuffer>& SkeletonManager::getSkeletonDQBuffer(const BoneNode::SkinName& name) const {
-    return m_skinned_data.at(name)->dq_buffer;
+const std::shared_ptr<VulkanBuffer>& SkeletonManager::getSkeletonDQBuffer(const BoneNode::SkinName& name, FrameNumber frame_number) const {
+    return m_skinned_data.at(name).at(frame_number)->dq_buffer;
 }
 
 const std::string& SkeletonManager::getSkeletonResourceCfgName() {
@@ -146,7 +189,9 @@ const std::string& SkeletonManager::getSkeletonDQSSBODescName() {
 
 void SkeletonManager::DecorateRenderNode(const std::shared_ptr<RenderNode>& render_node, const BoneNode::SkinName& skin_name) const {
     if(!m_skinned_data.contains(skin_name)) return;
-    const std::shared_ptr<SkinnedData> skinned_data = m_skinned_data.at(skin_name);
+
+    int frame = render_node->getFrameNumber();
+    const std::shared_ptr<SkinnedData> skinned_data = m_skinned_data.at(skin_name).at(frame);
     for(const auto&[desc_slot, desc] : render_node->getDescriptors()) {
         const std::shared_ptr<DescSetLayout>& desc_set_layout = desc->getBindings();
         for(const auto&[desc_layout_bind_name, bind_num] : desc_set_layout->getBindingMap()) {
@@ -195,12 +240,12 @@ void SkeletonManager::DecorateRenderNode(const std::shared_ptr<RenderNode>& rend
     }
 }
 
-bool SkeletonManager::UpdateBoneData(const std::shared_ptr<BoneNode>& node, bool bind_changed) {
+bool SkeletonManager::UpdateBoneData(const std::shared_ptr<BoneNode>& node, bool bind_changed, FrameNumber frame_number) {
     bool was_updated = false;
 
     for(const auto&[skin_name, bone_data] : node->getBoneDataMap()) {
 
-        const std::shared_ptr<SkinnedData>& skinned_data = m_skinned_data[skin_name];
+        const std::shared_ptr<SkinnedData>& skinned_data = m_skinned_data[skin_name][frame_number];
         glm::mat4 model_from_root = node->getBoneDataMap().at(skin_name).mesh_root_node->Get().FromRoot();
         glm::mat4 to_root = node->Get().ToRoot();
         if(bind_changed) {
@@ -227,23 +272,4 @@ bool SkeletonManager::UpdateBoneData(const std::shared_ptr<BoneNode>& node, bool
     }
 
     return was_updated;
-}
-
-void SkeletonManager::recalculate_root_joints(BoneNode::SkinName skeleton_name) {
-    if(!m_skinned_data.contains(skeleton_name)) return;
-
-    const std::shared_ptr<SkinnedData>& skinned_data = m_skinned_data[skeleton_name];
-    const std::shared_ptr<Scene>& scene = skinned_data->joint_to_bone_map.begin()->second->GetScene();
-    skinned_data->root_joints.clear();
-    for(const auto&[current_idx, bone_ptr] : skinned_data->joint_to_bone_map) {
-        const std::shared_ptr<SceneNode>& parent_node = bone_ptr->GetParent();
-        if(std::shared_ptr<BoneNode> parent_bone = std::dynamic_pointer_cast<BoneNode>(scene->getProperty(parent_node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_BONE))) {
-            if(!skinned_data->bone_to_joint_map.contains(parent_bone)) {
-                skinned_data->root_joints.push_back(current_idx);
-            }
-        }
-        else {
-            skinned_data->root_joints.push_back(current_idx);
-        }
-    }
 }
