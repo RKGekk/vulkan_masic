@@ -301,6 +301,10 @@ void VulkanBuffer::AddUpdateMetadataFn(UpdateMetadataFn fn) {
     m_update_functions.push_back(std::move(fn));
 }
 
+void VulkanBuffer::ClearUpdateMetadataFn() {
+    m_update_functions.clear();
+}
+
 void VulkanBuffer::setGlobalMemoryUpdateBarier(CommandBatch& command_buffer, VkAccessFlags dstAccessMask) {
     VkMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;

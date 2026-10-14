@@ -27,4 +27,5 @@ public:
     virtual const ResourceName& getName() const = 0;
     virtual Type getType() const = 0;
     virtual void AddUpdateMetadataFn(UpdateMetadataFn fn) = 0;
+    virtual void ClearUpdateMetadataFn() = 0;
 };

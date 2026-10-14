@@ -16,6 +16,7 @@
 #include "../../scene/scene.h"
 #include "../../scene/animation_manager.h"
 #include "../../scene/skeleton_manager.h"
+#include "../../scene/camera_manager.h"
 #include "../../scene/nodes/camera_node.h"
 #include "../../scene/nodes/basic_camera_node.h"
 
@@ -134,7 +135,8 @@ void HumanView::VOnUpdate(const GameTimerDelta& delta, uint32_t image_index) {
     	//scene->getLightManager()->CalcLighting(std::dynamic_pointer_cast<CameraNode>(camera_node));
 		//scene->getLightManager()->CalcLighting(camera_component->VGetCameraNode());
 	}
-	scene->getSkeletonManager()->recalculateSkinnedData();
+	scene->getSkeletonManager()->recalculateSkinnedData(image_index);
+	scene->getCameraManager()->recalculateCameraData(image_index);
 }
 
 EngineViewType HumanView::VGetType() {

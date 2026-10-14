@@ -191,7 +191,7 @@ void SkeletonManager::DecorateRenderNode(const std::shared_ptr<RenderNode>& rend
     if(!m_skinned_data.contains(skin_name)) return;
 
     int frame = render_node->getFrameNumber();
-    const std::shared_ptr<SkinnedData> skinned_data = m_skinned_data.at(skin_name).at(frame);
+    const std::shared_ptr<SkinnedData>& skinned_data = m_skinned_data.at(skin_name).at(frame);
     for(const auto&[desc_slot, desc] : render_node->getDescriptors()) {
         const std::shared_ptr<DescSetLayout>& desc_set_layout = desc->getBindings();
         for(const auto&[desc_layout_bind_name, bind_num] : desc_set_layout->getBindingMap()) {
