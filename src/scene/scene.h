@@ -25,6 +25,7 @@ class SceneNode;
 class LightManager;
 class AnimationManager;
 class SkeletonManager;
+class CameraManager;
 class InverseKinematicsSolver;
 
 class Scene : public std::enable_shared_from_this<Scene> {
@@ -108,6 +109,7 @@ public:
 	const std::shared_ptr<LightManager>& getLightManager() const;
 	const std::shared_ptr<AnimationManager>& getAnimationManager() const;
 	const std::shared_ptr<SkeletonManager>& getSkeletonManager() const;
+	const std::shared_ptr<CameraManager>& getCameraManager() const;
 	const std::shared_ptr<InverseKinematicsSolver>& getIKSolver() const;
 
 private:
@@ -130,5 +132,6 @@ private:
 	std::shared_ptr<LightManager> m_light_manager;
 	std::shared_ptr<AnimationManager> m_animation_manager;
 	std::shared_ptr<SkeletonManager> m_skeleton_manager;
+	std::shared_ptr<CameraManager> m_camera_manager;
 	std::shared_ptr<InverseKinematicsSolver> m_ik_solver;
 };

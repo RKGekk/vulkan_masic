@@ -114,8 +114,16 @@
 
         <DescriptorSet name="basic_mvp_descriptor_set" allocator="basic_alloc">
             <Layout>
-                <LayoutBinding name="uniform">
+                <LayoutBinding name="camera_ubo">
                     <Binding>0</Binding>
+                    <DescriptorType>uniform_buffer</DescriptorType>
+                    <DescriptorCount>1</DescriptorCount>
+                    <ShaderStageFlags>
+                        <Flag>vertex</Flag>
+                    </ShaderStageFlags>
+                </LayoutBinding>
+                <LayoutBinding name="model_ubo">
+                    <Binding>1</Binding>
                     <DescriptorType>uniform_buffer</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
                     <ShaderStageFlags>
@@ -127,7 +135,7 @@
 
         <DescriptorSet name="basic_diffuse_descriptor_set" allocator="basic_alloc">
             <Layout>
-                <LayoutBinding name="uniform">
+                <LayoutBinding name="camera_ubo">
                     <Binding>0</Binding>
                     <DescriptorType>uniform_buffer</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
@@ -135,8 +143,16 @@
                         <Flag>vertex</Flag>
                     </ShaderStageFlags>
                 </LayoutBinding>
-                <LayoutBinding name="image">
+                <LayoutBinding name="model_ubo">
                     <Binding>1</Binding>
+                    <DescriptorType>uniform_buffer</DescriptorType>
+                    <DescriptorCount>1</DescriptorCount>
+                    <ShaderStageFlags>
+                        <Flag>vertex</Flag>
+                    </ShaderStageFlags>
+                </LayoutBinding>
+                <LayoutBinding name="image">
+                    <Binding>2</Binding>
                     <DescriptorType>combined_image_sampler</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
                     <ShaderStageFlags>
@@ -148,21 +164,21 @@
 
         <DescriptorSet name="basic_phong_descriptor_set" allocator="basic_alloc">
             <Layout>
-                <LayoutBinding name="ubo">
+                <LayoutBinding name="camera_ubo">
                     <Binding>0</Binding>
                     <DescriptorType>uniform_buffer</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
                     <ShaderStageFlags>
                         <Flag>vertex</Flag>
+                        <Flag>fragment</Flag>
                     </ShaderStageFlags>
                 </LayoutBinding>
-                <LayoutBinding name="inv_ubo">
+                <LayoutBinding name="model_ubo">
                     <Binding>1</Binding>
                     <DescriptorType>uniform_buffer</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
                     <ShaderStageFlags>
                         <Flag>vertex</Flag>
-                        <Flag>fragment</Flag>
                     </ShaderStageFlags>
                 </LayoutBinding>
                 <LayoutBinding name="material">
@@ -194,21 +210,21 @@
 
         <DescriptorSet name="phong_anim_descriptor_set" allocator="basic_alloc">
             <Layout>
-                <LayoutBinding name="ubo">
+                <LayoutBinding name="camera_ubo">
                     <Binding>0</Binding>
                     <DescriptorType>uniform_buffer</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
                     <ShaderStageFlags>
                         <Flag>vertex</Flag>
+                        <Flag>fragment</Flag>
                     </ShaderStageFlags>
                 </LayoutBinding>
-                <LayoutBinding name="inv_ubo">
+                <LayoutBinding name="model_ubo">
                     <Binding>1</Binding>
                     <DescriptorType>uniform_buffer</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
                     <ShaderStageFlags>
                         <Flag>vertex</Flag>
-                        <Flag>fragment</Flag>
                     </ShaderStageFlags>
                 </LayoutBinding>
                 <LayoutBinding name="material">
@@ -248,21 +264,21 @@
 
         <DescriptorSet name="phong_anim_dq_descriptor_set" allocator="basic_alloc">
             <Layout>
-                <LayoutBinding name="ubo">
+                <LayoutBinding name="camera_ubo">
                     <Binding>0</Binding>
                     <DescriptorType>uniform_buffer</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
                     <ShaderStageFlags>
                         <Flag>vertex</Flag>
+                        <Flag>fragment</Flag>
                     </ShaderStageFlags>
                 </LayoutBinding>
-                <LayoutBinding name="inv_ubo">
+                <LayoutBinding name="model_ubo">
                     <Binding>1</Binding>
                     <DescriptorType>uniform_buffer</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
                     <ShaderStageFlags>
                         <Flag>vertex</Flag>
-                        <Flag>fragment</Flag>
                     </ShaderStageFlags>
                 </LayoutBinding>
                 <LayoutBinding name="material">
@@ -302,8 +318,16 @@
 
         <DescriptorSet name="line_descriptor_set" allocator="basic_alloc">
             <Layout>
-                <LayoutBinding name="ubo">
+                <LayoutBinding name="camera_ubo">
                     <Binding>0</Binding>
+                    <DescriptorType>uniform_buffer</DescriptorType>
+                    <DescriptorCount>1</DescriptorCount>
+                    <ShaderStageFlags>
+                        <Flag>vertex</Flag>
+                    </ShaderStageFlags>
+                </LayoutBinding>
+                <LayoutBinding name="model_ubo">
+                    <Binding>1</Binding>
                     <DescriptorType>uniform_buffer</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
                     <ShaderStageFlags>
@@ -315,7 +339,7 @@
 
         <DescriptorSet name="linedq_descriptor_set" allocator="basic_alloc">
             <Layout>
-                <LayoutBinding name="ubo">
+                <LayoutBinding name="camera_ubo">
                     <Binding>0</Binding>
                     <DescriptorType>uniform_buffer</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
@@ -323,8 +347,16 @@
                         <Flag>vertex</Flag>
                     </ShaderStageFlags>
                 </LayoutBinding>
-                <LayoutBinding name="joint_dq_ssbo">
+                <LayoutBinding name="model_ubo">
                     <Binding>1</Binding>
+                    <DescriptorType>uniform_buffer</DescriptorType>
+                    <DescriptorCount>1</DescriptorCount>
+                    <ShaderStageFlags>
+                        <Flag>vertex</Flag>
+                    </ShaderStageFlags>
+                </LayoutBinding>
+                <LayoutBinding name="joint_dq_ssbo">
+                    <Binding>2</Binding>
                     <DescriptorType>storage_buffer</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
                     <ShaderStageFlags>
@@ -332,7 +364,7 @@
                     </ShaderStageFlags>
                 </LayoutBinding>
                 <LayoutBinding name="joint_bind_ssbo">
-                    <Binding>2</Binding>
+                    <Binding>3</Binding>
                     <DescriptorType>storage_buffer</DescriptorType>
                     <DescriptorCount>1</DescriptorCount>
                     <ShaderStageFlags>
@@ -594,12 +626,25 @@
             </ImageBuffer>
         </ResourceType>
 
-        <ResourceType name="basic_uniform_resource">
+        <ResourceType name="camera_uniform_resource">
             <Buffer>
                 <BufferUsageFlags>
                     <Flag>uniform_buffer</Flag>
                 </BufferUsageFlags>
-                <Size dynamic="false" deffered="false">192</Size>
+                <Size dynamic="false" deffered="false">256</Size>
+                <MemoryProperties>
+                    <Property>host_visible</Property>
+                    <Property>host_coherent</Property>
+                </MemoryProperties>
+            </Buffer>
+        </ResourceType>
+
+        <ResourceType name="model_uniform_resource">
+            <Buffer>
+                <BufferUsageFlags>
+                    <Flag>uniform_buffer</Flag>
+                </BufferUsageFlags>
+                <Size dynamic="false" deffered="false">128</Size>
                 <MemoryProperties>
                     <Property>host_visible</Property>
                     <Property>host_coherent</Property>
@@ -2158,10 +2203,16 @@
                 <Scissor source="auto"></Scissor>
             </DynamicStates>
             <DescriptorResourcesCreateAndUpdate>
-                <LayoutBinding name="uniform" resource_creation_point="RenderNodeCreationTime">
+                <LayoutBinding name="camera_ubo" resource_creation_point="External">
                     <Buffer>
-                        <BufferResourceType>basic_uniform_resource</BufferResourceType>
-                        <UpdateFunctionName>mvp_matrices_update</UpdateFunctionName>
+                        <BufferResourceType>camera_uniform_resource</BufferResourceType>
+                        <UpdateFunctionName>no_name</UpdateFunctionName>
+                    </Buffer>
+                </LayoutBinding>
+                <LayoutBinding name="model_ubo" resource_creation_point="RenderNodeCreationTime">
+                    <Buffer>
+                        <BufferResourceType>model_uniform_resource</BufferResourceType>
+                        <UpdateFunctionName>model_matrices_update</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
             </DescriptorResourcesCreateAndUpdate>
@@ -2178,10 +2229,16 @@
                 <Scissor source="auto"></Scissor>
             </DynamicStates>
             <DescriptorResourcesCreateAndUpdate>
-                <LayoutBinding name="ubo" resource_creation_point="RenderNodeCreationTime">
+                <LayoutBinding name="camera_ubo" resource_creation_point="External">
                     <Buffer>
-                        <BufferResourceType>basic_uniform_resource</BufferResourceType>
-                        <UpdateFunctionName>mvp_matrices_update</UpdateFunctionName>
+                        <BufferResourceType>camera_uniform_resource</BufferResourceType>
+                        <UpdateFunctionName>no_name</UpdateFunctionName>
+                    </Buffer>
+                </LayoutBinding>
+                <LayoutBinding name="model_ubo" resource_creation_point="RenderNodeCreationTime">
+                    <Buffer>
+                        <BufferResourceType>model_uniform_resource</BufferResourceType>
+                        <UpdateFunctionName>model_matrices_update</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
             </DescriptorResourcesCreateAndUpdate>
@@ -2198,10 +2255,16 @@
                 <Scissor source="auto"></Scissor>
             </DynamicStates>
             <DescriptorResourcesCreateAndUpdate>
-                <LayoutBinding name="ubo" resource_creation_point="RenderNodeCreationTime">
+                <LayoutBinding name="camera_ubo" resource_creation_point="External">
                     <Buffer>
-                        <BufferResourceType>basic_uniform_resource</BufferResourceType>
-                        <UpdateFunctionName>mvp_matrices_update</UpdateFunctionName>
+                        <BufferResourceType>camera_uniform_resource</BufferResourceType>
+                        <UpdateFunctionName>no_name</UpdateFunctionName>
+                    </Buffer>
+                </LayoutBinding>
+                <LayoutBinding name="model_ubo" resource_creation_point="RenderNodeCreationTime">
+                    <Buffer>
+                        <BufferResourceType>model_uniform_resource</BufferResourceType>
+                        <UpdateFunctionName>model_matrices_update</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
                 <LayoutBinding name="joint_dq_ssbo" resource_creation_point="RenderNodeCreationTime">
@@ -2230,10 +2293,16 @@
                 <Scissor source="auto"></Scissor>
             </DynamicStates>
             <DescriptorResourcesCreateAndUpdate>
-                <LayoutBinding name="uniform" resource_creation_point="RenderNodeCreationTime">
+                <LayoutBinding name="camera_ubo" resource_creation_point="External">
                     <Buffer>
-                        <BufferResourceType>basic_uniform_resource</BufferResourceType>
-                        <UpdateFunctionName>mvp_matrices_update</UpdateFunctionName>
+                        <BufferResourceType>camera_uniform_resource</BufferResourceType>
+                        <UpdateFunctionName>no_name</UpdateFunctionName>
+                    </Buffer>
+                </LayoutBinding>
+                <LayoutBinding name="model_ubo" resource_creation_point="RenderNodeCreationTime">
+                    <Buffer>
+                        <BufferResourceType>model_uniform_resource</BufferResourceType>
+                        <UpdateFunctionName>model_matrices_update</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
                 <LayoutBinding name="image" resource_creation_point="External">
@@ -2260,16 +2329,16 @@
                 <Scissor source="auto"></Scissor>
             </DynamicStates>
             <DescriptorResourcesCreateAndUpdate>
-                <LayoutBinding name="ubo" resource_creation_point="RenderNodeCreationTime">
+                <LayoutBinding name="camera_ubo" resource_creation_point="External">
                     <Buffer>
-                        <BufferResourceType>basic_uniform_resource</BufferResourceType>
-                        <UpdateFunctionName>mvp_matrices_update</UpdateFunctionName>
+                        <BufferResourceType>camera_uniform_resource</BufferResourceType>
+                        <UpdateFunctionName>no_name</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
-                <LayoutBinding name="inv_ubo" resource_creation_point="RenderNodeCreationTime">
+                <LayoutBinding name="model_ubo" resource_creation_point="RenderNodeCreationTime">
                     <Buffer>
-                        <BufferResourceType>basic_uniform_resource</BufferResourceType>
-                        <UpdateFunctionName>invmvp_matrices_update</UpdateFunctionName>
+                        <BufferResourceType>model_uniform_resource</BufferResourceType>
+                        <UpdateFunctionName>model_matrices_update</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
                 <LayoutBinding name="material" resource_creation_point="RenderNodeCreationTime">
@@ -2308,16 +2377,16 @@
                 <Scissor source="auto"></Scissor>
             </DynamicStates>
             <DescriptorResourcesCreateAndUpdate>
-                <LayoutBinding name="ubo" resource_creation_point="RenderNodeCreationTime">
+                <LayoutBinding name="camera_ubo" resource_creation_point="External">
                     <Buffer>
-                        <BufferResourceType>basic_uniform_resource</BufferResourceType>
-                        <UpdateFunctionName>mvp_matrices_update</UpdateFunctionName>
+                        <BufferResourceType>camera_uniform_resource</BufferResourceType>
+                        <UpdateFunctionName>no_name</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
-                <LayoutBinding name="inv_ubo" resource_creation_point="RenderNodeCreationTime">
+                <LayoutBinding name="model_ubo" resource_creation_point="RenderNodeCreationTime">
                     <Buffer>
-                        <BufferResourceType>basic_uniform_resource</BufferResourceType>
-                        <UpdateFunctionName>invmvp_matrices_update</UpdateFunctionName>
+                        <BufferResourceType>model_uniform_resource</BufferResourceType>
+                        <UpdateFunctionName>model_matrices_update</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
                 <LayoutBinding name="material" resource_creation_point="RenderNodeCreationTime">
@@ -2362,16 +2431,16 @@
                 <Scissor source="auto"></Scissor>
             </DynamicStates>
             <DescriptorResourcesCreateAndUpdate>
-                <LayoutBinding name="ubo" resource_creation_point="RenderNodeCreationTime">
+                <LayoutBinding name="camera_ubo" resource_creation_point="External">
                     <Buffer>
-                        <BufferResourceType>basic_uniform_resource</BufferResourceType>
-                        <UpdateFunctionName>mvp_matrices_update</UpdateFunctionName>
+                        <BufferResourceType>camera_uniform_resource</BufferResourceType>
+                        <UpdateFunctionName>no_name</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
-                <LayoutBinding name="inv_ubo" resource_creation_point="RenderNodeCreationTime">
+                <LayoutBinding name="model_ubo" resource_creation_point="RenderNodeCreationTime">
                     <Buffer>
-                        <BufferResourceType>basic_uniform_resource</BufferResourceType>
-                        <UpdateFunctionName>invmvp_matrices_update</UpdateFunctionName>
+                        <BufferResourceType>model_uniform_resource</BufferResourceType>
+                        <UpdateFunctionName>model_matrices_update</UpdateFunctionName>
                     </Buffer>
                 </LayoutBinding>
                 <LayoutBinding name="material" resource_creation_point="RenderNodeCreationTime">

@@ -1,10 +1,16 @@
 #version 450
 
-layout(set = 0, binding = 0) uniform UniformBufferObject {
-    mat4 model;
+layout(set = 0, binding = 0) uniform CameraBufferObject {
     mat4 view;
     mat4 proj;
-} ubo;
+    mat4 inv_view;
+    mat4 inv_proj;
+} camera_ubo;
+
+layout(set = 0, binding = 1) uniform ModelBufferObject {
+    mat4 model;
+    mat4 inv_model;
+} model_ubo;
 
 layout(push_constant) uniform UniformRegisters {
     vec2 u_resolution; // Viewport Size in pixels (e.g. 1920.0, 1080.0)
@@ -22,7 +28,7 @@ layout(location = 0) out vec4 out_color;
 const float epsilon = 0.00001f;
 
 void main() {
-    mat4 mvp = ubo.proj * ubo.view * ubo.model;
+    mat4 mvp = camera_ubo.proj * camera_ubo.view * model_ubo.model;
 
     vec4 position_clip = mvp * vec4(in_position, 1.0f);
     vec4 target_clip  = mvp * vec4(in_target, 1.0f);

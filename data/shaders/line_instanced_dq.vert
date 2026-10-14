@@ -6,17 +6,23 @@ layout(push_constant) uniform UniformRegisters {
     vec4 u_color; // Line Color
 } registers;
 
-layout(set = 0, binding = 0) uniform UniformBufferObject {
-    mat4 model;
+layout(set = 0, binding = 0) uniform CameraBufferObject {
     mat4 view;
     mat4 proj;
-} ubo;
+    mat4 inv_view;
+    mat4 inv_proj;
+} camera_ubo;
 
-layout(std430, set = 0, binding = 1) readonly buffer JointDualQuats {
+layout(set = 0, binding = 1) uniform ModelBufferObject {
+    mat4 model;
+    mat4 inv_model;
+} model_ubo;
+
+layout(std430, set = 0, binding = 2) readonly buffer JointDualQuats {
     mat2x4 joint_dqs[];
 } joint_dq_ssbo;
 
-layout(std430, set = 0, binding = 2) readonly buffer JointBufferObject {
+layout(std430, set = 0, binding = 3) readonly buffer JointBufferObject {
     mat4 joint_array[];
 } joint_bind_ssbo;
 
@@ -70,11 +76,8 @@ mat4 getSkinMatrix(uint joint) {
 }
 
 void main() {
-    mat4 mvp = ubo.proj * ubo.view * ubo.model;
-    //mat4 mvp = ubo.model * ubo.view * ubo.proj;
+    mat4 mvp = camera_ubo.proj * camera_ubo.view * model_ubo.model;
 
-    //mat4 parent_skin = getSkinMatrix(in_parent_joint_idx);
-    //mat4 child_skin = getSkinMatrix(in_child_joint_idx);
     mat4 parent_skin = getSkinMatrix(in_parent_joint_idx) * joint_bind_ssbo.joint_array[in_parent_joint_idx];
     mat4 child_skin = getSkinMatrix(in_child_joint_idx) * joint_bind_ssbo.joint_array[in_child_joint_idx];
 

@@ -260,6 +260,8 @@ set(APP_SOURCES
     "${SRC_DIR}/scene/scene.h"
     "${SRC_DIR}/scene/scene.cpp"
     "${SRC_DIR}/scene/ivisitor.h"
+    "${SRC_DIR}/scene/camera_manager.h"
+    "${SRC_DIR}/scene/camera_manager.cpp"
     "${SRC_DIR}/scene/light_manager.h"
     "${SRC_DIR}/scene/light_manager.cpp"
     "${SRC_DIR}/scene/animation_manager.h"

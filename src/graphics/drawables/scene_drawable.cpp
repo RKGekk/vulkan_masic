@@ -22,10 +22,16 @@
 #include "../vulkan_renderer.h"
 #include "../../tools/string_tools.h"
 
-struct SceneUniformBufferObject {
+struct ModelUniformBufferObject {
     glm::mat4 model;
+    glm::mat4 inv_model;
+};
+
+struct CameraUniformBufferObject {
     glm::mat4 view;
     glm::mat4 proj;
+    glm::mat4 inv_view;
+    glm::mat4 inv_proj;
 };
 
 struct PhongMaterial {

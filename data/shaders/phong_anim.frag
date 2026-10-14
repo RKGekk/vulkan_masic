@@ -2,11 +2,12 @@
 
 #define MaxLights 9
 
-layout(set = 0, binding = 1) uniform InvMatrixBufferObject {
-    mat4 inv_model;
+layout(set = 0, binding = 0) uniform CameraBufferObject {
+    mat4 view;
+    mat4 proj;
     mat4 inv_view;
     mat4 inv_proj;
-} inv_ubo;
+} camera_ubo;
 
 layout(set = 0, binding = 2) uniform MaterialBufferObject {
     vec4 u_fresnelR0_roughness;
@@ -166,7 +167,7 @@ void main() {
     vec4 diffuse_albedo = texture(texure_sampler, in_uv);
 
     vec3 world_normal = normalize(in_normal);
-    vec3 world_eye_position = inv_ubo.inv_view[3].xyz;
+    vec3 world_eye_position = camera_ubo.inv_view[3].xyz;
     vec3 world_to_eye = normalize(world_eye_position - in_world_pos.xyz);
 
     vec4 diffuse_attenuation = ComputeLighting(in_world_pos.xyz, in_normal, world_to_eye, diffuse_albedo);

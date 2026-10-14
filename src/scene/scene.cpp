@@ -4,6 +4,7 @@
 #include "light_manager.h"
 #include "animation_manager.h"
 #include "skeleton_manager.h"
+#include "camera_manager.h"
 #include "inverse_kinematics_solver.h"
 
 #include <algorithm>
@@ -26,6 +27,7 @@ Scene::Scene(std::string name) {
     m_light_manager = std::make_shared<LightManager>();
     m_animation_manager = std::make_shared<AnimationManager>();
     m_skeleton_manager = std::make_shared<SkeletonManager>();
+    m_camera_manager = std::make_shared<CameraManager>();
     m_ik_solver = std::make_shared<InverseKinematicsSolver>();
 }
 
@@ -79,6 +81,16 @@ void Scene::markAsChanged(NodeIndex node_index) {
         std::shared_ptr<BoneNode> bone = std::dynamic_pointer_cast<BoneNode>(getProperty(node_index, NODE_TYPE_FLAG_BONE));
         m_skeleton_manager->markAsChanged(bone, false);
     }
+
+    if(m_camera_manager && (getNodeTypeFlags(node_index) & NODE_TYPE_FLAG_CAMERA)) {
+        std::shared_ptr<CameraNode> camera = std::dynamic_pointer_cast<CameraNode>(getProperty(node_index, NODE_TYPE_FLAG_CAMERA));
+        m_camera_manager->markAsChanged(camera);
+    }
+
+    // if(m_light_manager && (getNodeTypeFlags(node_index) & NODE_TYPE_FLAG_LIGHT)) {
+    //     std::shared_ptr<LightNode> light = std::dynamic_pointer_cast<LightNode>(getProperty(node_index, NODE_TYPE_FLAG_LIGHT));
+    //     m_light_manager->markAsChanged(light);
+    // }
 
     for (int n = m_hierarchy[node_index].first_child; n != -1; n = m_hierarchy[n].next_sibling) {
         markAsChanged(n);
@@ -192,6 +204,9 @@ void Scene::addProperty(std::shared_ptr<SceneNode> property, NodeIndex node_inde
     }
     else if(node_type == NODE_TYPE_FLAG_BONE) {
         m_skeleton_manager->AddBone(std::dynamic_pointer_cast<BoneNode>(property));
+    }
+    else if(node_type == NODE_TYPE_FLAG_CAMERA) {
+        m_camera_manager->AddCamera(std::dynamic_pointer_cast<CameraNode>(property));
     }
     else if(node_type == NODE_TYPE_FLAG_ANIMATION) {
         m_animation_manager->AddNodeAnimation(std::dynamic_pointer_cast<AnimationNode>(property));
@@ -516,6 +531,10 @@ const std::shared_ptr<AnimationManager>& Scene::getAnimationManager() const {
 	
 const std::shared_ptr<SkeletonManager>& Scene::getSkeletonManager() const {
     return m_skeleton_manager;
+}
+
+const std::shared_ptr<CameraManager>& Scene::getCameraManager() const {
+    return m_camera_manager;
 }
 
 const std::shared_ptr<InverseKinematicsSolver>& Scene::getIKSolver() const {
