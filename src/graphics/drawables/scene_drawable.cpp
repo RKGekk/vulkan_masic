@@ -7,6 +7,7 @@
 #include "../../scene/nodes/basic_camera_node.h"
 #include "../../scene/nodes/value_bag_node.h"
 #include "../../scene/skeleton_manager.h"
+#include "../../scene/camera_manager.h"
 #include "../api/vulkan_buffer.h"
 #include "../api/vulkan_image_buffer.h"
 #include "../api/vulkan_swapchain.h"
@@ -25,13 +26,6 @@
 struct ModelUniformBufferObject {
     glm::mat4 model;
     glm::mat4 inv_model;
-};
-
-struct CameraUniformBufferObject {
-    glm::mat4 view;
-    glm::mat4 proj;
-    glm::mat4 inv_view;
-    glm::mat4 inv_proj;
 };
 
 struct PhongMaterial {
@@ -98,11 +92,17 @@ std::string makeRenderNodeName(const std::shared_ptr<Material>& material) {
 void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
     using namespace std::literals;
 
+    Application& app = Application::Get();
     VulkanRenderer& renderer = Application::GetRenderer();
     std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = renderer.getSwapchain()->getSwapchainImages();
     const std::shared_ptr<Scene>& scene = model->GetScene();
     const std::shared_ptr<SkeletonManager>& skeleton_manager = scene->getSkeletonManager();
+
+    const std::shared_ptr<CameraManager>& camera_manager = scene->getCameraManager();
+    const std::shared_ptr<BaseEngineLogic>& game_logic = app.GetGameLogic();
+    const std::shared_ptr<CameraComponent>& camera_component = game_logic->GetHumanView()->VGetCamera();
+    const std::shared_ptr<BasicCameraNode>& camera_node = camera_component->VGetCameraNode();
     
     std::shared_ptr<ValueBagNode> value_bag_node = std::dynamic_pointer_cast<ValueBagNode>(scene->getProperty(model->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG));
     const MeshNode::MeshList& mesh_list = model->GetMeshes();
@@ -180,18 +180,10 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             }
 
             render_node->add_update_function(
-                "mvp_matrices_update"s,
+                "model_matrices_update"s,
                 [&, frame, renderable_id]
                 (std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name){
-                    updateMVPMatrices(frame, renderable_id, uniform_buffer, desc_set_layout_bind_name);
-                }
-            );
-
-            render_node->add_update_function(
-                "invmvp_matrices_update"s,
-                [&, frame, renderable_id]
-                (std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name){
-                    updateInvMVPMatrices(frame, renderable_id, uniform_buffer, desc_set_layout_bind_name);
+                    updateModelMatrices(frame, renderable_id, uniform_buffer, desc_set_layout_bind_name);
                 }
             );
 
@@ -203,6 +195,7 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                 }
             );
 
+            camera_manager->DecorateRenderNode(render_node, camera_node->Get().Name());
             if(has_skeleton) {
                 skeleton_manager->DecorateRenderNode(render_node, model->GetSkinName());
             }
@@ -273,40 +266,15 @@ void SceneDrawable::updateDescBuffer(int frame, RenderableId render_id, std::sha
     render_node->updateDescriptor(desc_set_layout_bind_name);
 }
 
-void SceneDrawable::updateMVPMatrices(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name) {
-    Application& app = Application::Get();
-    const std::shared_ptr<BaseEngineLogic>& game_logic = app.GetGameLogic();
-    const std::shared_ptr<CameraComponent>& camera_component = game_logic->GetHumanView()->VGetCamera();
-    const std::shared_ptr<BasicCameraNode>& camera_node = camera_component->VGetCameraNode();
-
+void SceneDrawable::updateModelMatrices(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name) {
     const std::shared_ptr<MeshNode>& mesh_node = m_per_frame[frame]->renderables.at(render_id)->mesh_node;
     const SceneNodeProperties& node_props = mesh_node->Get();
     
-    SceneUniformBufferObject ubo{};
+    ModelUniformBufferObject ubo{};
     ubo.model = node_props.ToRoot();
-    ubo.view = camera_node->GetView();
-    ubo.proj = camera_node->GetProjection();
-    //ubo.proj[1][1] *= -1.0f;
+    ubo.inv_model = node_props.FromRoot();
 
-    updateDescBuffer(frame, render_id, uniform_buffer, desc_set_layout_bind_name, &ubo, sizeof(SceneUniformBufferObject), mesh_node->Get().Name());
-}
-
-
-void SceneDrawable::updateInvMVPMatrices(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name) {
-    Application& app = Application::Get();
-    const std::shared_ptr<BaseEngineLogic>& game_logic = app.GetGameLogic();
-    const std::shared_ptr<CameraComponent>& camera_component = game_logic->GetHumanView()->VGetCamera();
-    const std::shared_ptr<BasicCameraNode>& camera_node = camera_component->VGetCameraNode();
-    const std::shared_ptr<MeshNode>& mesh_node = m_per_frame[frame]->renderables.at(render_id)->mesh_node;
-    const SceneNodeProperties& node_props = mesh_node->Get();
-    
-    SceneUniformBufferObject ubo{};
-    ubo.model = node_props.FromRoot();
-    ubo.view = camera_node->GetInvView();
-    ubo.proj = camera_node->GetInvProjection();
-    //ubo.proj[1][1] *= -1.0f;
-
-    updateDescBuffer(frame, render_id, uniform_buffer, desc_set_layout_bind_name, &ubo, sizeof(SceneUniformBufferObject), mesh_node->Get().Name());
+    updateDescBuffer(frame, render_id, uniform_buffer, desc_set_layout_bind_name, &ubo, sizeof(ModelUniformBufferObject), mesh_node->Get().Name());
 }
 
 void SceneDrawable::updateMaterialProps(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name) {
