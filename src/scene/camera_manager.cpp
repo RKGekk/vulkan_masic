@@ -4,6 +4,7 @@
 #include "../graphics/vulkan_renderer.h"
 #include "../graphics/api/vulkan_resources_manager.h"
 #include "../graphics/pod/render_node.h"
+#include "../graphics/pod/graphics_render_node.h"
 #include "../graphics/api/vulkan_swapchain.h"
 
 const std::string CameraManager::m_camera_resource_cfg_name = "camera_uniform_resource";
@@ -71,10 +72,12 @@ const std::string& CameraManager::getMatrixUBODescName() {
 }
 
 void CameraManager::DecorateRenderNode(const std::shared_ptr<RenderNode>& render_node, const std::shared_ptr<CameraNode>& camera_node) const {
+    std::shared_ptr<GraphicsRenderNode> graphics_render_node = std::dynamic_pointer_cast<GraphicsRenderNode>(render_node);
+    if(!graphics_render_node) return;
+
     int frame = render_node->getFrameNumber();
     const std::shared_ptr<VulkanBuffer>& matrix_buffer = getCameraMatrixBuffer(camera_node, frame);
-    for(const auto&[desc_slot, desc] : render_node->getDescriptors()) {
-        const std::shared_ptr<DescSetLayout>& desc_set_layout = desc->getBindings();
+    for(const auto&[desc_slot, desc_set_layout] : graphics_render_node->getPipeline()->getDescLayouts()) {
         for(const auto&[desc_layout_bind_name, bind_num] : desc_set_layout->getBindingMap()) {
             const VkDescriptorSetLayoutBinding& vk_layout_binding = desc_set_layout->getBinding(bind_num);
             bool has_camera_ubo = vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER && desc_layout_bind_name == m_matrix_desc_name;

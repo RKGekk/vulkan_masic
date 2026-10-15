@@ -4,6 +4,7 @@
 #include "../graphics/vulkan_renderer.h"
 #include "../graphics/api/vulkan_resources_manager.h"
 #include "../graphics/pod/render_node.h"
+#include "../graphics/pod/graphics_render_node.h"
 #include "../graphics/api/vulkan_swapchain.h"
 
 const std::string SkeletonManager::m_skin_resource_cfg_name = "joint_bind_storage_resource";
@@ -190,11 +191,12 @@ const std::string& SkeletonManager::getSkeletonDQSSBODescName() {
 
 void SkeletonManager::DecorateRenderNode(const std::shared_ptr<RenderNode>& render_node, const BoneNode::SkinName& skin_name) const {
     if(!m_skinned_data.contains(skin_name)) return;
+    std::shared_ptr<GraphicsRenderNode> graphics_render_node = std::dynamic_pointer_cast<GraphicsRenderNode>(render_node);
+    if(!graphics_render_node) return;
 
     int frame = render_node->getFrameNumber();
     const std::shared_ptr<SkinnedData>& skinned_data = m_skinned_data.at(skin_name).at(frame);
-    for(const auto&[desc_slot, desc] : render_node->getDescriptors()) {
-        const std::shared_ptr<DescSetLayout>& desc_set_layout = desc->getBindings();
+    for(const auto&[desc_slot, desc_set_layout] : graphics_render_node->getPipeline()->getDescLayouts()) {
         for(const auto&[desc_layout_bind_name, bind_num] : desc_set_layout->getBindingMap()) {
             const VkDescriptorSetLayoutBinding& vk_layout_binding = desc_set_layout->getBinding(bind_num);
             
