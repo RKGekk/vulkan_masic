@@ -196,6 +196,17 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                 }
             );
 
+            for(const auto&[desc_slot, desc_set_layout] : render_node->getPipeline()->getDescLayouts()) {
+                for(const auto&[desc_layout_bind_name, bind_num] : desc_set_layout->getBindingMap()) {
+                    const VkDescriptorSetLayoutBinding& vk_layout_binding = desc_set_layout->getBinding(bind_num);
+                    if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER && material->HasTexture()) {
+                        std::shared_ptr<VulkanImageBuffer> texture = material->GetTexture();
+                        render_node->addReadDependency(std::move(texture), desc_layout_bind_name);
+                        continue;
+                    }
+                }
+            }
+
             camera_manager->DecorateRenderNode(render_node, camera_node);
             if(has_skeleton) {
                 skeleton_manager->DecorateRenderNode(render_node, model->GetSkinName());
