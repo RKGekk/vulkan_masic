@@ -200,6 +200,16 @@ std::shared_ptr<CameraComponent> HumanView::VGetCamera() {
 	if (!m_camera.expired()) {
 		return m_camera.lock();
 	}
+	const std::unordered_set<ActorId>& actors_with_camera = Application::Get().GetGameLogic()->VGetActorsByComponent(ActorComponent::GetIdFromName(CameraComponent::g_name));
+	if(actors_with_camera.size() > 0u) {
+		WeakActorPtr weak_camera_actor = Application::Get().GetGameLogic()->VGetActor(*(actors_with_camera.begin()));
+		if (auto camera_actor = weak_camera_actor.lock()) {
+			auto weak_camera_component = camera_actor->GetComponent<CameraComponent>();
+			if (auto camera_component = weak_camera_component.lock()) {
+				return camera_component;
+			}
+		}
+	}
 	return CameraComponent::NULL_CAMERA_PTR;
 }
 

@@ -35,6 +35,7 @@ public:
         enum class SamplerType { NONE, INLINE, DEFAULT, FROM_IMAGEBUFFER };
 
         RenderResource::Type resource_type;
+        
         std::string buffer_resource_type_name;
         std::string update_function_name;
         CreationPoint creation_point;

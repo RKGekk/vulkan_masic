@@ -34,7 +34,6 @@ public:
     };
 
     using FrameNumber = unsigned;
-    using CameraName = std::string;
     using CameraDataFrame = std::unordered_map<FrameNumber, std::shared_ptr<VulkanBuffer>>;
 
     CameraManager();
@@ -43,13 +42,12 @@ public:
     void AddCamera(const std::shared_ptr<CameraNode>& node);
     void markAsChanged(const std::shared_ptr<CameraNode>& node);
 
-    const std::shared_ptr<VulkanBuffer>& getCameraMatrixBuffer(std::string camera_name, FrameNumber frame_number) const;
-    const std::shared_ptr<VulkanBuffer>& getCameraMatrixBuffer(const std::shared_ptr<CameraNode> camera_node, FrameNumber frame_number) const;
+    const std::shared_ptr<VulkanBuffer>& getCameraMatrixBuffer(const std::shared_ptr<CameraNode>& camera_node, FrameNumber frame_number) const;
 
     static const std::string& getCameraResourceCfgName();
     static const std::string& getMatrixUBODescName();
 
-    void DecorateRenderNode(const std::shared_ptr<RenderNode>& render_node, std::string camera_name) const;
+    void DecorateRenderNode(const std::shared_ptr<RenderNode>& render_node, const std::shared_ptr<CameraNode>& camera_node) const;
 
 private:
     static const std::string m_camera_resource_cfg_name;

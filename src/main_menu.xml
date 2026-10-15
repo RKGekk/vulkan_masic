@@ -14,7 +14,6 @@
         <Near>0.1</Near>
         <Far>100.0</Far>
       </CameraComponent>
-
     </Actor>
 
     <Actor name="anim_test_object">

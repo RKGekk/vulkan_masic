@@ -55,9 +55,9 @@ public:
     std::shared_ptr<RenderResource> getResource(const std::string& resource_global_name);
     bool hasResource(const std::string& resource_global_name) const;
 
-    const std::shared_ptr<ImageBufferConfig> getImageBufferConfigTemplate(const std::string& template_name) const;
-    const std::shared_ptr<BufferConfig> getBufferConfigTemplate(const std::string& template_name) const;
-    const std::shared_ptr<PushConstantConfig> getPushConstantConfigTemplate(const std::string& template_name) const;
+    const std::shared_ptr<ImageBufferConfig>& getImageBufferConfigTemplate(const std::string& template_name) const;
+    const std::shared_ptr<BufferConfig>& getBufferConfigTemplate(const std::string& template_name) const;
+    const std::shared_ptr<PushConstantConfig>& getPushConstantConfigTemplate(const std::string& template_name) const;
 
     const std::shared_ptr<FramebufferConfig>& getFramebufferConfig(const std::string& framebuffer_name) const;
 

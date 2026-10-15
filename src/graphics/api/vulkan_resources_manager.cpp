@@ -306,15 +306,15 @@ bool VulkanResourcesManager::hasResource(const std::string& resource_global_name
 	return false;
 }
 
-const std::shared_ptr<ImageBufferConfig> VulkanResourcesManager::getImageBufferConfigTemplate(const std::string& template_name) const {
+const std::shared_ptr<ImageBufferConfig>& VulkanResourcesManager::getImageBufferConfigTemplate(const std::string& template_name) const {
 	return m_image_buffer_config_map.at(template_name);
 }
 
-const std::shared_ptr<BufferConfig> VulkanResourcesManager::getBufferConfigTemplate(const std::string& template_name) const {
+const std::shared_ptr<BufferConfig>& VulkanResourcesManager::getBufferConfigTemplate(const std::string& template_name) const {
 	return m_buffer_config_map.at(template_name);
 }
 
-const std::shared_ptr<PushConstantConfig> VulkanResourcesManager::getPushConstantConfigTemplate(const std::string& template_name) const {
+const std::shared_ptr<PushConstantConfig>& VulkanResourcesManager::getPushConstantConfigTemplate(const std::string& template_name) const {
 	return m_push_constant_config_map.at(template_name);
 }
 

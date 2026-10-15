@@ -101,7 +101,8 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
 
     const std::shared_ptr<CameraManager>& camera_manager = scene->getCameraManager();
     const std::shared_ptr<BaseEngineLogic>& game_logic = app.GetGameLogic();
-    const std::shared_ptr<CameraComponent>& camera_component = game_logic->GetHumanView()->VGetCamera();
+    std::shared_ptr<CameraComponent> camera_component = game_logic->GetHumanView()->VGetCamera();
+    //StrongActorPtr camera_actor = camera_component->GetOwner();
     const std::shared_ptr<BasicCameraNode>& camera_node = camera_component->VGetCameraNode();
     
     std::shared_ptr<ValueBagNode> value_bag_node = std::dynamic_pointer_cast<ValueBagNode>(scene->getProperty(model->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_VALUE_BAG));
@@ -195,7 +196,7 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
                 }
             );
 
-            camera_manager->DecorateRenderNode(render_node, camera_node->Get().Name());
+            camera_manager->DecorateRenderNode(render_node, camera_node);
             if(has_skeleton) {
                 skeleton_manager->DecorateRenderNode(render_node, model->GetSkinName());
             }

@@ -37,6 +37,14 @@ bool GraphicsRenderNode::init(std::string render_node_name, unsigned frame_index
             const VkDescriptorSetLayoutBinding& vk_layout_binding = desc_set_layout->getBinding(bind_num);
             const std::shared_ptr<GraphicsRenderNodeConfig::UpdateMetadata>& update_metadata = m_node_config->getBindingsMetadata().at(desc_layout_bind_name);
 
+            if(update_metadata->resource_type == RenderResource::Type::IMAGE) {
+                continue;
+            }
+
+            if(update_metadata->resource_type == RenderResource::Type::PUSH_CONSTANT) {
+                continue;
+            }
+
             const std::shared_ptr<BufferConfig>& buffer_config = resources_manager->getBufferConfigTemplate(update_metadata->buffer_resource_type_name);
             bool can_instance = update_metadata->creation_point == GraphicsRenderNodeConfig::CreationPoint::RENDER_NODE_CREATION_TIME && buffer_config->getBufferInfo().size > 0u;
 

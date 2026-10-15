@@ -57,14 +57,7 @@ void CameraManager::markAsChanged(const std::shared_ptr<CameraNode>& node) {
     }
 }
 
-const std::shared_ptr<VulkanBuffer>& CameraManager::getCameraMatrixBuffer(std::string camera_name, FrameNumber frame_number) const {
-    for (const auto&[camera_node, cam_data_frame] : m_camera_data) {
-        if(camera_node->Get().Name() == camera_name) return cam_data_frame.at(frame_number);
-    }
-    return VulkanBuffer::BUFFER_NULL_PTR;
-}
-
-const std::shared_ptr<VulkanBuffer>& CameraManager::getCameraMatrixBuffer(const std::shared_ptr<CameraNode> camera_node, FrameNumber frame_number) const {
+const std::shared_ptr<VulkanBuffer>& CameraManager::getCameraMatrixBuffer(const std::shared_ptr<CameraNode>& camera_node, FrameNumber frame_number) const {
     if(!m_camera_data.contains(camera_node)) return VulkanBuffer::BUFFER_NULL_PTR;
     return m_camera_data.at(camera_node).at(frame_number);
 }
@@ -77,9 +70,9 @@ const std::string& CameraManager::getMatrixUBODescName() {
     return m_matrix_desc_name;
 }
 
-void CameraManager::DecorateRenderNode(const std::shared_ptr<RenderNode>& render_node, std::string camera_name) const {
+void CameraManager::DecorateRenderNode(const std::shared_ptr<RenderNode>& render_node, const std::shared_ptr<CameraNode>& camera_node) const {
     int frame = render_node->getFrameNumber();
-    const std::shared_ptr<VulkanBuffer>& matrix_buffer = getCameraMatrixBuffer(camera_name, frame);
+    const std::shared_ptr<VulkanBuffer>& matrix_buffer = getCameraMatrixBuffer(camera_node, frame);
     for(const auto&[desc_slot, desc] : render_node->getDescriptors()) {
         const std::shared_ptr<DescSetLayout>& desc_set_layout = desc->getBindings();
         for(const auto&[desc_layout_bind_name, bind_num] : desc_set_layout->getBindingMap()) {
