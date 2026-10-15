@@ -437,3 +437,7 @@ RenderResource::Type VulkanImageBuffer::getType() const {
 void VulkanImageBuffer::AddUpdateMetadataFn(UpdateMetadataFn fn) {
     m_update_functions.push_back(std::move(fn));
 }
+
+void VulkanImageBuffer::ClearUpdateMetadataFn() {
+    m_update_functions.clear();
+}

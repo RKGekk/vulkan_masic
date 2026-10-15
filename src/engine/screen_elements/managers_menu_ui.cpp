@@ -207,15 +207,17 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
 
 		if(const std::shared_ptr<SkeletonManager>& skeleton_manager = Application::Get().GetGameLogic()->GetHumanView()->VGetScene()->getScene()->getSkeletonManager()) {
 			if (ImGui::CollapsingHeader("Skeletons Manager")) {
-				for(const auto&[skin_name, skin_data] : skeleton_manager->getSkinMap()) {
+				for(const auto&[skin_name, skin_data_frame] : skeleton_manager->getSkinMap()) {
+					const std::shared_ptr<SkeletonManager::SkinnedData>& skin_data = skin_data_frame.at(0);
 					if (ImGui::TreeNode(skin_name.c_str())) {
 						
 						if (ImGui::TreeNode("SkinData")) {
 
 							if (ImGui::TreeNode("FlatView")) {
+								
 								size_t ct = skin_data->inverse_bind_matrices.size();
 								for(size_t joint_idx = 0u; joint_idx < ct; ++joint_idx) {
-									const std::shared_ptr<BoneNode>& bone_node = skin_data->joint_to_bone_map.at(joint_idx);
+									const std::shared_ptr<BoneNode>& bone_node = skin_data->skeleton_structure->joint_to_bone_map.at(joint_idx);
 
 									const Scene::Hierarchy& hierarchy_node = bone_node->VGetHierarchy();
     								Scene::NodeTypeFlags node_type_flags = bone_node->GetScene()->getNodeTypeFlags(bone_node->VGetNodeIndex());
@@ -250,7 +252,7 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
 											printQuatImGUI(dq.dual);
 											ImGui::TreePop();
 										}
-										printSceneNode(skin_data->joint_to_bone_map.at(joint_idx));
+										printSceneNode(skin_data->skeleton_structure->joint_to_bone_map.at(joint_idx));
 
 										ImGui::TreePop();
 									}
@@ -260,8 +262,8 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
 							}
 
 							if (ImGui::TreeNode("TreeView")) {
-								for(size_t joint_idx : skin_data->root_joints) {
-									const std::shared_ptr<BoneNode>& bone_node = skin_data->joint_to_bone_map.at(joint_idx);
+								for(size_t joint_idx : skin_data->skeleton_structure->root_joints) {
+									const std::shared_ptr<BoneNode>& bone_node = skin_data->skeleton_structure->joint_to_bone_map.at(joint_idx);
 
 									const Scene::Hierarchy& hierarchy_node = bone_node->VGetHierarchy();
     								Scene::NodeTypeFlags node_type_flags = bone_node->GetScene()->getNodeTypeFlags(bone_node->VGetNodeIndex());
@@ -300,12 +302,12 @@ bool ManagersMenuUI::VOnRender(const GameTimerDelta& delta, uint32_t image_index
 										ImGui::SeparatorText("SceneData");
 
 										printSceneNode(
-											skin_data->joint_to_bone_map.at(joint_idx),
+											skin_data->skeleton_structure->joint_to_bone_map.at(joint_idx),
 											[&skeleton_manager, &skin_name, &skin_data]
 											(const std::shared_ptr<SceneNode>& child_node) {
 												const std::shared_ptr<Scene>& scene = child_node->GetScene();
 												if(std::shared_ptr<BoneNode> child_bone = std::dynamic_pointer_cast<BoneNode>(scene->getProperty(child_node->VGetNodeIndex(), Scene::NODE_TYPE_FLAG_BONE))) {
-													return skin_data->bone_to_joint_map.contains(child_bone);
+													return skin_data->skeleton_structure->bone_to_joint_map.contains(child_bone);
 												}
 												return false;
 											}

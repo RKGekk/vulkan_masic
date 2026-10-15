@@ -40,6 +40,7 @@ public:
     const std::shared_ptr<PushConstantConfig>& getConstConfig() const;
 
     void AddUpdateMetadataFn(UpdateMetadataFn fn) override;
+    void ClearUpdateMetadataFn() override;
 
 protected:
 

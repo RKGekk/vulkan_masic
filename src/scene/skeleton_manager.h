@@ -25,9 +25,8 @@ class RenderNode;
 
 class SkeletonManager {
 public:
-    using BindPoseChanged = bool;
-    using DirtyBone = std::pair<std::shared_ptr<BoneNode>, BindPoseChanged>;
     using FrameNumber = unsigned;
+    using BindPoseChanged = bool;
 
     struct SkeletonGraphData {
         std::unordered_map<std::shared_ptr<BoneNode>, BoneNode::JointIndex> bone_to_joint_map;
@@ -85,6 +84,8 @@ private:
     static const std::string m_skin_dq_ssbo_desc_name;
 
     std::unordered_map<BoneNode::SkinName, SkinnedDataFrame> m_skinned_data;
-    std::unordered_map<FrameNumber, std::unordered_set<DirtyBone>> m_dirty_at_bone;
+    std::unordered_map<FrameNumber, std::unordered_set<std::shared_ptr<BoneNode>>> m_dirty_at_bone;
+    std::unordered_map<FrameNumber, BindPoseChanged> m_bind_pose_changed;
+    
     int m_max_frames;
 };

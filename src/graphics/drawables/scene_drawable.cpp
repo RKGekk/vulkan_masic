@@ -132,7 +132,7 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             }
 
             std::shared_ptr<GraphicsRenderNode> render_node = std::make_shared<GraphicsRenderNode>();
-            std::string render_node_name = model_data->GetName() + "GraphicsRenderNode"s;
+            std::string render_node_name = model_data->GetName() + "GraphicsRenderNode"s + std::to_string(frame);
             render_node->init(render_node_name, frame, m_device, render_name, false, frame_render_graph);
 
             const std::shared_ptr<GraphicsRenderNodeConfig>& render_node_cfg = render_node->getGraphicsRenderNodeConfig();

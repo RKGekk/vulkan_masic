@@ -48,7 +48,7 @@ bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
     for(size_t i = 0u; i < max_frames; ++i) {
 
         std::shared_ptr<GraphicsRenderNode> render_node = std::make_shared<GraphicsRenderNode>();
-        render_node->init(device, "mesh_render"s, false, Application::GetRenderer().getFrameData(i)->render_graph);
+        render_node->init("BasicGraphicsRenderNode"s + std::to_string(i), i, device, "mesh_render"s, false, Application::GetRenderer().getFrameData(i)->render_graph);
 
         const std::shared_ptr<VulkanShader>& vertex_shader = render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
         const std::shared_ptr<ShaderSignature>& shader_signature = vertex_shader->getShaderSignature();

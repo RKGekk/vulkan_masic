@@ -111,11 +111,13 @@ void ImGUIDrawable::destroy() {
 
 
 std::shared_ptr<GraphicsRenderNode> ImGUIDrawable::makeRenderable(uint32_t image_index, int cmd_i) {
+    using namespace std::literals;
+
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
 
     std::shared_ptr<GraphicsRenderNode> render_node;
     render_node = std::make_shared<GraphicsRenderNode>();
-    render_node->init(m_device, RENDER_NODE_CFG_NAME, true, Application::GetRenderer().getFrameData(image_index)->render_graph);
+    render_node->init("ImguiGraphicsRenderNode"s + std::to_string(image_index), image_index, m_device, RENDER_NODE_CFG_NAME, true, Application::GetRenderer().getFrameData(image_index)->render_graph);
 
     const std::shared_ptr<VulkanShader>& vertex_shader = render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
     const std::shared_ptr<ShaderSignature>& shader_signature = vertex_shader->getShaderSignature();

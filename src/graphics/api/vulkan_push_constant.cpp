@@ -43,3 +43,4 @@ const std::shared_ptr<PushConstantConfig>& VulkanPushConstant::getConstConfig() 
 }
 
 void VulkanPushConstant::AddUpdateMetadataFn(UpdateMetadataFn fn) {}
+void VulkanPushConstant::ClearUpdateMetadataFn() {};

@@ -3,7 +3,9 @@
 #include "../../application.h"
 #include "../api/vulkan_swapchain.h"
 
-bool PresentRenderNode::init(std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) {
+bool PresentRenderNode::init(std::string render_node_name, unsigned frame_index, std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) {
+    m_render_node_name = std::move(render_node_name);
+    m_frame_index = frame_index;
     m_device = std::move(device);
     m_render_graph = std::move(render_graph);
     
@@ -25,13 +27,13 @@ void PresentRenderNode::destroy() {
 
 }
 
-void PresentRenderNode::render(CommandBatch& command_buffer, unsigned image_index) {
+void PresentRenderNode::render(CommandBatch& command_buffer) {
     TransitionResourcesToProperState(command_buffer);
 
     m_present_info.waitSemaphoreCount = static_cast<uint32_t>(m_present_wait_sem.size());
     m_present_info.pWaitSemaphores = m_present_wait_sem.data();
     m_present_info.swapchainCount = 1u;
-    m_present_info.pImageIndices = &image_index;
+    m_present_info.pImageIndices = &m_frame_index;
     VkResult result = vkQueuePresentKHR(Application::GetRenderer().getCommandManager()->getQueue(), &m_present_info);
     if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to present swap chain image!");

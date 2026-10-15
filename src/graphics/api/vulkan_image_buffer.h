@@ -50,6 +50,7 @@ public:
     Type getType() const override;
     
     void AddUpdateMetadataFn(UpdateMetadataFn fn) override;
+    void ClearUpdateMetadataFn() override;
 
 protected:
 

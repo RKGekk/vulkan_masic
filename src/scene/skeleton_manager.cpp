@@ -20,23 +20,22 @@ SkeletonManager::SkeletonManager() {
 
 bool SkeletonManager::recalculateSkinnedData(FrameNumber frame_number) {
     bool was_updated = false;
-    bool was_bind_changed = false;
+    bool was_bind_changed = m_bind_pose_changed[frame_number];
 
-    std::unordered_set<std::pair<const BoneNode::SkinName&, bool>> skins;
-    for (const auto&[dirty_bone, bind_changed] : m_dirty_at_bone[frame_number]) {
-        was_updated |= UpdateBoneData(dirty_bone, bind_changed, frame_number);
+    std::unordered_set<BoneNode::SkinName> skins;
+    for (const std::shared_ptr<BoneNode>& dirty_bone : m_dirty_at_bone[frame_number]) {
+        was_updated |= UpdateBoneData(dirty_bone, was_bind_changed, frame_number);
         if(was_updated) {
-            was_bind_changed |= bind_changed;
             for(const auto&[skin_name, bone_data] : dirty_bone->getBoneDataMap()) {
-                skins.insert({skin_name, bind_changed});
+                skins.insert(skin_name);
             }
         }
     }
 
-    for (const auto& [dirty_skin_name, bind_changed] : skins) {
+    for (const BoneNode::SkinName& dirty_skin_name : skins) {
         SkinnedDataFrame& skinned_data_frame = m_skinned_data[dirty_skin_name];
         const std::shared_ptr<SkinnedData>& skinned_data = skinned_data_frame[frame_number];
-        if(bind_changed) {
+        if(was_bind_changed) {
             skinned_data->bind_buffer->update(skinned_data->bind_matrices.data(), sizeof(glm::mat4) * skinned_data->bind_matrices.size());
         }
         skinned_data->joint_buffer->update(skinned_data->final_matrices.data(), sizeof(glm::mat4) * skinned_data->final_matrices.size());
@@ -44,6 +43,7 @@ bool SkeletonManager::recalculateSkinnedData(FrameNumber frame_number) {
     }
 
     m_dirty_at_bone[frame_number].clear();
+    m_bind_pose_changed[frame_number] = false;
 
     return was_updated;
 }
@@ -125,7 +125,8 @@ void SkeletonManager::AddBone(const std::shared_ptr<BoneNode>& node) {
 
 void SkeletonManager::markAsChanged(const std::shared_ptr<BoneNode>& node, bool bind_changed) {
     for(int frame = 0; frame < m_max_frames; ++frame) {
-        m_dirty_at_bone[frame].insert({node, bind_changed});
+        m_dirty_at_bone[frame].insert(node);
+        m_bind_pose_changed[frame] = true;
     }
 }
 

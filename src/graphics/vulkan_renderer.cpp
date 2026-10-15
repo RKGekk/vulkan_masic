@@ -120,7 +120,7 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
         per_frame->cmd_submit_finish_fence = per_frame->command_buffer->getRenderFence();
         
         per_frame->present_render_node = std::make_shared<PresentRenderNode>();
-        per_frame->present_render_node->init(m_device, "presenter"s, false, per_frame->render_graph);
+        per_frame->present_render_node->init("PresentRenderNode"s + std::to_string(i), i,  m_device, "presenter"s, false, per_frame->render_graph);
         per_frame->present_render_node->addReadDependency(swapchain_images.at(i), "swapchain_image"s);
         per_frame->render_graph->add_pass(per_frame->present_render_node);
 
@@ -241,7 +241,7 @@ void VulkanRenderer::recordCommandBuffer(CommandBatch& command_buffer, unsigned 
 
                 for(const auto& pipeline : dependency_lvl->getPipelines(renderpass_name)) {
                     for(const std::shared_ptr<GraphicsRenderNode>& graphics_node : dependency_lvl->getGraphicsNodes(pipeline->getPipelineConfig()->getName())) {
-                        graphics_node->render(command_buffer, image_index);
+                        graphics_node->render(command_buffer);
                     }
                 }
                 
@@ -268,7 +268,7 @@ void VulkanRenderer::drawFrame(unsigned image_index) {
 
     m_command_manager->submitCommandBuffer(m_per_frame[image_index]->command_buffer, VulkanCommandManager::SELECT_ALL_BUFFERS, &submit_info);
 
-    m_per_frame[image_index]->present_render_node->render(*m_per_frame[image_index]->command_buffer, image_index);
+    m_per_frame[image_index]->present_render_node->render(*m_per_frame[image_index]->command_buffer);
     m_per_frame[image_index]->end(*this);
 }
 

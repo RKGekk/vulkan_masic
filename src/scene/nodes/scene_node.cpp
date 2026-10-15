@@ -42,7 +42,7 @@ void SceneNode::Accept(std::function<void(const std::shared_ptr<SceneNode>&)> fn
 	}
 }
 
-const std::shared_ptr<SceneNode>& SceneNode::FindIf(std::function<bool(const std::shared_ptr<SceneNode>&)> fn) {
+std::shared_ptr<SceneNode> SceneNode::FindIf(std::function<bool(const std::shared_ptr<SceneNode>&)> fn) {
     std::shared_ptr<SceneNode> this_node = shared_from_this();
     if(fn(this_node)) return this_node;
 

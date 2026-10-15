@@ -30,9 +30,9 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLine(const std
     m_scene->addProperty(new_node);
 
     const std::shared_ptr<SkeletonManager>& skeleton_manager = m_scene->getSkeletonManager();
-    const std::shared_ptr<SkeletonManager::SkinnedData>& skin_data = skeleton_manager->getSkinnedData(skeleton_name);
+    const std::shared_ptr<SkeletonManager::SkinnedData>& skin_data = skeleton_manager->getSkinnedData(skeleton_name, 0);
 
-    size_t total_bones = skin_data->bone_to_joint_map.size();
+    size_t total_bones = skin_data->skeleton_structure->bone_to_joint_map.size();
     if(total_bones == 0u) return new_node;
 
     std::shared_ptr<MeshNode> mesh_node = std::make_shared<MeshNode>(m_scene, new_node->VGetNodeIndex());
@@ -78,8 +78,8 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLine(const std
     size_t side_offset = shader_vertex_format.getOffset<float>(side_semantic_name);
     size_t side_num_of_elements_to_copy = shader_vertex_format.GetNumComponentsInVkType(side_semantic_name);
 
-    for(size_t b = 0u; BoneNode::JointIndex joint_idx : skin_data->root_joints) {
-        const std::shared_ptr<BoneNode>& root_bone = skin_data->joint_to_bone_map.at(joint_idx);
+    for(size_t b = 0u; BoneNode::JointIndex joint_idx : skin_data->skeleton_structure->root_joints) {
+        const std::shared_ptr<BoneNode>& root_bone = skin_data->skeleton_structure->joint_to_bone_map.at(joint_idx);
         if(!root_bone) continue;
         const BoneNode::BoneData bone_data = root_bone->getBoneDataMap().at(skeleton_name);
         glm::mat4 model_from_root = bone_data.mesh_root_node->Get().FromRoot();
@@ -100,7 +100,7 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLine(const std
 
                 const std::shared_ptr<SceneNode>& parent_node = m_scene->getProperty(current_bone_hierarchy.parent, Scene::NODE_TYPE_FLAG_BONE);
                 std::shared_ptr<BoneNode> parent_bone = std::dynamic_pointer_cast<BoneNode>(parent_node);
-                if(skin_data->bone_to_joint_map.contains(sibling_bone) && parent_node && skin_data->bone_to_joint_map.contains(parent_bone)) {
+                if(skin_data->skeleton_structure->bone_to_joint_map.contains(sibling_bone) && parent_node && skin_data->skeleton_structure->bone_to_joint_map.contains(parent_bone)) {
 
                     const glm::mat4& to_root0 = sibling_bone->Get().ToRoot();
                     glm::mat4 final_sceleton_space0 = model_from_root * to_root0;
@@ -160,7 +160,7 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLine(const std
                 std::shared_ptr<BoneNode> child_bone = std::dynamic_pointer_cast<BoneNode>(child_node);
                 node_stack.push(child_bone);
 
-                if(skin_data->bone_to_joint_map.contains(child_bone)) {
+                if(skin_data->skeleton_structure->bone_to_joint_map.contains(child_bone)) {
                     const glm::mat4& to_root0 = current_bone->Get().ToRoot();
                     glm::mat4 final_sceleton_space0 = model_from_root * to_root0;
                     glm::vec3 pos0 = glm::vec3(final_sceleton_space0[3]);
@@ -264,9 +264,9 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLineInstanced(
     m_scene->addProperty(new_node);
 
     const std::shared_ptr<SkeletonManager>& skeleton_manager = m_scene->getSkeletonManager();
-    const std::shared_ptr<SkeletonManager::SkinnedData>& skin_data = skeleton_manager->getSkinnedData(skeleton_name);
+    const std::shared_ptr<SkeletonManager::SkinnedData>& skin_data = skeleton_manager->getSkinnedData(skeleton_name, 0);
 
-    size_t total_bones = skin_data->bone_to_joint_map.size();
+    size_t total_bones = skin_data->skeleton_structure->bone_to_joint_map.size();
     if(total_bones == 0u) return new_node;
 
     std::shared_ptr<MeshNode> mesh_node = std::make_shared<MeshNode>(m_scene, new_node->VGetNodeIndex());
@@ -297,12 +297,12 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLineInstanced(
     std::vector<BoneInstanceDataType> instance_data;
     instance_data.reserve(total_bones);
     
-    for(const auto&[current_bone, current_joint_idx] : skin_data->bone_to_joint_map) {
+    for(const auto&[current_bone, current_joint_idx] : skin_data->skeleton_structure->bone_to_joint_map) {
         const Scene::Hierarchy& current_bone_hierarchy = m_scene->getNodeHierarchy(current_bone->VGetNodeIndex());
 
         const std::shared_ptr<SceneNode>& parent_node = m_scene->getProperty(current_bone_hierarchy.parent, Scene::NODE_TYPE_FLAG_BONE);
         std::shared_ptr<BoneNode> parent_bone = std::dynamic_pointer_cast<BoneNode>(parent_node);
-        if(parent_bone && skin_data->bone_to_joint_map.contains(parent_bone)) {
+        if(parent_bone && skin_data->skeleton_structure->bone_to_joint_map.contains(parent_bone)) {
             BoneInstanceDataType inst_data;
             inst_data.parent_joint_idx = parent_bone->getJointIndex(skeleton_name);
             inst_data.child_joint_idx = current_bone->getJointIndex(skeleton_name);
