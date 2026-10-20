@@ -1156,10 +1156,12 @@ VkDevice VulkanDevice::createLogicalDevice(const DeviceAbilities& physical_devic
     device_create_info.enabledExtensionCount = static_cast<uint32_t>(device_ext.size());
     device_create_info.ppEnabledExtensionNames = device_ext.data();
 
-    std::vector<const char*> validation_layers_ppNames = layers.get_ppLayerNames();
+    device_create_info.enabledLayerCount = 0u;
+    device_create_info.ppEnabledLayerNames = nullptr;
+    //std::vector<const char*> validation_layers_ppNames = layers.get_ppLayerNames();
 #ifndef NDEBUG
-    device_create_info.enabledLayerCount = static_cast<uint32_t>(validation_layers_ppNames.size());
-    device_create_info.ppEnabledLayerNames = validation_layers_ppNames.data();
+    //device_create_info.enabledLayerCount = static_cast<uint32_t>(validation_layers_ppNames.size());
+    //device_create_info.ppEnabledLayerNames = validation_layers_ppNames.data();
 #else
     device_create_info.enabledLayerCount = 0u;
 #endif

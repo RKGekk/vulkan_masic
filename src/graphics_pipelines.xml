@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <?xml-model href="masic_schema.xsd" type="application/xml" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <RenderGraph xmlns="http://www.masicengine.ru">
+    
 
     <Formats>
         <Format name="swap_chain_format" select="auto">
@@ -402,6 +403,7 @@
             <PushConstant>
                 <Stages>
                     <Stage>vertex</Stage>
+                    <Stage>fragment</Stage>
                 </Stages>
                 <Constants>
                     <Constant field_name="u_resolution">
@@ -1260,6 +1262,7 @@
             <FilePath file_name="line_instanced_dq.frag"></FilePath>
             <EntryPointName>main</EntryPointName>
             <Stage>fragment</Stage>
+            <PushConstantName>line_push_constants</PushConstantName>
             <SpecializationConstants>
                 <Constant name="kNonLinearColorSpace">
                     <ConstantID>0</ConstantID>

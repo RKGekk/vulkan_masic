@@ -35,7 +35,7 @@ bool VulkanBuffer::init(const void* data, std::shared_ptr<BufferConfig> buffer_c
     name_info.pObjectName = buffer_name.c_str();
 
     vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
-#endif    
+#endif
     
     VkMemoryRequirements mem_req;
     vkGetBufferMemoryRequirements(m_device->getDevice(), m_buffer, &mem_req);

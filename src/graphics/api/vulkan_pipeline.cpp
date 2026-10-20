@@ -2,6 +2,7 @@
 
 #include "vulkan_device.h"
 #include "../pod/pipeline_config.h"
+#include "../pod/push_constant_config.h"
 #include "../pod/descriptor_set_layout.h"
 #include "vulkan_shaders_manager.h"
 #include "vulkan_shader.h"
@@ -76,6 +77,18 @@ bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_
         throw std::runtime_error("failed to create pipeline layout!");
     }
 
+#ifndef NDEBUG
+    std::string pipeline_lyout_name = "pipeline_layout_"s + m_name;
+    auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
+    VkDebugUtilsObjectNameInfoEXT pipeline_lyout_name_info = {};
+    pipeline_lyout_name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+    pipeline_lyout_name_info.objectType = VK_OBJECT_TYPE_PIPELINE_LAYOUT;
+    pipeline_lyout_name_info.objectHandle = (uint64_t)m_pipeline_layout;
+    pipeline_lyout_name_info.pObjectName = pipeline_lyout_name.c_str();
+
+    vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &pipeline_lyout_name_info);
+#endif
+
     m_shaders_infos = getPipelineShaderCreateInfo(m_pipeline_config->getShaderNames(), m_shader_manager);
     m_input_info = getVertexInputInfo(m_pipeline_config->getShaderNames(), m_shader_manager);
 
@@ -125,7 +138,6 @@ bool VulkanPipeline::init(std::shared_ptr<VulkanDevice> device, const pugi::xml_
 
 #ifndef NDEBUG
     std::string pipeline_name = "pipeline_"s + m_name;
-    auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
     VkDebugUtilsObjectNameInfoEXT name_info = {};
     name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
     name_info.objectType = VK_OBJECT_TYPE_PIPELINE;
@@ -294,8 +306,8 @@ std::vector<VkPushConstantRange> VulkanPipeline::getPushConstantRanges(const std
     for(const std::string& shader_name : m_pipeline_config->getShaderNames()) {
         std::shared_ptr<VulkanPushConstant>& push_constant = shader_manager->getShader(shader_name)->getShaderSignature()->getPushConstants();
         if(!push_constant) continue;
-        if(push_const_names.contains(push_constant->getName())) continue;
-        push_const_names.insert(push_constant->getName());
+        if(push_const_names.contains(push_constant->getConstConfig()->getName())) continue;
+        push_const_names.insert(push_constant->getConstConfig()->getName());
         VkPushConstantRange range = push_constant->getConstConfig()->getPushConstantRange();
         range.offset = offset;
         push_constants.push_back(range);

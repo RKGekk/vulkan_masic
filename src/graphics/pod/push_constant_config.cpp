@@ -53,6 +53,10 @@ bool PushConstantConfig::init(std::string name, const pugi::xml_node& const_data
     return true;
 }
 
+const std::string& PushConstantConfig::getName() const {
+    return m_name;
+}
+
 uint32_t PushConstantConfig::getGLSLAlignment(VertexAttributeGLSLFormat glsl_format) {
     switch (glsl_format) {
         case VertexAttributeGLSLFormat::FLOAT : return 4u;

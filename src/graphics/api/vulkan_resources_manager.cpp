@@ -249,10 +249,11 @@ std::shared_ptr<VulkanPushConstant> VulkanResourcesManager::create_push_constant
 	using namespace std::literals;
 
 	const std::shared_ptr<PushConstantConfig>& const_config_template = m_push_constant_config_map.at(resource_type_name);
-	std::shared_ptr<PushConstantConfig> const_config = const_config_template->makeInstance(const_name + "_"s + resource_type_name);
+	//std::shared_ptr<PushConstantConfig> const_config = const_config_template->makeInstance(const_name + "_"s + resource_type_name);
 	
 	std::shared_ptr<VulkanPushConstant> push_constant = std::make_shared<VulkanPushConstant>(m_device, const_name);
-	push_constant->init(std::move(const_config));
+	//push_constant->init(std::move(const_config));
+	push_constant->init(const_config_template);
 
 	m_push_constant_map[const_name] = push_constant;
 
