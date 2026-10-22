@@ -3,6 +3,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <limits>
 #include <memory>
 #include <stack>
 #include <string>
@@ -24,7 +25,7 @@ public:
 	using RenderNodePtr = std::shared_ptr<RenderNode>;
 	using RenderNodeList = std::vector<RenderNodePtr>;
 	using RenderNodeSet = std::unordered_set<RenderNodePtr>;
-	static const size_t NO_ID = -1;
+	static const size_t NO_ID = std::numeric_limits<int>::max() / 2;
 
 	bool init(std::shared_ptr<VulkanDevice> device, const std::shared_ptr<WindowSurface>& window);
     void destroy();
@@ -51,6 +52,8 @@ public:
 	size_t getTopologicalIdentity(const RenderNodePtr& render_node) const;
 	bool isReadInGraph(const std::string& global_resource_name) const;
 	const RenderNodeSet& getReadBy(const std::string& global_resource_name) const;
+
+	size_t getLastRWIdentity(const RenderNodePtr& render_node, const std::string& global_resource_name) const;
 
 private:
 

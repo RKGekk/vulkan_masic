@@ -317,6 +317,10 @@ void GraphicsRenderNode::finishRenderNode() {
     updateDescriptors();
 }
 
+RenderNode::RenderNodeType GraphicsRenderNode::getRenderNodeType() const {
+    return RenderNode::RenderNodeType::Graphics;
+}
+
 const std::shared_ptr<VulkanPipeline>& GraphicsRenderNode::getPipeline() {
     return m_pipeline;
 }

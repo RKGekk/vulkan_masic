@@ -56,12 +56,27 @@ bool RenderNode::isWrittenGlobal(const GlobalName& name) const {
     return m_written_resources.count(name);
 }
 
+bool RenderNode::isRWGlobal(const GlobalName& name) const {
+    return m_read_resources.contains(name) || m_written_resources.contains(name);
+}
+
 bool RenderNode::isReadAttached(const LocalName& name) const {
     return m_read_attached.count(name);
 }
 
 bool RenderNode::isWrittenAttached(const LocalName& name) const {
     return m_written_attached.count(name);
+}
+
+bool RenderNode::isRWAttached(const LocalName& name) const {
+    return m_read_attached.contains(name) || m_written_attached.contains(name);
+}
+
+const RenderNode::LocalName& RenderNode::getAttachedAsName(const GlobalName& global_name) const {
+    if(m_read_resources.contains(global_name)) {
+        return m_read_resources.at(global_name).attached_as;
+    }
+    return m_written_resources.at(global_name).attached_as;
 }
 
 const RenderNode::ResourceMap& RenderNode::getReadResourcesMap() const {
@@ -204,4 +219,8 @@ size_t RenderNode::getExecutionOrder() const {
 
 unsigned RenderNode::getFrameNumber() const {
     return m_frame_index;
+}
+
+const std::string& RenderNode::getRenderNodeName() const {
+    return m_render_node_name;
 }

@@ -20,6 +20,7 @@ public:
     virtual void destroy() override;
 
     virtual void render(CommandBatch& command_buffer) override;
+    virtual RenderNodeType getRenderNodeType() const override;
     virtual void finishRenderNode() override;
 
     virtual void TransitionResourcesToProperState(CommandBatch& command_buffer) override;
@@ -31,4 +32,5 @@ private:
     std::shared_ptr<VulkanSwapChain> m_swapchain;
     std::vector<VkSemaphore> m_present_wait_sem;
     VkPresentInfoKHR m_present_info;
+    size_t m_present_count;
 };

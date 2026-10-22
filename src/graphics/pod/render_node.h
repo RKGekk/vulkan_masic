@@ -30,6 +30,13 @@ public:
         RenderResource::ResourceName attached_as;
     };
 
+    enum class RenderNodeType {
+        Graphics,
+        Compute,
+        Present,
+        CPU
+    };
+
     using GlobalName = RenderResource::ResourceName;
     using LocalName = RenderResource::ResourceName;
 
@@ -46,6 +53,8 @@ public:
 
     virtual void render(CommandBatch& command_buffer) = 0;
 
+    virtual RenderNodeType getRenderNodeType() const = 0;
+
     void addReadDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as, bool only_read = true);
     void addWriteDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as);
     void changeReadDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as);
@@ -53,8 +62,13 @@ public:
 
     bool isReadGlobal(const GlobalName& name) const;
     bool isWrittenGlobal(const GlobalName& name) const;
+    bool isRWGlobal(const GlobalName& name) const;
+
     bool isReadAttached(const LocalName& name) const;
     bool isWrittenAttached(const LocalName& name) const;
+    bool isRWAttached(const LocalName& name) const;
+
+    const LocalName& getAttachedAsName(const GlobalName& global_name) const;
 
     const ResourceMap& getReadResourcesMap() const;
     const AttachMap& getReadAttachmentMap() const;
@@ -93,6 +107,7 @@ public:
     size_t getExecutionOrder() const;
 
     unsigned getFrameNumber() const;
+    const std::string& getRenderNodeName() const;
 
 protected:
     std::string m_render_node_name;

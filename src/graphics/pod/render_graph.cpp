@@ -184,7 +184,8 @@ void RenderGraph::topological_sort() {
                 std::for_each(
                     m_rev_adjency_list.at(node_ptr).begin(),
                     m_rev_adjency_list.at(node_ptr).end(),
-                    [&stack, &visited_set](const RenderNodePtr& new_node_ptr) {
+                    [&stack, &visited_set]
+                    (const RenderNodePtr& new_node_ptr) {
                         if (!visited_set.count(new_node_ptr)) {
                             stack.push({ new_node_ptr, false });
                         }
@@ -274,20 +275,23 @@ RenderGraph::RenderNodePtr RenderGraph::getLastWritten(const RenderNodePtr& rend
 }
 
 size_t RenderGraph::getLastWrittenIdentity(const RenderNodePtr& render_node, const std::string& global_resource_name) const {
-    size_t current_idx = NO_ID;
-    size_t my_render_node_pos = m_render_node_sort_idx.at(render_node);
-    if(!m_written_map.contains(global_resource_name)) return current_idx;
+    int most_recent_idx = NO_ID;
+    if(!m_written_map.contains(global_resource_name)) return most_recent_idx;
 
+    int my_render_node_pos = m_render_node_sort_idx.at(render_node);
     for(const std::shared_ptr<RenderNode>& write_node : m_written_map.at(global_resource_name)) {
-        size_t write_node_idx = m_render_node_sort_idx.at(write_node);
-        size_t distance_to_my = write_node_idx - my_render_node_pos;
-        size_t distance_to_current = write_node_idx - current_idx;
-        if(distance_to_my >= 0 && distance_to_current > distance_to_my) {
-            current_idx = write_node_idx;
+        if(write_node->getExecutionBypass()) continue;
+
+        int write_node_idx = m_render_node_sort_idx.at(write_node);
+        int current_distance = write_node_idx - my_render_node_pos;
+        bool write_before_my = current_distance > 0;
+        int distance_to_most_recent = most_recent_idx - my_render_node_pos;
+        if(write_before_my && distance_to_most_recent > current_distance) {
+            most_recent_idx = write_node_idx;
         }
     }
 
-    return current_idx;
+    return most_recent_idx;
 }
 
 bool RenderGraph::isWrittenInGraph(const std::string& global_resource_name) const {
@@ -309,19 +313,23 @@ RenderGraph::RenderNodePtr RenderGraph::getLastRead(const RenderNodePtr& render_
 }
 
 size_t RenderGraph::getLastReadIdentity(const RenderNodePtr& render_node, const std::string& global_resource_name) const {
-    size_t current_idx = NO_ID;
-    size_t my_render_node_pos = m_render_node_sort_idx.at(render_node);
+    int most_recent_idx = NO_ID;
+    if(!m_read_map.contains(global_resource_name)) return most_recent_idx;
 
+    int my_render_node_pos = m_render_node_sort_idx.at(render_node);
     for(const std::shared_ptr<RenderNode>& read_node : m_read_map.at(global_resource_name)) {
-        size_t write_node_idx = m_render_node_sort_idx.at(read_node);
-        size_t distance_to_my = write_node_idx - my_render_node_pos;
-        size_t distance_to_current = write_node_idx - current_idx;
-        if(distance_to_my >= 0 && distance_to_current > distance_to_my) {
-            current_idx = write_node_idx;
+        if(read_node->getExecutionBypass()) continue;
+
+        int write_node_idx = m_render_node_sort_idx.at(read_node);
+        int current_distance = write_node_idx - my_render_node_pos;
+        bool is_read_before = current_distance > 0;
+        int distance_to_most_recent = most_recent_idx - my_render_node_pos;
+        if(is_read_before && current_distance > distance_to_most_recent) {
+            most_recent_idx = write_node_idx;
         }
     }
 
-    return current_idx;
+    return most_recent_idx;
 }
 
 bool RenderGraph::isReadInGraph(const std::string& global_resource_name) const {
@@ -334,4 +342,13 @@ const RenderGraph::RenderNodeSet& RenderGraph::getReadBy(const std::string& glob
 
 size_t RenderGraph::getTopologicalIdentity(const RenderNodePtr& render_node) const {
     return m_render_node_sort_idx.at(render_node);
+}
+
+size_t RenderGraph::getLastRWIdentity(const RenderNodePtr& render_node, const std::string& global_resource_name) const {
+    size_t last_written_by_node_id = getLastWrittenIdentity(render_node, global_resource_name);
+    size_t last_read_by_node_id = getLastReadIdentity(render_node, global_resource_name);
+    if(last_written_by_node_id < last_read_by_node_id) {    
+        return last_written_by_node_id;
+    }
+    return last_read_by_node_id;
 }
