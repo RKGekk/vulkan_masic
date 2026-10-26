@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -16,10 +17,7 @@
 
 class VulkanCommandManager {
 public:
-    static constexpr size_t SELECT_ALL_BUFFERS = -1;
-    static constexpr uint32_t MAX_COMMAND_BUFFERS = 16u;
-
-    bool init(VkPhysicalDevice physical_device, VkDevice logical_device, VkSurfaceKHR surface, std::shared_ptr<ThreadPool> thread_pool);
+    bool init(VkPhysicalDevice physical_device, VkDevice logical_device, VkSurfaceKHR surface);
     void destroy();
 
     const QueueFamilyIndices& getQueueFamilyIndices() const;
@@ -27,11 +25,10 @@ public:
     VkCommandPool getCommandPool(PoolTypeEnum pool_type = PoolTypeEnum::GRAPICS) const;
     VkQueue getQueue(PoolTypeEnum pool_type = PoolTypeEnum::GRAPICS) const;
 
-    CommandBatch allocCommandBuffer(PoolTypeEnum pool_type = PoolTypeEnum::GRAPICS, size_t buffers_count = 1u, CommandBatch::BatchWaitInfo wait_info = {}, VkCommandBufferAllocateInfo* command_buffer_info = nullptr, std::string name = "no_name");
-    std::shared_ptr<CommandBatch> allocCommandBufferPtr(PoolTypeEnum pool_type = PoolTypeEnum::GRAPICS, size_t buffers_count = 1u, CommandBatch::BatchWaitInfo wait_info = {}, VkCommandBufferAllocateInfo* command_buffer_info = nullptr, std::string name = "no_name");
+    std::shared_ptr<CommandBatch> allocCommandBufferPtr(PoolTypeEnum pool_type, VkCommandBufferLevel command_level, size_t buffers_count = 1u, std::string name = "no_name");
 
-	static void beginCommandBuffer(CommandBatch& command_buffer, size_t index = 0u, VkCommandBufferBeginInfo* p_begin_info = nullptr);
-	static void endCommandBuffer(CommandBatch& command_buffer, size_t index = 0u);
+	static void beginCommandBuffer(std::shared_ptr<CommandBatch>& command_buffer, size_t index = 0u, VkCommandBufferBeginInfo* p_begin_info = nullptr);
+	static void endCommandBuffer(std::shared_ptr<CommandBatch>& command_buffer, size_t index = 0u);
 
     void submitCommandBuffer(std::shared_ptr<CommandBatch>& command_buffer, size_t index = 0u, VkSubmitInfo* p_submit_info = nullptr);
     void wait(PoolTypeEnum pool_type);
@@ -53,13 +50,4 @@ private:
     VkQueue m_graphics_queue = VK_NULL_HANDLE;
     VkQueue m_compute_queue = VK_NULL_HANDLE;
     VkQueue m_transfer_queue = VK_NULL_HANDLE;
-
-    ThreadSafeQueue<std::shared_ptr<CommandBatch>> m_work_in_progress;
-
-    std::vector<VkCommandBuffer> m_command_buffers;
-    ThreadSafeLookupTable<unsigned int, std::vector<size_t>> m_submit_to_buf_id;
-    ThreadSafeQueue<size_t> m_free_cmd_idx;
-
-    std::shared_ptr<ThreadPool> m_thread_pool;
-    scope_thread m_cmd_buff_thread;
 };

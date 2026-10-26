@@ -344,6 +344,8 @@ set(APP_SOURCES
     "${SRC_DIR}/graphics/pod/basic_uniform.h"
     "${SRC_DIR}/graphics/pod/descriptor_set_layout.h"
     "${SRC_DIR}/graphics/pod/descriptor_set_layout.cpp"
+    "${SRC_DIR}/graphics/pod/composite_command_batch.h"
+    "${SRC_DIR}/graphics/pod/composite_command_batch.cpp"
     "${SRC_DIR}/graphics/api/vulkan_semaphore.h"
     "${SRC_DIR}/graphics/api/vulkan_semaphore.cpp"
     "${SRC_DIR}/graphics/api/vulkan_semaphores_manager.h"
@@ -406,6 +408,8 @@ set(APP_SOURCES
     "${SRC_DIR}/graphics/api/vulkan_render_passes_manager.cpp"
     "${SRC_DIR}/graphics/pod/dependency_level.h"
     "${SRC_DIR}/graphics/pod/dependency_level.cpp"
+    "${SRC_DIR}/graphics/pod/present_render_node_config.h"
+    "${SRC_DIR}/graphics/pod/present_render_node_config.cpp"
     "${SRC_DIR}/graphics/drawables/imgui_drawable.h"
     "${SRC_DIR}/graphics/drawables/imgui_drawable.cpp"
 )

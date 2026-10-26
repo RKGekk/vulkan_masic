@@ -30,6 +30,18 @@
         </xs:restriction>
     </xs:simpleType>
 
+    <xs:simpleType name="QueueFamilySimpleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="GRAPICS"></xs:enumeration>
+            <xs:enumeration value="TRANSFER"></xs:enumeration>
+            <xs:enumeration value="COMPUTE"></xs:enumeration>
+            <xs:enumeration value="ASYNC_COMPUTE"></xs:enumeration>
+            <xs:enumeration value="ASYNC_TRANSFER"></xs:enumeration>
+            <xs:enumeration value="VIDEO_DECODE"></xs:enumeration>
+            <xs:enumeration value="VIDEO_ENCODE"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:complexType name="ComponentMappingComplexType">
         <xs:attribute name="r" type="target:ColorComponentsSimpleType"></xs:attribute>
         <xs:attribute name="g" type="target:ColorComponentsSimpleType"></xs:attribute>
@@ -2466,7 +2478,7 @@
                     </xs:complexType>
                 </xs:element>
 
-                <xs:element name="DescriptorAllocators">
+                <xs:element name="DescriptorAllocators" minOccurs="1" maxOccurs="1">
                     <xs:complexType>
                         <xs:sequence>
                             <xs:element name="DescriptorAllocator" minOccurs="0" maxOccurs="unbounded">
@@ -2534,7 +2546,7 @@
                     </xs:complexType>
                 </xs:element>
 
-                <xs:element name="Shaders" minOccurs="1" maxOccurs="1">
+                <xs:element name="Shaders" minOccurs="0" maxOccurs="1">
                     <xs:complexType>
                         <xs:sequence>
                             <xs:element name="Shader" type="target:ShaderComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
@@ -2542,7 +2554,7 @@
                     </xs:complexType>
                 </xs:element>
 
-                <xs:element name="RenderPases">
+                <xs:element name="RenderPases" minOccurs="1" maxOccurs="1">
                     <xs:complexType>
                         <xs:sequence>
                             <xs:element name="RenderPass" type="target:RenderPassComplexType" minOccurs="1" maxOccurs="unbounded"></xs:element>
@@ -2550,13 +2562,13 @@
                     </xs:complexType>
                 </xs:element>
 
-                <xs:element name="Swapchain" type="target:SwapChainComplexType"></xs:element>
+                <xs:element name="Swapchain" type="target:SwapChainComplexType" minOccurs="0" maxOccurs="1"></xs:element>
 
                 <xs:element name="Pipelines" type="target:PipelinesComplexType" minOccurs="1" maxOccurs="1"></xs:element>
 
-                <xs:element name="Framebuffers" type="target:FramebuffersComplexType" minOccurs="1" maxOccurs="1"></xs:element>
+                <xs:element name="Framebuffers" type="target:FramebuffersComplexType" minOccurs="0" maxOccurs="1"></xs:element>
 
-                <xs:element name="RenderNodes">
+                <xs:element name="RenderNodes" minOccurs="1" maxOccurs="1">
                     <xs:complexType>
                         <xs:choice minOccurs="1" maxOccurs="unbounded">
                             <xs:element name="GraphicsRenderNode" type="target:GraphicsRenderNodeComplexType" minOccurs="0" maxOccurs="unbounded"></xs:element>

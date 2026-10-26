@@ -8,6 +8,8 @@
 #include "render_node.h"
 #include "graphics_render_node_config.h"
 #include "graphics_render_node.h"
+#include "present_render_node_config.h"
+#include "present_render_node.h"
 #include "../../application.h"
 #include "../../window_surface.h"
 
@@ -79,6 +81,18 @@ const std::shared_ptr<GraphicsRenderNodeConfig>& RenderGraph::getGraphicsRenderN
 
 std::shared_ptr<GraphicsRenderNodeConfig> RenderGraph::makeGraphicsRenderNodeCfgInstance(const std::string& config_name, const std::string& config_extension) {
     return m_graphics_cfg_name_map.at(config_name)->makeInstance(config_name + config_extension);
+}
+
+bool RenderGraph::hasPresentRenderNodeConfig(const std::string& config_name) const {
+    return m_present_cfg_name_map.contains(config_name);
+}
+
+const std::shared_ptr<PresentRenderNodeConfig>& RenderGraph::getPresentRenderNodeConfig(const std::string& config_name) const {
+    return m_present_cfg_name_map.at(config_name);
+}
+
+std::shared_ptr<PresentRenderNodeConfig> RenderGraph::makePresentRenderNodeCfgInstance(const std::string& config_name, const std::string& config_extension) {
+    return m_present_cfg_name_map.at(config_name)->makeInstance(config_name + config_extension);
 }
 
 void RenderGraph::add_pass(std::shared_ptr<RenderNode> render_node) {

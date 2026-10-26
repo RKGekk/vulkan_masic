@@ -2,38 +2,56 @@
 
 #include <iterator>
 
+#include "../../application.h"
 #include "vulkan_fence_manager.h"
 #include "vulkan_semaphores_manager.h"
+#include "vulkan_fence.h"
+#include "vulkan_semaphore.h"
 
-CommandBatch::CommandBatch(VkDevice device, std::shared_ptr<VulkanSemaphoresManager> semaphores_manager, std::shared_ptr<VulkanFenceManager> fence_manager, std::string name) : m_device(device), m_semaphores_manager(std::move(semaphores_manager)), m_fence_manager(std::move(fence_manager)), m_name(name) {
-    m_buffer_in_use_semaphore = m_semaphores_manager->getSemaphore("buffer_in_use_semaphore");
-    m_render_fence = m_fence_manager->getFence();
-}
+CommandBatch::CommandBatch(VkDevice device, std::string name) : m_device(device), m_name(name) {}
 
-bool CommandBatch::init(std::vector<VkCommandBuffer> command_buffers, PoolTypeEnum pool_type, uint32_t family_index, unsigned int id, BatchWaitInfo wait_info) {
-    m_submit_id = id;
-    m_command_buffers = command_buffers;
-    m_pool_type = pool_type;
-    m_wait_info = std::move(wait_info);
-    m_family_index = family_index;
+bool CommandBatch::init(std::vector<VkCommandBuffer> command_buffers, std::shared_ptr<CommandBatchInfo> batch_info) {
+    m_batch_info = std::move(batch_info);
+    m_command_buffers = std::move(command_buffers);
 
     return true;
 }
 
-bool CommandBatch::init(size_t reserve, PoolTypeEnum pool_type, uint32_t family_index, unsigned int id, BatchWaitInfo wait_info) {
-    m_submit_id = id;
-    m_command_buffers.reserve(reserve);
-    m_pool_type = pool_type;
-    m_wait_info = std::move(wait_info);
-    m_family_index = family_index;
+bool CommandBatch::init(size_t count, std::shared_ptr<CommandBatchInfo> batch_info) {
+    using namespace std::literals;
+
+    m_batch_info = std::move(batch_info);
+    m_command_buffers.resize(count);
+
+    m_allocate_info = {};
+    m_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    m_allocate_info.commandPool = m_batch_info->command_pool;
+    m_allocate_info.level = m_batch_info->command_level;
+    m_allocate_info.commandBufferCount = static_cast<uint32_t>(count);
+
+	VkResult result = vkAllocateCommandBuffers(m_device, &m_allocate_info, m_command_buffers.data());
+    if(result != VK_SUCCESS) {
+        throw std::runtime_error("failed to allocate command buffers!");
+    }
+
+#ifndef NDEBUG
+    for (size_t i = 0u; i < count; ++i) {
+        std::string cmd_buff_name = "command_buffer_"s + m_name + "_"s + std::to_string(i);
+        auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
+        VkDebugUtilsObjectNameInfoEXT name_info = {};
+        name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+        name_info.objectType = VK_OBJECT_TYPE_COMMAND_BUFFER;
+        name_info.objectHandle = (uint64_t)m_command_buffers[i];
+        name_info.pObjectName = cmd_buff_name.c_str();
+
+        vkSetDebugUtilsObjectNameEXT(m_device, &name_info);
+    }
+#endif
 
     return true;
 }
 
-void CommandBatch::destroy() {
-    m_fence_manager->returnFence(m_render_fence);
-    m_semaphores_manager->returnSemaphore(m_buffer_in_use_semaphore);
-}
+void CommandBatch::destroy() {}
 
 VkCommandBuffer CommandBatch::getCommandBufer(size_t index) const {
     return m_command_buffers[index];
@@ -55,6 +73,14 @@ const std::vector<std::shared_ptr<RenderResource>>& CommandBatch::getResources()
     return m_resources;
 }
 
+const std::shared_ptr<CommandBatch::CommandBatchInfo>& CommandBatch::getCommandBatchInfo() const {
+    return m_batch_info;
+}
+
+const VkCommandBufferAllocateInfo& CommandBatch::getAllocateInfo() const {
+    return m_allocate_info;
+}
+
 void CommandBatch::addResource(std::shared_ptr<RenderResource> resource) {
     m_resources.push_back(std::move(resource));
 }
@@ -71,76 +97,16 @@ void CommandBatch::addCommandBufer(std::vector<VkCommandBuffer> command_buffers)
     );
 }
 
-void CommandBatch::reserveCommandBufer(size_t sz) {
-    m_command_buffers.reserve(sz);
-}
-
-VkSemaphore CommandBatch::getInProgressSemaphore() const {
-    return m_buffer_in_use_semaphore;
-}
-
-const VkSemaphore* CommandBatch::getInProgressSemaphorePtr() const {
-    return &m_buffer_in_use_semaphore;
-}
-
-VkFence CommandBatch::getRenderFence() const {
-    return m_render_fence;
-}
-
-const VkFence* CommandBatch::getRenderFencePtr() const {
-    return &m_render_fence;
-}
-
 PoolTypeEnum CommandBatch::getPoolType() const {
-    return m_pool_type;
-}
-
-unsigned int CommandBatch::getId() const {
-    return m_submit_id;
-}
-
-VkSubmitInfo CommandBatch::getSubmitInfo(BatchWaitInfo* wait_info) const {
-    VkSubmitInfo submit_info = {};
-    if (wait_info) {
-        submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submit_info.pNext = nullptr;
-        submit_info.waitSemaphoreCount = static_cast<uint32_t>(wait_info->wait_for_semaphores.size());
-        submit_info.pWaitSemaphores = wait_info->wait_for_semaphores.data();
-        submit_info.pWaitDstStageMask = wait_info->wait_for_stages.data();
-        submit_info.commandBufferCount = static_cast<uint32_t>(m_command_buffers.size());
-        submit_info.pCommandBuffers = m_command_buffers.data();
-        submit_info.signalSemaphoreCount = 1u;
-        submit_info.pSignalSemaphores = &m_buffer_in_use_semaphore;
-    }
-    else {
-        submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submit_info.pNext = nullptr;
-        submit_info.waitSemaphoreCount = 0u;
-        submit_info.pWaitSemaphores = nullptr;
-        submit_info.pWaitDstStageMask = nullptr;
-        submit_info.commandBufferCount = static_cast<uint32_t>(m_command_buffers.size());
-        submit_info.pCommandBuffers = m_command_buffers.data();
-        submit_info.signalSemaphoreCount = 0u;
-        submit_info.pSignalSemaphores = nullptr;
-    }
-
-    return submit_info;
-}
-
-const CommandBatch::BatchWaitInfo& CommandBatch::getWaitInfo() const {
-    return m_wait_info;
+    return m_batch_info->pool_type;
 }
 
 const uint32_t CommandBatch::getFamilyIndex() const {
-    return m_family_index;
+    return m_batch_info->family_index;
 }
 
-void CommandBatch::setNoop() {
-    m_noop = true;
-}
-
-bool CommandBatch::Noop() {
-    return m_noop;
+const std::string& CommandBatch::getName() const {
+    return m_name;
 }
 
 void CommandBatch::reset() const {
@@ -148,5 +114,4 @@ void CommandBatch::reset() const {
         vkResetCommandBuffer(buffer, 0u);
         //vkResetCommandBuffer(buffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
     }
-    vkResetFences(m_device, 1u, &m_render_fence);
 }

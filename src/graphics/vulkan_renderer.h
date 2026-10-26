@@ -53,6 +53,7 @@ struct PerFrame {
 
     VkSemaphore swapchain_available_sem;
     VkFence swapchain_available_fen;
+    
     std::vector<VkSemaphore> cmd_submit_wait_sem;
     VkSemaphore cmd_submit_finish_signal_sem;
     VkFence cmd_submit_finish_fence;
@@ -84,7 +85,7 @@ public:
     std::shared_ptr<VulkanImageBuffer>& getOutDepthImage(uint32_t image_index);
 
     void beginFrame(unsigned image_index);
-    void recordCommandBuffer(CommandBatch& command_buffer, unsigned image_index);
+    void recordCommandBuffer(std::shared_ptr<CommandBatch>& command_buffer, unsigned image_index);
     void drawFrame(unsigned image_index);
     
     std::shared_ptr<PerFrame>& getFrameData(uint32_t image_index);

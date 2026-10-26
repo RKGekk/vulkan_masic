@@ -15,7 +15,7 @@ public:
     bool init(std::shared_ptr<VulkanDevice> device);
     void destroy();
 
-    VkFence getFence();
+    VkFence getFence(const std::string& new_name);
     void returnFence(VkFence fen);
 
 private:

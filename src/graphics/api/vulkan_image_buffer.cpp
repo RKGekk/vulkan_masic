@@ -410,6 +410,8 @@ std::shared_ptr<ImageBufferConfig>& VulkanImageBuffer::getImageConfig() {
 void VulkanImageBuffer::changeLayout(VkImageLayout old_layout, VkImageLayout new_layout) {
     std::shared_ptr<CommandBatch> command_buffer = m_device->getCommandManager()->allocCommandBufferPtr(PoolTypeEnum::TRANSFER);
     changeLayout(command_buffer, old_layout, new_layout);
+    m_device->getCommandManager()->submitCommandBuffer(command_buffer);
+    m_device->getCommandManager()->wait(PoolTypeEnum::TRANSFER);
     command_buffer->destroy();
 }
 
@@ -422,8 +424,6 @@ void VulkanImageBuffer::changeLayout(std::shared_ptr<CommandBatch>& command_buff
         new_layout,
         m_image_config->getImageInfo().mipLevels
     );
-    m_device->getCommandManager()->submitCommandBuffer(command_buffer);
-    m_device->getCommandManager()->wait(PoolTypeEnum::TRANSFER);
 }
 
 const RenderResource::ResourceName& VulkanImageBuffer::getName() const {

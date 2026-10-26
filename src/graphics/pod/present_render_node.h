@@ -19,11 +19,11 @@ public:
     virtual bool init(std::string render_node_name, unsigned frame_index, std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) override;
     virtual void destroy() override;
 
-    virtual void render(CommandBatch& command_buffer) override;
+    virtual void render(std::shared_ptr<CommandBatch>& command_buffer) override;
     virtual RenderNodeType getRenderNodeType() const override;
     virtual void finishRenderNode() override;
 
-    virtual void TransitionResourcesToProperState(CommandBatch& command_buffer) override;
+    virtual void TransitionResourcesToProperState(std::shared_ptr<CommandBatch>& command_buffer) override;
 
     void addWaitSemaphore(VkSemaphore present_wait_for_semaphore);
     void clearWaitSemaphores();

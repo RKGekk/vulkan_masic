@@ -1,6 +1,7 @@
 #include "vulkan_fence_manager.h"
 
 #include "vulkan_device.h"
+#include "../../application.h"
 
 bool VulkanFenceManager::init(std::shared_ptr<VulkanDevice> device) {
     m_device = device;
@@ -27,10 +28,12 @@ void VulkanFenceManager::destroy() {
     }
 }
 
-VkFence VulkanFenceManager::getFence() {
-    if (m_fences.empty()) {
-	    VkFence fence;
+VkFence VulkanFenceManager::getFence(const std::string& new_name) {
+    using namespace std::literals;
 
+    VkFence fence;
+
+    if (m_fences.empty()) {
 	    VkFenceCreateInfo fen_info{};
         fen_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         fen_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
@@ -38,14 +41,25 @@ VkFence VulkanFenceManager::getFence() {
         if(result != VK_SUCCESS) {
             throw std::runtime_error("failed to create fence!");
         }
-
-	    return fence;
     }
     else {
-	    VkFence fen = m_fences.back();
+	    fence = m_fences.back();
 	    m_fences.pop_back();
-	    return fen;
     }
+
+#ifndef NDEBUG
+    std::string semaphore_name = "fence_"s + new_name;
+    auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
+    VkDebugUtilsObjectNameInfoEXT name_info = {};
+    name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+    name_info.objectType = VK_OBJECT_TYPE_FENCE;
+    name_info.objectHandle = (uint64_t)fence;
+    name_info.pObjectName = semaphore_name.c_str();
+
+    vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
+#endif
+
+    return fence;
 }
 
 void VulkanFenceManager::returnFence(VkFence fen) {

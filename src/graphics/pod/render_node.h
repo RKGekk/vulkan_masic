@@ -51,7 +51,7 @@ public:
     virtual bool init(std::string render_node_name, unsigned frame_index, std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) = 0;
     virtual void destroy() = 0;
 
-    virtual void render(CommandBatch& command_buffer) = 0;
+    virtual void render() = 0;
 
     virtual RenderNodeType getRenderNodeType() const = 0;
 
@@ -98,7 +98,7 @@ public:
     std::shared_ptr<VulkanBuffer> getWrittenAttachedBufferResource(const LocalName& name) const;
     std::shared_ptr<VulkanBuffer> getReadAttachedBufferResource(const LocalName& name) const;
 
-    virtual void TransitionResourcesToProperState(CommandBatch& command_buffer) = 0;
+    virtual void TransitionResourcesToProperState(std::shared_ptr<CommandBatch>& command_buffer) = 0;
 
     void setExecutionBypass(bool bypass);
     bool getExecutionBypass() const;
@@ -114,6 +114,7 @@ protected:
     unsigned m_frame_index;
     std::shared_ptr<VulkanDevice> m_device;
     std::weak_ptr<RenderGraph> m_render_graph;
+    std::shared_ptr<CommandBatch> m_command_buffer;
 
 private:
     ResourceMap m_read_resources;

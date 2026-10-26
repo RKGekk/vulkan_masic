@@ -18,6 +18,7 @@
 class VulkanDevice;
 class RenderNode;
 class GraphicsRenderNodeConfig;
+class PresentRenderNodeConfig;
 class WindowSurface;
 
 class RenderGraph {
@@ -33,6 +34,10 @@ public:
 	bool hasGraphicsRenderNodeConfig(const std::string& config_name) const;
 	const std::shared_ptr<GraphicsRenderNodeConfig>& getGraphicsRenderNodeConfig(const std::string& config_name) const;
 	std::shared_ptr<GraphicsRenderNodeConfig> makeGraphicsRenderNodeCfgInstance(const std::string& config_name, const std::string& config_extension);
+
+	bool hasPresentRenderNodeConfig(const std::string& config_name) const;
+	const std::shared_ptr<PresentRenderNodeConfig>& getPresentRenderNodeConfig(const std::string& config_name) const;
+	std::shared_ptr<PresentRenderNodeConfig> makePresentRenderNodeCfgInstance(const std::string& config_name, const std::string& config_extension);
 
 	void add_pass(std::shared_ptr<RenderNode> render_node);
 	void topological_sort();
@@ -60,6 +65,7 @@ private:
 	std::shared_ptr<VulkanDevice> m_device;
 
 	std::unordered_map<std::string, std::shared_ptr<GraphicsRenderNodeConfig>> m_graphics_cfg_name_map;
+	std::unordered_map<std::string, std::shared_ptr<PresentRenderNodeConfig>> m_present_cfg_name_map;
 
 	RenderNodeList m_render_nodes;
 	std::unordered_map<std::string, RenderNodeSet> m_read_map;

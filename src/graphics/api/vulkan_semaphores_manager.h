@@ -6,20 +6,22 @@
 #include <pugixml.hpp>
 
 #include <memory>
+#include <string>
 #include <queue>
 #include <vector>
 
 class VulkanDevice;
+class VulkanSemaphore;
 
 class VulkanSemaphoresManager {
 public:
     bool init(std::shared_ptr<VulkanDevice> device);
     void destroy();
 
-    VkSemaphore getSemaphore(const std::string& new_name);
-    void returnSemaphore(VkSemaphore sem);
+    std::shared_ptr<VulkanSemaphore> getSemaphore(std::string name);
+    void returnSemaphore(std::shared_ptr<VulkanSemaphore> sem);
 
 private:
     std::shared_ptr<VulkanDevice> m_device;
-    std::deque<VkSemaphore> m_semaphores;
+    std::deque<std::shared_ptr<VulkanSemaphore>> m_semaphores;
 };

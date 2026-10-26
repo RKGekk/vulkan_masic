@@ -232,6 +232,11 @@ bool GraphicsRenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device,
         }
     }
 
+    pugi::xml_node command_buffer_settings_node = node_data.child("CommandBufferSettings");
+    if(command_buffer_settings_node) {
+        m_command_buffer_name = command_buffer_settings_node.child("command_buffer_name").text().as_string();
+    }
+
     return true;
 }
 
@@ -373,4 +378,8 @@ std::shared_ptr<GraphicsRenderNodeConfig> GraphicsRenderNodeConfig::makeInstance
 
 const std::shared_ptr<GraphicsRenderNodeConfig::UpdateMetadata>& GraphicsRenderNodeConfig::getUpdateMetadata(const std::string& binding_name) {
     return m_bindings_metadata.at(binding_name);
+}
+
+const std::string& GraphicsRenderNodeConfig::getCommandBufferName() const {
+    return m_command_buffer_name;
 }

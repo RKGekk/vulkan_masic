@@ -1,123 +1,62 @@
 #include "vulkan_semaphore.h"
 
 #include "vulkan_device.h"
+#include "../../application.h"
 
-bool VulkanSemaphore::init(std::shared_ptr<VulkanDevice> device, VkSemaphore semaphore, bool signalled, bool owned) {
-    m_device = device;
-	m_semaphore = semaphore;
-	m_timeline = 0u;
-	m_semaphore_type = VK_SEMAPHORE_TYPE_BINARY_KHR;
-	m_signalled = signalled;
-	m_owned = owned;
+bool VulkanSemaphore::init(std::shared_ptr<VulkanDevice> device, bool signaled, std::string name) {
+	using namespace std::literals;
 
+    m_device = std::move(device);
+	m_name = std::move(name);
+    m_signaled = signaled;
+
+	VkSemaphoreCreateInfo sem_info{};
+    sem_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    if(signaled) {
+        sem_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+    }
+    VkResult result = vkCreateSemaphore(m_device->getDevice(), &sem_info, nullptr, &m_semaphore);
+    if(result != VK_SUCCESS) {
+        throw std::runtime_error("failed to create semaphore!");
+    }
+
+#ifndef NDEBUG
+    std::string semaphore_name = "semaphore_"s + m_name;
+    auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
+    VkDebugUtilsObjectNameInfoEXT name_info = {};
+    name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+    name_info.objectType = VK_OBJECT_TYPE_SEMAPHORE;
+    name_info.objectHandle = (uint64_t)m_semaphore;
+    name_info.pObjectName = semaphore_name.c_str();
+
+    vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
+#endif
+	
 	return true;
 }
 
-bool VulkanSemaphore::init(std::shared_ptr<VulkanDevice> device, VkSemaphore semaphore, uint64_t timeline, bool owned) {
-    m_device = device;
-	m_semaphore = semaphore;
-	m_timeline = timeline;
-	m_semaphore_type = VK_SEMAPHORE_TYPE_TIMELINE_KHR;
-	m_owned = owned;
+void VulkanSemaphore::setName(std::string new_name) {
+	using namespace std::literals;
 
-	return true;
+    m_name = std::move(new_name);
+
+#ifndef NDEBUG
+    std::string semaphore_name = "semaphore_"s + m_name;
+    auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
+    VkDebugUtilsObjectNameInfoEXT name_info = {};
+    name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+    name_info.objectType = VK_OBJECT_TYPE_SEMAPHORE;
+    name_info.objectHandle = (uint64_t)m_semaphore;
+    name_info.pObjectName = semaphore_name.c_str();
+
+    vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
+#endif
 }
 
 void VulkanSemaphore::destroy() {
-    //recycleSemaphore();
-	//vkDestroySemaphore(m_device->getDevice(), m_semaphore, nullptr);
+	vkDestroySemaphore(m_device->getDevice(), m_semaphore, nullptr);
 }
 	
 VkSemaphore VulkanSemaphore::getSemaphore() const {
     return m_semaphore;
-}
-
-bool VulkanSemaphore::isSignalled() const {
-	return m_signalled;
-}
-
-uint64_t VulkanSemaphore::getTimelineValue() const {
-    return m_timeline;
-}
-
-VkSemaphore VulkanSemaphore::consumeSemaphore() {
-	VkSemaphore ret = m_semaphore;
-	
-	m_semaphore = VK_NULL_HANDLE;
-	m_signalled = false;
-	m_owned = false;
-    
-	return ret;
-}
-
-VkSemaphore VulkanSemaphore::releaseSemaphore() {
-	VkSemaphore ret = m_semaphore;
-
-	m_semaphore = VK_NULL_HANDLE;
-	m_signalled = false;
-	m_owned = false;
-    
-	return ret;
-}
-
-void VulkanSemaphore::waitExternal() {
-	m_signalled = false;
-}
-
-void VulkanSemaphore::signalExternal() {
-	m_signalled = true;
-}
-
-void VulkanSemaphore::setSignalIsForeignQueue() {
-	m_signal_is_foreign_queue = true;
-}
-
-void VulkanSemaphore::setPendingWait() {
-	m_pending_wait = true;
-}
-
-bool VulkanSemaphore::isPendingWait() const {
-	return m_pending_wait;
-}
-
-void VulkanSemaphore::setExternalObjectCompatible(VkExternalSemaphoreHandleTypeFlagBits handle_type, VkExternalSemaphoreFeatureFlags features) {
-	m_external_compatible_handle_type = handle_type;
-	m_external_compatible_features = features;
-}
-
-bool VulkanSemaphore::isExternalObjectCompatible() const	{
-	return m_external_compatible_features != 0u;
-}
-
-VkSemaphoreTypeKHR VulkanSemaphore::getSemaphoreType() const {
-	return m_semaphore_type;
-}
-
-bool VulkanSemaphore::isProxyTimeline() const {
-	return m_proxy_timeline;
-}
-
-void VulkanSemaphore::setProxyTimeline() {
-	m_proxy_timeline = true;
-	m_signalled = false;
-}
-
-VkExternalSemaphoreFeatureFlags VulkanSemaphore::getExternalFeatures() const {
-	return m_external_compatible_features;
-}
-
-VkExternalSemaphoreHandleTypeFlagBits VulkanSemaphore::getExternalHandleType() const {
-	return m_external_compatible_handle_type;
-
-	
-}
-
-void VulkanSemaphore::setInternalSyncObject() {
-	m_internal_sync = true;
-}
-
-void VulkanSemaphore::recycleSemaphore() {
-	if (!m_owned) {
-        return;
-    }
 }

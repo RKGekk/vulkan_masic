@@ -92,6 +92,8 @@ public:
 
     std::shared_ptr<GraphicsRenderNodeConfig> makeInstance(std::string name) const;
 
+    const std::string& getCommandBufferName() const;
+
 private:
     uint32_t m_fb_image_index;
     std::string m_name;
@@ -115,4 +117,6 @@ private:
     uint32_t m_first_instance;
 
     std::unordered_map<std::string, std::shared_ptr<UpdateMetadata>> m_bindings_metadata;
+
+    std::string m_command_buffer_name;
 };
