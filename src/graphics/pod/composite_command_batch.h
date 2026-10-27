@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <utility>
@@ -16,6 +17,8 @@ class CommandBatch;
 
 class CompositeCommandBatch {
 public:
+    using ResourcesStateTransitionFn = std::function<void(VkCommandBuffer)>;
+
     bool init(std::shared_ptr<VulkanFramebuffer> fb, const std::shared_ptr<VulkanCommandManager>& cmd_mgr, size_t command_buffer_count, std::string name);
     void destroy();
 
@@ -24,7 +27,7 @@ public:
 
     const std::shared_ptr<VulkanFramebuffer>& getFrameBuffer() const;
 
-    void beginCommandBuffer(const std::string& subpass_name) const;
+    void beginCommandBuffer(const std::string& subpass_name, const ResourcesStateTransitionFn& transition_fn) const;
     void endCommandBuffer() const;
 
 private:

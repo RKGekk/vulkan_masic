@@ -18,10 +18,11 @@
 
 #include <utility>
 
-bool GraphicsRenderNode::init(std::string render_node_name, unsigned frame_index, std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) {
+bool GraphicsRenderNode::init(std::string render_node_name, unsigned frame_index, std::shared_ptr<VulkanDevice> device, VkCommandBuffer secondary_command_buffer, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) {
     m_render_node_name = std::move(render_node_name);
     m_frame_index = frame_index;
     m_device = std::move(device);
+    m_secondary_command_buffer = secondary_command_buffer;
     m_render_graph = std::move(render_graph);
     m_node_config = instance_config ? m_render_graph.lock()->makeGraphicsRenderNodeCfgInstance(node_config_name, std::to_string(rand())) : m_render_graph.lock()->getGraphicsRenderNodeConfig(node_config_name);
     m_pipeline = m_node_config->getPipeline();
@@ -110,8 +111,9 @@ void GraphicsRenderNode::destroy() {
     m_frame_buffer->destroy();
 }
 
-void GraphicsRenderNode::render(std::shared_ptr<CommandBatch>& command_buffer) {
+void GraphicsRenderNode::render() {
     if(getExecutionBypass()) return;
+    if(!m_dirty_secondary_command_buffer) return;
 
     if(m_node_config->getDrawType() == GraphicsRenderNodeConfig::DrawType::DRAW && m_node_config->getVertexCountType() == GraphicsRenderNodeConfig::VertexCountType::EXACT && m_node_config->getVertexCount() == 0u) return;
     if(m_node_config->getDrawType() == GraphicsRenderNodeConfig::DrawType::DRAW_INDEXED && m_node_config->getIndexCountType() == GraphicsRenderNodeConfig::IndexCountType::EXACT && m_node_config->getIndexCount() == 0u) return;
@@ -124,18 +126,16 @@ void GraphicsRenderNode::render(std::shared_ptr<CommandBatch>& command_buffer) {
         getUpdateFunction(update_fn_name)(uniform_buffer, desc_layout_binding_name);
     }
     
-    TransitionResourcesToProperState(command_buffer);
-
-    vkCmdBindPipeline(command_buffer->getCommandBufer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->getPipeline());
+    vkCmdBindPipeline(m_secondary_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->getPipeline());
 
     m_pipeline->build_push_constants();
-    m_pipeline->attach_push_constants(command_buffer->getCommandBufer());
+    m_pipeline->attach_push_constants(m_secondary_command_buffer);
 
     VkViewport view_port = m_node_config->getViewport();
     VkRect2D scissor = m_node_config->getScissor();
         
-    vkCmdSetViewport(command_buffer->getCommandBufer(), 0u, 1u, &view_port);
-    vkCmdSetScissor(command_buffer->getCommandBufer(), 0u, 1u, &scissor);
+    vkCmdSetViewport(m_secondary_command_buffer, 0u, 1u, &view_port);
+    vkCmdSetScissor(m_secondary_command_buffer, 0u, 1u, &scissor);
         
     for(const auto&[slot, desc] : getDescriptors()) {
         vkCmdBindDescriptorSets(
@@ -236,6 +236,8 @@ void GraphicsRenderNode::render(std::shared_ptr<CommandBatch>& command_buffer) {
             );
         }
     }
+
+    m_dirty_secondary_command_buffer = false;
 }
 
 void GraphicsRenderNode::initFramebuffer() {

@@ -18,11 +18,15 @@ class VulkanFence;
 
 class CommandBatch {
 public:
+    static constexpr size_t SELECT_ALL_BUFFERS = -1;
+
     struct CommandBatchInfo {
         PoolTypeEnum pool_type;
         VkCommandPool command_pool;
         VkCommandBufferLevel command_level;
         uint32_t family_index;
+        size_t frame_id;
+        size_t thread_id;
     };
 
     CommandBatch(VkDevice device, std::string name);
@@ -43,8 +47,10 @@ public:
     void addCommandBufer(std::vector<VkCommandBuffer> command_buffers);
     void addResource(std::shared_ptr<RenderResource> resource);
 
+    void beginCommandBuffer(VkCommandBufferBeginInfo* p_begin_info, size_t index = SELECT_ALL_BUFFERS) const;
+    void endCommandBuffer(size_t index = SELECT_ALL_BUFFERS) const;
+
     PoolTypeEnum getPoolType() const;
-    unsigned int getId() const;
     const uint32_t getFamilyIndex() const;
     const std::string& getName() const;
 

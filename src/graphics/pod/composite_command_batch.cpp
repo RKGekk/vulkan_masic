@@ -12,13 +12,13 @@ bool CompositeCommandBatch::init(std::shared_ptr<VulkanFramebuffer> fb, const st
 
     m_name = std::move(name);
     m_frame_buffer = std::move(fb);
-    m_primary_command_buffer = cmd_mgr->allocCommandBufferPtr(PoolTypeEnum::GRAPICS, VK_COMMAND_BUFFER_LEVEL_PRIMARY, 1u, name + "_primary"s);
-    m_secondary_command_buffer = cmd_mgr->allocCommandBufferPtr(PoolTypeEnum::GRAPICS, VK_COMMAND_BUFFER_LEVEL_SECONDARY, command_buffer_count, name + "_secondary"s);
+    m_primary_command_buffer = cmd_mgr->allocCommandBufferPtr(PoolTypeEnum::GRAPICS, VK_COMMAND_BUFFER_LEVEL_PRIMARY, 1u, m_name + "_primary"s);
+    m_secondary_command_buffer = cmd_mgr->allocCommandBufferPtr(PoolTypeEnum::GRAPICS, VK_COMMAND_BUFFER_LEVEL_SECONDARY, command_buffer_count, m_name + "_secondary"s);
 
     return true;
 }
 
-void CompositeCommandBatch::beginCommandBuffer(const std::string& subpass_name) const {
+void CompositeCommandBatch::beginCommandBuffer(const std::string& subpass_name, const ResourcesStateTransitionFn& transition_fn) const {
     using namespace std::literals;
 
     VkCommandBufferBeginInfo primary_begin_info = {};
@@ -31,6 +31,8 @@ void CompositeCommandBatch::beginCommandBuffer(const std::string& subpass_name) 
     if(result != VK_SUCCESS) {
        throw std::runtime_error("failed to begin primary recording commandbuffer !");
     }
+
+    transition_fn(m_primary_command_buffer->getCommandBufer());
 
     VkCommandBufferInheritanceInfo inherit_info = {};
     inherit_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;

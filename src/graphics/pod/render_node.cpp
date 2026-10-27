@@ -25,6 +25,7 @@ void RenderNode::addReadDependency(std::shared_ptr<RenderResource> resource, Loc
     AttachmentSlot attachment_slot = {std::move(resource), std::move(attached_as)};
     m_read_resources[attachment_slot.resource->getName()] = attachment_slot;
     m_read_attached[attachment_slot.attached_as] = std::move(attachment_slot);
+    m_dirty_secondary_command_buffer = true;
 }
 
 void RenderNode::addWriteDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as) {
@@ -39,6 +40,7 @@ void RenderNode::changeReadDependency(std::shared_ptr<RenderResource> resource, 
     m_read_attached[attached_as] = std::move(attachment_slot);
 
     updateDescriptors();
+    m_dirty_secondary_command_buffer = true;
 }
 
 void RenderNode::changeWriteDependency(std::shared_ptr<RenderResource> resource, LocalName attached_as) {

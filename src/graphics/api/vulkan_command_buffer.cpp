@@ -97,6 +97,69 @@ void CommandBatch::addCommandBufer(std::vector<VkCommandBuffer> command_buffers)
     );
 }
 
+void CommandBatch::beginCommandBuffer(VkCommandBufferBeginInfo* p_begin_info, size_t index) const {
+    if (p_begin_info) {
+        if(index == SELECT_ALL_BUFFERS) {
+            size_t sz = m_command_buffers.size();
+            for (size_t i = 0u; i < sz; ++i) {
+                VkResult result = vkBeginCommandBuffer(m_command_buffers[i], p_begin_info);
+		        if(result != VK_SUCCESS) {
+                    throw std::runtime_error("failed to begin recording commandbuffer!");
+                }
+            }
+        }
+        else {
+            VkResult result = vkBeginCommandBuffer(m_command_buffers[index], p_begin_info);
+		    if(result != VK_SUCCESS) {
+                throw std::runtime_error("failed to begin recording commandbuffer!");
+            }
+        }
+		return;
+	}
+
+    if(m_batch_info->command_level == VK_COMMAND_BUFFER_LEVEL_SECONDARY) return;
+
+    VkCommandBufferBeginInfo begin_info = {};
+    begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    begin_info.pNext = nullptr;
+    begin_info.flags = 0u;
+    begin_info.pInheritanceInfo = NULL;
+
+    if(index == SELECT_ALL_BUFFERS) {
+        size_t sz = m_command_buffers.size();
+        for (size_t i = 0u; i < sz; ++i) {
+            VkResult result = vkBeginCommandBuffer(m_command_buffers[i], &begin_info);
+            if(result != VK_SUCCESS) {
+               throw std::runtime_error("failed to begin recording commandbuffer!");
+            }
+        }
+    }
+    else {
+        VkResult result = vkBeginCommandBuffer(m_command_buffers[index], &begin_info);
+        if(result != VK_SUCCESS) {
+            throw std::runtime_error("failed to begin recording commandbuffer!");
+        }
+    }
+}
+
+void CommandBatch::endCommandBuffer(size_t index) const {
+    if(index == SELECT_ALL_BUFFERS) {
+        size_t sz = m_command_buffers.size();
+        for (size_t i = 0u; i < sz; ++i) {
+            VkResult result = vkEndCommandBuffer(m_command_buffers[i]);
+	        if(result != VK_SUCCESS) {
+                throw std::runtime_error("failed to record command buffer!");
+            }
+        }
+    }
+    else {
+	    VkResult result = vkEndCommandBuffer(m_command_buffers[index]);
+	    if(result != VK_SUCCESS) {
+            throw std::runtime_error("failed to record command buffer!");
+        }
+    }
+}
+
 PoolTypeEnum CommandBatch::getPoolType() const {
     return m_batch_info->pool_type;
 }

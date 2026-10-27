@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -17,20 +18,30 @@
 
 class VulkanCommandManager {
 public:
-    bool init(VkPhysicalDevice physical_device, VkDevice logical_device, VkSurfaceKHR surface);
+    struct CommandBufferPools {
+        std::vector<VkCommandPool> primary_buffer_command_pools;
+        std::vector<VkCommandPool> secondary_buffer_command_pools;
+    };
+
+    struct BatchWaitInfo {
+        std::vector<VkSemaphore> wait_for_semaphores;
+        std::vector<VkPipelineStageFlags> wait_for_stages;
+        VkFence signal_fence;
+        std::vector<VkSemaphore> signal_semaphores;
+    };
+
+    bool init(VkPhysicalDevice physical_device, VkDevice logical_device, VkSurfaceKHR surface, size_t frames_in_flight, size_t number_of_threads);
     void destroy();
 
     const QueueFamilyIndices& getQueueFamilyIndices() const;
     VkSharingMode getBufferSharingMode() const;
-    VkCommandPool getCommandPool(PoolTypeEnum pool_type = PoolTypeEnum::GRAPICS) const;
+    const CommandBufferPools& getCommandPool(PoolTypeEnum pool_type = PoolTypeEnum::GRAPICS) const;
+    void resetGfxPool(size_t frame_id) const;
     VkQueue getQueue(PoolTypeEnum pool_type = PoolTypeEnum::GRAPICS) const;
 
-    std::shared_ptr<CommandBatch> allocCommandBufferPtr(PoolTypeEnum pool_type, VkCommandBufferLevel command_level, size_t buffers_count = 1u, std::string name = "no_name");
+    std::shared_ptr<CommandBatch> allocCommandBufferPtr(PoolTypeEnum pool_type, VkCommandBufferLevel command_level, size_t frame_id, size_t thread_id, size_t buffers_count = 1u, std::string name = "no_name");
 
-	static void beginCommandBuffer(std::shared_ptr<CommandBatch>& command_buffer, size_t index = 0u, VkCommandBufferBeginInfo* p_begin_info = nullptr);
-	static void endCommandBuffer(std::shared_ptr<CommandBatch>& command_buffer, size_t index = 0u);
-
-    void submitCommandBuffer(std::shared_ptr<CommandBatch>& command_buffer, size_t index = 0u, VkSubmitInfo* p_submit_info = nullptr);
+    void submitCommandBuffer(std::shared_ptr<CommandBatch>& command_buffer, std::shared_ptr<BatchWaitInfo> wait_info = nullptr, size_t index = 0u, VkSubmitInfo* p_submit_info = nullptr);
     void wait(PoolTypeEnum pool_type);
 
     void transitionImageLayout(VkCommandBuffer command_buffer, VkImage image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout, uint32_t mip_levels);
@@ -39,12 +50,11 @@ public:
     void copyBuffer(VkCommandBuffer command_buffer, VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size);
 
 private:
-    void createCommandPools();
+    void createCommandPools(size_t frames_in_flight, size_t number_of_threads);
 
     VkDevice m_device;
-    VkCommandPool m_grapics_cmd_pool = VK_NULL_HANDLE;
-    VkCommandPool m_transfer_cmd_pool = VK_NULL_HANDLE;
-    VkCommandPool m_compute_cmd_pool = VK_NULL_HANDLE;
+    std::unordered_map<PoolTypeEnum, CommandBufferPools> m_command_pools;
+    int m_max_frames;
 
     QueueFamilyIndices m_queue_family_indices;
     VkQueue m_graphics_queue = VK_NULL_HANDLE;

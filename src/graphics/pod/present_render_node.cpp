@@ -36,6 +36,7 @@ bool PresentRenderNode::init(std::string render_node_name, unsigned frame_index,
     const std::shared_ptr<VulkanCommandManager>& command_manager = Application::GetRenderer().getCommandManager();
     
     m_command_buffer = command_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, 1u, )
+    m_dirty_secondary_command_buffer = true;
 
     return true;
 }

@@ -38,8 +38,11 @@ class RenderNode;
 class RenderGraph;
 class VulkanRenderer;
 class PresentRenderNode;
+class CompositeCommandBatch;
 
 struct PerFrame {
+    using RenderNodeId = size_t;
+
     bool init(std::shared_ptr<VulkanDevice> device, unsigned index);
     void destroy(VulkanRenderer& renderer);
 	
@@ -58,7 +61,7 @@ struct PerFrame {
     VkSemaphore cmd_submit_finish_signal_sem;
     VkFence cmd_submit_finish_fence;
 
-	std::shared_ptr<CommandBatch> command_buffer;
+	std::unordered_map<std::shared_ptr<RenderNode>, CompositeCommandBatch> command_buffer;
     std::shared_ptr<PresentRenderNode> present_render_node;
     std::shared_ptr<RenderGraph> render_graph;
 };
