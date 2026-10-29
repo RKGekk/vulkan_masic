@@ -8,10 +8,13 @@
 
 #include "../../application.h"
 
-bool VulkanFramebuffer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<FramebufferConfig> framebuffer_config, std::shared_ptr<VulkanRenderPass> render_pass_ptr, std::function<const std::shared_ptr<RenderResource>&(const LocalName&)> attach_map) {
+VulkanFramebuffer::VulkanFramebuffer(std::shared_ptr<VulkanDevice> device, std::string name) : m_device(std::move(device)), m_name(std::move(name)) {}
+
+VulkanFramebuffer::VulkanFramebuffer(std::shared_ptr<VulkanDevice> device) : m_device(std::move(device)) {}
+
+bool VulkanFramebuffer::init(std::shared_ptr<FramebufferConfig> framebuffer_config, std::shared_ptr<VulkanRenderPass> render_pass_ptr, const LocalAttachMapFn& attach_map) {
     using namespace std::literals;
 
-    m_device = std::move(device);
     m_framebuffer_config = std::move(framebuffer_config);
     m_render_pass_ptr = std::move(render_pass_ptr);
     m_framebuffers_attachments = getAttachments(attach_map);
@@ -42,12 +45,15 @@ bool VulkanFramebuffer::init(std::shared_ptr<VulkanDevice> device, std::shared_p
     vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
 #endif    
 
-
     return true;
 }
 
 void VulkanFramebuffer::destroy() {
     vkDestroyFramebuffer(m_device->getDevice(), m_frame_buffer, nullptr);
+}
+
+const std::string& VulkanFramebuffer::getName() const {
+    return m_name;
 }
 
 VkFramebuffer VulkanFramebuffer::getFramebuffer() const {
@@ -70,7 +76,7 @@ const std::shared_ptr<VulkanRenderPass>& VulkanFramebuffer::getRenderpass() cons
     return m_render_pass_ptr;
 }
 
-std::vector<VkImageView> VulkanFramebuffer::getAttachments(std::function<const std::shared_ptr<RenderResource>&(const LocalName&)> attach_map) const {
+std::vector<VkImageView> VulkanFramebuffer::getAttachments(const LocalAttachMapFn& attach_map) const {
     std::vector<VkImageView> attachments;
     const std::vector<std::shared_ptr<FramebufferConfig::FrameBufferAttachment>>& attachments_config = m_framebuffer_config->getAttachmentsConfig();
     size_t attachments_count = attachments_config.size();

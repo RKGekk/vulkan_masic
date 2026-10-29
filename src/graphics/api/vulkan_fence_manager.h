@@ -9,13 +9,14 @@
 #include <vector>
 
 class VulkanDevice;
+class VulkanFence;
 
 class VulkanFenceManager {
 public:
     bool init(std::shared_ptr<VulkanDevice> device);
     void destroy();
 
-    VkFence getFence(const std::string& new_name);
+    std::shared_ptr<VulkanFence> getFence(const std::string& new_name);
     void returnFence(VkFence fen);
 
 private:

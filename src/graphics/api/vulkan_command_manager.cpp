@@ -271,6 +271,7 @@ void VulkanCommandManager::copyBuffer(VkCommandBuffer command_buffer, VkBuffer s
 void VulkanCommandManager::createCommandPools(size_t frames_in_flight, size_t number_of_threads) {
     VkCommandPoolCreateInfo gfx_primary_cmd_pool_info{};
     gfx_primary_cmd_pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    gfx_primary_cmd_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     gfx_primary_cmd_pool_info.queueFamilyIndex = getQueueFamilyIndices().getFamilyIdx(PoolTypeEnum::GRAPICS).value();
     
     m_command_pools[PoolTypeEnum::GRAPICS].primary_buffer_command_pools.resize(frames_in_flight);

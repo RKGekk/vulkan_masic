@@ -19,7 +19,7 @@ class CompositeCommandBatch {
 public:
     using ResourcesStateTransitionFn = std::function<void(VkCommandBuffer)>;
 
-    bool init(std::shared_ptr<VulkanFramebuffer> fb, const std::shared_ptr<VulkanCommandManager>& cmd_mgr, size_t command_buffer_count, std::string name);
+    bool init(std::shared_ptr<VulkanFramebuffer> fb, size_t frame_id, size_t thread_id, const std::shared_ptr<VulkanCommandManager>& cmd_mgr, size_t command_buffer_count, std::string name);
     void destroy();
 
     const std::shared_ptr<CommandBatch>& getPrimaryCommandBuffer() const;

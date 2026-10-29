@@ -11,9 +11,11 @@
 #include "vulkan_buffer.h"
 #include "vulkan_image_buffer.h"
 #include "vulkan_swapchain.h"
+#include "vulkan_framebuffer.h"
 #include "../../window_surface.h"
 #include "../pod/push_constant_config.h"
 #include "vulkan_push_constant.h"
+#include "vulkan_render_pass.h"
 
 #include "../../tools/string_tools.h"
 
@@ -275,15 +277,15 @@ void VulkanResourcesManager::delete_push_buffer(std::shared_ptr<VulkanPushConsta
 	}
 }
 
-const std::shared_ptr<VulkanImageBuffer>& VulkanResourcesManager::getImageResource(const std::string& resource_global_name) {
+const std::shared_ptr<VulkanImageBuffer>& VulkanResourcesManager::getImageResource(const std::string& resource_global_name) const {
 	return m_image_map.at(resource_global_name);
 }
 
-const std::shared_ptr<VulkanBuffer>& VulkanResourcesManager::getBufferResource(const std::string& resource_global_name) {
+const std::shared_ptr<VulkanBuffer>& VulkanResourcesManager::getBufferResource(const std::string& resource_global_name) const {
 	return m_buffer_map.at(resource_global_name);
 }
 
-const std::shared_ptr<VulkanPushConstant>& VulkanResourcesManager::getPushConstantResource(const std::string& resource_global_name) {
+const std::shared_ptr<VulkanPushConstant>& VulkanResourcesManager::getPushConstantResource(const std::string& resource_global_name) const {
 	return m_push_constant_map.at(resource_global_name);
 }
 
@@ -319,6 +321,21 @@ const std::shared_ptr<PushConstantConfig>& VulkanResourcesManager::getPushConsta
 	return m_push_constant_config_map.at(template_name);
 }
 
-const std::shared_ptr<FramebufferConfig>& VulkanResourcesManager::getFramebufferConfig(const std::string& framebuffer_name) const {
-	return m_framebuffer_config_map.at(framebuffer_name);
+const std::shared_ptr<FramebufferConfig>& VulkanResourcesManager::getFramebufferConfig(const std::string& framebuffer_cfg_name) const {
+	return m_framebuffer_config_map.at(framebuffer_cfg_name);
+}
+
+std::shared_ptr<VulkanFramebuffer> VulkanResourcesManager::create_frame_buffer(const std::function<const std::shared_ptr<RenderResource>&(const std::string&)>& attach_map, std::shared_ptr<VulkanRenderPass> render_pass_ptr, std::string framebuffer_name, std::string framebuffer_type_name) {
+	std::shared_ptr<FramebufferConfig> fb_config_template = m_framebuffer_config_map.at(framebuffer_type_name);
+
+	std::shared_ptr<VulkanFramebuffer> frame_buffer = std::make_shared<VulkanFramebuffer>(m_device, framebuffer_name);
+	frame_buffer->init(std::move(fb_config_template), std::move(render_pass_ptr), attach_map);
+
+	m_framebuffer_buffer_map[framebuffer_name] = frame_buffer;
+
+	return frame_buffer;
+}
+
+const std::shared_ptr<VulkanFramebuffer>& VulkanResourcesManager::get_frame_buffer(const std::string& fb_global_name) const {
+	return m_framebuffer_buffer_map.at(fb_global_name);
 }

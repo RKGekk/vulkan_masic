@@ -426,6 +426,17 @@ void VulkanImageBuffer::changeLayout(std::shared_ptr<CommandBatch>& command_buff
     );
 }
 
+void VulkanImageBuffer::changeLayout(VkCommandBuffer command_buffer, VkImageLayout old_layout, VkImageLayout new_layout) {
+    m_device->getCommandManager()->transitionImageLayout(
+        command_buffer,
+        m_image,
+        m_image_config->getImageInfo().format,
+        old_layout,
+        new_layout,
+        m_image_config->getImageInfo().mipLevels
+    );
+}
+
 const RenderResource::ResourceName& VulkanImageBuffer::getName() const {
     return m_name;
 }

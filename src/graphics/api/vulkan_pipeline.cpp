@@ -9,6 +9,7 @@
 #include "vulkan_pipelines_manager.h"
 #include "vulkan_descriptors_manager.h"
 #include "vulkan_render_pass.h"
+#include "../pod/render_pass_config.h"
 #include "../../tools/string_tools.h"
 #include "../../application.h"
 #include "../vulkan_renderer.h"
@@ -184,6 +185,10 @@ const VkGraphicsPipelineCreateInfo& VulkanPipeline::getPipelineInfo() const {
 
 const std::shared_ptr<VulkanRenderPass>& VulkanPipeline::getRenderPass() {
     return m_render_pass;
+}
+
+const std::string& VulkanPipeline::getSubpassName() const {
+    return m_render_pass->getRenderPassConfig()->getSubpassName(m_pipeline_info.subpass);
 }
 
 VkPipelineVertexInputStateCreateInfo VulkanPipeline::getInputInfo() const {

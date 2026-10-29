@@ -18,6 +18,8 @@
 #include "../window_surface.h"
 
 #include "api/vulkan_command_pool_type.h"
+#include "api/vulkan_fence.h"
+#include "api/vulkan_semaphore.h"
 #include "../engine/views/iengine_view.h"
 
 class VulkanDevice;
@@ -29,6 +31,8 @@ class VulkanDescriptorsManager;
 class VulkanShadersManager;
 class VulkanPipelinesManager;
 class VulkanFenceManager;
+//class VulkanSemaphore;
+//class VulkanFence;
 class VulkanSemaphoresManager;
 class VulkanCommandManager;
 class VulkanRenderPassesManager;
@@ -54,14 +58,16 @@ struct PerFrame {
     std::shared_ptr<VulkanImageBuffer> out_color_image;
     std::shared_ptr<VulkanImageBuffer> out_depth_image;
 
-    VkSemaphore swapchain_available_sem;
-    VkFence swapchain_available_fen;
+    std::shared_ptr<VulkanSemaphore> swapchain_available_sem;
+    std::shared_ptr<VulkanFence> swapchain_available_fen;
     
     std::vector<VkSemaphore> cmd_submit_wait_sem;
-    VkSemaphore cmd_submit_finish_signal_sem;
-    VkFence cmd_submit_finish_fence;
+    std::shared_ptr<VulkanSemaphore> cmd_submit_finish_signal_sem;
+    std::shared_ptr<VulkanFence> cmd_submit_finish_fence;
 
-	std::unordered_map<std::shared_ptr<RenderNode>, CompositeCommandBatch> command_buffer;
+	std::unordered_map<std::shared_ptr<VulkanFramebuffer>, std::shared_ptr<CompositeCommandBatch>> fb_to_command_buffer_map;
+    std::vector<VkCommandBuffer> submission_buffers;
+
     std::shared_ptr<PresentRenderNode> present_render_node;
     std::shared_ptr<RenderGraph> render_graph;
 };
@@ -88,7 +94,7 @@ public:
     std::shared_ptr<VulkanImageBuffer>& getOutDepthImage(uint32_t image_index);
 
     void beginFrame(unsigned image_index);
-    void recordCommandBuffer(std::shared_ptr<CommandBatch>& command_buffer, unsigned image_index);
+    void recordCommandBuffer(unsigned image_index);
     void drawFrame(unsigned image_index);
     
     std::shared_ptr<PerFrame>& getFrameData(uint32_t image_index);

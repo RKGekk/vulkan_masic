@@ -111,9 +111,11 @@ void GraphicsRenderNode::destroy() {
     m_frame_buffer->destroy();
 }
 
-void GraphicsRenderNode::render() {
+void GraphicsRenderNode::render(VkCommandBuffer secondary_command_buffer, uint32_t bind_flags) {
+    BindFlags enum_bind = static_cast<BindFlags>(bind_flags);
+
     if(getExecutionBypass()) return;
-    if(!m_dirty_secondary_command_buffer) return;
+    if(!m_dirty_read_dependency) return;
 
     if(m_node_config->getDrawType() == GraphicsRenderNodeConfig::DrawType::DRAW && m_node_config->getVertexCountType() == GraphicsRenderNodeConfig::VertexCountType::EXACT && m_node_config->getVertexCount() == 0u) return;
     if(m_node_config->getDrawType() == GraphicsRenderNodeConfig::DrawType::DRAW_INDEXED && m_node_config->getIndexCountType() == GraphicsRenderNodeConfig::IndexCountType::EXACT && m_node_config->getIndexCount() == 0u) return;
@@ -126,118 +128,131 @@ void GraphicsRenderNode::render() {
         getUpdateFunction(update_fn_name)(uniform_buffer, desc_layout_binding_name);
     }
     
-    vkCmdBindPipeline(m_secondary_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->getPipeline());
+    if(has_flag(enum_bind, BindFlags::Pipeline)) {
+        vkCmdBindPipeline(secondary_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->getPipeline());
+    }
 
-    m_pipeline->build_push_constants();
-    m_pipeline->attach_push_constants(m_secondary_command_buffer);
+    if(has_flag(enum_bind, BindFlags::PushConstants)) {
+        m_pipeline->build_push_constants();
+        m_pipeline->attach_push_constants(secondary_command_buffer);
+    }
 
-    VkViewport view_port = m_node_config->getViewport();
-    VkRect2D scissor = m_node_config->getScissor();
+    if(has_flag(enum_bind, BindFlags::Scissor)) {
+        VkRect2D scissor = m_node_config->getScissor();
+        vkCmdSetScissor(secondary_command_buffer, 0u, 1u, &scissor);
+    }
+
+    if(has_flag(enum_bind, BindFlags::Viewport)) {
+        VkViewport view_port = m_node_config->getViewport();
+        vkCmdSetViewport(secondary_command_buffer, 0u, 1u, &view_port);
+    }
         
-    vkCmdSetViewport(m_secondary_command_buffer, 0u, 1u, &view_port);
-    vkCmdSetScissor(m_secondary_command_buffer, 0u, 1u, &scissor);
-        
-    for(const auto&[slot, desc] : getDescriptors()) {
-        vkCmdBindDescriptorSets(
-            command_buffer->getCommandBufer(), // commandBuffer
-            VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
-            m_pipeline->getPipelineLayout(), // pipeline layout
-            slot, // first set
-            1, // descriptor set count
-            desc->getDescriptorSetPtr(), // descriptor sets pointer
-            0, // dynamic offset count
-            nullptr // dynamic offsets pointer
+    if(has_flag(enum_bind, BindFlags::DescriptorSets)) {
+        for(const auto&[slot, desc] : getDescriptors()) {
+            vkCmdBindDescriptorSets(
+                secondary_command_buffer, // commandBuffer
+                VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
+                m_pipeline->getPipelineLayout(), // pipeline layout
+                slot, // first set
+                1, // descriptor set count
+                desc->getDescriptorSetPtr(), // descriptor sets pointer
+                0, // dynamic offset count
+                nullptr // dynamic offsets pointer
+            );
+        }
+    }
+
+    if(has_flag(enum_bind, BindFlags::VertexIndexInstanceBuffers) || has_flag(enum_bind, BindFlags::Draw)) {
+        const std::shared_ptr<ShaderSignature>& vertex_shader_signature = m_pipeline->getShader(VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature();
+        const std::vector<VertexFormat>& vertex_formats_array = vertex_shader_signature->getInputAttributes();
+
+        m_vertex_buffers.clear();
+        m_vertex_buffers_offsets.clear();
+        m_first_binding = vertex_formats_array.front().getBindingNum();
+        m_vertex_count = 0u;
+        m_instance_count = 1u;
+        for (const VertexFormat& vf : vertex_formats_array) {
+            if(vf.getBindingNum() < m_first_binding) {
+                m_first_binding = vf.getBindingNum();
+            }
+            const std::string& vertex_buffer_name = vf.getVertexBufferBindingName();
+            std::shared_ptr<VulkanBuffer> vertex_buffer = getReadAttachedBufferResource(vertex_buffer_name);
+            m_vertex_buffers.push_back(vertex_buffer->getBuffer());
+            m_vertex_buffers_offsets.push_back(vf.getVertexBufferOffset());
+
+            if(vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX) {
+                m_vertex_count = vertex_buffer->getNotAlignedSize() / vf.getVertexSize();
+            }
+            else if(vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_INSTANCE) {
+                m_instance_count = vertex_buffer->getNotAlignedSize() / vf.getVertexSize();
+            }
+        }
+
+        vkCmdBindVertexBuffers(
+            secondary_command_buffer,               // commandBuffer
+            m_first_binding,                                // firstBinding
+            static_cast<uint32_t>(m_vertex_buffers.size()), // bindingCount
+            m_vertex_buffers.data(),                        // buffers pointer
+            m_vertex_buffers_offsets.data()                 // offsets pointer
         );
-    }
-
-    const std::shared_ptr<ShaderSignature>& vertex_shader_signature = m_pipeline->getShader(VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature();
-    const std::vector<VertexFormat>& vertex_formats_array = vertex_shader_signature->getInputAttributes();
-
-    m_vertex_buffers.clear();
-    m_vertex_buffers_offsets.clear();
-    m_first_binding = vertex_formats_array.front().getBindingNum();
-    m_vertex_count = 0u;
-    m_instance_count = 1u;
-    for (const VertexFormat& vf : vertex_formats_array) {
-        if(vf.getBindingNum() < m_first_binding) {
-            m_first_binding = vf.getBindingNum();
-        }
-        const std::string& vertex_buffer_name = vf.getVertexBufferBindingName();
-        std::shared_ptr<VulkanBuffer> vertex_buffer = getReadAttachedBufferResource(vertex_buffer_name);
-        m_vertex_buffers.push_back(vertex_buffer->getBuffer());
-        m_vertex_buffers_offsets.push_back(vf.getVertexBufferOffset());
         
-        if(vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX) {
-            m_vertex_count = vertex_buffer->getNotAlignedSize() / vf.getVertexSize();
+        if(m_node_config->getDrawType() == GraphicsRenderNodeConfig::DrawType::DRAW) {
+            if(m_node_config->getIndexCountType() == GraphicsRenderNodeConfig::IndexCountType::ALL) {
+                vkCmdDraw(
+                    secondary_command_buffer,   // commandBuffer
+                    m_vertex_count,                     // vertexCount
+                    m_instance_count,                   // instanceCount
+                    0u,                                 // firstVertex
+                    0u                                  // firstInstance
+                );
+            }
+            else {
+                vkCmdDraw(
+                    secondary_command_buffer,   // commandBuffer
+                    m_node_config->getVertexCount(),    // vertexCount
+                    m_node_config->getInstanceCount(),  // instanceCount
+                    m_node_config->getFirstIndex(),     // firstVertex
+                    m_node_config->getFirstInstance()   // firstInstance
+                );
+            }
         }
-        else if(vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_INSTANCE) {
-            m_instance_count = vertex_buffer->getNotAlignedSize() / vf.getVertexSize();
+        else if(m_node_config->getDrawType() == GraphicsRenderNodeConfig::DrawType::DRAW_INDEXED) {
+            const std::string& index_buffer_name = vertex_shader_signature->getIndexBufferBindingName();
+            std::shared_ptr<VulkanBuffer> index_buffer = getReadAttachedBufferResource(index_buffer_name);
+            vkCmdBindIndexBuffer(
+                secondary_command_buffer,       // commandBuffer
+                index_buffer->getBuffer(),              // buffer
+                vertex_shader_signature->getIndexBufferOffset(), // offset
+                vertex_shader_signature->getIndexType()          // indexType
+            );
+
+            if(m_node_config->getIndexCountType() == GraphicsRenderNodeConfig::IndexCountType::ALL) {
+                uint32_t index_count = index_buffer->getNotAlignedSize() / vertex_shader_signature->getIndexTypeBytesCount();
+                vkCmdDrawIndexed(
+                    secondary_command_buffer,   // commandBuffer
+                    index_count,                        // indexCount
+                    m_instance_count,                   // instanceCount
+                    0u,                                 // firstIndex
+                    0u,                                 // vertexOffset
+                    0u                                  // firstInstance
+                );
+            }
+            else {
+                uint32_t index_count = m_node_config->getIndexCount();
+                vkCmdDrawIndexed(
+                    secondary_command_buffer,   // commandBuffer
+                    index_count,                        // indexCount
+                    m_node_config->getInstanceCount(),  // instanceCount
+                    m_node_config->getFirstIndex(),     // firstIndex
+                    m_node_config->getVertexOffset(),   // vertexOffset
+                    m_node_config->getFirstInstance()   // firstInstance
+                );
+            }
         }
     }
 
-    vkCmdBindVertexBuffers(
-        command_buffer->getCommandBufer(),               // commandBuffer
-        m_first_binding,                                // firstBinding
-        static_cast<uint32_t>(m_vertex_buffers.size()), // bindingCount
-        m_vertex_buffers.data(),                        // buffers pointer
-        m_vertex_buffers_offsets.data()                 // offsets pointer
-    );
-        
-    if(m_node_config->getDrawType() == GraphicsRenderNodeConfig::DrawType::DRAW) {
-        if(m_node_config->getIndexCountType() == GraphicsRenderNodeConfig::IndexCountType::ALL) {
-            vkCmdDraw(
-                command_buffer->getCommandBufer(),   // commandBuffer
-                m_vertex_count,                     // vertexCount
-                m_instance_count,                   // instanceCount
-                0u,                                 // firstVertex
-                0u                                  // firstInstance
-            );
-        }
-        else {
-            vkCmdDraw(
-                command_buffer->getCommandBufer(),   // commandBuffer
-                m_node_config->getVertexCount(),    // vertexCount
-                m_node_config->getInstanceCount(),  // instanceCount
-                m_node_config->getFirstIndex(),     // firstVertex
-                m_node_config->getFirstInstance()   // firstInstance
-            );
-        }
-    }
-    else if(m_node_config->getDrawType() == GraphicsRenderNodeConfig::DrawType::DRAW_INDEXED) {
-        const std::string& index_buffer_name = vertex_shader_signature->getIndexBufferBindingName();
-        std::shared_ptr<VulkanBuffer> index_buffer = getReadAttachedBufferResource(index_buffer_name);
-        vkCmdBindIndexBuffer(
-            command_buffer->getCommandBufer(),       // commandBuffer
-            index_buffer->getBuffer(),              // buffer
-            vertex_shader_signature->getIndexBufferOffset(), // offset
-            vertex_shader_signature->getIndexType()          // indexType
-        );
-
-        if(m_node_config->getIndexCountType() == GraphicsRenderNodeConfig::IndexCountType::ALL) {
-            uint32_t index_count = index_buffer->getNotAlignedSize() / vertex_shader_signature->getIndexTypeBytesCount();
-            vkCmdDrawIndexed(
-                command_buffer->getCommandBufer(),   // commandBuffer
-                index_count,                        // indexCount
-                m_instance_count,                   // instanceCount
-                0u,                                 // firstIndex
-                0u,                                 // vertexOffset
-                0u                                  // firstInstance
-            );
-        }
-        else {
-            uint32_t index_count = m_node_config->getIndexCount();
-            vkCmdDrawIndexed(
-                command_buffer->getCommandBufer(),   // commandBuffer
-                index_count,                        // indexCount
-                m_node_config->getInstanceCount(),  // instanceCount
-                m_node_config->getFirstIndex(),     // firstIndex
-                m_node_config->getVertexOffset(),   // vertexOffset
-                m_node_config->getFirstInstance()   // firstInstance
-            );
-        }
-    }
-
-    m_dirty_secondary_command_buffer = false;
+    m_dirty_read_dependency = false;
+    m_dirty_write_dependency = false;
 }
 
 void GraphicsRenderNode::initFramebuffer() {
@@ -255,17 +270,20 @@ void GraphicsRenderNode::initFramebuffer() {
         m_node_config->setScissor(scissor);
     }
 
-    const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = m_pipeline->getRenderPass();
     if(m_frame_buffer) {
         m_frame_buffer->destroy();
     }
-    else {
-        m_frame_buffer = std::make_shared<VulkanFramebuffer>();
-    }
+    // else {
+    //     m_frame_buffer = std::make_shared<VulkanFramebuffer>();
+    // }
+
     auto map_fn = [this](const LocalName& local_name)->const std::shared_ptr<RenderResource>&{
         return getWrittenAttachmentMap().at(local_name).resource;
     };
-    m_frame_buffer->init(m_device, m_node_config->getFramebufferConfig(), render_pass_ptr, map_fn);
+    const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = m_pipeline->getRenderPass();
+    std::string fb_name = m_node_config->getFramebufferConfig()->getName() + render_pass_ptr->getRenderPassConfig()->getName();
+    m_frame_buffer = Application::GetRenderer().getResourcesManager()->create_frame_buffer(map_fn, render_pass_ptr, fb_name, m_node_config->getFramebufferConfig()->getName());
+    //m_frame_buffer->init(m_device, m_node_config->getFramebufferConfig(), render_pass_ptr, map_fn);
 }
 
 void GraphicsRenderNode::updateDescriptors() {
@@ -339,7 +357,7 @@ std::shared_ptr<GraphicsRenderNodeConfig>& GraphicsRenderNode::getGraphicsRender
     return m_node_config;
 }
 
-void GraphicsRenderNode::TransitionResourcesToProperState(std::shared_ptr<CommandBatch>& command_buffer) {
+void GraphicsRenderNode::TransitionResourcesToProperState(VkCommandBuffer primary_command_buffer) {
     std::shared_ptr<RenderGraph> render_graph = m_render_graph.lock();
     const std::shared_ptr<VulkanRenderPass>& render_pass_ptr = m_pipeline->getRenderPass();
 

@@ -29,14 +29,14 @@ bool PresentRenderNode::init(std::string render_node_name, unsigned frame_index,
     setExecutionBypass(false);
     setExecutionOrder(0u);
 
-    const std::shared_ptr<VulkanSemaphoresManager>& semaphore_manager = Application::GetRenderer().getSemaphoreManager();
+    //const std::shared_ptr<VulkanSemaphoresManager>& semaphore_manager = Application::GetRenderer().getSemaphoreManager();
     //std::shared_ptr<VulkanSemaphore> 
     //TransitionResourcesToProperState();
 
-    const std::shared_ptr<VulkanCommandManager>& command_manager = Application::GetRenderer().getCommandManager();
+    //const std::shared_ptr<VulkanCommandManager>& command_manager = Application::GetRenderer().getCommandManager();
     
-    m_command_buffer = command_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, 1u, )
-    m_dirty_secondary_command_buffer = true;
+    m_dirty_read_dependency = true;
+    m_dirty_write_dependency = true;
 
     return true;
 }
@@ -45,9 +45,9 @@ void PresentRenderNode::destroy() {
 
 }
 
-void PresentRenderNode::render(std::shared_ptr<CommandBatch>& command_buffer) {
-    TransitionResourcesToProperState(command_buffer);
+void PresentRenderNode::render(VkCommandBuffer secondary_command_buffer) {}
 
+void PresentRenderNode::present() {
     m_present_info.waitSemaphoreCount = static_cast<uint32_t>(m_present_wait_sem.size());
     m_present_info.pWaitSemaphores = m_present_wait_sem.data();
     //m_present_info.swapchainCount = 1u;
@@ -68,7 +68,7 @@ void PresentRenderNode::finishRenderNode() {
 
 }
 
-void PresentRenderNode::TransitionResourcesToProperState(std::shared_ptr<CommandBatch>& command_buffer) {
+void PresentRenderNode::TransitionResourcesToProperState(VkCommandBuffer primary_command_buffer) {
     std::shared_ptr<RenderGraph> render_graph = m_render_graph.lock();
     //size_t my_node_id = render_graph->getTopologicalIdentity(shared_from_this());
 
@@ -80,7 +80,7 @@ void PresentRenderNode::TransitionResourcesToProperState(std::shared_ptr<Command
         const std::shared_ptr<ImageBufferConfig>& current_resource_cfg = current_resource->getImageConfig();
         size_t last_rw_by_node_id = render_graph->getLastRWIdentity(shared_from_this(), read_resource_gloabal_name);
         if(last_rw_by_node_id == RenderGraph::NO_ID && m_present_count == 0u && current_resource_cfg->getAfterInitLayout() != VK_IMAGE_LAYOUT_PRESENT_SRC_KHR) {
-            current_resource->changeLayout(command_buffer, current_resource_cfg->getAfterInitLayout(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+            current_resource->changeLayout(primary_command_buffer, current_resource_cfg->getAfterInitLayout(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
             continue;
         }
         if(last_rw_by_node_id == RenderGraph::NO_ID) continue;
@@ -95,7 +95,7 @@ void PresentRenderNode::TransitionResourcesToProperState(std::shared_ptr<Command
             if(is_read) {
                 VkImageLayout rw_image_layout = last_rw_graphics_node_cfg->getUpdateMetadata(bind_name)->read_image_layout;
                 if(rw_image_layout != VK_IMAGE_LAYOUT_PRESENT_SRC_KHR) {
-                    current_resource->changeLayout(command_buffer, rw_image_layout, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+                    current_resource->changeLayout(primary_command_buffer, rw_image_layout, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
                 }
             }
             else {
@@ -105,7 +105,7 @@ void PresentRenderNode::TransitionResourcesToProperState(std::shared_ptr<Command
                 const std::shared_ptr<RenderPassConfig>& last_rw_renderpass_cfg = last_rw_renderpass->getRenderPassConfig();
                 const VkAttachmentDescription& last_rw_renderpass_att_desc = last_rw_renderpass_cfg->getAttachmentDescription(bind_name);
                 if(last_rw_renderpass_att_desc.finalLayout != VK_IMAGE_LAYOUT_PRESENT_SRC_KHR) {
-                    current_resource->changeLayout(command_buffer, last_rw_renderpass_att_desc.finalLayout, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+                    current_resource->changeLayout(primary_command_buffer, last_rw_renderpass_att_desc.finalLayout, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
                 }
             }
         }

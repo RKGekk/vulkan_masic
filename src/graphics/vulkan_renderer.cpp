@@ -17,6 +17,7 @@
 #include "api/vulkan_shader.h"
 #include "api/vulkan_shaders_manager.h"
 #include "api/vulkan_semaphores_manager.h"
+#include "pod/composite_command_batch.h"
 #include "pod/render_node.h"
 #include "pod/present_render_node.h"
 #include "pod/graphics_render_node.h"
@@ -108,16 +109,15 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
         per_frame->out_color_image = m_resources_manager->create_image("render_target_color"s + std::to_string(i), "render_target_color_resource");
         per_frame->out_depth_image = m_resources_manager->create_image("render_target_depth"s + std::to_string(i), "render_target_depth_resource");
 
-        // per_frame->swapchain_available_sem = m_semaphore_manager->getSemaphore("swapchain_"s + std::to_string(i) + "_available_sem");
-        // per_frame->swapchain_available_fen = m_fence_manager->getFence("swapchain_"s + std::to_string(i) + "_available_fen"s);
-        // vkResetFences(m_device->getDevice(), 1u, &per_frame->swapchain_available_fen);
+        per_frame->swapchain_available_sem = m_semaphore_manager->getSemaphore("swapchain_"s + std::to_string(i) + "_available_sem");
+        per_frame->swapchain_available_fen = m_fence_manager->getFence("swapchain_"s + std::to_string(i) + "_available_fen"s);
+        per_frame->cmd_submit_finish_signal_sem = m_semaphore_manager->getSemaphore("submit_finish_"s + std::to_string(i) + "_signal_sem");
+        per_frame->cmd_submit_finish_fence = m_fence_manager->getFence("submit_finish_"s + std::to_string(i) + "_fen"s);
 
         per_frame->render_graph = std::make_shared<RenderGraph>();
         per_frame->render_graph->init(m_device, window);
 
         per_frame->init(m_device, i);
-        per_frame->command_buffer = m_command_manager->allocCommandBufferPtr(PoolTypeEnum::GRAPICS);
-        per_frame->cmd_submit_finish_fence = per_frame->command_buffer->getRenderFence();
         
         per_frame->present_render_node = std::make_shared<PresentRenderNode>();
         per_frame->present_render_node->init("PresentRenderNode"s + std::to_string(i), i,  m_device, "presenter"s, false, per_frame->render_graph);
@@ -207,6 +207,7 @@ void VulkanRenderer::beginFrame(unsigned image_index) {
     vkWaitForFences(m_device->getDevice(), 1u, &(m_per_frame[image_index]->cmd_submit_finish_fence), VK_TRUE, UINT64_MAX);
     vkResetFences(m_device->getDevice(), 1u, &(m_per_frame[image_index]->cmd_submit_finish_fence));
 
+
     m_per_frame[image_index]->command_buffer->reset();
     m_per_frame[image_index]->cmd_submit_finish_signal_sem = m_per_frame[image_index]->command_buffer->getInProgressSemaphore();
     m_per_frame[image_index]->cmd_submit_finish_fence = m_per_frame[image_index]->command_buffer->getRenderFence();
@@ -214,43 +215,55 @@ void VulkanRenderer::beginFrame(unsigned image_index) {
     m_per_frame[image_index]->present_render_node->addWaitSemaphore(m_per_frame[image_index]->cmd_submit_finish_signal_sem);
 }
 
-void VulkanRenderer::recordCommandBuffer(std::shared_ptr<CommandBatch>& command_buffer, unsigned image_index) {
-    VulkanCommandManager::beginCommandBuffer(command_buffer);
+void VulkanRenderer::recordCommandBuffer(unsigned image_index) {
+    using namespace std::literals;
+
+    const std::shared_ptr<PerFrame>& per_frame_data = m_per_frame[image_index];
 
     const std::vector<std::shared_ptr<DependencyLevel>>& dependency_levels = m_per_frame[image_index]->render_graph->getDependencyLevels();
     for (auto dependency_it = dependency_levels.begin(); dependency_it != dependency_levels.end(); ++dependency_it) {
         const std::shared_ptr<DependencyLevel>& dependency_lvl = *dependency_it;
 
-        for (const auto& framebuffer_name : dependency_lvl->getFramebuffers()) {
-            for(const auto& renderpass_name : dependency_lvl->getRenderpasses(framebuffer_name)) {
+        for (const auto&[rp_order, fb_set] : dependency_lvl->getOrderToFBmap()) {
+            for(const std::shared_ptr<VulkanFramebuffer>& fb : fb_set) {
 
-                const std::shared_ptr<VulkanPipeline>& params = *dependency_lvl->getPipelines(renderpass_name).begin();
-                const std::shared_ptr<GraphicsRenderNode>& node_params = dependency_lvl->getGraphicsNodes(params->getPipelineConfig()->getName())[0];
-                const std::shared_ptr<VulkanFramebuffer>& framebuffer_ptr = node_params->getFB();
+                if(!per_frame_data->fb_to_command_buffer_map.contains(fb)) {
+                    std::string command_batch_name = fb->getName() + "_composite_command_batch"s + std::to_string(image_index);
+                    std::shared_ptr<CompositeCommandBatch> command_batch = std::make_shared<CompositeCommandBatch>();
+                    command_batch->init(fb, image_index, 0u, m_command_manager, dependency_lvl->getFBtoNodeMap().at(fb).size(), command_batch_name);
+                    per_frame_data->fb_to_command_buffer_map[fb] = std::move(command_batch);
+                }
 
-                VkRenderPassBeginInfo renderpass_info{};
-                renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-                renderpass_info.renderPass = framebuffer_ptr->getRenderpass()->getRenderPass();
-                renderpass_info.framebuffer = framebuffer_ptr->getFramebuffer();
-                renderpass_info.renderArea.offset = framebuffer_ptr->getFramebufferConfig()->getOffset2D();
-                renderpass_info.renderArea.extent = framebuffer_ptr->getFramebufferConfig()->getExtent2D();
-                renderpass_info.clearValueCount = framebuffer_ptr->getRenderpass()->getRenderPassConfig()->getClearValues().size();
-                renderpass_info.pClearValues = framebuffer_ptr->getRenderpass()->getRenderPassConfig()->getClearValues().data();
-
-                vkCmdBeginRenderPass(command_buffer.getCommandBufer(), &renderpass_info, VK_SUBPASS_CONTENTS_INLINE);
+                const std::shared_ptr<CompositeCommandBatch>& cmd_batch = per_frame_data->fb_to_command_buffer_map[fb];
+                cmd_batch->beginCommandBuffer(
+                    fb->getRenderpass()->getRenderPassConfig()->getSubpassName(0u),
+                    [&gnode = graphics_node]
+                    (VkCommandBuffer primary_command_buffer){
+                        gnode->TransitionResourcesToProperState(primary_command_buffer);
+                    }
+                );
 
                 for(const auto& pipeline : dependency_lvl->getPipelines(renderpass_name)) {
                     for(const std::shared_ptr<GraphicsRenderNode>& graphics_node : dependency_lvl->getGraphicsNodes(pipeline->getPipelineConfig()->getName())) {
-                        graphics_node->render(command_buffer);
+
+                        if(!per_frame_data->render_node_to_command_buffer_map.contains(graphics_node)) {
+                            per_frame_data->render_node_to_command_buffer_map[graphics_node] = std::make_shared<CompositeCommandBatch>();
+                            const std::shared_ptr<CompositeCommandBatch>& cmd_batch = per_frame_data->render_node_to_command_buffer_map[graphics_node];
+                            const std::shared_ptr<VulkanFramebuffer>& fb = graphics_node->getFB();
+                            cmd_batch->init(fb, image_index, 0u, m_command_manager, 1u, graphics_node->getGraphicsRenderNodeConfig()->getName() + "_command_batch"s + std::to_string(image_index));
+                        }
+
+                        
+                        graphics_node->render(cmd_batch->getSecondaryCommandBuffer()->getCommandBufer(0u));
+                        cmd_batch->endCommandBuffer();
                     }
+
                 }
-                
-                vkCmdEndRenderPass(command_buffer.getCommandBufer());
             }
         }
     }
 
-    VulkanCommandManager::endCommandBuffer(command_buffer);
+    
 }
 
 void VulkanRenderer::drawFrame(unsigned image_index) {

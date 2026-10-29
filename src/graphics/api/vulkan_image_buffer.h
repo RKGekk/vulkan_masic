@@ -45,6 +45,7 @@ public:
 
     void changeLayout(VkImageLayout old_layout, VkImageLayout new_layout);
     void changeLayout(std::shared_ptr<CommandBatch>& command_buffer, VkImageLayout old_layout, VkImageLayout new_layout);
+    void changeLayout(VkCommandBuffer command_buffer, VkImageLayout old_layout, VkImageLayout new_layout);
 
     const ResourceName& getName() const override;
     Type getType() const override;

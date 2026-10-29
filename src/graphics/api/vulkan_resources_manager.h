@@ -23,6 +23,7 @@ class FramebufferConfig;
 class WindowSurface;
 class VulkanPushConstant;
 class PushConstantConfig;
+class VulkanRenderPass;
 
 class VulkanResourcesManager {
 public:
@@ -49,9 +50,9 @@ public:
     void detete_push_buffer(const std::string& const_name);
     void delete_push_buffer(std::shared_ptr<VulkanPushConstant> const_ptr);
 
-    const std::shared_ptr<VulkanImageBuffer>& getImageResource(const std::string& resource_global_name);
-    const std::shared_ptr<VulkanBuffer>& getBufferResource(const std::string& resource_global_name);
-    const std::shared_ptr<VulkanPushConstant>& getPushConstantResource(const std::string& resource_global_name);
+    const std::shared_ptr<VulkanImageBuffer>& getImageResource(const std::string& resource_global_name) const;
+    const std::shared_ptr<VulkanBuffer>& getBufferResource(const std::string& resource_global_name) const;
+    const std::shared_ptr<VulkanPushConstant>& getPushConstantResource(const std::string& resource_global_name) const;
     std::shared_ptr<RenderResource> getResource(const std::string& resource_global_name);
     bool hasResource(const std::string& resource_global_name) const;
 
@@ -59,7 +60,9 @@ public:
     const std::shared_ptr<BufferConfig>& getBufferConfigTemplate(const std::string& template_name) const;
     const std::shared_ptr<PushConstantConfig>& getPushConstantConfigTemplate(const std::string& template_name) const;
 
-    const std::shared_ptr<FramebufferConfig>& getFramebufferConfig(const std::string& framebuffer_name) const;
+    const std::shared_ptr<FramebufferConfig>& getFramebufferConfig(const std::string& framebuffer_cfg_name) const;
+    std::shared_ptr<VulkanFramebuffer> create_frame_buffer(const std::function<const std::shared_ptr<RenderResource>&(const std::string&)>& attach_map, std::shared_ptr<VulkanRenderPass> render_pass_ptr, std::string framebuffer_name, std::string framebuffer_type_name);
+    const std::shared_ptr<VulkanFramebuffer>& get_frame_buffer(const std::string& fb_global_name) const;
 
 protected:
     std::shared_ptr<VulkanDevice> m_device;
@@ -75,4 +78,5 @@ protected:
     std::unordered_map<std::string, std::shared_ptr<VulkanPushConstant>> m_push_constant_map;
 
     std::unordered_map<std::string, std::shared_ptr<FramebufferConfig>> m_framebuffer_config_map;
+    std::unordered_map<std::string, std::shared_ptr<VulkanFramebuffer>> m_framebuffer_buffer_map;
 };

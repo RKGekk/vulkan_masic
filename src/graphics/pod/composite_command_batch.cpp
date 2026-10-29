@@ -7,13 +7,13 @@
 #include "framebuffer_config.h"
 #include "render_pass_config.h"
 
-bool CompositeCommandBatch::init(std::shared_ptr<VulkanFramebuffer> fb, const std::shared_ptr<VulkanCommandManager>& cmd_mgr, size_t command_buffer_count, std::string name) {
+bool CompositeCommandBatch::init(std::shared_ptr<VulkanFramebuffer> fb, size_t frame_id, size_t thread_id, const std::shared_ptr<VulkanCommandManager>& cmd_mgr, size_t command_buffer_count, std::string name) {
     using namespace std::literals;
 
     m_name = std::move(name);
     m_frame_buffer = std::move(fb);
-    m_primary_command_buffer = cmd_mgr->allocCommandBufferPtr(PoolTypeEnum::GRAPICS, VK_COMMAND_BUFFER_LEVEL_PRIMARY, 1u, m_name + "_primary"s);
-    m_secondary_command_buffer = cmd_mgr->allocCommandBufferPtr(PoolTypeEnum::GRAPICS, VK_COMMAND_BUFFER_LEVEL_SECONDARY, command_buffer_count, m_name + "_secondary"s);
+    m_primary_command_buffer = cmd_mgr->allocCommandBufferPtr(PoolTypeEnum::GRAPICS, VK_COMMAND_BUFFER_LEVEL_PRIMARY, frame_id, thread_id, 1u, m_name + "_primary"s);
+    m_secondary_command_buffer = cmd_mgr->allocCommandBufferPtr(PoolTypeEnum::GRAPICS, VK_COMMAND_BUFFER_LEVEL_SECONDARY, frame_id, thread_id, command_buffer_count, m_name + "_secondary"s);
 
     return true;
 }
