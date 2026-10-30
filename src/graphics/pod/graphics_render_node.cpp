@@ -18,6 +18,8 @@
 
 #include <utility>
 
+const GraphicsRenderNode::BindFlags GraphicsRenderNode::ALL_BIND_FLAGS = GraphicsRenderNode::BindFlags::Pipeline | GraphicsRenderNode::BindFlags::PushConstants | GraphicsRenderNode::BindFlags::Viewport | GraphicsRenderNode::BindFlags::Scissor | GraphicsRenderNode::BindFlags::DescriptorSets | GraphicsRenderNode::BindFlags::VertexIndexInstanceBuffers | GraphicsRenderNode::BindFlags::Draw;
+
 bool GraphicsRenderNode::init(std::string render_node_name, unsigned frame_index, std::shared_ptr<VulkanDevice> device, VkCommandBuffer secondary_command_buffer, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) {
     m_render_node_name = std::move(render_node_name);
     m_frame_index = frame_index;

@@ -26,6 +26,7 @@ public:
         VertexIndexInstanceBuffers = 1 << 5, // 0x20
         Draw = 1 << 6 // 0x40
     };
+    const static BindFlags ALL_BIND_FLAGS;
 
     virtual bool init(std::string render_node_name, unsigned frame_index, std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) override;
     virtual void destroy() override;
@@ -70,4 +71,14 @@ constexpr GraphicsRenderNode::BindFlags operator&(GraphicsRenderNode::BindFlags 
 
 constexpr bool has_flag(GraphicsRenderNode::BindFlags mask, GraphicsRenderNode::BindFlags flag) {
     return (mask & flag) == flag;
+}
+
+constexpr GraphicsRenderNode::BindFlags operator~(GraphicsRenderNode::BindFlags val) {
+    return static_cast<GraphicsRenderNode::BindFlags>(~static_cast<uint32_t>(val));
+}
+
+// Optional: Overload the compound AND assignment operator for convenience
+inline GraphicsRenderNode::BindFlags& operator&=(GraphicsRenderNode::BindFlags& lhs, GraphicsRenderNode::BindFlags rhs) {
+    lhs = lhs & rhs;
+    return lhs;
 }

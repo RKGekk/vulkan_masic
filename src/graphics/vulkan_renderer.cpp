@@ -237,33 +237,23 @@ void VulkanRenderer::recordCommandBuffer(unsigned image_index) {
                 const std::shared_ptr<CompositeCommandBatch>& cmd_batch = per_frame_data->fb_to_command_buffer_map[fb];
                 cmd_batch->beginCommandBuffer(
                     fb->getRenderpass()->getRenderPassConfig()->getSubpassName(0u),
-                    [&gnode = graphics_node]
+                    [&dlvl = dependency_lvl, &fbuff = fb]
                     (VkCommandBuffer primary_command_buffer){
-                        gnode->TransitionResourcesToProperState(primary_command_buffer);
+                        dlvl->TransitionResourcesToProperState(primary_command_buffer, fbuff);
                     }
                 );
 
-                for(const auto& pipeline : dependency_lvl->getPipelines(renderpass_name)) {
-                    for(const std::shared_ptr<GraphicsRenderNode>& graphics_node : dependency_lvl->getGraphicsNodes(pipeline->getPipelineConfig()->getName())) {
-
-                        if(!per_frame_data->render_node_to_command_buffer_map.contains(graphics_node)) {
-                            per_frame_data->render_node_to_command_buffer_map[graphics_node] = std::make_shared<CompositeCommandBatch>();
-                            const std::shared_ptr<CompositeCommandBatch>& cmd_batch = per_frame_data->render_node_to_command_buffer_map[graphics_node];
-                            const std::shared_ptr<VulkanFramebuffer>& fb = graphics_node->getFB();
-                            cmd_batch->init(fb, image_index, 0u, m_command_manager, 1u, graphics_node->getGraphicsRenderNodeConfig()->getName() + "_command_batch"s + std::to_string(image_index));
-                        }
-
-                        
-                        graphics_node->render(cmd_batch->getSecondaryCommandBuffer()->getCommandBufer(0u));
-                        cmd_batch->endCommandBuffer();
+                for(const auto& pipeline : dependency_lvl->getFBtoPipelineMap().at(fb)) {
+                    GraphicsRenderNode::BindFlags pipeline_bind_flags = GraphicsRenderNode::ALL_BIND_FLAGS;
+                    for(const std::shared_ptr<GraphicsRenderNode>& graphics_node : dependency_lvl->getPipelineToNodeMap().at(pipeline)) {
+                        graphics_node->render(cmd_batch->getSecondaryCommandBuffer()->getCommandBufer(0u), static_cast<uint32_t>(pipeline_bind_flags));
+                        pipeline_bind_flags &= ~GraphicsRenderNode::BindFlags::Pipeline;
                     }
-
                 }
+                cmd_batch->endCommandBuffer();
             }
         }
     }
-
-    
 }
 
 void VulkanRenderer::drawFrame(unsigned image_index) {

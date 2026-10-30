@@ -23,14 +23,19 @@ public:
 
     const std::map<size_t, std::unordered_set<std::shared_ptr<VulkanFramebuffer>>>& getOrderToFBmap() const;
     const std::unordered_map<std::shared_ptr<VulkanFramebuffer>, std::unordered_set<std::shared_ptr<GraphicsRenderNode>>>& getFBtoNodeMap() const;
+    const std::unordered_map<std::shared_ptr<VulkanFramebuffer>, std::unordered_set<std::shared_ptr<VulkanPipeline>>>& getFBtoPipelineMap() const;
+    const std::unordered_map<std::shared_ptr<VulkanPipeline>, std::unordered_set<std::shared_ptr<GraphicsRenderNode>>>& getPipelineToNodeMap() const;
 
     int getLevel() const;
     void addNode(std::shared_ptr<RenderNode> node);
     void TransitionResourcesToProperState(VkCommandBuffer primary_command_buffer) const;
+    void TransitionResourcesToProperState(VkCommandBuffer primary_command_buffer, const std::shared_ptr<VulkanFramebuffer>& fb) const;
 
 private:
     std::unordered_set<std::shared_ptr<RenderNode>> m_nodes;
     std::map<size_t, std::unordered_set<std::shared_ptr<VulkanFramebuffer>>> m_order_to_fb_map;
     std::unordered_map<std::shared_ptr<VulkanFramebuffer>, std::unordered_set<std::shared_ptr<GraphicsRenderNode>>> m_fb_to_node_map;
+    std::unordered_map<std::shared_ptr<VulkanFramebuffer>, std::unordered_set<std::shared_ptr<VulkanPipeline>>> m_fb_to_pipeline_map;
+    std::unordered_map<std::shared_ptr<VulkanPipeline>, std::unordered_set<std::shared_ptr<GraphicsRenderNode>>> m_pipeline_to_node_map;
     int m_level;
 };

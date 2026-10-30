@@ -15,7 +15,8 @@ bool VulkanCommandManager::init(VkPhysicalDevice physical_device, VkDevice logic
     vkGetDeviceQueue(m_device, m_queue_family_indices.getFamilyIdx(PoolTypeEnum::TRANSFER).value(), 0u, &m_transfer_queue);
 
     m_max_frames = frames_in_flight;
-    createCommandPools(frames_in_flight, number_of_threads);
+    m_max_threads = number_of_threads;
+    createCommandPools(frames_in_flight, m_max_threads);
 
     return true;
 }

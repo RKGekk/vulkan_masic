@@ -22,6 +22,14 @@ const std::map<size_t, std::unordered_set<std::shared_ptr<VulkanFramebuffer>>>& 
 const std::unordered_map<std::shared_ptr<VulkanFramebuffer>,  std::unordered_set<std::shared_ptr<GraphicsRenderNode>>>& DependencyLevel::getFBtoNodeMap() const {
     return m_fb_to_node_map;
 }
+
+const std::unordered_map<std::shared_ptr<VulkanFramebuffer>, std::unordered_set<std::shared_ptr<VulkanPipeline>>>& DependencyLevel::getFBtoPipelineMap() const {
+    return m_fb_to_pipeline_map;
+}
+
+const std::unordered_map<std::shared_ptr<VulkanPipeline>, std::unordered_set<std::shared_ptr<GraphicsRenderNode>>>& DependencyLevel::getPipelineToNodeMap() const {
+    return m_pipeline_to_node_map;
+}
     
 int DependencyLevel::getLevel() const {
     return m_level;
@@ -34,12 +42,21 @@ void DependencyLevel::addNode(std::shared_ptr<RenderNode> node) {
     if(!graphics_node) return;
 
     std::shared_ptr<VulkanFramebuffer> framebuffer = graphics_node->getFB();
+    std::shared_ptr<VulkanPipeline> pipeline = graphics_node->getPipeline();
     m_order_to_fb_map[framebuffer->getRenderpass()->getRenderPassConfig()->getPriority()].insert(framebuffer);
     m_fb_to_node_map[framebuffer].insert(graphics_node);
+    m_fb_to_pipeline_map[framebuffer].insert(pipeline);
+    m_pipeline_to_node_map[pipeline].insert(graphics_node);
 }
 
 void DependencyLevel::TransitionResourcesToProperState(VkCommandBuffer primary_command_buffer) const {
     for(const std::shared_ptr<RenderNode>& render_node : m_nodes) {
+        render_node->TransitionResourcesToProperState(primary_command_buffer);
+    }
+}
+
+void DependencyLevel::TransitionResourcesToProperState(VkCommandBuffer primary_command_buffer, const std::shared_ptr<VulkanFramebuffer>& fb) const {
+    for(const std::shared_ptr<RenderNode>& render_node : m_fb_to_node_map.at(fb)) {
         render_node->TransitionResourcesToProperState(primary_command_buffer);
     }
 }

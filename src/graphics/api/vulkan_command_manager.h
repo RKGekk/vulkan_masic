@@ -55,6 +55,7 @@ private:
     VkDevice m_device;
     std::unordered_map<PoolTypeEnum, CommandBufferPools> m_command_pools;
     int m_max_frames;
+    int m_max_threads;
 
     QueueFamilyIndices m_queue_family_indices;
     VkQueue m_graphics_queue = VK_NULL_HANDLE;
