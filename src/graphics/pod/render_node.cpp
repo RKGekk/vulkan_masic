@@ -227,3 +227,11 @@ unsigned RenderNode::getFrameNumber() const {
 const std::string& RenderNode::getRenderNodeName() const {
     return m_render_node_name;
 }
+
+bool RenderNode::isDirtyRead() const {
+    return m_dirty_read_dependency;
+}
+
+bool RenderNode::isDirtyWrite() const {
+    return m_dirty_write_dependency;
+}

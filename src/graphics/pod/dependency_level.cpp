@@ -6,6 +6,7 @@
 #include "framebuffer_config.h"
 #include "render_pass_config.h"
 #include "pipeline_config.h"
+#include "composite_command_batch.h"
 #include "../api/vulkan_framebuffer.h"
 #include "../api/vulkan_pipeline.h"
 #include "../api/vulkan_render_pass.h"
@@ -13,7 +14,7 @@
 #include <algorithm>
 #include <utility>
 
-DependencyLevel::DependencyLevel(int level) : m_level(level) {}
+DependencyLevel::DependencyLevel(int level, uint32_t image_index) : m_level(level), m_image_index(image_index) {}
 
 const std::map<size_t, std::unordered_set<std::shared_ptr<VulkanFramebuffer>>>& DependencyLevel::getOrderToFBmap() const {
     return m_order_to_fb_map;
@@ -59,4 +60,79 @@ void DependencyLevel::TransitionResourcesToProperState(VkCommandBuffer primary_c
     for(const std::shared_ptr<RenderNode>& render_node : m_fb_to_node_map.at(fb)) {
         render_node->TransitionResourcesToProperState(primary_command_buffer);
     }
+}
+
+void DependencyLevel::recordCommandBuffer() {
+    using namespace std::literals;
+
+    for (const auto&[rp_order, fb_set] : m_order_to_fb_map) {
+        for(const std::shared_ptr<VulkanFramebuffer>& fb : fb_set) {
+
+            if(!m_fb_to_command_buffer_map.contains(fb)) {
+                std::string command_batch_name = fb->getName() + "_composite_command_batch"s + std::to_string(m_image_index);
+                std::shared_ptr<CompositeCommandBatch> command_batch = std::make_shared<CompositeCommandBatch>();
+                command_batch->init(fb, m_image_index, 0u, m_fb_to_pipeline_map.at(fb).size(), command_batch_name);
+                m_fb_to_command_buffer_map[fb] = std::move(command_batch);
+            }
+
+            const std::shared_ptr<CompositeCommandBatch>& cmd_batch = m_fb_to_command_buffer_map[fb];
+            cmd_batch->beginCommandBuffer(
+                fb->getRenderpass()->getRenderPassConfig()->getSubpassName(0u),
+                [this, &fbuff = fb]
+                (VkCommandBuffer primary_command_buffer){
+                    TransitionResourcesToProperState(primary_command_buffer, fbuff);
+                }
+            );
+
+            size_t pipeline_num = 0u;
+            for(const auto& pipeline : dependency_lvl->getFBtoPipelineMap().at(fb)) {
+                GraphicsRenderNode::BindFlags pipeline_bind_flags = pipeline_bind_all_flags;
+                for(const std::shared_ptr<GraphicsRenderNode>& graphics_node : dependency_lvl->getPipelineToNodeMap().at(pipeline)) {
+                    graphics_node->render(cmd_batch->getSecondaryCommandBuffer()->getCommandBufer(pipeline_num), static_cast<uint32_t>(pipeline_bind_flags));
+                    pipeline_bind_flags = no_pipeline_bind_flags;
+                }
+                ++pipeline_num;
+            }
+            cmd_batch->endCommandBuffer();
+        }
+    }
+}
+
+void DependencyLevel::beginFrame() {
+    using namespace std::literals;
+
+    for (const auto&[rp_order, fb_set] : m_order_to_fb_map) {
+        for(const std::shared_ptr<VulkanFramebuffer>& fb : fb_set) {
+
+            if(!m_fb_to_command_buffer_map.contains(fb)) {
+                std::string command_batch_name = fb->getName() + "_composite_command_batch"s + std::to_string(m_image_index);
+                std::shared_ptr<CompositeCommandBatch> command_batch = std::make_shared<CompositeCommandBatch>();
+                command_batch->init(fb, m_image_index, 0u, m_fb_to_pipeline_map.at(fb).size(), command_batch_name);
+                m_fb_to_command_buffer_map[fb] = std::move(command_batch);
+            }
+
+            const std::shared_ptr<CompositeCommandBatch>& cmd_batch = m_fb_to_command_buffer_map[fb];
+            cmd_batch->beginCommandBuffer(
+                fb->getRenderpass()->getRenderPassConfig()->getSubpassName(0u),
+                [this, &fbuff = fb]
+                (VkCommandBuffer primary_command_buffer){
+                    TransitionResourcesToProperState(primary_command_buffer, fbuff);
+                }
+            );
+        }
+    }
+}
+
+bool DependencyLevel::isDirtyWrite(const std::shared_ptr<VulkanFramebuffer>& fb) const {
+    for(const std::shared_ptr<GraphicsRenderNode>& gnode : m_fb_to_node_map.at(fb)) {
+        if (gnode->isDirtyWrite()) return true;
+    }
+    return false;
+}
+
+bool DependencyLevel::isDirtyRead(const std::shared_ptr<VulkanPipeline>& pipeline) const {
+    for(const std::shared_ptr<GraphicsRenderNode>& gnode : m_fb_to_pipeline_map.at(pipeline)) {
+        if (gnode->isDirtyRead()) return true;
+    }
+    return false;
 }

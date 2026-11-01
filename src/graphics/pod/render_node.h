@@ -109,6 +109,9 @@ public:
     unsigned getFrameNumber() const;
     const std::string& getRenderNodeName() const;
 
+    bool isDirtyRead() const;
+    bool isDirtyWrite() const;
+
 protected:
     std::string m_render_node_name;
     unsigned m_frame_index;

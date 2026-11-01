@@ -65,7 +65,6 @@ struct PerFrame {
     std::shared_ptr<VulkanSemaphore> cmd_submit_finish_signal_sem;
     std::shared_ptr<VulkanFence> cmd_submit_finish_fence;
 
-	std::unordered_map<std::shared_ptr<VulkanFramebuffer>, std::shared_ptr<CompositeCommandBatch>> fb_to_command_buffer_map;
     std::vector<VkCommandBuffer> submission_buffers;
 
     std::shared_ptr<PresentRenderNode> present_render_node;

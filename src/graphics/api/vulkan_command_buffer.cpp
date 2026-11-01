@@ -172,9 +172,14 @@ const std::string& CommandBatch::getName() const {
     return m_name;
 }
 
-void CommandBatch::reset() const {
-    for(VkCommandBuffer buffer : m_command_buffers) {
-        vkResetCommandBuffer(buffer, 0u);
-        //vkResetCommandBuffer(buffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
+void CommandBatch::reset(size_t index, VkCommandBufferResetFlags flags) const {
+    if(index == SELECT_ALL_BUFFERS) {
+        for(VkCommandBuffer buffer : m_command_buffers) {
+            vkResetCommandBuffer(buffer, flags);
+            //vkResetCommandBuffer(buffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
+        }
+    }
+    else {
+        vkResetCommandBuffer(m_command_buffers.at(index), flags);
     }
 }

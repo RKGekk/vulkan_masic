@@ -21,6 +21,8 @@ public:
     struct CommandBufferPools {
         std::vector<VkCommandPool> primary_buffer_command_pools;
         std::vector<VkCommandPool> secondary_buffer_command_pools;
+        std::vector<bool> primary_cmd_pool_clean;
+        std::vector<bool> secondary_cmd_pool_clean;
     };
 
     struct BatchWaitInfo {
@@ -36,7 +38,9 @@ public:
     const QueueFamilyIndices& getQueueFamilyIndices() const;
     VkSharingMode getBufferSharingMode() const;
     const CommandBufferPools& getCommandPool(PoolTypeEnum pool_type = PoolTypeEnum::GRAPICS) const;
-    void resetGfxPool(size_t frame_id) const;
+    VkCommandPoolCreateFlags getPrimaryCmdPoolFlags() const;
+    VkCommandPoolCreateFlags getSecondaryCmdPoolFlags() const;
+    void resetPool(size_t frame_id, PoolTypeEnum pool_type = PoolTypeEnum::GRAPICS, VkCommandBufferLevel lvl = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
     VkQueue getQueue(PoolTypeEnum pool_type = PoolTypeEnum::GRAPICS) const;
 
     std::shared_ptr<CommandBatch> allocCommandBufferPtr(PoolTypeEnum pool_type, VkCommandBufferLevel command_level, size_t frame_id, size_t thread_id, size_t buffers_count = 1u, std::string name = "no_name");
@@ -54,6 +58,9 @@ private:
 
     VkDevice m_device;
     std::unordered_map<PoolTypeEnum, CommandBufferPools> m_command_pools;
+    VkCommandPoolCreateFlags m_primary_cmd_pool_flags;
+    VkCommandPoolCreateFlags m_secondary_cmd_pool_flags;
+
     int m_max_frames;
     int m_max_threads;
 

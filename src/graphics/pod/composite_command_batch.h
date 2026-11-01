@@ -19,7 +19,7 @@ class CompositeCommandBatch {
 public:
     using ResourcesStateTransitionFn = std::function<void(VkCommandBuffer)>;
 
-    bool init(std::shared_ptr<VulkanFramebuffer> fb, size_t frame_id, size_t thread_id, const std::shared_ptr<VulkanCommandManager>& cmd_mgr, size_t command_buffer_count, std::string name);
+    bool init(std::shared_ptr<VulkanFramebuffer> fb, size_t frame_id, size_t thread_id, size_t command_buffer_count, std::string name);
     void destroy();
 
     const std::shared_ptr<CommandBatch>& getPrimaryCommandBuffer() const;
@@ -27,12 +27,20 @@ public:
 
     const std::shared_ptr<VulkanFramebuffer>& getFrameBuffer() const;
 
-    void beginCommandBuffer(const std::string& subpass_name, const ResourcesStateTransitionFn& transition_fn) const;
-    void endCommandBuffer() const;
+    void beginPrimaryCommandBuffer(const ResourcesStateTransitionFn& transition_fn);
+    void beginSecondaryCommandBuffer(const std::string& subpass_name, size_t index = CommandBatch::SELECT_ALL_BUFFERS);
+    void endPrimaryCommandBuffer();
+    void endSecondaryCommandBuffer(size_t index = CommandBatch::SELECT_ALL_BUFFERS);
+    void resetCommandBuffer(VkCommandBufferLevel lvl, size_t index = 0u);
+
+    bool isRecorded() const;
 
 private:
     std::string m_name;
+    bool m_recorded_primary;
+    std::vector<bool> m_recorded_secondary;
     std::shared_ptr<CommandBatch> m_primary_command_buffer;
     std::shared_ptr<CommandBatch> m_secondary_command_buffer;
     std::shared_ptr<VulkanFramebuffer> m_frame_buffer;
+    std::shared_ptr<VulkanCommandManager> m_command_manager;
 };
