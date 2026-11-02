@@ -26,6 +26,7 @@ public:
     const std::unordered_map<std::shared_ptr<VulkanFramebuffer>, std::unordered_set<std::shared_ptr<GraphicsRenderNode>>>& getFBtoNodeMap() const;
     const std::unordered_map<std::shared_ptr<VulkanFramebuffer>, std::unordered_set<std::shared_ptr<VulkanPipeline>>>& getFBtoPipelineMap() const;
     const std::unordered_map<std::shared_ptr<VulkanPipeline>, std::unordered_set<std::shared_ptr<GraphicsRenderNode>>>& getPipelineToNodeMap() const;
+    const std::unordered_map<std::shared_ptr<VulkanFramebuffer>, std::shared_ptr<CompositeCommandBatch>> getFBtoCmdBufferMap() const;
 
     int getLevel() const;
     void addNode(std::shared_ptr<RenderNode> node);

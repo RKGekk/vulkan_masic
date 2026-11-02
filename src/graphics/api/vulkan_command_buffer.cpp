@@ -7,8 +7,12 @@
 #include "vulkan_semaphores_manager.h"
 #include "vulkan_fence.h"
 #include "vulkan_semaphore.h"
+#include "vulkan_command_manager.h"
+#include "../vulkan_renderer.h"
 
-CommandBatch::CommandBatch(VkDevice device, std::string name) : m_device(device), m_name(name) {}
+CommandBatch::CommandBatch(VkDevice device, std::string name) : m_device(device), m_name(name) {
+    m_cmd_mgr = Application::Get().GetRenderer().getCommandManager();
+}
 
 bool CommandBatch::init(std::vector<VkCommandBuffer> command_buffers, std::shared_ptr<CommandBatchInfo> batch_info) {
     m_batch_info = std::move(batch_info);
@@ -98,6 +102,8 @@ void CommandBatch::addCommandBufer(std::vector<VkCommandBuffer> command_buffers)
 }
 
 void CommandBatch::beginCommandBuffer(VkCommandBufferBeginInfo* p_begin_info, size_t index) const {
+    m_cmd_mgr->setCommandPoolDirty(m_batch_info->command_level, m_batch_info->frame_id, m_batch_info->thread_id);
+
     if (p_begin_info) {
         if(index == SELECT_ALL_BUFFERS) {
             size_t sz = m_command_buffers.size();

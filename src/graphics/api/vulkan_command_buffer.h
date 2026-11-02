@@ -15,6 +15,7 @@ class VulkanSemaphoresManager;
 class VulkanFenceManager;
 class VulkanSemaphore;
 class VulkanFence;
+class VulkanCommandManager;
 
 class CommandBatch {
 public:
@@ -58,6 +59,7 @@ public:
 
 private:
     VkDevice m_device;
+    std::shared_ptr<VulkanCommandManager> m_cmd_mgr;
 
     std::string m_name;
     std::shared_ptr<CommandBatchInfo> m_batch_info;

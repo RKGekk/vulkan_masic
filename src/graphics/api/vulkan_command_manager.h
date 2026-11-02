@@ -38,6 +38,7 @@ public:
     const QueueFamilyIndices& getQueueFamilyIndices() const;
     VkSharingMode getBufferSharingMode() const;
     const CommandBufferPools& getCommandPool(PoolTypeEnum pool_type = PoolTypeEnum::GRAPICS) const;
+    void setCommandPoolDirty(VkCommandBufferLevel lvl, size_t frame_id, size_t thread_id);
     VkCommandPoolCreateFlags getPrimaryCmdPoolFlags() const;
     VkCommandPoolCreateFlags getSecondaryCmdPoolFlags() const;
     void resetPool(size_t frame_id, PoolTypeEnum pool_type = PoolTypeEnum::GRAPICS, VkCommandBufferLevel lvl = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
@@ -46,6 +47,7 @@ public:
     std::shared_ptr<CommandBatch> allocCommandBufferPtr(PoolTypeEnum pool_type, VkCommandBufferLevel command_level, size_t frame_id, size_t thread_id, size_t buffers_count = 1u, std::string name = "no_name");
 
     void submitCommandBuffer(std::shared_ptr<CommandBatch>& command_buffer, std::shared_ptr<BatchWaitInfo> wait_info = nullptr, size_t index = 0u, VkSubmitInfo* p_submit_info = nullptr);
+    void submitCommandBuffer(const std::vector<VkCommandBuffer>& submission_buffers, PoolTypeEnum pool_type = PoolTypeEnum::GRAPICS, std::shared_ptr<BatchWaitInfo> wait_info = nullptr, size_t index = CommandBatch::SELECT_ALL_BUFFERS, VkSubmitInfo* p_submit_info = nullptr);
     void wait(PoolTypeEnum pool_type);
 
     void transitionImageLayout(VkCommandBuffer command_buffer, VkImage image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout, uint32_t mip_levels);

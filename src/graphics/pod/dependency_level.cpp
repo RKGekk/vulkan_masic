@@ -10,6 +10,8 @@
 #include "../api/vulkan_framebuffer.h"
 #include "../api/vulkan_pipeline.h"
 #include "../api/vulkan_render_pass.h"
+#include "composite_command_batch.h"
+#include "../api/vulkan_command_buffer.h"
 
 #include <algorithm>
 #include <utility>
@@ -30,6 +32,10 @@ const std::unordered_map<std::shared_ptr<VulkanFramebuffer>, std::unordered_set<
 
 const std::unordered_map<std::shared_ptr<VulkanPipeline>, std::unordered_set<std::shared_ptr<GraphicsRenderNode>>>& DependencyLevel::getPipelineToNodeMap() const {
     return m_pipeline_to_node_map;
+}
+
+const std::unordered_map<std::shared_ptr<VulkanFramebuffer>, std::shared_ptr<CompositeCommandBatch>> DependencyLevel::getFBtoCmdBufferMap() const {
+    return m_fb_to_command_buffer_map;
 }
     
 int DependencyLevel::getLevel() const {
@@ -65,6 +71,9 @@ void DependencyLevel::TransitionResourcesToProperState(VkCommandBuffer primary_c
 void DependencyLevel::recordCommandBuffer() {
     using namespace std::literals;
 
+    GraphicsRenderNode::BindFlags pipeline_bind_all_flags = GraphicsRenderNode::ALL_BIND_FLAGS;
+    GraphicsRenderNode::BindFlags no_pipeline_bind_flags = pipeline_bind_all_flags & ~GraphicsRenderNode::BindFlags::Pipeline;
+
     for (const auto&[rp_order, fb_set] : m_order_to_fb_map) {
         for(const std::shared_ptr<VulkanFramebuffer>& fb : fb_set) {
 
@@ -76,24 +85,34 @@ void DependencyLevel::recordCommandBuffer() {
             }
 
             const std::shared_ptr<CompositeCommandBatch>& cmd_batch = m_fb_to_command_buffer_map[fb];
-            cmd_batch->beginCommandBuffer(
-                fb->getRenderpass()->getRenderPassConfig()->getSubpassName(0u),
-                [this, &fbuff = fb]
-                (VkCommandBuffer primary_command_buffer){
-                    TransitionResourcesToProperState(primary_command_buffer, fbuff);
-                }
-            );
 
             size_t pipeline_num = 0u;
-            for(const auto& pipeline : dependency_lvl->getFBtoPipelineMap().at(fb)) {
+            for(const auto& pipeline : m_fb_to_pipeline_map.at(fb)) {
                 GraphicsRenderNode::BindFlags pipeline_bind_flags = pipeline_bind_all_flags;
-                for(const std::shared_ptr<GraphicsRenderNode>& graphics_node : dependency_lvl->getPipelineToNodeMap().at(pipeline)) {
-                    graphics_node->render(cmd_batch->getSecondaryCommandBuffer()->getCommandBufer(pipeline_num), static_cast<uint32_t>(pipeline_bind_flags));
-                    pipeline_bind_flags = no_pipeline_bind_flags;
+                bool is_recorded = cmd_batch->isRecorded(VK_COMMAND_BUFFER_LEVEL_SECONDARY, pipeline_num);
+                bool is_dirty_read = isDirtyRead(pipeline);
+                bool need_record_cmd = !is_recorded || is_dirty_read;
+                if(need_record_cmd) {
+                    cmd_batch->beginSecondaryCommandBuffer(fb->getRenderpass()->getRenderPassConfig()->getSubpassName(0u), pipeline_num);
+                    for(const std::shared_ptr<GraphicsRenderNode>& graphics_node : m_pipeline_to_node_map.at(pipeline)) {
+                        graphics_node->render(cmd_batch->getSecondaryCommandBuffer()->getCommandBufer(pipeline_num), static_cast<uint32_t>(pipeline_bind_flags));
+                        pipeline_bind_flags = no_pipeline_bind_flags;
+                    }
+                    cmd_batch->endSecondaryCommandBuffer(pipeline_num);
                 }
                 ++pipeline_num;
             }
-            cmd_batch->endCommandBuffer();
+
+            bool is_dirty_write = isDirtyWrite(fb);
+            if(is_dirty_write) {
+                cmd_batch->beginPrimaryCommandBuffer(
+                    [this, &fbuff = fb]
+                    (VkCommandBuffer primary_command_buffer){
+                        TransitionResourcesToProperState(primary_command_buffer, fbuff);
+                    }
+                );
+                cmd_batch->endPrimaryCommandBuffer();
+            }
         }
     }
 }

@@ -4,6 +4,7 @@
 #include "../../application.h"
 #include "../vulkan_renderer.h"
 
+
 unsigned int LAST_COMMAND_BUFFER_ID = 0u;
 
 bool VulkanCommandManager::init(VkPhysicalDevice physical_device, VkDevice logical_device, VkSurfaceKHR surface, size_t frames_in_flight, size_t number_of_threads) {
@@ -55,6 +56,15 @@ VkQueue VulkanCommandManager::getQueue(PoolTypeEnum pool_type) const {
 
 const VulkanCommandManager::CommandBufferPools& VulkanCommandManager::getCommandPool(PoolTypeEnum pool_type) const {
     return m_command_pools.at(pool_type);
+}
+
+void VulkanCommandManager::setCommandPoolDirty(VkCommandBufferLevel lvl, size_t frame_id, size_t thread_id) {
+    if(lvl == VK_COMMAND_BUFFER_LEVEL_PRIMARY) {
+        m_command_pools.at(PoolTypeEnum::GRAPICS).primary_cmd_pool_clean[frame_id] = false;
+    }
+    else {
+        m_command_pools.at(PoolTypeEnum::GRAPICS).secondary_buffer_command_pools[frame_id * m_max_frames + thread_id] = false;
+    }
 }
 
 VkCommandPoolCreateFlags VulkanCommandManager::getPrimaryCmdPoolFlags() const {
@@ -129,6 +139,39 @@ void VulkanCommandManager::submitCommandBuffer(std::shared_ptr<CommandBatch>& co
     }
 
     VkResult result = vkQueueSubmit(getQueue(command_buffer->getPoolType()), 1u, &submit_info, wait_info->signal_fence);
+    if (result != VK_SUCCESS) {
+        throw std::runtime_error("failed to submit draw command buffer!");
+    }
+}
+
+void VulkanCommandManager::submitCommandBuffer(const std::vector<VkCommandBuffer>& submission_buffers, PoolTypeEnum pool_type, std::shared_ptr<BatchWaitInfo> wait_info, size_t index, VkSubmitInfo* p_submit_info) {
+    if (p_submit_info) {
+        VkResult result = vkQueueSubmit(getQueue(pool_type), 1u, p_submit_info, wait_info->signal_fence);
+        if (result != VK_SUCCESS) {
+            throw std::runtime_error("failed to submit draw command buffer!");
+        }
+        return;
+    }
+
+    VkSubmitInfo submit_info = {};
+    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submit_info.pNext = nullptr;
+    submit_info.commandBufferCount = static_cast<uint32_t>(submission_buffers.size());
+    submit_info.pCommandBuffers = submission_buffers.data();
+    if(wait_info) {
+        submit_info.waitSemaphoreCount = static_cast<uint32_t>(wait_info->wait_for_semaphores.size());
+        submit_info.pWaitSemaphores = wait_info->wait_for_semaphores.data();
+        submit_info.pWaitDstStageMask = wait_info->wait_for_stages.data();
+        submit_info.signalSemaphoreCount = static_cast<uint32_t>(wait_info->signal_semaphores.size());
+        submit_info.pSignalSemaphores = wait_info->signal_semaphores.data();
+    }
+    
+    if(index != CommandBatch::SELECT_ALL_BUFFERS) {
+        submit_info.commandBufferCount = 1u;
+        submit_info.pCommandBuffers = &submission_buffers.at(index);
+    }
+
+    VkResult result = vkQueueSubmit(getQueue(pool_type), 1u, &submit_info, wait_info->signal_fence);
     if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to submit draw command buffer!");
     }

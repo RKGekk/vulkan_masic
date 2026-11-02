@@ -31,9 +31,9 @@ public:
     void beginSecondaryCommandBuffer(const std::string& subpass_name, size_t index = CommandBatch::SELECT_ALL_BUFFERS);
     void endPrimaryCommandBuffer();
     void endSecondaryCommandBuffer(size_t index = CommandBatch::SELECT_ALL_BUFFERS);
-    void resetCommandBuffer(VkCommandBufferLevel lvl, size_t index = 0u);
+    void resetCommandBuffer(VkCommandBufferLevel lvl, size_t index = CommandBatch::SELECT_ALL_BUFFERS);
 
-    bool isRecorded() const;
+    bool isRecorded(VkCommandBufferLevel lvl, size_t index = CommandBatch::SELECT_ALL_BUFFERS) const;
 
 private:
     std::string m_name;

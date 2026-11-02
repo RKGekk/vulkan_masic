@@ -218,45 +218,16 @@ void VulkanRenderer::beginFrame(unsigned image_index) {
 void VulkanRenderer::recordCommandBuffer(unsigned image_index) {
     using namespace std::literals;
 
-    GraphicsRenderNode::BindFlags pipeline_bind_all_flags = GraphicsRenderNode::ALL_BIND_FLAGS;
-    GraphicsRenderNode::BindFlags no_pipeline_bind_flags = pipeline_bind_all_flags & ~GraphicsRenderNode::BindFlags::Pipeline;
-
     const std::shared_ptr<PerFrame>& per_frame_data = m_per_frame[image_index];
+    per_frame_data->submission_buffers.clear();
 
     const std::vector<std::shared_ptr<DependencyLevel>>& dependency_levels = m_per_frame[image_index]->render_graph->getDependencyLevels();
     for (auto dependency_it = dependency_levels.begin(); dependency_it != dependency_levels.end(); ++dependency_it) {
         const std::shared_ptr<DependencyLevel>& dependency_lvl = *dependency_it;
-
         for (const auto&[rp_order, fb_set] : dependency_lvl->getOrderToFBmap()) {
             for(const std::shared_ptr<VulkanFramebuffer>& fb : fb_set) {
-
-                if(!per_frame_data->fb_to_command_buffer_map.contains(fb)) {
-                    std::string command_batch_name = fb->getName() + "_composite_command_batch"s + std::to_string(image_index);
-                    std::shared_ptr<CompositeCommandBatch> command_batch = std::make_shared<CompositeCommandBatch>();
-                    //command_batch->init(fb, image_index, 0u, m_command_manager, dependency_lvl->getFBtoNodeMap().at(fb).size(), command_batch_name);
-                    command_batch->init(fb, image_index, 0u, m_command_manager, dependency_lvl->getFBtoPipelineMap().at(fb).size(), command_batch_name);
-                    per_frame_data->fb_to_command_buffer_map[fb] = std::move(command_batch);
-                }
-
-                const std::shared_ptr<CompositeCommandBatch>& cmd_batch = per_frame_data->fb_to_command_buffer_map[fb];
-                cmd_batch->beginCommandBuffer(
-                    fb->getRenderpass()->getRenderPassConfig()->getSubpassName(0u),
-                    [&dlvl = dependency_lvl, &fbuff = fb]
-                    (VkCommandBuffer primary_command_buffer){
-                        dlvl->TransitionResourcesToProperState(primary_command_buffer, fbuff);
-                    }
-                );
-
-                size_t pipeline_num = 0u;
-                for(const auto& pipeline : dependency_lvl->getFBtoPipelineMap().at(fb)) {
-                    GraphicsRenderNode::BindFlags pipeline_bind_flags = pipeline_bind_all_flags;
-                    for(const std::shared_ptr<GraphicsRenderNode>& graphics_node : dependency_lvl->getPipelineToNodeMap().at(pipeline)) {
-                        graphics_node->render(cmd_batch->getSecondaryCommandBuffer()->getCommandBufer(pipeline_num), static_cast<uint32_t>(pipeline_bind_flags));
-                        pipeline_bind_flags = no_pipeline_bind_flags;
-                    }
-                    ++pipeline_num;
-                }
-                cmd_batch->endCommandBuffer();
+                const std::shared_ptr<CompositeCommandBatch> cmd_batch = dependency_lvl->getFBtoCmdBufferMap().at(fb);
+                per_frame_data->submission_buffers.push_back(cmd_batch->getPrimaryCommandBuffer()->getCommandBufer());
             }
         }
     }
@@ -267,17 +238,16 @@ void VulkanRenderer::drawFrame(unsigned image_index) {
 
     recordCommandBuffer(image_index);
     
-    CommandBatch::BatchWaitInfo wait_info;
-    wait_info.wait_for_semaphores.push_back(m_per_frame[prev_frame]->swapchain_available_sem);
+    VulkanCommandManager::BatchWaitInfo wait_info;
+    wait_info.wait_for_semaphores.push_back(m_per_frame[image_index]->swapchain_available_sem->getSemaphore());
     if(m_per_frame[image_index]->cmd_submit_wait_sem.size()) {
         wait_info.wait_for_semaphores.insert(wait_info.wait_for_semaphores.end(), m_per_frame[image_index]->cmd_submit_wait_sem.begin(), m_per_frame[image_index]->cmd_submit_wait_sem.end());
     }
     wait_info.wait_for_stages.push_back(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
-    VkSubmitInfo submit_info = m_per_frame[image_index]->command_buffer->getSubmitInfo(&wait_info);
 
-    m_command_manager->submitCommandBuffer(m_per_frame[image_index]->command_buffer, VulkanCommandManager::SELECT_ALL_BUFFERS, &submit_info);
+    m_command_manager->submitCommandBuffer(m_per_frame[image_index]->submission_buffers);
 
-    m_per_frame[image_index]->present_render_node->render(*m_per_frame[image_index]->command_buffer);
+    m_per_frame[image_index]->present_render_node->render(VK_NULL_HANDLE);
     m_per_frame[image_index]->end(*this);
 }
 

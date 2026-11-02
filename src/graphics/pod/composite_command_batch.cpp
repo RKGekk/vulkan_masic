@@ -30,18 +30,13 @@ void CompositeCommandBatch::beginPrimaryCommandBuffer(const ResourcesStateTransi
 
     m_recorded_primary = false;
 
-
-
     VkCommandBufferBeginInfo primary_begin_info = {};
     primary_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     primary_begin_info.pNext = nullptr;
     primary_begin_info.flags = 0u;
     primary_begin_info.pInheritanceInfo = NULL;
 
-    VkResult result = vkBeginCommandBuffer(m_primary_command_buffer->getCommandBufer(), &primary_begin_info);
-    if(result != VK_SUCCESS) {
-       throw std::runtime_error("failed to begin primary recording commandbuffer !");
-    }
+    m_primary_command_buffer->beginCommandBuffer(&primary_begin_info);
 
     transition_fn(m_primary_command_buffer->getCommandBufer());
     
@@ -60,6 +55,8 @@ void CompositeCommandBatch::beginPrimaryCommandBuffer(const ResourcesStateTransi
 void CompositeCommandBatch::beginSecondaryCommandBuffer(const std::string& subpass_name, size_t index) {
     using namespace std::literals;
 
+    m_recorded_secondary[index] = false;
+
     VkCommandBufferInheritanceInfo inherit_info = {};
     inherit_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
     inherit_info.pNext = NULL;
@@ -76,23 +73,7 @@ void CompositeCommandBatch::beginSecondaryCommandBuffer(const std::string& subpa
     secondary_begin_info.flags = 0u;
     secondary_begin_info.pInheritanceInfo = &inherit_info;
 
-    if(index != CommandBatch::SELECT_ALL_BUFFERS) {
-        VkResult result = vkBeginCommandBuffer(m_secondary_command_buffer->getCommandBufer(index), &secondary_begin_info);
-        if(result != VK_SUCCESS) {
-           throw std::runtime_error("failed to begin recording commandbuffer!");
-        }
-        m_recorded_secondary[index] = false;
-    }
-    else {
-        size_t sz = m_secondary_command_buffer->getCommandBuferCount();
-        for (size_t i = 0u; i < sz; ++i) {
-            m_recorded_secondary[i] = false;
-            VkResult result = vkBeginCommandBuffer(m_secondary_command_buffer->getCommandBufer(i), &secondary_begin_info);
-            if(result != VK_SUCCESS) {
-               throw std::runtime_error("failed to begin recording commandbuffer!");
-            }
-        }
-    }
+    m_secondary_command_buffer->beginCommandBuffer(&secondary_begin_info, index);
 }
 
 void CompositeCommandBatch::endPrimaryCommandBuffer() {
@@ -105,6 +86,7 @@ void CompositeCommandBatch::endPrimaryCommandBuffer() {
 
 void CompositeCommandBatch::endSecondaryCommandBuffer(size_t index) {
     m_secondary_command_buffer->endCommandBuffer();
+    
     if(index != CommandBatch::SELECT_ALL_BUFFERS) {
         m_recorded_secondary[index] = true;
     }
@@ -124,6 +106,7 @@ void CompositeCommandBatch::resetCommandBuffer(VkCommandBufferLevel lvl, size_t 
         else {
             m_command_manager->resetPool(index, PoolTypeEnum::GRAPICS, lvl);
         }
+        m_recorded_primary = false;
     }
     else {
         if(m_command_manager->getSecondaryCmdPoolFlags() & VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT) {
@@ -135,7 +118,7 @@ void CompositeCommandBatch::resetCommandBuffer(VkCommandBufferLevel lvl, size_t 
     }
 }
 
-bool CompositeCommandBatch::isRecorded() const {
+bool CompositeCommandBatch::isRecorded(VkCommandBufferLevel lvl, size_t index = CommandBatch::SELECT_ALL_BUFFERS) const {
 
 }
 
