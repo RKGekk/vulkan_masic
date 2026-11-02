@@ -18,6 +18,12 @@
 
 DependencyLevel::DependencyLevel(int level, uint32_t image_index) : m_level(level), m_image_index(image_index) {}
 
+void DependencyLevel::destroy() {
+    // for(const auto&[fb, command_batch] : m_fb_to_command_buffer_map) {
+    //     command_batch->destroy();
+    // }
+}
+
 const std::map<size_t, std::unordered_set<std::shared_ptr<VulkanFramebuffer>>>& DependencyLevel::getOrderToFBmap() const {
     return m_order_to_fb_map;
 }

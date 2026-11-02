@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 #include <queue>
+#include <unordered_map>
 #include <vector>
 
 class VulkanDevice;
@@ -19,9 +20,8 @@ public:
     void destroy();
 
     std::shared_ptr<VulkanSemaphore> getSemaphore(std::string name);
-    void returnSemaphore(std::shared_ptr<VulkanSemaphore> sem);
 
 private:
     std::shared_ptr<VulkanDevice> m_device;
-    std::deque<std::shared_ptr<VulkanSemaphore>> m_semaphores;
+    std::unordered_map<std::string, std::shared_ptr<VulkanSemaphore>> m_semaphores;
 };

@@ -37,23 +37,14 @@ bool PerFrame::init(std::shared_ptr<VulkanDevice> device, unsigned index) {
 }
 
 void PerFrame::destroy(VulkanRenderer& renderer) {
-    renderer.getSemaphoreManager()->returnSemaphore(swapchain_available_sem);
-    renderer.getFenceManager()->returnFence(swapchain_available_fen);
-    for(VkSemaphore sem : cmd_submit_wait_sem) {
-        renderer.getSemaphoreManager()->returnSemaphore(sem);
-    }
     renderer.getResourcesManager()->delete_image(out_color_image);
     renderer.getResourcesManager()->delete_image(out_depth_image);
-    command_buffer->destroy();
     present_render_node->destroy();
     render_graph->destroy();
 }
 	
 void PerFrame::begin(VulkanRenderer& renderer, uint32_t image_index) {
     frame_index = image_index;
-    for(VkSemaphore sem : cmd_submit_wait_sem) {
-        renderer.getSemaphoreManager()->returnSemaphore(sem);
-    }
     cmd_submit_wait_sem.clear();
     present_render_node->clearWaitSemaphores();
 }
@@ -204,11 +195,9 @@ std::shared_ptr<VulkanImageBuffer>& VulkanRenderer::getOutDepthImage(uint32_t im
 void VulkanRenderer::beginFrame(unsigned image_index) {
     m_per_frame[image_index]->begin(*this, image_index);
 
-    vkWaitForFences(m_device->getDevice(), 1u, &(m_per_frame[image_index]->cmd_submit_finish_fence), VK_TRUE, UINT64_MAX);
-    vkResetFences(m_device->getDevice(), 1u, &(m_per_frame[image_index]->cmd_submit_finish_fence));
+    vkWaitForFences(m_device->getDevice(), 1u, m_per_frame[image_index]->cmd_submit_finish_fence->getFencePtr(), VK_TRUE, UINT64_MAX);
+    vkResetFences(m_device->getDevice(), 1u, m_per_frame[image_index]->cmd_submit_finish_fence->getFencePtr());
 
-
-    m_per_frame[image_index]->command_buffer->reset();
     m_per_frame[image_index]->cmd_submit_finish_signal_sem = m_per_frame[image_index]->command_buffer->getInProgressSemaphore();
     m_per_frame[image_index]->cmd_submit_finish_fence = m_per_frame[image_index]->command_buffer->getRenderFence();
 

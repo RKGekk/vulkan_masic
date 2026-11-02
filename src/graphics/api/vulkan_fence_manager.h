@@ -6,6 +6,7 @@
 #include <pugixml.hpp>
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 class VulkanDevice;
@@ -17,9 +18,8 @@ public:
     void destroy();
 
     std::shared_ptr<VulkanFence> getFence(const std::string& new_name);
-    void returnFence(VkFence fen);
 
 private:
     std::shared_ptr<VulkanDevice> m_device;
-    std::vector<VkFence> m_fences;
+    std::unordered_map<std::string, std::shared_ptr<VulkanFence>> m_fences;
 };

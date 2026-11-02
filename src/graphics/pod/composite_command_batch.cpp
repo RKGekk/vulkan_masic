@@ -25,6 +25,11 @@ bool CompositeCommandBatch::init(std::shared_ptr<VulkanFramebuffer> fb, size_t f
     return true;
 }
 
+void CompositeCommandBatch::destroy() {
+    m_primary_command_buffer->destroy();
+    m_secondary_command_buffer->destroy();
+}
+
 void CompositeCommandBatch::beginPrimaryCommandBuffer(const ResourcesStateTransitionFn& transition_fn) {
     using namespace std::literals;
 
@@ -86,7 +91,7 @@ void CompositeCommandBatch::endPrimaryCommandBuffer() {
 
 void CompositeCommandBatch::endSecondaryCommandBuffer(size_t index) {
     m_secondary_command_buffer->endCommandBuffer();
-    
+
     if(index != CommandBatch::SELECT_ALL_BUFFERS) {
         m_recorded_secondary[index] = true;
     }

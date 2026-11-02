@@ -19,6 +19,7 @@ class CompositeCommandBatch;
 class DependencyLevel {
 public:
     DependencyLevel(int level, uint32_t image_index);
+    void destroy();
 
     const std::unordered_set<std::shared_ptr<RenderNode>>& getNodes() const;
 

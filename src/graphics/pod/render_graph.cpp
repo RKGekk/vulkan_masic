@@ -56,6 +56,10 @@ bool RenderGraph::init(std::shared_ptr<VulkanDevice> device, const std::shared_p
 }
 
 void RenderGraph::destroy() {
+    for(const std::shared_ptr<DependencyLevel>& dep : m_dependency_levels) {
+        dep->destroy();
+    }
+
     size_t sz = m_render_nodes.size();
     for(size_t i = 0u; i < sz; ++i) {
         RenderNodePtr& render_node = m_render_nodes[i];

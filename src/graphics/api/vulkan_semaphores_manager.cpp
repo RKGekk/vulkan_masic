@@ -11,28 +11,18 @@ bool VulkanSemaphoresManager::init(std::shared_ptr<VulkanDevice> device) {
 }
 
 void VulkanSemaphoresManager::destroy() {
-    for(const std::shared_ptr<VulkanSemaphore>& sem : m_semaphores) {
+    for(const auto&[name, sem] : m_semaphores) {
         sem->destroy();
     }
-    m_semaphores = {};
+    m_semaphores.clear();
 }
 
 std::shared_ptr<VulkanSemaphore> VulkanSemaphoresManager::getSemaphore(std::string name) {
-    std::shared_ptr<VulkanSemaphore> semaphore;
+    if(m_semaphores.contains(name)) return m_semaphores[name];
 
-    if (m_semaphores.empty()) {
-	    semaphore = std::make_shared<VulkanSemaphore>();
-        semaphore->init(m_device, false, std::move(name));
-    }
-    else {
-	    semaphore = m_semaphores.front();
-        semaphore->setName(std::move(name));
-	    m_semaphores.pop_front();
-    }
+    std::shared_ptr<VulkanSemaphore> semaphore = std::make_shared<VulkanSemaphore>();
+    semaphore->init(m_device, false, std::move(name));
+    m_semaphores[name] = semaphore;
 
     return semaphore;
-}
-
-void VulkanSemaphoresManager::returnSemaphore(std::shared_ptr<VulkanSemaphore> sem) {
-	m_semaphores.push_back(sem);
 }

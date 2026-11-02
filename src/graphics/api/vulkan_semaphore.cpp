@@ -60,3 +60,7 @@ void VulkanSemaphore::destroy() {
 VkSemaphore VulkanSemaphore::getSemaphore() const {
     return m_semaphore;
 }
+
+const VkSemaphore* VulkanSemaphore::getSemaphorePtr() const {
+    return &m_semaphore;
+}

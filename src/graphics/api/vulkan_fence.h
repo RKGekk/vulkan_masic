@@ -10,11 +10,12 @@ class VulkanDevice;
 
 class VulkanFence {
 public:
-	bool init(std::shared_ptr<VulkanDevice> device, VkFence fence, std::string name);
+	bool init(std::shared_ptr<VulkanDevice> device, bool signaled, std::string name);
 	void destroy();
 
 	void wait();
     VkFence getFence() const;
+	const VkFence* getFencePtr() const;
 
 private:
 	std::shared_ptr<VulkanDevice> m_device;
