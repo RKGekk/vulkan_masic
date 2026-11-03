@@ -60,12 +60,15 @@ struct PerFrame {
 
     std::shared_ptr<VulkanSemaphore> swapchain_available_sem;
     std::shared_ptr<VulkanFence> swapchain_available_fen;
+    std::shared_ptr<VulkanSemaphore> transfer_complete_sem;
+    std::shared_ptr<VulkanFence> transfer_complete_fen;
     
     std::vector<VkSemaphore> cmd_submit_wait_sem;
     std::shared_ptr<VulkanSemaphore> cmd_submit_finish_signal_sem;
     std::shared_ptr<VulkanFence> cmd_submit_finish_fence;
 
     std::vector<VkCommandBuffer> submission_buffers;
+    std::vector<std::shared_ptr<CommandBatch>> wait_transfer_commands;
 
     std::shared_ptr<PresentRenderNode> present_render_node;
     std::shared_ptr<RenderGraph> render_graph;

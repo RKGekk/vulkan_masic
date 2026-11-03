@@ -5,9 +5,9 @@
 
 #include <cstring>
 
-bool VulkanDevice::init(const VulkanInstance& instance, VkSurfaceKHR surface, std::shared_ptr<ThreadPool> thread_pool) {
+bool VulkanDevice::init(const VulkanInstance& instance, VkSurfaceKHR surface) {
     m_surface = surface;
-    m_thread_pool = std::move(thread_pool);
+    
     m_device_abilities = pickPhysicalDevice(instance.getInstance(), surface);
     bool all_device_ext_supported = m_extensions.init(m_device_abilities.physical_device, getRequiredDeviceExtensions<std::unordered_set<std::string>>());
 
@@ -20,9 +20,7 @@ bool VulkanDevice::init(const VulkanInstance& instance, VkSurfaceKHR surface, st
     QueueFamilyIndices queue_family_indices;
     queue_family_indices.init(m_device_abilities.physical_device, surface);
     m_device = createLogicalDevice(m_device_abilities, queue_family_indices.getFamilies(), m_extensions, instance.getLayersAndExtensions());
-    m_command_manager = std::make_shared<VulkanCommandManager>();
-    m_command_manager->init(m_device_abilities.physical_device, m_device, surface, m_thread_pool);
-
+    
     return all_device_ext_supported;
 }
 
@@ -54,14 +52,6 @@ bool VulkanDevice::checkFeaturesSupported(const VkPhysicalDeviceFeatures& featur
     uint64_t device_features_flags = getFeaturesVector(m_device_abilities.features);
     uint64_t to_check_features_flags = getFeaturesVector(features);
     return (device_features_flags & to_check_features_flags) == to_check_features_flags;
-}
-
-const std::shared_ptr<VulkanCommandManager>& VulkanDevice::getCommandManager() const {
-    return m_command_manager;
-}
-
-std::shared_ptr<VulkanCommandManager>& VulkanDevice::getCommandManager() {
-    return m_command_manager;
 }
 
 uint32_t VulkanDevice::findMemoryType(uint32_t type_filter, VkMemoryPropertyFlags properties) const {

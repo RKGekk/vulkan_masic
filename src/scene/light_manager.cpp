@@ -4,6 +4,7 @@
 #include "../graphics/api/vulkan_swapchain.h"
 #include "../graphics/vulkan_renderer.h"
 #include "../graphics/api/vulkan_resources_manager.h"
+#include "../graphics/api/vulkan_command_buffer.h"
 
 const std::string LightManager::m_light_buffer_name = "light_ubo";
 const std::string LightManager::m_light_resource_cfg_name = "light_uniform_resource";
@@ -18,11 +19,15 @@ LightManager::LightManager() : m_dir_lights_size(0u), m_point_lights_size(0u), m
     }
 }
 
-void LightManager::CalcLighting(const std::shared_ptr<CameraNode>& camera_node, uint32_t image_index) {
+void LightManager::CalcLighting(const std::shared_ptr<CameraNode>& camera_node, uint32_t image_index, size_t thread_id) {
+    using namespace std::literals;
+
     for(const auto&[light_node, idx] : m_index_map) {
         m_lights[idx] = light_node->GetLightProperties();
     }
-    m_light_buffers[image_index]->update(m_lights.data(), sizeof(LightNodeProperties) * m_lights.size());
+    std::shared_ptr<CommandBatch> command_buffer_ptr = Application::GetRenderer().getCommandManager()->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, image_index, thread_id, 1u, "light_update_cmd_buffer"s + std::to_string(image_index));
+    m_light_buffers[image_index]->update(*command_buffer_ptr, m_lights.data(), sizeof(LightNodeProperties) * m_lights.size());
+    
 }
 
 int LightManager::GetLightCount(const std::shared_ptr<SceneNode>& node) const {

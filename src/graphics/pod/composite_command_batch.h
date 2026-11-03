@@ -17,6 +17,7 @@ class CommandBatch;
 
 class CompositeCommandBatch {
 public:
+    static constexpr size_t SELECT_ALL_BUFFERS = -1;
     using ResourcesStateTransitionFn = std::function<void(VkCommandBuffer)>;
 
     bool init(std::shared_ptr<VulkanFramebuffer> fb, size_t frame_id, size_t thread_id, size_t command_buffer_count, std::string name);
@@ -28,12 +29,12 @@ public:
     const std::shared_ptr<VulkanFramebuffer>& getFrameBuffer() const;
 
     void beginPrimaryCommandBuffer(const ResourcesStateTransitionFn& transition_fn);
-    void beginSecondaryCommandBuffer(const std::string& subpass_name, size_t index = CommandBatch::SELECT_ALL_BUFFERS);
+    void beginSecondaryCommandBuffer(const std::string& subpass_name, size_t index = SELECT_ALL_BUFFERS);
     void endPrimaryCommandBuffer();
-    void endSecondaryCommandBuffer(size_t index = CommandBatch::SELECT_ALL_BUFFERS);
-    void resetCommandBuffer(VkCommandBufferLevel lvl, size_t index = CommandBatch::SELECT_ALL_BUFFERS);
+    void endSecondaryCommandBuffer(size_t index = SELECT_ALL_BUFFERS);
+    void resetCommandBuffer(VkCommandBufferLevel lvl, size_t index = SELECT_ALL_BUFFERS);
 
-    bool isRecorded(VkCommandBufferLevel lvl, size_t index = CommandBatch::SELECT_ALL_BUFFERS) const;
+    bool isRecorded(VkCommandBufferLevel lvl, size_t index = SELECT_ALL_BUFFERS) const;
 
 private:
     std::string m_name;

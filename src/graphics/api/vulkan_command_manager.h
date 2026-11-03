@@ -16,6 +16,8 @@
 #include "../../tools/thread_pool.h"
 #include "../../tools/thread_safe_lookup_table.h"
 
+class VulkanDevice;
+
 class VulkanCommandManager {
 public:
     struct CommandBufferPools {
@@ -32,7 +34,7 @@ public:
         std::vector<VkSemaphore> signal_semaphores;
     };
 
-    bool init(VkPhysicalDevice physical_device, VkDevice logical_device, VkSurfaceKHR surface, size_t frames_in_flight, size_t number_of_threads);
+    bool init(std::shared_ptr<VulkanDevice> device, size_t frames_in_flight, size_t number_of_threads);
     void destroy();
 
     const QueueFamilyIndices& getQueueFamilyIndices() const;
@@ -58,7 +60,7 @@ public:
 private:
     void createCommandPools(size_t frames_in_flight, size_t number_of_threads);
 
-    VkDevice m_device;
+    std::shared_ptr<VulkanDevice> m_device;
     std::unordered_map<PoolTypeEnum, CommandBufferPools> m_command_pools;
     VkCommandPoolCreateFlags m_primary_cmd_pool_flags;
     VkCommandPoolCreateFlags m_secondary_cmd_pool_flags;

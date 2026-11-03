@@ -4,6 +4,8 @@
 #include "../api/vulkan_swapchain.h"
 #include "../../window_surface.h"
 #include "../../tools/string_tools.h"
+#include "../../application.h"
+#include "../vulkan_renderer.h"
 
 bool FormatConfig::init(std::shared_ptr<VulkanDevice> device, const std::shared_ptr<WindowSurface>& window, const SwapchainSupportDetails& swapchain_support_details, const pugi::xml_node& format_data) {
     using namespace std::literals;
@@ -97,8 +99,8 @@ bool FormatConfig::init(std::shared_ptr<VulkanDevice> device, const std::shared_
     m_has_stencil = m_device->hasStencilComponent(m_format);
     m_color_space = getColorSpace(format_data.child("ColorSpace").text().as_string());
 
-    static std::vector<uint32_t> families = m_device->getCommandManager()->getQueueFamilyIndices().getIndices();
-    m_images_sharing_mode = m_device->getCommandManager()->getBufferSharingMode();
+    static std::vector<uint32_t> families = Application::GetRenderer().getCommandManager()->getQueueFamilyIndices().getIndices();
+    m_images_sharing_mode = Application::GetRenderer().getCommandManager()->getBufferSharingMode();
     m_queue_family_index_count = static_cast<uint32_t>(families.size());
     m_pQueue_family_indices = families.data();
 

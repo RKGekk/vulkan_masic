@@ -4,19 +4,18 @@
 #include "../../application.h"
 #include "../vulkan_renderer.h"
 
-
 unsigned int LAST_COMMAND_BUFFER_ID = 0u;
 
-bool VulkanCommandManager::init(VkPhysicalDevice physical_device, VkDevice logical_device, VkSurfaceKHR surface, size_t frames_in_flight, size_t number_of_threads) {
-    m_device = logical_device;
-    m_queue_family_indices.init(physical_device, surface);
+bool VulkanCommandManager::init(std::shared_ptr<VulkanDevice> device, size_t frames_in_flight, size_t number_of_threads) {
+    m_device = std::move(device);
+    m_queue_family_indices.init(m_device->getDeviceAbilities().physical_device, m_device->getSurface());
 
     m_primary_cmd_pool_flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     m_secondary_cmd_pool_flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     
-    vkGetDeviceQueue(m_device, m_queue_family_indices.getFamilyIdx(PoolTypeEnum::GRAPICS).value(), 0u, &m_graphics_queue);
-    vkGetDeviceQueue(m_device, m_queue_family_indices.getFamilyIdx(PoolTypeEnum::COMPUTE).value(), 0u, &m_compute_queue);
-    vkGetDeviceQueue(m_device, m_queue_family_indices.getFamilyIdx(PoolTypeEnum::TRANSFER).value(), 0u, &m_transfer_queue);
+    vkGetDeviceQueue(m_device->getDevice(), m_queue_family_indices.getFamilyIdx(PoolTypeEnum::GRAPICS).value(), 0u, &m_graphics_queue);
+    vkGetDeviceQueue(m_device->getDevice(), m_queue_family_indices.getFamilyIdx(PoolTypeEnum::COMPUTE).value(), 0u, &m_compute_queue);
+    vkGetDeviceQueue(m_device->getDevice(), m_queue_family_indices.getFamilyIdx(PoolTypeEnum::TRANSFER).value(), 0u, &m_transfer_queue);
 
     m_max_frames = frames_in_flight;
     m_max_threads = number_of_threads;
@@ -28,10 +27,10 @@ bool VulkanCommandManager::init(VkPhysicalDevice physical_device, VkDevice logic
 void VulkanCommandManager::destroy() {
     for(const auto&[pool_type, cmd_pools] : m_command_pools) {
         for(size_t i = 0u; i < cmd_pools.primary_buffer_command_pools.size(); ++i) {
-            vkDestroyCommandPool(m_device, m_command_pools[pool_type].primary_buffer_command_pools[i], nullptr);
+            vkDestroyCommandPool(m_device->getDevice(), m_command_pools[pool_type].primary_buffer_command_pools[i], nullptr);
         }
         for(size_t i = 0u; i < cmd_pools.secondary_buffer_command_pools.size(); ++i) {
-            vkDestroyCommandPool(m_device, m_command_pools[pool_type].secondary_buffer_command_pools[i], nullptr);
+            vkDestroyCommandPool(m_device->getDevice(), m_command_pools[pool_type].secondary_buffer_command_pools[i], nullptr);
         }
     }
 }
@@ -63,7 +62,7 @@ void VulkanCommandManager::setCommandPoolDirty(VkCommandBufferLevel lvl, size_t 
         m_command_pools.at(PoolTypeEnum::GRAPICS).primary_cmd_pool_clean[frame_id] = false;
     }
     else {
-        m_command_pools.at(PoolTypeEnum::GRAPICS).secondary_buffer_command_pools[frame_id * m_max_frames + thread_id] = false;
+        m_command_pools.at(PoolTypeEnum::GRAPICS).secondary_cmd_pool_clean[frame_id * m_max_frames + thread_id] = false;
     }
 }
 
@@ -78,11 +77,11 @@ VkCommandPoolCreateFlags VulkanCommandManager::getSecondaryCmdPoolFlags() const 
 void VulkanCommandManager::resetPool(size_t frame_id, PoolTypeEnum pool_type, VkCommandBufferLevel lvl) {
     if(lvl == VK_COMMAND_BUFFER_LEVEL_PRIMARY) {
         m_command_pools.at(pool_type).primary_cmd_pool_clean[frame_id] = true;
-        vkResetCommandPool(m_device, m_command_pools.at(pool_type).primary_buffer_command_pools.at(frame_id), 0u);
+        vkResetCommandPool(m_device->getDevice(), m_command_pools.at(pool_type).primary_buffer_command_pools.at(frame_id), 0u);
     }
     else {
         m_command_pools.at(pool_type).secondary_cmd_pool_clean[frame_id] = true;
-        vkResetCommandPool(m_device, m_command_pools.at(pool_type).secondary_buffer_command_pools.at(frame_id), 0u);
+        vkResetCommandPool(m_device->getDevice(), m_command_pools.at(pool_type).secondary_buffer_command_pools.at(frame_id), 0u);
     }
     //vkResetCommandPool(m_device, m_command_pools.at(PoolTypeEnum::GRAPICS).primary_buffer_command_pools.at(frame_id), VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT);
 }
@@ -340,7 +339,7 @@ void VulkanCommandManager::createCommandPools(size_t frames_in_flight, size_t nu
     m_command_pools[PoolTypeEnum::GRAPICS].primary_cmd_pool_clean.resize(frames_in_flight);
     for(size_t i = 0u; i < frames_in_flight; ++i) {
         m_command_pools[PoolTypeEnum::GRAPICS].primary_cmd_pool_clean[i] = true;
-        VkResult result = vkCreateCommandPool(m_device, &gfx_primary_cmd_pool_info, nullptr, &(m_command_pools[PoolTypeEnum::GRAPICS].primary_buffer_command_pools[i]));
+        VkResult result = vkCreateCommandPool(m_device->getDevice(), &gfx_primary_cmd_pool_info, nullptr, &(m_command_pools[PoolTypeEnum::GRAPICS].primary_buffer_command_pools[i]));
         if(result != VK_SUCCESS) {
             throw std::runtime_error("failed to create command pool!");
         }
@@ -355,7 +354,7 @@ void VulkanCommandManager::createCommandPools(size_t frames_in_flight, size_t nu
     m_command_pools[PoolTypeEnum::GRAPICS].secondary_cmd_pool_clean.resize(number_of_threads * frames_in_flight);
     for(size_t i = 0u; i < number_of_threads * frames_in_flight; ++i) {
         m_command_pools[PoolTypeEnum::GRAPICS].secondary_cmd_pool_clean[i] = true;
-        VkResult result = vkCreateCommandPool(m_device, &gfx_secondary_cmd_pool_info, nullptr, &(m_command_pools[PoolTypeEnum::GRAPICS].secondary_buffer_command_pools[i]));
+        VkResult result = vkCreateCommandPool(m_device->getDevice(), &gfx_secondary_cmd_pool_info, nullptr, &(m_command_pools[PoolTypeEnum::GRAPICS].secondary_buffer_command_pools[i]));
         if(result != VK_SUCCESS) {
             throw std::runtime_error("failed to create command pool!");
         }
@@ -370,7 +369,7 @@ void VulkanCommandManager::createCommandPools(size_t frames_in_flight, size_t nu
     m_command_pools[PoolTypeEnum::TRANSFER].primary_cmd_pool_clean.resize(number_of_threads * frames_in_flight);
     for(size_t i = 0u; i < number_of_threads * frames_in_flight; ++i) {
         m_command_pools[PoolTypeEnum::TRANSFER].primary_cmd_pool_clean[i] = true;
-        VkResult result = vkCreateCommandPool(m_device, &transfer_cmd_pool_info, nullptr, &(m_command_pools[PoolTypeEnum::TRANSFER].primary_buffer_command_pools[i]));
+        VkResult result = vkCreateCommandPool(m_device->getDevice(), &transfer_cmd_pool_info, nullptr, &(m_command_pools[PoolTypeEnum::TRANSFER].primary_buffer_command_pools[i]));
         if(result != VK_SUCCESS) {
             throw std::runtime_error("failed to create command pool!");
         }

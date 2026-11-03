@@ -24,6 +24,7 @@ class WindowSurface;
 class VulkanPushConstant;
 class PushConstantConfig;
 class VulkanRenderPass;
+class VulkanFramebuffer;
 
 class VulkanResourcesManager {
 public:

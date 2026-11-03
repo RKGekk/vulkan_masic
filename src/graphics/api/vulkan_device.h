@@ -97,7 +97,7 @@ public:
         SIGNED_FIXED
     };
 
-    bool init(const VulkanInstance& instance, VkSurfaceKHR surface, std::shared_ptr<ThreadPool> thread_pool);
+    bool init(const VulkanInstance& instance, VkSurfaceKHR surface);
     void destroy();
 
     const VulkanDeviceExtensions& getExtensions() const;
@@ -106,8 +106,6 @@ public:
     const DeviceAbilities& getDeviceAbilities() const;
     VkSampleCountFlagBits getMsaaSamples() const;
     bool checkFeaturesSupported(const VkPhysicalDeviceFeatures& features);
-    const std::shared_ptr<VulkanCommandManager>& getCommandManager() const;
-    std::shared_ptr<VulkanCommandManager>& getCommandManager();
 
     uint32_t findMemoryType(uint32_t type_filter, VkMemoryPropertyFlags properties) const;
     VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features, VkImageUsageFlags usage, VkExtent2D extent, uint32_t mip_levels, VkSampleCountFlags sample_count, VkImageCreateFlags flags = 0u, bool bgr_native = false) const;
@@ -153,8 +151,6 @@ private:
     VkDevice m_device;
     VkSurfaceKHR m_surface;
     DeviceAbilities m_device_abilities;
-    std::shared_ptr<VulkanCommandManager> m_command_manager;
-    std::shared_ptr<ThreadPool> m_thread_pool;
 
     VkSampleCountFlagBits m_msaa_samples = VK_SAMPLE_COUNT_1_BIT;
 };

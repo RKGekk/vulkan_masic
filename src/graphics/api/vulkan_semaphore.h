@@ -15,6 +15,7 @@ public:
 	
 	void setName(std::string new_name);
 	VkSemaphore getSemaphore() const;
+	const VkSemaphore* getSemaphorePtr() const;
 	
 private:
 	std::shared_ptr<VulkanDevice> m_device;

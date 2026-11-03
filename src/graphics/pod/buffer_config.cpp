@@ -3,16 +3,17 @@
 #include "../api/vulkan_device.h"
 #include "../api/vulkan_format_manager.h"
 #include "format_config.h"
-
 #include "../../tools/string_tools.h"
+#include "../../application.h"
+#include "../vulkan_renderer.h"
 
 bool BufferConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::string& name, const pugi::xml_node& buffer_data, const std::shared_ptr<VulkanFormatManager>& format_manager) {
     using namespace std::literals;
 
     m_buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 
-    static std::vector<uint32_t> families = device->getCommandManager()->getQueueFamilyIndices().getIndices();
-    m_buffer_info.sharingMode = device->getCommandManager()->getBufferSharingMode();
+    static std::vector<uint32_t> families = Application::GetRenderer().getCommandManager()->getQueueFamilyIndices().getIndices();
+    m_buffer_info.sharingMode = Application::GetRenderer().getCommandManager()->getBufferSharingMode();
     m_buffer_info.queueFamilyIndexCount = static_cast<uint32_t>(families.size());
     m_buffer_info.pQueueFamilyIndices = families.data();
 

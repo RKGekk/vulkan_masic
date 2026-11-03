@@ -44,7 +44,6 @@ public:
 
     void update(CommandBatch& command_buffer, const void* src_data, VkDeviceSize buffer_size, VkAccessFlags dstAccessMask);
     void update(CommandBatch& command_buffer, const void* src_data, VkDeviceSize buffer_size);
-    void update(const void* src_data, VkDeviceSize buffer_size);
 
     const ResourceName& getName() const override;
     Type getType() const override;

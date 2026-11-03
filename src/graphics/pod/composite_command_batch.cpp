@@ -103,7 +103,7 @@ void CompositeCommandBatch::endSecondaryCommandBuffer(size_t index) {
     }
 }
 
-void CompositeCommandBatch::resetCommandBuffer(VkCommandBufferLevel lvl, size_t index = 0u) {
+void CompositeCommandBatch::resetCommandBuffer(VkCommandBufferLevel lvl, size_t index) {
     if(lvl == VK_COMMAND_BUFFER_LEVEL_PRIMARY) {
         if(m_command_manager->getPrimaryCmdPoolFlags() & VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT) {
             m_primary_command_buffer->reset();
@@ -123,8 +123,22 @@ void CompositeCommandBatch::resetCommandBuffer(VkCommandBufferLevel lvl, size_t 
     }
 }
 
-bool CompositeCommandBatch::isRecorded(VkCommandBufferLevel lvl, size_t index = CommandBatch::SELECT_ALL_BUFFERS) const {
-
+bool CompositeCommandBatch::isRecorded(VkCommandBufferLevel lvl, size_t index) const {
+    if(lvl == VK_COMMAND_BUFFER_LEVEL_PRIMARY) {
+        return m_recorded_primary;
+    }
+    else {
+        if(index == CommandBatch::SELECT_ALL_BUFFERS) {
+            bool result = false;
+            for(bool rcb : m_recorded_secondary) {
+                result = result || rcb;
+            }
+            return result;
+        }
+        else {
+            return m_recorded_secondary.at(index);
+        }
+    }
 }
 
 const std::shared_ptr<CommandBatch>& CompositeCommandBatch::getPrimaryCommandBuffer() const {

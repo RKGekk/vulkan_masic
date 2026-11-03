@@ -162,60 +162,6 @@ const std::unordered_map<std::string, VkBufferView>& VulkanBuffer::getBufferView
     return m_buffer_view_map;
 }
 
-void VulkanBuffer::update(const void* src_data, VkDeviceSize buffer_size) {
-    if (buffer_size > m_buffer_config->getBufferInfo().size && m_buffer_config->isSizeDynamic()) {
-        destroy();
-        m_buffer_config->setNotAlignedSize(buffer_size);
-        m_buffer_config->setAlignedSize(buffer_size);
-        m_buffer_config->setSizeDynamic(false);
-        init(src_data, m_buffer_config);
-        m_buffer_config->setSizeDynamic(true);
-        std::shared_ptr<VulkanBuffer> my_bo = shared_from_this();
-        for(auto& fn : m_update_functions) fn(my_bo);
-        return;
-    }
-    if (buffer_size > m_buffer_config->getBufferInfo().size) {
-        destroy();
-        m_buffer_config->setNotAlignedSize(buffer_size);
-        m_buffer_config->setAlignedSize(buffer_size);
-        init(src_data, m_buffer_config);
-        std::shared_ptr<VulkanBuffer> my_bo = shared_from_this();
-        for(auto& fn : m_update_functions) fn(my_bo);
-        return;
-    }
-
-    if(!src_data) {
-        return;
-    }
-    if(m_buffer_config->getMemoryProperties() & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) {
-        memcpy(m_mapped, src_data, buffer_size);
-        return;
-    }
-    else if(m_buffer_config->getMemoryProperties() & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
-        memcpy(m_mapped, src_data, buffer_size);
-        VkMappedMemoryRange range{};
-        range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-        range.pNext = nullptr;
-        range.memory = m_memory;
-        range.offset = 0u;
-        range.size = VK_WHOLE_SIZE;
-        VkResult result = vkFlushMappedMemoryRanges(m_device->getDevice(), 1u, &range);
-        if (result != VK_SUCCESS) {
-            throw std::runtime_error("failed to flush buffer to device!");
-        }
-        return;
-    }
-    else {
-        std::shared_ptr<CommandBatch> command_buffer_ptr = m_device->getCommandManager()->allocCommandBufferPtr(PoolTypeEnum::TRANSFER);
-        update(*command_buffer_ptr, src_data, buffer_size);
-        m_device->getCommandManager()->submitCommandBuffer(command_buffer_ptr);
-        m_device->getCommandManager()->wait(PoolTypeEnum::TRANSFER);
-        command_buffer_ptr->destroy();
-
-        return;
-    }
-}
-
 void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, VkDeviceSize buffer_size, VkAccessFlags dstAccessMask) {
     if (buffer_size > m_buffer_config->getBufferInfo().size && m_buffer_config->isSizeDynamic()) {
         destroy();

@@ -13,7 +13,8 @@ public:
 	bool init(std::shared_ptr<VulkanDevice> device, bool signaled, std::string name);
 	void destroy();
 
-	void wait();
+	void wait() const;
+	void reset() const;
     VkFence getFence() const;
 	const VkFence* getFencePtr() const;
 

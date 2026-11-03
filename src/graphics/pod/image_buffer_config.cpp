@@ -4,16 +4,17 @@
 #include "../api/vulkan_sampler.h"
 #include "../api/vulkan_format_manager.h"
 #include "format_config.h"
-
 #include "../../tools/string_tools.h"
+#include "../../application.h"
+#include "../vulkan_renderer.h"
 
 bool ImageBufferConfig::init(const std::shared_ptr<VulkanDevice>& device, std::string name, const pugi::xml_node& image_buffer_data, const std::shared_ptr<VulkanFormatManager>& format_manager) {
     using namespace std::literals;
 
     m_image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 
-    static std::vector<uint32_t> families = device->getCommandManager()->getQueueFamilyIndices().getIndices();
-    m_image_info.sharingMode = device->getCommandManager()->getBufferSharingMode();
+    static std::vector<uint32_t> families = Application::GetRenderer().getCommandManager()->getQueueFamilyIndices().getIndices();
+    m_image_info.sharingMode = Application::GetRenderer().getCommandManager()->getBufferSharingMode();
     m_image_info.queueFamilyIndexCount = static_cast<uint32_t>(families.size());
     m_image_info.pQueueFamilyIndices = families.data();
 

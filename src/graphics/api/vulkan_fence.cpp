@@ -29,10 +29,17 @@ const VkFence* VulkanFence::getFencePtr() const {
     return &m_fence;
 }
 
-void VulkanFence::wait() {
+void VulkanFence::wait() const {
 	
-	VkResult result = vkWaitForFences(m_device->getDevice(), 1, &m_fence, VK_TRUE, UINT64_MAX);
+	VkResult result = vkWaitForFences(m_device->getDevice(), 1u, &m_fence, VK_TRUE, UINT64_MAX);
 	if(result != VK_SUCCESS) {
+    	throw std::runtime_error("Failed to wait for fence!");
+    }
+}
+
+void VulkanFence::reset() const {
+    VkResult result = vkResetFences(m_device->getDevice(), 1u, &m_fence);
+    if(result != VK_SUCCESS) {
     	throw std::runtime_error("Failed to wait for fence!");
     }
 }

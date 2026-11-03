@@ -15,7 +15,7 @@ class LightManager {
 public:
     LightManager();
 
-    void CalcLighting(const std::shared_ptr<CameraNode>& camera_node, uint32_t image_index);
+    void CalcLighting(const std::shared_ptr<CameraNode>& camera_node, uint32_t image_index, size_t thread_id);
     int GetLightCount(const std::shared_ptr<SceneNode>& node) const;
     const std::vector<LightNodeProperties>& getLightsData(const std::shared_ptr<SceneNode>& node) const;
     const std::vector<LightNodeProperties>& getAllLightsData() const;
