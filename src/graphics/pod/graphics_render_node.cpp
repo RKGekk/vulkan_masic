@@ -19,6 +19,15 @@
 #include <utility>
 
 const GraphicsRenderNode::BindFlags GraphicsRenderNode::ALL_BIND_FLAGS = GraphicsRenderNode::BindFlags::Pipeline | GraphicsRenderNode::BindFlags::PushConstants | GraphicsRenderNode::BindFlags::Viewport | GraphicsRenderNode::BindFlags::Scissor | GraphicsRenderNode::BindFlags::DescriptorSets | GraphicsRenderNode::BindFlags::VertexIndexInstanceBuffers | GraphicsRenderNode::BindFlags::Draw;
+const std::string GraphicsRenderNode::DEFAULT_RENDER_NODE_CFG_NAME = "mesh_render";
+
+std::string GraphicsRenderNode::makeRenderNodeName(const std::string& material_name) {
+    std::string render_name = makeRenderName(material_name, "_render"s);
+    if(!Application::GetRenderer().getFrameData(0u)->render_graph->hasGraphicsRenderNodeConfig(render_name)) {
+        render_name = GraphicsRenderNode::DEFAULT_RENDER_NODE_CFG_NAME;
+    }
+    return render_name;
+}
 
 bool GraphicsRenderNode::init(std::string render_node_name, unsigned frame_index, std::shared_ptr<VulkanDevice> device, VkCommandBuffer secondary_command_buffer, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) {
     m_render_node_name = std::move(render_node_name);

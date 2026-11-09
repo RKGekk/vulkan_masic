@@ -3,6 +3,10 @@
 #include "../application.h"
 #include "../graphics/vulkan_renderer.h"
 #include "../graphics/api/vulkan_resources_manager.h"
+#include "../graphics/api/vulkan_command_buffer.h"
+#include "../graphics/api/vulkan_command_manager.h"
+#include "../graphics/api/vulkan_fence.h"
+#include "../graphics/api/vulkan_fence_manager.h"
 #include "../graphics/pod/render_node.h"
 #include "../graphics/pod/graphics_render_node.h"
 #include "../graphics/api/vulkan_swapchain.h"
@@ -15,8 +19,19 @@ const std::string SkeletonManager::m_skin_dq_ssbo_desc_name = "joint_dq_ssbo";
 
 SkeletonManager::SkeletonManager() {
     VulkanRenderer& renderer = Application::GetRenderer();
+    std::shared_ptr<VulkanCommandManager>& cmd_manager = renderer.getCommandManager();
+    std::shared_ptr<VulkanFenceManager>& fen_mgr = renderer.getFenceManager();
     const std::shared_ptr<VulkanSwapChain>& swapchain = renderer.getSwapchain();
     m_max_frames = swapchain->getMaxFrames();
+    for(int i = 0; i < m_max_frames; ++i) {
+        SkinnedDataCpyCmd& cpy_cmd = m_cpy_cmd[i];
+
+        std::string skin_cpy_cmd_name = "skinned_data_cpy_cmd_frame"s + std::to_string(i);
+        cpy_cmd.copy_cmd = cmd_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, i, 0u, 1u, skin_cpy_cmd_name);
+
+        std::string skin_cmd_complete_fen_name = "skinned_data_cmd_complete_fen_frame"s + std::to_string(i);
+        cpy_cmd.transfer_complete_fen = fen_mgr->getFence(skin_cmd_complete_fen_name);
+    }
 }
 
 bool SkeletonManager::recalculateSkinnedData(FrameNumber frame_number) {
@@ -33,15 +48,20 @@ bool SkeletonManager::recalculateSkinnedData(FrameNumber frame_number) {
         }
     }
 
+    VulkanRenderer& renderer = Application::GetRenderer();
+    std::shared_ptr<PerFrame>& per_frame = renderer.getFrameData(frame_number);
+    std::shared_ptr<CommandBatch>& cpy_cmd = m_cpy_cmd[frame_number];
+    cpy_cmd->reset();
     for (const BoneNode::SkinName& dirty_skin_name : skins) {
         SkinnedDataFrame& skinned_data_frame = m_skinned_data[dirty_skin_name];
         const std::shared_ptr<SkinnedData>& skinned_data = skinned_data_frame[frame_number];
         if(was_bind_changed) {
-            skinned_data->bind_buffer->update(skinned_data->bind_matrices.data(), sizeof(glm::mat4) * skinned_data->bind_matrices.size());
+            skinned_data->bind_buffer->update(*cpy_cmd, skinned_data->bind_matrices.data(), sizeof(glm::mat4) * skinned_data->bind_matrices.size());
         }
-        skinned_data->joint_buffer->update(skinned_data->final_matrices.data(), sizeof(glm::mat4) * skinned_data->final_matrices.size());
-        skinned_data->dq_buffer->update(skinned_data->dual_quats.data(), sizeof(glm::mat2x4) * skinned_data->dual_quats.size());
+        skinned_data->joint_buffer->update(*cpy_cmd, skinned_data->final_matrices.data(), sizeof(glm::mat4) * skinned_data->final_matrices.size());
+        skinned_data->dq_buffer->update(*cpy_cmd, skinned_data->dual_quats.data(), sizeof(glm::mat2x4) * skinned_data->dual_quats.size());
     }
+    per_frame->wait_transfer_commands.push_back(cpy_cmd);
 
     m_dirty_at_bone[frame_number].clear();
     m_bind_pose_changed[frame_number] = false;
@@ -118,6 +138,7 @@ void SkeletonManager::AddBone(const std::shared_ptr<BoneNode>& node) {
             }
             skinned_data->bind_matrices[bone_data.joint_index] = bone_data.bind_matrice;
             skinned_data->inverse_bind_matrices[bone_data.joint_index] = bone_data.inverse_bind_matrice;
+
         }
     }
     

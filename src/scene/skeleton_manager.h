@@ -20,6 +20,7 @@
 #include "nodes/bone_node.h"
 
 class RenderNode;
+class CommandBatch;
 
 class SkeletonManager {
 public:
@@ -48,6 +49,11 @@ public:
         std::shared_ptr<SkeletonGraphData> skeleton_structure;
     };
     using SkinnedDataFrame = std::unordered_map<FrameNumber, std::shared_ptr<SkinnedData>>;
+
+    // struct SkinnedDataCpyCmd {
+    //     std::shared_ptr<CommandBatch> copy_cmd;
+    //     std::shared_ptr<VulkanFence> transfer_complete_fen;
+    // };
 
     SkeletonManager();
     bool recalculateSkinnedData(FrameNumber frame_number);
@@ -84,6 +90,7 @@ private:
     std::unordered_map<BoneNode::SkinName, SkinnedDataFrame> m_skinned_data;
     std::unordered_map<FrameNumber, std::unordered_set<std::shared_ptr<BoneNode>>> m_dirty_at_bone;
     std::unordered_map<FrameNumber, BindPoseChanged> m_bind_pose_changed;
+    std::unordered_map<FrameNumber, std::shared_ptr<CommandBatch>> m_cpy_cmd;
     
     int m_max_frames;
 };

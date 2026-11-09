@@ -84,11 +84,6 @@ int SceneDrawable::order() {
     return 0;
 }
 
-std::string makeRenderNodeName(const std::shared_ptr<Material>& material) {
-    std::string render_name = makeRenderName(material->GetName(), "_render"s);
-    return render_name;
-}
-
 void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
     using namespace std::literals;
 
@@ -127,7 +122,7 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
 
             renderable->mesh_id = i;
 
-            std::string render_name = makeRenderNodeName(material);
+            std::string render_name = GraphicsRenderNode::makeRenderNodeName(material->GetName());
             if(!frame_render_graph->hasGraphicsRenderNodeConfig(render_name)) {
                 render_name = "mesh_render"s;
             }

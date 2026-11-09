@@ -23,7 +23,7 @@ public:
     VulkanBuffer(std::shared_ptr<VulkanDevice> device, std::string name);
     VulkanBuffer(std::shared_ptr<VulkanDevice> device);
 
-    bool init(const void* data, std::shared_ptr<BufferConfig> buffer_config);
+    bool init(std::shared_ptr<BufferConfig> buffer_config);
     bool init(CommandBatch& command_buffer, const void* data, std::shared_ptr<BufferConfig> buffer_config);
 
     void destroy() override;

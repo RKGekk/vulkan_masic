@@ -28,7 +28,7 @@ public:
     enum class VertexCountType { ALL, EXACT };
     enum class InstanceCountType { ALL, EXACT };
     enum class CreationPoint { RENDER_NODE_CREATION_TIME, EXTERNAL};
-    enum class DrawType { DRAW, DRAW_INDEXED, DRAW_INDIRECT, DRAW_INDIRE_CTCOUNT };
+    enum class DrawType { DRAW, DRAW_INDEXED, DRAW_INDIRECT, DRAW_INDIRECT_COUNT };
 
     struct UpdateMetadata {
         std::string name;

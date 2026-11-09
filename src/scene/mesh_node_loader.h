@@ -31,6 +31,7 @@
 #include "../graphics/pod/material.h"
 #include "../graphics/pod/shader_signature.h"
 #include "../graphics/api/vulkan_shaders_manager.h"
+#include "../graphics/api/cpu_resource.h"
 
 struct LightPunctual {
 	std::string name;			// Name of the light. Not required, default: ""
@@ -62,7 +63,7 @@ class MeshNodeLoader {
 public:
 	MeshNodeLoader() = default;
 
-	std::shared_ptr<SceneNode> ImportSceneNode(const std::filesystem::path& model_path, const std::shared_ptr<VulkanShadersManager>& shader_manager, std::shared_ptr<SceneNode> root_transform);
+	std::shared_ptr<SceneNode> ImportSceneNode(const std::filesystem::path& model_path, const std::shared_ptr<VulkanShadersManager>& shader_manager, std::shared_ptr<SceneNode> root_transform, size_t import_cpy_cmd_frame);
 
 private:
     using NodeIdx = int;
@@ -165,16 +166,17 @@ private:
     std::vector<float> GetTimeline(const tinygltf::Accessor& time_accessor);
     int32_t GetNumVertices(const tinygltf::Primitive& primitive) const;
     int32_t GetNumPrimitives(const tinygltf::Primitive& primitive) const;
-    std::vector<uint32_t> GetIndices(const tinygltf::Accessor& gltf_accessor);
-    std::vector<uint32_t> GetIndices(const tinygltf::Buffer& gltf_buffer, const tinygltf::BufferView& gltf_view, const tinygltf::Accessor& gltf_accessor);
-    uint32_t GetIndice(const tinygltf::Buffer& gltf_buffer, size_t buffer_offset, size_t element_number, size_t element_size_in_bytes, size_t stride);
+    std::shared_ptr<CpuResource> GetIndices(const tinygltf::Accessor& gltf_accessor, VkIndexType idx_type);
+    std::shared_ptr<CpuResource> GetIndices(const tinygltf::Buffer& gltf_buffer, const tinygltf::BufferView& gltf_view, const tinygltf::Accessor& gltf_accessor, VkIndexType idx_type);
+    uint32_t GetIndice32(const tinygltf::Buffer& gltf_buffer, size_t buffer_offset, size_t element_number, size_t element_size_in_bytes, size_t stride);
+    uint16_t GetIndice16(const tinygltf::Buffer& gltf_buffer, size_t buffer_offset, size_t element_number, size_t element_size_in_bytes, size_t stride);
     std::shared_ptr<Material> MakePropertySet(const tinygltf::Primitive& primitive);
     void MakeTextureProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material> material);
     void SetTextureProperty(const tinygltf::Texture& texture, Material::TextureType texture_type_enum, std::shared_ptr<Material> material);
     std::shared_ptr<VulkanSampler> createTextureSampler(uint32_t mip_levels, const tinygltf::Sampler& texture_sampler, const std::string& sampler_subname);
     void MakeMaterialProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material> material);
     VertexFormat GetVertexFormatFromMesh(std::map<std::string, int> attributes) const;
-    std::vector<char> GetVertices(const tinygltf::Primitive& primitive, const VertexFormat& pbr_shader_vertex_format);
+    std::shared_ptr<CpuResource> GetVertices(const tinygltf::Primitive& primitive, const VertexFormat& pbr_shader_vertex_format);
     VkIndexType getIndexType(int accessor_component_type);
     bool HaveLightExt(const tinygltf::Node& gltf_node);
     bool HaveLightExt(const nlohmann::json& json_node_ext);
@@ -187,6 +189,7 @@ private:
 
     std::shared_ptr<VulkanDevice> m_device;
     std::shared_ptr<Scene> m_scene;
+    size_t m_import_cpy_cmd_frame;
     std::unordered_map<NodeIdx, std::vector<BoneIdentity>> m_skin_inv_map;
     std::unordered_map<NodeIdx, std::unordered_map<AnimationIdx, std::vector<AnimationChannelIdx>>> m_node_to_anim_map;
     std::unordered_map<NodeIdx, std::unordered_map<AnimationIdx, std::shared_ptr<MatrixAnimation>>> m_node_to_matrix_map;

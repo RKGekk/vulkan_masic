@@ -257,9 +257,9 @@ void RenderGraph::build_dependency_levels() {
         m_dependency_levels[level]->addNode(node_ptr);
     }
 
-    for (int level = 0; level < (dependency_level_count + 1); ++level) {
-        m_dependency_levels[level]->sortPipelineNodes();
-    }
+    // for (int level = 0; level < (dependency_level_count + 1); ++level) {
+    //     m_dependency_levels[level]->sortPipelineNodes();
+    // }
 }
 
 const RenderGraph::RenderNodeList& RenderGraph::getTopologicallySortedNodes() {

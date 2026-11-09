@@ -27,6 +27,9 @@ public:
         Draw = 1 << 6 // 0x40
     };
     const static BindFlags ALL_BIND_FLAGS;
+    const static std::string DEFAULT_RENDER_NODE_CFG_NAME;
+
+    static std::string makeRenderNodeName(const std::string& material_name);
 
     virtual bool init(std::string render_node_name, unsigned frame_index, std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) override;
     virtual void destroy() override;

@@ -20,6 +20,7 @@ class VulkanCommandManager;
 class CommandBatch {
 public:
     static constexpr size_t SELECT_ALL_BUFFERS = -1;
+    const static std::shared_ptr<CommandBatch> NO_COMMAND;
 
     struct CommandBatchInfo {
         PoolTypeEnum pool_type;

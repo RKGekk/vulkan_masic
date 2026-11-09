@@ -20,7 +20,8 @@ public:
     enum class Type : uint32_t {
         BUFFER,
         IMAGE,
-        PUSH_CONSTANT
+        PUSH_CONSTANT,
+        CPU
     };
 
     virtual void destroy() = 0;

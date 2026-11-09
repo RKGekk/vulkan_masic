@@ -13,7 +13,7 @@ const std::shared_ptr<VulkanBuffer> VulkanBuffer::BUFFER_NULL_PTR = nullptr;
 VulkanBuffer::VulkanBuffer(std::shared_ptr<VulkanDevice> device, std::string name) : m_device(std::move(device)), m_name(std::move(name)) {}
 VulkanBuffer::VulkanBuffer(std::shared_ptr<VulkanDevice> device) : m_device(std::move(device)), m_name(std::to_string(rand())) {};
 
-bool VulkanBuffer::init(const void* data, std::shared_ptr<BufferConfig> buffer_config) {
+bool VulkanBuffer::init(std::shared_ptr<BufferConfig> buffer_config) {
     using namespace std::literals;
 
     m_buffer_config = buffer_config;
@@ -81,9 +81,9 @@ bool VulkanBuffer::init(const void* data, std::shared_ptr<BufferConfig> buffer_c
 
     }
     
-    if(data) {
-        update(data, m_buffer_config->getNotAlignedSize());
-    }
+    // if(data) {
+    //     update(data, m_buffer_config->getNotAlignedSize());
+    // }
  
     return true;
 }

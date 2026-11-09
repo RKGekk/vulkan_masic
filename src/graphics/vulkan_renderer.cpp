@@ -48,9 +48,6 @@ void PerFrame::begin(VulkanRenderer& renderer, uint32_t image_index) {
     frame_index = image_index;
     cmd_submit_wait_sem.clear();
     present_render_node->clearWaitSemaphores();
-    for(const std::shared_ptr<CommandBatch>& transfer_cmd : wait_transfer_commands) {
-        transfer_cmd->destroy();
-    }
     wait_transfer_commands.clear();
 }
 

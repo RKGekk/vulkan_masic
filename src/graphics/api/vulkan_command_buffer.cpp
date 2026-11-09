@@ -10,6 +10,8 @@
 #include "vulkan_command_manager.h"
 #include "../vulkan_renderer.h"
 
+const std::shared_ptr<CommandBatch> CommandBatch::NO_COMMAND = nullptr;
+
 CommandBatch::CommandBatch(VkDevice device, std::string name) : m_device(device), m_name(name) {
     m_cmd_mgr = Application::Get().GetRenderer().getCommandManager();
 }

@@ -180,25 +180,7 @@ void VulkanResourcesManager::delete_image(std::shared_ptr<VulkanImageBuffer> ima
 	}
 }
 
-std::shared_ptr<VulkanBuffer> VulkanResourcesManager::create_buffer(const void* data, VkDeviceSize buffer_size, std::string resource_type_name) {
-	using namespace std::literals;
-
-	const std::shared_ptr<BufferConfig>& buffer_config_template = m_buffer_config_map.at(resource_type_name);
-	std::shared_ptr<BufferConfig> buffer_config;
-	if(buffer_config_template->isSizeDeffered()) {
-		buffer_config = buffer_config_template->makeInstance(resource_type_name + "_"s + get_uuid(), buffer_size);
-	}
-	else {
-		buffer_config = buffer_config_template->makeInstance(resource_type_name + "_"s + get_uuid(), buffer_config_template->getBufferInfo().size);
-	}
-
-	std::shared_ptr<VulkanBuffer> buffer = std::make_shared<VulkanBuffer>(m_device);
-	buffer->init(data, std::move(buffer_config));
-
-	return buffer;
-}
-
-std::shared_ptr<VulkanBuffer> VulkanResourcesManager::create_buffer(const void* data, VkDeviceSize buffer_size, std::string buffer_name, std::string resource_type_name) {
+std::shared_ptr<VulkanBuffer> VulkanResourcesManager::create_buffer(VkDeviceSize buffer_size, std::string buffer_name, std::string resource_type_name) {
 	using namespace std::literals;
 
 	const std::shared_ptr<BufferConfig>& buffer_config_template = m_buffer_config_map.at(resource_type_name);
@@ -213,7 +195,31 @@ std::shared_ptr<VulkanBuffer> VulkanResourcesManager::create_buffer(const void* 
 	}
 
 	std::shared_ptr<VulkanBuffer> buffer = std::make_shared<VulkanBuffer>(m_device, buffer_name);
-	buffer->init(data, std::move(buffer_config));
+	buffer->init(std::move(buffer_config));
+
+	m_buffer_map[buffer_name] = buffer;
+
+	return buffer;
+}
+
+std::shared_ptr<VulkanBuffer> VulkanResourcesManager::create_buffer(std::string buffer_name, std::string resource_type_name, std::shared_ptr<CpuResource> cpu_resource, std::shared_ptr<CommandBatch>& cpy_cmd) {
+    using namespace std::literals;
+
+	const std::shared_ptr<BufferConfig>& buffer_config_template = m_buffer_config_map.at(resource_type_name);
+
+	std::shared_ptr<BufferConfig> buffer_config;
+	if(buffer_config_template->isSizeDeffered()) {
+		buffer_config = buffer_config_template->makeInstance(buffer_name + "_"s + resource_type_name, cpu_resource->getSize());
+	}
+	else {
+		buffer_config = buffer_config_template->makeInstance(buffer_name + "_"s + resource_type_name, buffer_config_template->getBufferInfo().size);
+	}
+
+	std::shared_ptr<VulkanBuffer> buffer = std::make_shared<VulkanBuffer>(m_device, buffer_name);
+    buffer->init(std::move(buffer_config));
+	const void* vertices_data = cpu_resource->getData().data();
+    buffer->update(*cpy_cmd, vertices_data, cpu_resource->getData().size());
+    cpy_cmd->addResource(std::move(cpu_resource));
 
 	m_buffer_map[buffer_name] = buffer;
 

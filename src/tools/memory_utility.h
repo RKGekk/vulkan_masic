@@ -34,3 +34,7 @@ template <typename E>
 constexpr typename std::underlying_type<E>::type to_underlying(E e) noexcept {
     return static_cast<typename std::underlying_type<E>::type>(e);
 }
+
+void pack_uint32(std::vector<char>& buffer, uint32_t value);
+void pack_uint16(std::vector<char>& buffer, uint16_t value);
+void pack_float(std::vector<char>& buffer, float value);
