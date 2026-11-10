@@ -14,19 +14,18 @@
 
 class VulkanDevice;
 class ImageBufferConfig;
+class CpuResource;
 
 class VulkanImageBuffer : public RenderResource {
 public:
     static const std::shared_ptr<VulkanImageBuffer> IMAGE_BUFFER_NULL_PTR;
+    static const std::string STAGING_BUFFER_TYPE;
 
     VulkanImageBuffer(std::shared_ptr<VulkanDevice> device, std::string name);
     VulkanImageBuffer(std::shared_ptr<VulkanDevice> device);
 
-    bool init(VkImage image, std::shared_ptr<ImageBufferConfig> image_buffer_config);
-    bool init(unsigned char* pixels, std::shared_ptr<ImageBufferConfig> image_buffer_config);
-    bool init(const std::shared_ptr<ImageBufferConfig>& image_buffer_config_template, const std::string& path_to_file);
     bool init(std::shared_ptr<ImageBufferConfig> image_buffer_config);
-    bool init(std::shared_ptr<CommandBatch>& command_buffer, unsigned char* pixels, std::shared_ptr<ImageBufferConfig> image_buffer_config);
+    bool init(std::shared_ptr<CommandBatch>& command_buffer, std::shared_ptr<CpuResource> pixels, std::shared_ptr<ImageBufferConfig> image_buffer_config);
     bool init(std::shared_ptr<CommandBatch>& command_buffer, const std::shared_ptr<ImageBufferConfig>& image_buffer_config_template, const std::string& path_to_file);
 
     void destroy() override;
@@ -43,9 +42,7 @@ public:
 
     std::shared_ptr<ImageBufferConfig>& getImageConfig();
 
-    void changeLayout(VkImageLayout old_layout, VkImageLayout new_layout);
     void changeLayout(std::shared_ptr<CommandBatch>& command_buffer, VkImageLayout old_layout, VkImageLayout new_layout);
-    void changeLayout(VkCommandBuffer command_buffer, VkImageLayout old_layout, VkImageLayout new_layout);
 
     const ResourceName& getName() const override;
     Type getType() const override;
@@ -62,6 +59,7 @@ protected:
     VkImage m_image;
     VkDeviceMemory m_memory;
     VkDeviceSize m_image_size;
+    void* m_mapped;
     
     std::unordered_map<std::string, VkImageView> m_image_view_map;
     std::shared_ptr<ImageBufferConfig> m_image_config;

@@ -268,7 +268,7 @@ void VulkanCommandManager::generateMipmaps(VkCommandBuffer command_buffer, VkIma
     barrier.subresourceRange.levelCount = 1u;
 
     if(initial_layout != VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
-        transitionImageLayout(command_buffer, image, format, initial_layout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mip_levels);
+        VulkanCommandManager::transitionImageLayout(command_buffer, image, format, initial_layout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mip_levels);
     }
     
     int32_t mip_width = extent.width;

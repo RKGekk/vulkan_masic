@@ -180,7 +180,7 @@ void VulkanResourcesManager::delete_image(std::shared_ptr<VulkanImageBuffer> ima
 	}
 }
 
-std::shared_ptr<VulkanBuffer> VulkanResourcesManager::create_buffer(VkDeviceSize buffer_size, std::string buffer_name, std::string resource_type_name) {
+std::shared_ptr<VulkanBuffer> VulkanResourcesManager::create_buffer(std::string buffer_name, std::string resource_type_name, VkDeviceSize buffer_size) {
 	using namespace std::literals;
 
 	const std::shared_ptr<BufferConfig>& buffer_config_template = m_buffer_config_map.at(resource_type_name);

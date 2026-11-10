@@ -4,12 +4,14 @@ const std::shared_ptr<CpuResource> CpuResource::CPU_NULL_PTR = nullptr;
 
 CpuResource::CpuResource(std::string name) : m_name(std::move(name)) {}
 
- bool CpuResource::init(std::vector<char> data) {
-     m_data = std::move(data);
- }
+bool CpuResource::init(std::vector<char> data) {
+    m_data = std::move(data);
+    return true;
+}
 
 bool CpuResource::init(size_t sz) {
     m_data = std::vector<char>(sz);
+    return true;
 }
 
 void CpuResource::destroy() {}

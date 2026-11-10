@@ -54,14 +54,15 @@ std::unordered_map<MeshNodeLoader::NodeIdx, MeshNodeLoader::NodeIdx> MeshNodeLoa
     return node_parent_map;
 }
 
-std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem::path& model_path, const std::shared_ptr<VulkanShadersManager>& shader_manager, std::shared_ptr<SceneNode> root_transform, size_t import_cpy_cmd_frame) {
+std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem::path& model_path, const std::shared_ptr<VulkanShadersManager>& shader_manager, std::shared_ptr<SceneNode> root_transform) {
 	using namespace std::literals;
 
-	m_model_path = model_path;
-	m_import_cpy_cmd_frame = import_cpy_cmd_frame;
-
-    Application& app = Application::Get();
+	Application& app = Application::Get();
     VulkanRenderer& renderer = app.GetRenderer();
+
+	m_model_path = model_path;
+	m_import_cpy_cmd_frame = renderer.getLastFrame();
+    
     m_device = renderer.GetDevice();
     m_scene = Application::Get().GetGameLogic()->GetHumanView()->VGetScene()->getScene();
 	m_shader_manager = shader_manager;

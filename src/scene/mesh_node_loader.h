@@ -63,7 +63,7 @@ class MeshNodeLoader {
 public:
 	MeshNodeLoader() = default;
 
-	std::shared_ptr<SceneNode> ImportSceneNode(const std::filesystem::path& model_path, const std::shared_ptr<VulkanShadersManager>& shader_manager, std::shared_ptr<SceneNode> root_transform, size_t import_cpy_cmd_frame);
+	std::shared_ptr<SceneNode> ImportSceneNode(const std::filesystem::path& model_path, const std::shared_ptr<VulkanShadersManager>& shader_manager, std::shared_ptr<SceneNode> root_transform);
 
 private:
     using NodeIdx = int;

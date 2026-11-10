@@ -77,7 +77,7 @@ bool VulkanBuffer::init(std::shared_ptr<BufferConfig> buffer_config) {
         name_info.pObjectName = buffer_view_name.c_str();
 
         vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
-#endif    
+#endif
 
     }
     
@@ -90,7 +90,7 @@ bool VulkanBuffer::init(std::shared_ptr<BufferConfig> buffer_config) {
 
 bool VulkanBuffer::init(CommandBatch& command_buffer, const void* data, std::shared_ptr<BufferConfig> buffer_config) {
     VkDeviceSize data_size = m_buffer_config->getNotAlignedSize();
-    init(nullptr, std::move(buffer_config));
+    init(std::move(buffer_config));
     update(command_buffer, data, data_size);
 
     return true;

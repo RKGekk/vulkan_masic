@@ -113,7 +113,7 @@ bool GraphicsRenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device,
         m_draw_type = DrawType::DRAW_INDIRECT;
     }
     else if(draw_type_str == "DrawIndirect"s) {
-        m_draw_type = DrawType::DRAW_INDIRE_CTCOUNT;
+        m_draw_type = DrawType::DRAW_INDIRECT_COUNT;
     }
     else {
         m_draw_type = DrawType::DRAW_INDEXED;

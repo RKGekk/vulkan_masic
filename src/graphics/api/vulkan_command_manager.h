@@ -52,10 +52,10 @@ public:
     void submitCommandBuffer(const std::vector<VkCommandBuffer>& submission_buffers, PoolTypeEnum pool_type = PoolTypeEnum::GRAPICS, std::shared_ptr<BatchWaitInfo> wait_info = nullptr, size_t index = CommandBatch::SELECT_ALL_BUFFERS, VkSubmitInfo* p_submit_info = nullptr);
     void wait(PoolTypeEnum pool_type);
 
-    void transitionImageLayout(VkCommandBuffer command_buffer, VkImage image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout, uint32_t mip_levels);
-    void copyBufferToImage(VkCommandBuffer command_buffer, VkBuffer buffer, VkImage image, VkExtent3D extent, VkImageLayout image_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    void generateMipmaps(VkCommandBuffer command_buffer, VkImage image, VkFormat format, VkExtent2D extent, uint32_t mip_levels, VkImageLayout initial_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VkImageLayout post_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    void copyBuffer(VkCommandBuffer command_buffer, VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size);
+    static void transitionImageLayout(VkCommandBuffer command_buffer, VkImage image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout, uint32_t mip_levels);
+    static void copyBufferToImage(VkCommandBuffer command_buffer, VkBuffer buffer, VkImage image, VkExtent3D extent, VkImageLayout image_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    static void generateMipmaps(VkCommandBuffer command_buffer, VkImage image, VkFormat format, VkExtent2D extent, uint32_t mip_levels, VkImageLayout initial_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VkImageLayout post_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    static void copyBuffer(VkCommandBuffer command_buffer, VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size);
 
 private:
     void createCommandPools(size_t frames_in_flight, size_t number_of_threads);

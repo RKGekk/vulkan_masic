@@ -298,6 +298,10 @@ std::pair<bool, uint32_t> VulkanRenderer::acquire_next_image() {
     return {true, m_frame};
 }
 
+uint32_t VulkanRenderer::getLastFrame() const {
+    return m_frame;
+}
+
 uint32_t VulkanRenderer::getPrevFrame() const {
     return m_prev_frame.back();
     //return m_prev_frame.empty() ? m_swapchain->getMaxFrames() - 1u : m_prev_frame.back();

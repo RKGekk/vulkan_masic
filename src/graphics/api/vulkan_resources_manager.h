@@ -42,7 +42,7 @@ public:
     void delete_image(const std::string& image_name);
     void delete_image(std::shared_ptr<VulkanImageBuffer> image_ptr);
 
-    std::shared_ptr<VulkanBuffer> create_buffer(VkDeviceSize buffer_size, std::string buffer_name, std::string resource_type_name);
+    std::shared_ptr<VulkanBuffer> create_buffer(std::string buffer_name, std::string resource_type_name, VkDeviceSize buffer_size = 0u);
     std::shared_ptr<VulkanBuffer> create_buffer(std::string buffer_name, std::string resource_type_name, std::shared_ptr<CpuResource> cpu_resource, std::shared_ptr<CommandBatch>& cpy_cmd);
     void delete_buffer(const std::string& buffer_name);
     void delete_buffer(std::shared_ptr<VulkanBuffer> buffer_ptr);
