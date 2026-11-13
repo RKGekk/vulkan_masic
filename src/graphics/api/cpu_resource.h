@@ -20,7 +20,7 @@ public:
     CpuResource(std::string name);
 
     bool init(std::vector<char> data);
-    bool init(size_t sz);
+    bool init(size_t sz, const void* data = nullptr);
     void destroy() override;
     void update(std::vector<char> data);
 

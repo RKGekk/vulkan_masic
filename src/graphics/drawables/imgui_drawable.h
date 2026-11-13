@@ -29,6 +29,7 @@ struct Managers;
 class GraphicsRenderNode;
 class VulkanBuffer;
 class VulkanImageBuffer;
+class CommandBatch;
 
 class ImGUIDrawable : public IVulkanDrawable {
 public:
@@ -41,6 +42,7 @@ public:
         std::vector<ImDrawVert> imgui_vtx;
         std::vector<ImDrawIdx> imgui_idx;
         std::vector<std::shared_ptr<GraphicsRenderNode>> renderables;
+        std::shared_ptr<CommandBatch> copy_command;
     };
 
     bool init(std::shared_ptr<VulkanDevice> device, int max_frames);

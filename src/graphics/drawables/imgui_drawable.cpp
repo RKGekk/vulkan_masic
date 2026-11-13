@@ -12,6 +12,7 @@
 #include "../api/vulkan_descriptors_manager.h"
 #include "../api/vulkan_image_buffer.h"
 #include "../api/vulkan_swapchain.h"
+#include "../api/vulkan_command_buffer.h"
 #include "../../application.h"
 
 #include <pugixml.hpp>
@@ -21,6 +22,15 @@
 const std::string ImGUIDrawable::RENDER_NODE_CFG_NAME = "imgui_renderer";
 
 std::shared_ptr<VulkanImageBuffer> ImGUIDrawable::makeFontTexture(std::shared_ptr<VulkanDevice> device, const char* TTF_font_file_name, float fontSizePixels) {
+    Application& app = Application::Get();
+    VulkanRenderer& renderer = app.GetRenderer();
+    std::shared_ptr<VulkanCommandManager>& cmd_manager = renderer.getCommandManager();
+    std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
+    uint32_t import_cpy_cmd_frame = renderer.getLastFrame();
+    std::string font_cpy_cmd_name = "font_cpy_cmd_"s + TTF_font_file_name + "_frame"s + std::to_string(import_cpy_cmd_frame);
+	std::shared_ptr<CommandBatch> copy_cmd = cmd_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, import_cpy_cmd_frame, 0u, 1u, font_cpy_cmd_name);
+	std::shared_ptr<PerFrame>& per_frame = renderer.getFrameData(import_cpy_cmd_frame);
+
     ImGuiIO& io = ImGui::GetIO();
 
     ImFontConfig cfg = ImFontConfig();
@@ -47,16 +57,26 @@ std::shared_ptr<VulkanImageBuffer> ImGUIDrawable::makeFontTexture(std::shared_pt
     int height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-    std::shared_ptr<VulkanImageBuffer> font_texture = Application::GetRenderer().getResourcesManager()->create_image(pixels, {(uint32_t)width, (uint32_t)height}, TTF_font_file_name, "imgui_font_resource");
+    std::string cpu_res_name = TTF_font_file_name + "_cpu_resource"s;
+	std::shared_ptr<CpuResource> cpu_res = std::make_shared<CpuResource>(cpu_res_name);
+	cpu_res->init(static_cast<size_t>(width * height * 32), pixels);
+
+    std::shared_ptr<VulkanImageBuffer> font_texture = resources_manager->create_image(cpu_res, copy_cmd, {(uint32_t)width, (uint32_t)height}, TTF_font_file_name, "imgui_font_resource");
 
     //io.Fonts->TexID = 0u;
     io.FontDefault = font;
+    per_frame->wait_transfer_commands.push_back(copy_cmd);
 
     return font_texture;
 }
 
 bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
     using namespace std::literals;
+
+    Application& app = Application::Get();
+    VulkanRenderer& renderer = app.GetRenderer();
+    std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
+    std::shared_ptr<VulkanCommandManager>& cmd_manager = renderer.getCommandManager();
 
     m_device = std::move(device);
     m_max_frames = max_frames;
@@ -83,9 +103,10 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
 
         per_frame->imgui_vtx.resize(max_frames);
         per_frame->imgui_idx.resize(max_frames);
-        per_frame->vertex_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, "imgui_vertex_buffer_frame_"s + std::to_string(frame), "imgui_vertex_resource");
-        per_frame->index_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, "imgui_index_buffer_frame_"s + std::to_string(frame), "imgui_index_resource");
-        per_frame->uniform_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, "imgui_uniform_buffer_frame_"s + std::to_string(frame), "imgui_uniform_resource");
+        per_frame->vertex_buffer = resources_manager->create_buffer("imgui_vertex_buffer_frame_"s + std::to_string(frame), "imgui_vertex_resource", 0u);
+        per_frame->index_buffer = resources_manager->create_buffer("imgui_index_buffer_frame_"s + std::to_string(frame), "imgui_index_resource", 0u);
+        per_frame->uniform_buffer = resources_manager->create_buffer("imgui_uniform_buffer_frame_"s + std::to_string(frame), "imgui_uniform_resource", 0u);
+        per_frame->copy_command = cmd_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, frame, 0u, 1u, "imgui_cpy_buffer_frame_"s + std::to_string(frame));
 
         m_per_frame.push_back(per_frame);
     }
@@ -191,9 +212,11 @@ void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
         vertex_sz += vtx_sz;
         index_sz += idx_sz;
     }
+    std::shared_ptr<CommandBatch>& cpy_cmd = per_frame->copy_command;
+    cpy_cmd->reset();
 
-    per_frame->vertex_buffer->update(per_frame->imgui_vtx.data(), vertex_sz);
-    per_frame->index_buffer->update(per_frame->imgui_idx.data(), index_sz);
+    per_frame->vertex_buffer->update(cpy_cmd, per_frame->imgui_vtx.data(), vertex_sz);
+    per_frame->index_buffer->update(cpy_cmd, per_frame->imgui_idx.data(), index_sz);
 
     size_t cmd_ct = 0u;
     for (const ImDrawList* cmdList : dd->CmdLists) {
@@ -236,6 +259,8 @@ void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     for(size_t i = cmd_ct; i < per_frame->renderables.size(); ++i) {
         per_frame->renderables[i]->setExecutionBypass(true);
     }
+
+    Application::GetRenderer().getFrameData(image_index)->wait_transfer_commands.push_back(cpy_cmd);
 
     //const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
     //renderable->render_node->changeWriteDependency(swapchain_images[image_index], "resolve_attachment");

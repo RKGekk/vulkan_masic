@@ -168,20 +168,18 @@ void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, Vk
         m_buffer_config->setNotAlignedSize(buffer_size);
         m_buffer_config->setAlignedSize(buffer_size);
         m_buffer_config->setSizeDynamic(false);
-        init(src_data, m_buffer_config);
+        init(m_buffer_config);
         m_buffer_config->setSizeDynamic(true);
         std::shared_ptr<VulkanBuffer> my_bo = shared_from_this();
         for(auto& fn : m_update_functions) fn(my_bo);
-        return;
     }
     if (buffer_size > m_buffer_config->getBufferInfo().size) {
         destroy();
         m_buffer_config->setNotAlignedSize(buffer_size);
         m_buffer_config->setAlignedSize(buffer_size);
-        init(src_data, m_buffer_config);
+        init(m_buffer_config);
         std::shared_ptr<VulkanBuffer> my_bo = shared_from_this();
         for(auto& fn : m_update_functions) fn(my_bo);
-        return;
     }
 
     if(!src_data) {

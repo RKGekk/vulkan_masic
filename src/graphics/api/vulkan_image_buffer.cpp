@@ -79,7 +79,9 @@ bool VulkanImageBuffer::init(std::shared_ptr<CommandBatch>& command_buffer, std:
         }
     }
     else {
-        std::shared_ptr<VulkanBuffer> staging_buffer = Application::Get().GetRenderer().getResourcesManager()->create_buffer(m_name + "_staging_buffer"s, STAGING_BUFFER_TYPE, pixels, command_buffer);
+        VulkanRenderer& renderer = Application::GetRenderer();
+        std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
+        std::shared_ptr<VulkanBuffer> staging_buffer = resources_manager->create_buffer(m_name + "_staging_buffer"s, STAGING_BUFFER_TYPE, pixels, command_buffer);
         command_buffer->addResource(staging_buffer);
 
         if(m_image_config->getImageInfo().initialLayout != VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
@@ -212,9 +214,9 @@ std::shared_ptr<ImageBufferConfig>& VulkanImageBuffer::getImageConfig() {
     return m_image_config;
 }
 
-void VulkanImageBuffer::changeLayout(std::shared_ptr<CommandBatch>& command_buffer, VkImageLayout old_layout, VkImageLayout new_layout) {
+void VulkanImageBuffer::changeLayout(VkCommandBuffer command_buffer, VkImageLayout old_layout, VkImageLayout new_layout) {
     VulkanCommandManager::transitionImageLayout(
-        command_buffer->getCommandBufer(),
+        command_buffer,
         m_image,
         m_image_config->getImageInfo().format,
         old_layout,

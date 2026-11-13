@@ -9,8 +9,14 @@ bool CpuResource::init(std::vector<char> data) {
     return true;
 }
 
-bool CpuResource::init(size_t sz) {
-    m_data = std::vector<char>(sz);
+bool CpuResource::init(size_t sz, const void* data) {
+    if(data) {
+        const char* byte_ptr = static_cast<const char*>(data);
+        m_data = std::vector<char>(byte_ptr, byte_ptr + sz);
+    }
+    else {
+        m_data = std::vector<char>(sz);
+    }
     return true;
 }
 

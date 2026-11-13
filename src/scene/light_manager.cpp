@@ -12,11 +12,13 @@ const std::string LightManager::m_light_resource_cfg_name = "light_uniform_resou
 LightManager::LightManager() : m_dir_lights_size(0u), m_point_lights_size(0u), m_spot_lights_size(0u) {
     VulkanRenderer& renderer = Application::GetRenderer();
     std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
+	std::shared_ptr<VulkanCommandManager>& cmd_manager = renderer.getCommandManager();
     int max_frames = renderer.getSwapchain()->getMaxFrames();
     m_light_buffers.reserve(max_frames);
     for(int i = 0; i < max_frames; ++i) {
         m_light_buffers.push_back(resources_manager->create_buffer(m_light_buffer_name + std::to_string(i), m_light_resource_cfg_name));
-        std::shared_ptr<CommandBatch> command_buffer_ptr = renderer.getCommandManager()->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, image_index, thread_id, 1u, "light_update_cmd_buffer"s + std::to_string(image_index));
+        std::string light_buffer_name = "light_update_cmd_buffer"s + std::to_string(i);
+        std::shared_ptr<CommandBatch> command_buffer_ptr = cmd_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, i, 0u, 1u, light_buffer_name);
         m_cpy_cmd[i] = command_buffer_ptr;
     }
 }
