@@ -13,6 +13,8 @@ class VulkanBuffer;
 
 class LightManager {
 public:
+    using FrameNumber = unsigned;
+    
     LightManager();
 
     void CalcLighting(const std::shared_ptr<CameraNode>& camera_node, uint32_t image_index, size_t thread_id);
@@ -41,4 +43,5 @@ private:
     uint32_t m_spot_lights_size;
 	std::unordered_map<std::shared_ptr<LightNode>, size_t> m_index_map;
     std::vector<std::shared_ptr<VulkanBuffer>> m_light_buffers;
+    std::unordered_map<FrameNumber, std::shared_ptr<CommandBatch>> m_cpy_cmd;
 };

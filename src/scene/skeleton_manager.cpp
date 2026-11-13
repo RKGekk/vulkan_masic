@@ -24,13 +24,9 @@ SkeletonManager::SkeletonManager() {
     const std::shared_ptr<VulkanSwapChain>& swapchain = renderer.getSwapchain();
     m_max_frames = swapchain->getMaxFrames();
     for(int i = 0; i < m_max_frames; ++i) {
-        SkinnedDataCpyCmd& cpy_cmd = m_cpy_cmd[i];
 
         std::string skin_cpy_cmd_name = "skinned_data_cpy_cmd_frame"s + std::to_string(i);
-        cpy_cmd.copy_cmd = cmd_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, i, 0u, 1u, skin_cpy_cmd_name);
-
-        std::string skin_cmd_complete_fen_name = "skinned_data_cmd_complete_fen_frame"s + std::to_string(i);
-        cpy_cmd.transfer_complete_fen = fen_mgr->getFence(skin_cmd_complete_fen_name);
+        m_cpy_cmd[i] = cmd_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, i, 0u, 1u, skin_cpy_cmd_name);
     }
 }
 
@@ -110,13 +106,13 @@ void SkeletonManager::AddBone(const std::shared_ptr<BoneNode>& node) {
                 skinned_data->skeleton_name = skin_name;
 
                 std::string skin_bind_buffer_name = "skinned_data_bind_buffer_"s + skin_name;
-                skinned_data->bind_buffer = resources_manager->create_buffer(nullptr, 1u * sizeof(glm::mat4), std::move(skin_bind_buffer_name), m_skin_resource_cfg_name);
+                skinned_data->bind_buffer = resources_manager->create_buffer(std::move(skin_bind_buffer_name), m_skin_resource_cfg_name, 1u * sizeof(glm::mat4));
 
                 std::string skin_joint_buffer_name = "skinned_data_joint_buffer_"s + skin_name;
-                skinned_data->joint_buffer = resources_manager->create_buffer(nullptr, 1u * sizeof(glm::mat4), std::move(skin_joint_buffer_name), m_skin_resource_cfg_name);
+                skinned_data->joint_buffer = resources_manager->create_buffer(std::move(skin_joint_buffer_name), m_skin_resource_cfg_name, 1u * sizeof(glm::mat4));
 
                 std::string skin_dq_buffer_name = "skinned_data_dq_buffer_"s + skin_name;
-                skinned_data->dq_buffer = resources_manager->create_buffer(nullptr, 1u * sizeof(glm::mat2x4), std::move(skin_dq_buffer_name), m_skin_resource_cfg_name);
+                skinned_data->dq_buffer = resources_manager->create_buffer(std::move(skin_dq_buffer_name), m_skin_resource_cfg_name, 1u * sizeof(glm::mat2x4));
 
                 skinned_data->skeleton_structure = skeleton_graph_data;
 

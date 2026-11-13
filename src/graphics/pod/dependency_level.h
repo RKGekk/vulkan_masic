@@ -35,7 +35,6 @@ public:
     void TransitionResourcesToProperState(VkCommandBuffer primary_command_buffer, const std::shared_ptr<VulkanFramebuffer>& fb) const;
 
     void recordCommandBuffer();
-    void beginFrame();
 
     bool isDirtyWrite(const std::shared_ptr<VulkanFramebuffer>& fb) const;
     bool isDirtyRead(const std::shared_ptr<VulkanPipeline>& pipeline) const;

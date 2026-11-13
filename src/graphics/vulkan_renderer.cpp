@@ -213,8 +213,8 @@ void VulkanRenderer::recordCommandBuffer(unsigned image_index) {
     per_frame_data->submission_buffers.clear();
 
     const std::vector<std::shared_ptr<DependencyLevel>>& dependency_levels = m_per_frame[image_index]->render_graph->getDependencyLevels();
-    for (auto dependency_it = dependency_levels.begin(); dependency_it != dependency_levels.end(); ++dependency_it) {
-        const std::shared_ptr<DependencyLevel>& dependency_lvl = *dependency_it;
+    for (const std::shared_ptr<DependencyLevel>& dependency_lvl : dependency_levels) {
+        dependency_lvl->recordCommandBuffer();
         for (const auto&[rp_order, fb_set] : dependency_lvl->getOrderToFBmap()) {
             for(const std::shared_ptr<VulkanFramebuffer>& fb : fb_set) {
                 const std::shared_ptr<CompositeCommandBatch> cmd_batch = dependency_lvl->getFBtoCmdBufferMap().at(fb);

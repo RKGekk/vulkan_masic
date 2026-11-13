@@ -34,10 +34,10 @@ public:
     bool init(const std::shared_ptr<WindowSurface>& window, const std::string& rg_file_path);
     void destroy();
 
-    std::shared_ptr<VulkanImageBuffer> create_image(const std::string& path_to_file);
     std::shared_ptr<VulkanImageBuffer> create_image(VkImage image, std::string image_name, std::string resource_type_name);
     std::shared_ptr<VulkanImageBuffer> create_image(VkImage image, VkExtent2D extent, std::string image_name, std::string resource_type_name);
-    std::shared_ptr<VulkanImageBuffer> create_image(unsigned char* pixels, VkExtent2D extent, std::string image_name, std::string resource_type_name);
+    std::shared_ptr<VulkanImageBuffer> create_image(const std::string& path_to_file, std::shared_ptr<CommandBatch>& cpy_cmd);
+    std::shared_ptr<VulkanImageBuffer> create_image(std::shared_ptr<CpuResource> cpu_resource, std::shared_ptr<CommandBatch>& cpy_cmd, VkExtent2D extent, std::string image_name, std::string resource_type_name);
     std::shared_ptr<VulkanImageBuffer> create_image(std::string image_name, std::string resource_type_name);
     void delete_image(const std::string& image_name);
     void delete_image(std::shared_ptr<VulkanImageBuffer> image_ptr);

@@ -30,86 +30,24 @@ VulkanImageBuffer::VulkanImageBuffer(std::shared_ptr<VulkanDevice> device, std::
 VulkanImageBuffer::VulkanImageBuffer(std::shared_ptr<VulkanDevice> device) : m_device(std::move(device)), m_name(std::to_string(rand())) {}
 
 bool VulkanImageBuffer::init(std::shared_ptr<ImageBufferConfig> image_buffer_config) {
+    VkImage image = m_image = createImage(m_device, m_image_config, m_name);
+    return init(image, std::move(image_buffer_config));
+}
+
+bool VulkanImageBuffer::init(VkImage image, std::shared_ptr<ImageBufferConfig> image_buffer_config) {
     using namespace std::literals;
 
     m_image_config = std::move(image_buffer_config);
-    
-    VkResult result = vkCreateImage(m_device->getDevice(), &m_image_config->getImageInfo(), nullptr, &m_image);
-    if(result != VK_SUCCESS) {
-        throw std::runtime_error("failed to create image!");
-    }
-
-#ifndef NDEBUG
-    std::string buffer_name = "buffer_"s + m_name;
-    auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
-    VkDebugUtilsObjectNameInfoEXT name_info = {};
-    name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
-    name_info.objectType = VK_OBJECT_TYPE_IMAGE;
-    name_info.objectHandle = (uint64_t)m_image;
-    name_info.pObjectName = buffer_name.c_str();
-
-    vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
-#endif
-
-    VkMemoryRequirements mem_req{};
-    vkGetImageMemoryRequirements(m_device->getDevice(), m_image, &mem_req);
-    m_image_size = mem_req.size;
-    if(m_image_config->isMemoryPropertiesByMemoryRequirements()) {
-        int memory_type_idx = std::countr_zero(mem_req.memoryTypeBits);
-        if(memory_type_idx < m_device->getDeviceAbilities().memory_properties.memoryTypeCount) {
-            VkMemoryPropertyFlags memory_property_flags = m_device->getDeviceAbilities().memory_properties.memoryTypes[memory_type_idx].propertyFlags;
-            if(memory_property_flags) {
-                m_image_config->setMemoryProperties(m_device->getDeviceAbilities().memory_properties.memoryTypes[memory_type_idx].propertyFlags);
-            }
-            else {
-                mem_req.memoryTypeBits = mem_req.memoryTypeBits & ~(1 << memory_type_idx);
-                memory_type_idx = std::countr_zero(mem_req.memoryTypeBits);
-                if(memory_type_idx < m_device->getDeviceAbilities().memory_properties.memoryTypeCount) {
-                    VkMemoryPropertyFlags memory_property_flags = m_device->getDeviceAbilities().memory_properties.memoryTypes[memory_type_idx].propertyFlags;
-                    m_image_config->setMemoryProperties(m_device->getDeviceAbilities().memory_properties.memoryTypes[memory_type_idx].propertyFlags);
-                }
-            }
-        }
-    }
-
-    uint32_t mem_type_idx = m_device->findMemoryType(mem_req.memoryTypeBits, m_image_config->getMemoryProperties());
-    VkMemoryAllocateInfo alloc_info{};
-    alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    alloc_info.allocationSize = mem_req.size;
-    alloc_info.memoryTypeIndex = mem_type_idx;
-    
-    result = vkAllocateMemory(m_device->getDevice(), &alloc_info, nullptr, &m_memory);
-    if(result != VK_SUCCESS) {
-        throw std::runtime_error("failed to allocate image memory!");
-    }
-
-    VkDeviceSize offset = 0u;
-    vkBindImageMemory(m_device->getDevice(), m_image, m_memory, offset);
+    m_image = image;
+    VkMemoryAllocateInfo alloc_info = getImageSize(m_device, m_image_config, m_image);
+    m_memory = allocateImageMemory(m_device, m_image, alloc_info);
 
     if(m_image_config->getMemoryProperties() & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
-        vkMapMemory(m_device->getDevice(), m_memory, 0, mem_req.size, 0u, &m_mapped);
+        vkMapMemory(m_device->getDevice(), m_memory, 0, alloc_info.allocationSize, 0u, &m_mapped);
     }
 
-    for(auto&[view_type_name, view_cfg_ptr] : m_image_config->getViewInfoMap()) {
-        view_cfg_ptr->image_view_info.image = m_image;
-        VkResult result = vkCreateImageView(m_device->getDevice(), &view_cfg_ptr->image_view_info, nullptr, &m_image_view_map[view_type_name]);
-        if(result != VK_SUCCESS) {
-            throw std::runtime_error("failed to create texture image view!");
-        }
+    createViews();
 
-#ifndef NDEBUG
-        std::string buffer_view_name = "buffer_view_"s + view_type_name;
-        auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
-        VkDebugUtilsObjectNameInfoEXT name_info = {};
-        name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
-        name_info.objectType = VK_OBJECT_TYPE_IMAGE_VIEW;
-        name_info.objectHandle = (uint64_t)m_image_view_map[view_type_name];
-        name_info.pObjectName = buffer_view_name.c_str();
-
-        vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
-#endif
-    }    
-    
     return true;
 }
 
@@ -207,6 +145,7 @@ bool VulkanImageBuffer::init(std::shared_ptr<CommandBatch>& command_buffer, cons
     std::shared_ptr<CpuResource> img_buff = std::make_shared<CpuResource>(path_to_file + "_image_CPU"s);
 	img_buff->init({array_start, array_end});
     bool result = init(command_buffer, img_buff, std::move(image_buffer_config));
+    //command_buffer->addResource(std::move(img_buff));
 
     stbi_image_free(pixels);
 
@@ -298,4 +237,91 @@ void VulkanImageBuffer::AddUpdateMetadataFn(UpdateMetadataFn fn) {
 
 void VulkanImageBuffer::ClearUpdateMetadataFn() {
     m_update_functions.clear();
+}
+
+VkImage VulkanImageBuffer::createImage(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<ImageBufferConfig>& img_cfg, const ResourceName& name) {
+    VkImage image;
+    VkResult result = vkCreateImage(device->getDevice(), &img_cfg->getImageInfo(), nullptr, &image);
+    if(result != VK_SUCCESS) {
+        throw std::runtime_error("failed to create image!");
+    }
+
+#ifndef NDEBUG
+    std::string buffer_name = "buffer_"s + name;
+    auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
+    VkDebugUtilsObjectNameInfoEXT name_info = {};
+    name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+    name_info.objectType = VK_OBJECT_TYPE_IMAGE;
+    name_info.objectHandle = (uint64_t)image;
+    name_info.pObjectName = buffer_name.c_str();
+
+    vkSetDebugUtilsObjectNameEXT(device->getDevice(), &name_info);
+#endif
+}
+
+VkMemoryAllocateInfo VulkanImageBuffer::getImageSize(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<ImageBufferConfig>& img_cfg, VkImage image) {
+    VkMemoryRequirements mem_req{};
+    vkGetImageMemoryRequirements(device->getDevice(), image, &mem_req);
+    VkDeviceSize image_size = mem_req.size;
+    VkMemoryPropertyFlags props = img_cfg->getMemoryProperties();
+    if(img_cfg->isMemoryPropertiesByMemoryRequirements()) {
+        int memory_type_idx = std::countr_zero(mem_req.memoryTypeBits);
+        if(memory_type_idx < device->getDeviceAbilities().memory_properties.memoryTypeCount) {
+            VkMemoryPropertyFlags memory_property_flags = device->getDeviceAbilities().memory_properties.memoryTypes[memory_type_idx].propertyFlags;
+            if(memory_property_flags) {
+                props = device->getDeviceAbilities().memory_properties.memoryTypes[memory_type_idx].propertyFlags;
+            }
+            else {
+                mem_req.memoryTypeBits = mem_req.memoryTypeBits & ~(1 << memory_type_idx);
+                memory_type_idx = std::countr_zero(mem_req.memoryTypeBits);
+                if(memory_type_idx < device->getDeviceAbilities().memory_properties.memoryTypeCount) {
+                    props = device->getDeviceAbilities().memory_properties.memoryTypes[memory_type_idx].propertyFlags;
+                }
+            }
+        }
+    }
+
+    uint32_t mem_type_idx = device->findMemoryType(mem_req.memoryTypeBits, props);
+    VkMemoryAllocateInfo alloc_info{};
+    alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    alloc_info.allocationSize = mem_req.size;
+    alloc_info.memoryTypeIndex = mem_type_idx;
+
+    return alloc_info;
+}
+
+VkDeviceMemory VulkanImageBuffer::allocateImageMemory(const std::shared_ptr<VulkanDevice>& device, VkImage image, const VkMemoryAllocateInfo& alloc_info) {
+    VkDeviceMemory memory;
+
+    VkResult result = vkAllocateMemory(device->getDevice(), &alloc_info, nullptr, &memory);
+    if(result != VK_SUCCESS) {
+        throw std::runtime_error("failed to allocate image memory!");
+    }
+
+    VkDeviceSize offset = 0u;
+    vkBindImageMemory(device->getDevice(), image, memory, offset);
+
+    return memory;
+}
+
+void VulkanImageBuffer::createViews() {
+    for(auto&[view_type_name, view_cfg_ptr] : m_image_config->getViewInfoMap()) {
+        view_cfg_ptr->image_view_info.image = m_image;
+        VkResult result = vkCreateImageView(m_device->getDevice(), &view_cfg_ptr->image_view_info, nullptr, &m_image_view_map[view_type_name]);
+        if(result != VK_SUCCESS) {
+            throw std::runtime_error("failed to create texture image view!");
+        }
+
+#ifndef NDEBUG
+        std::string buffer_view_name = "buffer_view_"s + view_type_name;
+        auto vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(Application::GetInstance().getInstance(), "vkSetDebugUtilsObjectNameEXT");
+        VkDebugUtilsObjectNameInfoEXT name_info = {};
+        name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+        name_info.objectType = VK_OBJECT_TYPE_IMAGE_VIEW;
+        name_info.objectHandle = (uint64_t)m_image_view_map[view_type_name];
+        name_info.pObjectName = buffer_view_name.c_str();
+
+        vkSetDebugUtilsObjectNameEXT(m_device->getDevice(), &name_info);
+#endif
+    }
 }

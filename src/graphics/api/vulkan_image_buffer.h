@@ -25,6 +25,7 @@ public:
     VulkanImageBuffer(std::shared_ptr<VulkanDevice> device);
 
     bool init(std::shared_ptr<ImageBufferConfig> image_buffer_config);
+    bool init(VkImage image, std::shared_ptr<ImageBufferConfig> image_buffer_config);
     bool init(std::shared_ptr<CommandBatch>& command_buffer, std::shared_ptr<CpuResource> pixels, std::shared_ptr<ImageBufferConfig> image_buffer_config);
     bool init(std::shared_ptr<CommandBatch>& command_buffer, const std::shared_ptr<ImageBufferConfig>& image_buffer_config_template, const std::string& path_to_file);
 
@@ -50,7 +51,12 @@ public:
     void AddUpdateMetadataFn(UpdateMetadataFn fn) override;
     void ClearUpdateMetadataFn() override;
 
+    static VkImage createImage(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<ImageBufferConfig>& img_cfg, const ResourceName& name);
+    static VkMemoryAllocateInfo getImageSize(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<ImageBufferConfig>& img_cfg, VkImage image);
+    static VkDeviceMemory allocateImageMemory(const std::shared_ptr<VulkanDevice>& device, VkImage image, const VkMemoryAllocateInfo& alloc_info);
+
 protected:
+    void createViews();
 
     std::shared_ptr<VulkanDevice> m_device;
     ResourceName m_name;

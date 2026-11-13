@@ -18,6 +18,10 @@ bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr
     m_window = std::move(window);
     m_device = std::move(device);
 
+    VulkanRenderer& renderer = Application::GetRenderer();
+    std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
+    std::shared_ptr<VulkanFormatManager>& format_manager = renderer.getFormatManager();
+
     pugi::xml_document xml_doc;
 	pugi::xml_parse_result parse_res = xml_doc.load_file(rg_file_path.c_str());
 	if (!parse_res) { return false;	}
@@ -30,7 +34,7 @@ bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr
 	if (!swapchain_node) return false;
 
     std::string surface_format_name = swapchain_node.child("SurfaceFormatName").text().as_string();
-    m_format_config = Application::GetRenderer().getFormatManager()->getFormat(surface_format_name);
+    m_format_config = format_manager->getFormat(surface_format_name);
     
     m_swapchain_create_info = VkSwapchainCreateInfoKHR{};
     m_swapchain_create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -103,7 +107,8 @@ bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr
     size_t sz = swapchain_images.size();
     m_swapchain_images.resize(sz);
     for(size_t i = 0u; i < sz; ++i) {
-        m_swapchain_images[i] = Application::GetRenderer().getResourcesManager()->create_image(swapchain_images[i], "swap_chain_"s + std::to_string(i), resource_type_name);
+        std::string sw_name = "swap_chain_"s + std::to_string(i);
+        m_swapchain_images[i] = resources_manager->create_image(swapchain_images[i], sw_name, resource_type_name);
 
 #ifndef NDEBUG
         std::string buffer_name = "image_"s + m_swapchain_images[i]->getName();
