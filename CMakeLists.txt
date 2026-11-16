@@ -347,6 +347,8 @@ set(APP_SOURCES
     "${SRC_DIR}/graphics/pod/descriptor_set_layout.cpp"
     "${SRC_DIR}/graphics/pod/composite_command_batch.h"
     "${SRC_DIR}/graphics/pod/composite_command_batch.cpp"
+    "${SRC_DIR}/graphics/pod/frame_copy_command.h"
+    "${SRC_DIR}/graphics/pod/frame_copy_command.cpp"
     "${SRC_DIR}/graphics/api/vulkan_semaphore.h"
     "${SRC_DIR}/graphics/api/vulkan_semaphore.cpp"
     "${SRC_DIR}/graphics/api/vulkan_semaphores_manager.h"

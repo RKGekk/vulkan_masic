@@ -19,6 +19,7 @@
 #include "../../scene/camera_manager.h"
 #include "../../scene/nodes/camera_node.h"
 #include "../../scene/nodes/basic_camera_node.h"
+#include "../../graphics/pod/frame_copy_command.h"
 
 const std::string HumanView::g_name = "Level"s;
 
@@ -93,7 +94,7 @@ bool HumanView::VOnLostDevice() {
 	return hr;
 }
 
-void HumanView::VOnRender(const GameTimerDelta& delta, uint32_t image_index) {
+void HumanView::VOnRender(const GameTimerDelta& delta, uint32_t image_index, size_t thread_id) {
 	m_current_tick = delta.GetTotalDuration();
 	if (m_current_tick == m_last_draw) { return; }
 	if (!m_can_draw) { return; }
@@ -115,7 +116,7 @@ void HumanView::VOnRender(const GameTimerDelta& delta, uint32_t image_index) {
 	}
 }
 
-void HumanView::VOnUpdate(const GameTimerDelta& delta, uint32_t image_index) {
+void HumanView::VOnUpdate(const GameTimerDelta& delta, uint32_t image_index, size_t thread_id) {
 	m_process_manager->UpdateProcesses(delta);
 	for(auto& ctrl : m_controllers) {
 		ctrl->OnUpdate(delta);
@@ -126,17 +127,9 @@ void HumanView::VOnUpdate(const GameTimerDelta& delta, uint32_t image_index) {
 	const std::shared_ptr<Scene>& scene = m_screen_element_scene->getScene();
 	scene->getAnimationManager()->Update(delta);
 	scene->recalculateGlobalTransforms();
-    if(const std::shared_ptr<CameraComponent>& camera_component = VGetCamera()) {
-		std::shared_ptr<BasicCameraNode> basic_camera_node = camera_component->VGetCameraNode();
-		//std::shared_ptr<BasicCameraNode> camera_node = camera_component->VGetCameraNode();
-		std::shared_ptr<CameraNode> camera_node = std::static_pointer_cast<CameraNode>(basic_camera_node);
-		//std::shared_ptr<CameraNode> camera_node = basic_camera_node;
-		scene->getLightManager()->CalcLighting(camera_node, image_index, 0u);
-    	//scene->getLightManager()->CalcLighting(std::dynamic_pointer_cast<CameraNode>(camera_node));
-		//scene->getLightManager()->CalcLighting(camera_component->VGetCameraNode());
+    for(const auto& frame_cpy_mg : scene->getFrameCpyMgrs()) {
+		frame_cpy_mg->UpdateFameData(image_index, thread_id);
 	}
-	scene->getSkeletonManager()->recalculateSkinnedData(image_index);
-	scene->getCameraManager()->recalculateCameraData(image_index);
 }
 
 EngineViewType HumanView::VGetType() {

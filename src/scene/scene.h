@@ -25,6 +25,7 @@ class AnimationManager;
 class SkeletonManager;
 class CameraManager;
 class InverseKinematicsSolver;
+class FrameCopyCommand;
 
 class Scene : public std::enable_shared_from_this<Scene> {
 public:
@@ -110,6 +111,8 @@ public:
 	const std::shared_ptr<CameraManager>& getCameraManager() const;
 	const std::shared_ptr<InverseKinematicsSolver>& getIKSolver() const;
 
+	const std::vector<std::shared_ptr<FrameCopyCommand>>& getFrameCpyMgrs() const;
+
 private:
 	NodeIndex findLastNonDeletedItem(const std::vector<NodeIndex>& new_indices, NodeIndex node);
 	void shiftNodes(int startOffset, int nodeCount, int shiftAmount);
@@ -132,4 +135,6 @@ private:
 	std::shared_ptr<SkeletonManager> m_skeleton_manager;
 	std::shared_ptr<CameraManager> m_camera_manager;
 	std::shared_ptr<InverseKinematicsSolver> m_ik_solver;
+
+	std::vector<std::shared_ptr<FrameCopyCommand>> m_cpy_cmds;
 };

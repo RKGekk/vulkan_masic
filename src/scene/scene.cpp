@@ -6,6 +6,7 @@
 #include "skeleton_manager.h"
 #include "camera_manager.h"
 #include "inverse_kinematics_solver.h"
+#include "../graphics/pod/frame_copy_command.h"
 
 #include <algorithm>
 #include <numeric>
@@ -29,6 +30,10 @@ Scene::Scene(std::string name) {
     m_skeleton_manager = std::make_shared<SkeletonManager>();
     m_camera_manager = std::make_shared<CameraManager>();
     m_ik_solver = std::make_shared<InverseKinematicsSolver>();
+
+    m_cpy_cmds.push_back(m_light_manager);
+    m_cpy_cmds.push_back(m_skeleton_manager);
+    m_cpy_cmds.push_back(m_camera_manager);
 }
 
 int Scene::addNode(NodeIndex parent_index) {
@@ -539,4 +544,8 @@ const std::shared_ptr<CameraManager>& Scene::getCameraManager() const {
 
 const std::shared_ptr<InverseKinematicsSolver>& Scene::getIKSolver() const {
     return m_ik_solver;
+}
+
+const std::vector<std::shared_ptr<FrameCopyCommand>>& Scene::getFrameCpyMgrs() const {
+    return m_cpy_cmds;
 }

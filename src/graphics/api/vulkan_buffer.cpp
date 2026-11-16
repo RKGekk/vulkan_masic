@@ -9,6 +9,7 @@
 #include "vulkan_resources_manager.h"
 
 const std::shared_ptr<VulkanBuffer> VulkanBuffer::BUFFER_NULL_PTR = nullptr;
+const std::string VulkanBuffer::STAGING_BUFFER_TYPE = "basic_staging_buffer";
 
 VulkanBuffer::VulkanBuffer(std::shared_ptr<VulkanDevice> device, std::string name) : m_device(std::move(device)), m_name(std::move(name)) {}
 VulkanBuffer::VulkanBuffer(std::shared_ptr<VulkanDevice> device) : m_device(std::move(device)), m_name(std::to_string(rand())) {};
@@ -88,7 +89,7 @@ bool VulkanBuffer::init(std::shared_ptr<BufferConfig> buffer_config) {
     return true;
 }
 
-bool VulkanBuffer::init(CommandBatch& command_buffer, const void* data, std::shared_ptr<BufferConfig> buffer_config) {
+bool VulkanBuffer::init(std::shared_ptr<CommandBatch>& command_buffer, const void* data, std::shared_ptr<BufferConfig> buffer_config) {
     VkDeviceSize data_size = m_buffer_config->getNotAlignedSize();
     init(std::move(buffer_config));
     update(command_buffer, data, data_size);
@@ -162,7 +163,9 @@ const std::unordered_map<std::string, VkBufferView>& VulkanBuffer::getBufferView
     return m_buffer_view_map;
 }
 
-void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, VkDeviceSize buffer_size, VkAccessFlags dstAccessMask) {
+void VulkanBuffer::update(const std::shared_ptr<CommandBatch>& command_buffer, const void* src_data, VkDeviceSize buffer_size, VkAccessFlags dstAccessMask) {
+    using namespace std::literals;
+
     if (buffer_size > m_buffer_config->getBufferInfo().size && m_buffer_config->isSizeDynamic()) {
         destroy();
         m_buffer_config->setNotAlignedSize(buffer_size);
@@ -217,10 +220,14 @@ void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, Vk
 
     Application& app = Application::Get();
     VulkanRenderer& renderer = app.GetRenderer();
-    std::shared_ptr<VulkanBuffer> staging_buffer = Application::Get().GetRenderer().getResourcesManager()->create_buffer(src_data, m_buffer_config->getBufferInfo().size, "basic_staging_buffer"s);
-    command_buffer.addResource(staging_buffer);
+    std::shared_ptr<CpuResource> staging_cpu_buff = std::make_shared<CpuResource>(m_name + "_staging_CPU"s);
+    const char* array_start = reinterpret_cast<const char*>(src_data);
+    const char* array_end = array_start + buffer_size;
+	staging_cpu_buff->init({array_start, array_end});
+    std::shared_ptr<VulkanBuffer> staging_buffer = renderer.getResourcesManager()->create_buffer(m_name + "_staging_GPU"s, VulkanBuffer::STAGING_BUFFER_TYPE, std::move(staging_cpu_buff), command_buffer);
+    command_buffer->addResource(staging_buffer);
 
-    m_device->getCommandManager()->copyBuffer(command_buffer.getCommandBufer(), staging_buffer->getBuffer(), m_buffer, buffer_size);
+    renderer.getCommandManager()->copyBuffer(command_buffer->getCommandBufer(), staging_buffer->getBuffer(), m_buffer, buffer_size);
 
     // alternative to vkCmdCopyBuffer from m_device->getCommandManager().copyBuffer, the data is consumed from host memory as soon as vkCmdUpdateBuffer() is called, Vulkan make a copy of the data you’ve supplied! Data is not written into the buffer until vkCmdUpdateBuffer() is executed by the device after the command buffer has been submitted! The maximum size of data that can be placed in a buffer with vkCmdUpdateBuffer() is 65,536 bytes.
     // vkCmdUpdateBuffer(command_buffer.getCommandBufer(), m_buffer, 0u, buffer_size, src_data);
@@ -229,7 +236,7 @@ void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, Vk
     setMemoryUpdateBarier(command_buffer, dstAccessMask);
 }
 
-void VulkanBuffer::update(CommandBatch& command_buffer, const void* src_data, VkDeviceSize buffer_size) {
+void VulkanBuffer::update(const std::shared_ptr<CommandBatch>& command_buffer, const void* src_data, VkDeviceSize buffer_size) {
     update(command_buffer, src_data, buffer_size, VulkanDevice::getDstAccessMask(m_buffer_config->getBufferInfo().usage));
 }
 
@@ -249,16 +256,16 @@ void VulkanBuffer::ClearUpdateMetadataFn() {
     m_update_functions.clear();
 }
 
-void VulkanBuffer::setGlobalMemoryUpdateBarier(CommandBatch& command_buffer, VkAccessFlags dstAccessMask) {
+void VulkanBuffer::setGlobalMemoryUpdateBarier(const std::shared_ptr<CommandBatch>& command_buffer, VkAccessFlags dstAccessMask) {
     VkMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
     barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     barrier.dstAccessMask = dstAccessMask;
 
-    vkCmdPipelineBarrier(command_buffer.getCommandBufer(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_DEPENDENCY_BY_REGION_BIT, 1u, &barrier, 0u, nullptr, 0u, nullptr);
+    vkCmdPipelineBarrier(command_buffer->getCommandBufer(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_DEPENDENCY_BY_REGION_BIT, 1u, &barrier, 0u, nullptr, 0u, nullptr);
 }
 
-void VulkanBuffer::setMemoryUpdateBarier(CommandBatch& command_buffer, VkAccessFlags dstAccessMask) {
+void VulkanBuffer::setMemoryUpdateBarier(const std::shared_ptr<CommandBatch>& command_buffer, VkAccessFlags dstAccessMask) {
     VkBufferMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
     barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -271,5 +278,5 @@ void VulkanBuffer::setMemoryUpdateBarier(CommandBatch& command_buffer, VkAccessF
     barrier.offset = 0u;
     barrier.size = VK_WHOLE_SIZE;
 
-    vkCmdPipelineBarrier(command_buffer.getCommandBufer(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_DEPENDENCY_BY_REGION_BIT, 0u, nullptr, 1u, &barrier, 0u, nullptr);
+    vkCmdPipelineBarrier(command_buffer->getCommandBufer(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_DEPENDENCY_BY_REGION_BIT, 0u, nullptr, 1u, &barrier, 0u, nullptr);
 }

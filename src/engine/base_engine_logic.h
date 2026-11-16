@@ -51,7 +51,7 @@ public:
 	const LevelManager& GetLevelManager();
 	virtual std::shared_ptr<IEnginePhysics> VGetGamePhysics() override;
 	virtual bool VLoadGame(const std::string& level_resource) override;
-	virtual void VOnUpdate(const GameTimerDelta& delta, uint32_t image_index) override;
+	virtual void VOnUpdate(const GameTimerDelta& delta, uint32_t image_index, size_t thread_id) override;
 	virtual void VChangeState(BaseEngineState new_state) override;
 	const BaseEngineState GetState() const;
 

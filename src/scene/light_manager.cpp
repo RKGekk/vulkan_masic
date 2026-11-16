@@ -9,33 +9,24 @@
 const std::string LightManager::m_light_buffer_name = "light_ubo";
 const std::string LightManager::m_light_resource_cfg_name = "light_uniform_resource";
 
-LightManager::LightManager() : m_dir_lights_size(0u), m_point_lights_size(0u), m_spot_lights_size(0u) {
+LightManager::LightManager() : FrameCopyCommand("light_update_cmd_buffer"), m_dir_lights_size(0u), m_point_lights_size(0u), m_spot_lights_size(0u) {
     VulkanRenderer& renderer = Application::GetRenderer();
     std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
-	std::shared_ptr<VulkanCommandManager>& cmd_manager = renderer.getCommandManager();
-    int max_frames = renderer.getSwapchain()->getMaxFrames();
+    int max_frames = getMaxFrames();
     m_light_buffers.reserve(max_frames);
     for(int i = 0; i < max_frames; ++i) {
         m_light_buffers.push_back(resources_manager->create_buffer(m_light_buffer_name + std::to_string(i), m_light_resource_cfg_name));
-        std::string light_buffer_name = "light_update_cmd_buffer"s + std::to_string(i);
-        std::shared_ptr<CommandBatch> command_buffer_ptr = cmd_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, i, 0u, 1u, light_buffer_name);
-        m_cpy_cmd[i] = command_buffer_ptr;
     }
 }
 
-void LightManager::CalcLighting(const std::shared_ptr<CameraNode>& camera_node, uint32_t image_index, size_t thread_id) {
+bool LightManager::CalcFameData(const std::shared_ptr<CommandBatch>& cpy_cmd, uint32_t image_index, size_t thread_id) {
     using namespace std::literals;
-    VulkanRenderer& renderer = Application::GetRenderer();
-    std::shared_ptr<PerFrame>& per_frame = renderer.getFrameData(image_index);
-    std::shared_ptr<CommandBatch>& cpy_cmd = m_cpy_cmd[image_index];
-    cpy_cmd->reset();
 
     for(const auto&[light_node, idx] : m_index_map) {
         m_lights[idx] = light_node->GetLightProperties();
     }
     
-    m_light_buffers[image_index]->update(*cpy_cmd, m_lights.data(), sizeof(LightNodeProperties) * m_lights.size());
-    per_frame->wait_transfer_commands.push_back(cpy_cmd);
+    m_light_buffers[image_index]->update(cpy_cmd, m_lights.data(), sizeof(LightNodeProperties) * m_lights.size());
 }
 
 int LightManager::GetLightCount(const std::shared_ptr<SceneNode>& node) const {

@@ -2,6 +2,7 @@
 
 #include "nodes/light_node.h"
 #include "nodes/camera_node.h"
+#include "../graphics/pod/frame_copy_command.h"
 
 #include <functional>
 #include <memory>
@@ -11,13 +12,12 @@
 
 class VulkanBuffer;
 
-class LightManager {
+class LightManager : public FrameCopyCommand {
 public:
     using FrameNumber = unsigned;
     
     LightManager();
 
-    void CalcLighting(const std::shared_ptr<CameraNode>& camera_node, uint32_t image_index, size_t thread_id);
     int GetLightCount(const std::shared_ptr<SceneNode>& node) const;
     const std::vector<LightNodeProperties>& getLightsData(const std::shared_ptr<SceneNode>& node) const;
     const std::vector<LightNodeProperties>& getAllLightsData() const;
@@ -35,6 +35,8 @@ public:
     static const std::string& getLightResourceCfgName();
 
 private:
+    bool CalcFameData(const std::shared_ptr<CommandBatch>& cpy_cmd, uint32_t image_index, size_t thread_id) override;
+
     static const std::string m_light_buffer_name;
     static const std::string m_light_resource_cfg_name;
     std::vector<LightNodeProperties> m_lights;

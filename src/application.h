@@ -28,7 +28,7 @@ public:
     static VulkanInstance& GetInstance();
 
     void run();
-    bool update(uint32_t image_index);
+    bool update(uint32_t image_index, size_t thread_id);
     void Quit(int exit_code = 0);
 
     Application();

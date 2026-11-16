@@ -6,22 +6,19 @@
 #include "../graphics/pod/render_node.h"
 #include "../graphics/pod/graphics_render_node.h"
 #include "../graphics/api/vulkan_swapchain.h"
+#include "../graphics/api/vulkan_command_buffer.h"
 
 const std::string CameraManager::m_camera_resource_cfg_name = "camera_uniform_resource";
 
 const std::string CameraManager::m_matrix_desc_name = "camera_ubo";
 
-CameraManager::CameraManager() {
-    VulkanRenderer& renderer = Application::GetRenderer();
-    const std::shared_ptr<VulkanSwapChain>& swapchain = renderer.getSwapchain();
-    m_max_frames = swapchain->getMaxFrames();
-}
+CameraManager::CameraManager() : FrameCopyCommand("camera_data_cpy_cmd_frame") {}
 
-bool CameraManager::recalculateCameraData(FrameNumber frame_number) {
+bool CameraManager::CalcFameData(const std::shared_ptr<CommandBatch>& cpy_cmd, uint32_t image_index, size_t thread_id) {
     bool was_updated = false;
 
-    for (const std::shared_ptr<CameraNode>& dirty_camera : m_dirty_at_node[frame_number]) {
-        const std::shared_ptr<VulkanBuffer>& camera_data = m_camera_data[dirty_camera][frame_number];
+    for (const std::shared_ptr<CameraNode>& dirty_camera : m_dirty_at_node[image_index]) {
+        const std::shared_ptr<VulkanBuffer>& camera_data = m_camera_data[dirty_camera][image_index];
 
         CameraUniformBufferObject ubo{};
         ubo.view = dirty_camera->GetView();
@@ -29,10 +26,10 @@ bool CameraManager::recalculateCameraData(FrameNumber frame_number) {
         ubo.inv_view = dirty_camera->GetInvView();
         ubo.inv_proj = dirty_camera->GetInvProjection();
 
-        camera_data->update(&ubo, sizeof(CameraUniformBufferObject));
+        camera_data->update(cpy_cmd, &ubo, sizeof(CameraUniformBufferObject));
     }
 
-    m_dirty_at_node[frame_number].clear();
+    m_dirty_at_node[image_index].clear();
 
     return was_updated;
 }
@@ -44,16 +41,18 @@ void CameraManager::AddCamera(const std::shared_ptr<CameraNode>& node) {
     VulkanRenderer& renderer = Application::GetRenderer();
     std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
 
-    for(int frame = 0; frame < m_max_frames; ++frame) {
+    int max_frames = getMaxFrames();
+    for(int frame = 0; frame < max_frames; ++frame) {
         std::string camera_buffer_name = node->Get().Name() + "_camera_buffer"s + std::to_string(frame);
-        m_camera_data[node][frame] = resources_manager->create_buffer(nullptr, sizeof(CameraUniformBufferObject), std::move(camera_buffer_name), m_camera_resource_cfg_name);
+        m_camera_data[node][frame] = resources_manager->create_buffer(std::move(camera_buffer_name), m_camera_resource_cfg_name, sizeof(CameraUniformBufferObject));
     }
     
     markAsChanged(node);
 }
 
 void CameraManager::markAsChanged(const std::shared_ptr<CameraNode>& node) {
-    for(int frame = 0; frame < m_max_frames; ++frame) {
+    int max_frames = getMaxFrames();
+    for(int frame = 0; frame < max_frames; ++frame) {
         m_dirty_at_node[frame].insert(node);
     }
 }

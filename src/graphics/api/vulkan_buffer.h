@@ -19,12 +19,13 @@ class BufferConfig;
 class VulkanBuffer : public RenderResource, public std::enable_shared_from_this<VulkanBuffer> {
 public:
     static const std::shared_ptr<VulkanBuffer> BUFFER_NULL_PTR;
+    static const std::string STAGING_BUFFER_TYPE;
 
     VulkanBuffer(std::shared_ptr<VulkanDevice> device, std::string name);
     VulkanBuffer(std::shared_ptr<VulkanDevice> device);
 
     bool init(std::shared_ptr<BufferConfig> buffer_config);
-    bool init(CommandBatch& command_buffer, const void* data, std::shared_ptr<BufferConfig> buffer_config);
+    bool init(std::shared_ptr<CommandBatch>& command_buffer, const void* data, std::shared_ptr<BufferConfig> buffer_config);
 
     void destroy() override;
 
@@ -42,8 +43,8 @@ public:
     VkBufferView getBufferView(const std::string& view_name) const;
     const std::unordered_map<std::string, VkBufferView>& getBufferViewMap() const;
 
-    void update(CommandBatch& command_buffer, const void* src_data, VkDeviceSize buffer_size, VkAccessFlags dstAccessMask);
-    void update(CommandBatch& command_buffer, const void* src_data, VkDeviceSize buffer_size);
+    void update(const std::shared_ptr<CommandBatch>& command_buffer, const void* src_data, VkDeviceSize buffer_size, VkAccessFlags dstAccessMask);
+    void update(const std::shared_ptr<CommandBatch>& command_buffer, const void* src_data, VkDeviceSize buffer_size);
 
     const ResourceName& getName() const override;
     Type getType() const override;
@@ -52,8 +53,8 @@ public:
     void ClearUpdateMetadataFn() override;
 
 protected:
-    void setGlobalMemoryUpdateBarier(CommandBatch& command_buffer, VkAccessFlags dstAccessMask);
-    void setMemoryUpdateBarier(CommandBatch& command_buffer, VkAccessFlags dstAccessMask);
+    void setGlobalMemoryUpdateBarier(const std::shared_ptr<CommandBatch>& command_buffer, VkAccessFlags dstAccessMask);
+    void setMemoryUpdateBarier(const std::shared_ptr<CommandBatch>& command_buffer, VkAccessFlags dstAccessMask);
 
     std::shared_ptr<VulkanDevice> m_device;
     std::string m_name;

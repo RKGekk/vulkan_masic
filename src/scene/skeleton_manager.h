@@ -18,11 +18,12 @@
 #include <vector>
 
 #include "nodes/bone_node.h"
+#include "../graphics/pod/frame_copy_command.h"
 
 class RenderNode;
 class CommandBatch;
 
-class SkeletonManager {
+class SkeletonManager : public FrameCopyCommand {
 public:
     using FrameNumber = unsigned;
     using BindPoseChanged = bool;
@@ -56,7 +57,6 @@ public:
     // };
 
     SkeletonManager();
-    bool recalculateSkinnedData(FrameNumber frame_number);
     void recalculate_root_joints(BoneNode::SkinName skeleton_name);
 
     void AddBone(const std::shared_ptr<BoneNode>& node);
@@ -79,6 +79,7 @@ public:
     void DecorateRenderNode(const std::shared_ptr<RenderNode>& render_node, const BoneNode::SkinName& skin_name) const;
 
 private:
+    bool CalcFameData(const std::shared_ptr<CommandBatch>& cpy_cmd, uint32_t image_index, size_t thread_id) override;
     bool UpdateBoneData(const std::shared_ptr<BoneNode>& node, bool bind_changed, FrameNumber frame_number);
 
     static const std::string m_skin_resource_cfg_name;
