@@ -35,11 +35,14 @@ const std::vector<uint16_t> g_indices = {
 bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
     using namespace std::literals;
 
+    VulkanRenderer& renderer = Application::GetRenderer();
+    std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
+
     m_device = std::move(device);
     m_rt_aspect = Application::GetRenderer().getSwapchain()->getFormatConfig()->getAspect();
     m_max_frames = max_frames;
 
-    m_texture = Application::GetRenderer().getResourcesManager()->create_image("textures/texture.jpg");
+    m_texture = resources_manager->create_image("textures/texture.jpg");
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
 
     m_render_nodes.resize(max_frames);

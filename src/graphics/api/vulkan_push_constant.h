@@ -40,7 +40,15 @@ public:
     void AddUpdateMetadataFn(UpdateMetadataFn fn) override;
     void ClearUpdateMetadataFn() override;
 
+    void AddTransferFinishFn(TransferFinishFn fn) override {};
+    void ClearTransferFinishFn() override {};
+    const std::vector<TransferFinishFn>& getTransferFinishFn() const override {
+        static std::vector<TransferFinishFn> fn;
+        return fn;
+    };
+
 protected:
+
 
     std::shared_ptr<VulkanDevice> m_device;
     std::string m_name;

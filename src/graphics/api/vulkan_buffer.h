@@ -52,6 +52,10 @@ public:
     void AddUpdateMetadataFn(UpdateMetadataFn fn) override;
     void ClearUpdateMetadataFn() override;
 
+    void AddTransferFinishFn(TransferFinishFn fn) override;
+    void ClearTransferFinishFn() override;
+    const std::vector<TransferFinishFn>& getTransferFinishFn() const;
+
 protected:
     void setGlobalMemoryUpdateBarier(const std::shared_ptr<CommandBatch>& command_buffer, VkAccessFlags dstAccessMask);
     void setMemoryUpdateBarier(const std::shared_ptr<CommandBatch>& command_buffer, VkAccessFlags dstAccessMask);
@@ -60,6 +64,7 @@ protected:
     std::string m_name;
 
     std::vector<UpdateMetadataFn> m_update_functions;
+    std::vector<TransferFinishFn> m_transfer_functions;
     VkBuffer m_buffer;
     VkDeviceMemory m_memory;
     void* m_mapped;

@@ -256,6 +256,18 @@ void VulkanBuffer::ClearUpdateMetadataFn() {
     m_update_functions.clear();
 }
 
+void VulkanBuffer::AddTransferFinishFn(TransferFinishFn fn) {
+    m_transfer_functions.push_back(std::move(fn));
+}
+
+void VulkanBuffer::ClearTransferFinishFn() {
+    m_transfer_functions.clear();
+}
+
+const std::vector<RenderResource::TransferFinishFn>& VulkanBuffer::getTransferFinishFn() const {
+    return m_transfer_functions;
+}
+
 void VulkanBuffer::setGlobalMemoryUpdateBarier(const std::shared_ptr<CommandBatch>& command_buffer, VkAccessFlags dstAccessMask) {
     VkMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;

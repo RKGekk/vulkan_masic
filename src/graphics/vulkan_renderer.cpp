@@ -197,11 +197,65 @@ std::shared_ptr<VulkanImageBuffer>& VulkanRenderer::getOutDepthImage(uint32_t im
     return m_per_frame[image_index]->out_depth_image;
 }
 
-void VulkanRenderer::beginFrame(unsigned image_index) {
-    m_per_frame[image_index]->begin(*this, image_index);
+std::shared_ptr<VulkanBuffer> VulkanRenderer::makeTransferCommand(std::string buffer_name, std::string buffer_type, const void* data_ptr, size_t buffer_size) {
+	std::shared_ptr<CpuResource> vertex_cpu_buff = std::make_shared<CpuResource>(buffer_name + "_cpu_data_buffer"s);
+    const char* vertex_array_start = reinterpret_cast<const char*>(data_ptr);
+    const char* vertex_array_end = vertex_array_start + buffer_size;
+	vertex_cpu_buff->init({vertex_array_start, vertex_array_end});
 
+    return makeTransferCommand(std::move(buffer_name), std::move(buffer_type), std::move(vertex_cpu_buff));
+}
+
+std::shared_ptr<VulkanBuffer> VulkanRenderer::makeTransferCommand(std::string buffer_name, std::string buffer_type, std::shared_ptr<CpuResource> cpu_resource) {
+    size_t import_cpy_cmd_frame = getLastFrame();
+    std::string vtx_cpy_cmd_name = "cpy_cmd_"s + buffer_name + "_frame"s + std::to_string(import_cpy_cmd_frame);
+	std::shared_ptr<CommandBatch> copy_cmd = m_command_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, import_cpy_cmd_frame, 0u, 1u, vtx_cpy_cmd_name);
+    std::shared_ptr<VulkanBuffer> data_buffer = m_resources_manager->create_buffer(buffer_name, buffer_type, std::move(cpu_resource), copy_cmd);
+    m_per_frame[import_cpy_cmd_frame]->wait_transfer_commands.push_back(copy_cmd);
+
+    return data_buffer;
+}
+
+std::shared_ptr<VulkanImageBuffer> VulkanRenderer::makeTransferImgCommand(const std::string& path_to_file) {
+    size_t import_cpy_cmd_frame = getLastFrame();
+    std::string texture_cpy_cmd_name = "image_cpy_cmd_"s + path_to_file + "_frame"s + std::to_string(import_cpy_cmd_frame);
+	std::shared_ptr<CommandBatch> copy_cmd = m_command_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, import_cpy_cmd_frame, 0u, 1u, texture_cpy_cmd_name);
+	std::shared_ptr<VulkanImageBuffer> image_buffer = m_resources_manager->create_image(path_to_file, copy_cmd);
+	m_per_frame[import_cpy_cmd_frame]->wait_transfer_commands.push_back(copy_cmd);
+
+    return image_buffer;
+}
+
+std::shared_ptr<VulkanImageBuffer> VulkanRenderer::makeTransferImgCommand(VkExtent2D extent, std::shared_ptr<CpuResource> cpu_resource, std::string image_name, std::string resource_type_name) {
+    size_t import_cpy_cmd_frame = getLastFrame();
+    std::string texture_cpy_cmd_name = "image_cpy_cmd_"s + image_name + "_frame"s + std::to_string(import_cpy_cmd_frame);
+	std::shared_ptr<CommandBatch> copy_cmd = m_command_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, import_cpy_cmd_frame, 0u, 1u, texture_cpy_cmd_name);
+	std::shared_ptr<VulkanImageBuffer> image_buffer = m_resources_manager->create_image(std::move(cpu_resource), copy_cmd, extent, image_name, resource_type_name);
+    m_per_frame[import_cpy_cmd_frame]->wait_transfer_commands.push_back(copy_cmd);
+
+    return image_buffer;
+}
+
+std::shared_ptr<VulkanImageBuffer> VulkanRenderer::makeTransferImgCommand(VkExtent2D extent, const void* data_ptr, size_t buffer_size, std::string image_name, std::string resource_type_name) {
+    std::string cpu_res_name = image_name + "_cpu_resource"s;
+	std::shared_ptr<CpuResource> cpu_res = std::make_shared<CpuResource>(std::move(cpu_res_name));
+	cpu_res->init(buffer_size, data_ptr);
+    return makeTransferImgCommand(extent, std::move(cpu_res), std::move(image_name), std::move(resource_type_name));
+}
+
+void VulkanRenderer::beginFrame(unsigned image_index) {
     m_per_frame[image_index]->cmd_submit_finish_fence->wait();
     m_per_frame[image_index]->cmd_submit_finish_fence->reset();
+
+    for(const std::shared_ptr<CommandBatch>& transfer_cmd : m_per_frame[image_index]->wait_transfer_commands) {
+        for(const std::shared_ptr<RenderResource>& transfer_res : transfer_cmd->getResources()) {
+            for(const auto& transfer_finish_fn : transfer_res->getTransferFinishFn()) {
+                transfer_finish_fn(transfer_res);
+            }
+        }
+    }
+
+    m_per_frame[image_index]->begin(*this, image_index);
 
     m_per_frame[image_index]->present_render_node->addWaitSemaphore(m_per_frame[image_index]->cmd_submit_finish_signal_sem->getSemaphore());
 }

@@ -544,7 +544,7 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Node& g
 			std::shared_ptr<CpuResource> idx_buff = std::make_shared<CpuResource>(idx_buff_name + "CPU"s);
 			idx_buff->init(raw_idx_buff);
 			
-			std::shared_ptr<VulkanBuffer> index_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(idx_buff_name, idx_buff_type_name, idx_buff, copy_cmd);
+			std::shared_ptr<VulkanBuffer> index_buffer = resources_manager->create_buffer(idx_buff_name, idx_buff_type_name, idx_buff, copy_cmd);
 			model_data->SetIndexBuffer(std::move(index_buffer));
     	}
 
@@ -555,7 +555,7 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Node& g
 
 		std::shared_ptr<CpuResource> vtx_resource = GetVertices(primitive, shader_signature->getInputAttributes(vertex_binding));
 		std::string vtx_buff_name = m_model_path.string() + "/node"s + std::to_string(node) + "/"s + mesh_name + "_vertex_buffer_primitive_"s + std::to_string(prim_idx);
-		std::shared_ptr<VulkanBuffer> vertex_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(vtx_buff_name, "basic_vertex_resource", vtx_resource, copy_cmd);
+		std::shared_ptr<VulkanBuffer> vertex_buffer = resources_manager->create_buffer(vtx_buff_name, "basic_vertex_resource", vtx_resource, copy_cmd);
 		model_data->SetVertexBuffer(std::move(vertex_buffer), vertex_binding);
 		
     	model_data->SetName(m_model_path.string() + "/node_"s + std::to_string(node) + "_"s + gltf_node.name + "/"s + mesh_name + "/primitive_"s + std::to_string(prim_idx));
@@ -1247,8 +1247,6 @@ std::shared_ptr<VulkanSampler> MeshNodeLoader::createTextureSampler(uint32_t mip
 
 void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, Material::TextureType texture_type_enum, std::shared_ptr<Material> material) {
 	VulkanRenderer& renderer = Application::GetRenderer();
-    std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
-	std::shared_ptr<VulkanCommandManager>& cmd_manager = renderer.getCommandManager();
 
 	int texture_image_idx = gltf_texture.source;
 	const tinygltf::Image& texture_image = m_gltf_model.images[texture_image_idx];
@@ -1270,12 +1268,9 @@ void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, M
 			file_exists = std::filesystem::exists(texture_image_file_name);
 		}
 
-		std::string texture_cpy_cmd_name = "texture_cpy_cmd_"s + texture_image_file_name + "_frame"s + std::to_string(m_import_cpy_cmd_frame);
-		std::shared_ptr<CommandBatch> copy_cmd = cmd_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, m_import_cpy_cmd_frame, 0u, 1u, texture_cpy_cmd_name);
-		texture = resources_manager->create_image(texture_image_file_name, copy_cmd);
+		texture = renderer.makeTransferImgCommand(texture_image_file_name);
 		texture->getImageConfig()->setSampler(std::move(sampler));
 		material->SetTexture(texture_type_enum, std::move(texture));
-		per_frame->wait_transfer_commands.push_back(copy_cmd);
 	}
 	else {
 		int texture_image_buffer_view_idx = texture_image.bufferView;
@@ -1283,17 +1278,9 @@ void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, M
 		size_t texture_image_buffer_idx = texture_image_view.buffer;
 		tinygltf::Buffer& texture_image_buffer = m_gltf_model.buffers[texture_image_buffer_idx];
 
-		std::string cpu_res_name = texture_image.name + "_cpu_resource"s;
-		std::shared_ptr<CpuResource> cpu_res = std::make_shared<CpuResource>(cpu_res_name);
-		cpu_res->init(texture_image_buffer.data.size(), texture_image_buffer.data.data());
-
-		std::string texture_cpy_cmd_name = "texture_cpy_cmd_"s + texture_image.name + "_frame"s + std::to_string(m_import_cpy_cmd_frame);
-		std::shared_ptr<CommandBatch> copy_cmd = cmd_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, m_import_cpy_cmd_frame, 0u, 1u, texture_cpy_cmd_name);
-
-		texture = resources_manager->create_image(cpu_res, copy_cmd, {(uint32_t)texture_image.width, (uint32_t)texture_image.height}, texture_image.name, "basic_image_resource");
+		texture = renderer.makeTransferImgCommand({(uint32_t)texture_image.width, (uint32_t)texture_image.height}, texture_image_buffer.data.data(), texture_image_buffer.data.size(), texture_image.name);
 		texture->getImageConfig()->setSampler(std::move(sampler));
 		material->SetTexture(texture_type_enum, std::move(texture));
-		per_frame->wait_transfer_commands.push_back(copy_cmd);
 	}
 }
 

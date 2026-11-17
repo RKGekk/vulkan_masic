@@ -37,10 +37,10 @@ bool SkeletonManager::CalcFameData(const std::shared_ptr<CommandBatch>& cpy_cmd,
         SkinnedDataFrame& skinned_data_frame = m_skinned_data[dirty_skin_name];
         const std::shared_ptr<SkinnedData>& skinned_data = skinned_data_frame[image_index];
         if(was_bind_changed) {
-            skinned_data->bind_buffer->update(*cpy_cmd, skinned_data->bind_matrices.data(), sizeof(glm::mat4) * skinned_data->bind_matrices.size());
+            skinned_data->bind_buffer->update(cpy_cmd, skinned_data->bind_matrices.data(), sizeof(glm::mat4) * skinned_data->bind_matrices.size());
         }
-        skinned_data->joint_buffer->update(*cpy_cmd, skinned_data->final_matrices.data(), sizeof(glm::mat4) * skinned_data->final_matrices.size());
-        skinned_data->dq_buffer->update(*cpy_cmd, skinned_data->dual_quats.data(), sizeof(glm::mat2x4) * skinned_data->dual_quats.size());
+        skinned_data->joint_buffer->update(cpy_cmd, skinned_data->final_matrices.data(), sizeof(glm::mat4) * skinned_data->final_matrices.size());
+        skinned_data->dq_buffer->update(cpy_cmd, skinned_data->dual_quats.data(), sizeof(glm::mat2x4) * skinned_data->dual_quats.size());
     }
 
     m_dirty_at_bone[image_index].clear();

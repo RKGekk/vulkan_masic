@@ -14,6 +14,7 @@ class RenderResource {
 public:
     using ResourceName = std::string;
     using UpdateMetadataFn = std::function<void(const std::shared_ptr<RenderResource>&)>;
+    using TransferFinishFn = std::function<void(const std::shared_ptr<RenderResource>&)>;
 
     static const std::shared_ptr<RenderResource> ROSOURCE_NULL_PTR;
 
@@ -27,6 +28,11 @@ public:
     virtual void destroy() = 0;
     virtual const ResourceName& getName() const = 0;
     virtual Type getType() const = 0;
+
     virtual void AddUpdateMetadataFn(UpdateMetadataFn fn) = 0;
     virtual void ClearUpdateMetadataFn() = 0;
+
+    virtual void AddTransferFinishFn(TransferFinishFn fn) = 0;
+    virtual void ClearTransferFinishFn() = 0;
+    virtual const std::vector<TransferFinishFn>& getTransferFinishFn() const = 0;
 };

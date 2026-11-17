@@ -27,6 +27,8 @@ bool LightManager::CalcFameData(const std::shared_ptr<CommandBatch>& cpy_cmd, ui
     }
     
     m_light_buffers[image_index]->update(cpy_cmd, m_lights.data(), sizeof(LightNodeProperties) * m_lights.size());
+
+    return true;
 }
 
 int LightManager::GetLightCount(const std::shared_ptr<SceneNode>& node) const {

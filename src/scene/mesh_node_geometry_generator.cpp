@@ -19,13 +19,6 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLine(const std
 
     Application& app = Application::Get();
     VulkanRenderer& renderer = app.GetRenderer();
-    std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
-    std::shared_ptr<VulkanCommandManager>& cmd_manager = renderer.getCommandManager();
-
-    size_t import_cpy_cmd_frame = renderer.getLastFrame();
-    std::string vtx_cpy_cmd_name = "vtx_cpy_cmd_"s + mesh_name + "_frame"s + std::to_string(import_cpy_cmd_frame);
-	std::shared_ptr<CommandBatch> copy_cmd = cmd_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, import_cpy_cmd_frame, 0u, 1u, vtx_cpy_cmd_name);
-	std::shared_ptr<PerFrame>& per_frame = renderer.getFrameData(import_cpy_cmd_frame);
 
     m_device = renderer.GetDevice();
     m_scene = app.GetGameLogic()->GetHumanView()->VGetScene()->getScene();
@@ -224,23 +217,11 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLine(const std
         }
     }
 
-    const void* vertex_data_ptr = vertex_data.data();
-    std::shared_ptr<CpuResource> vertex_cpu_buff = std::make_shared<CpuResource>(mesh_name + skeleton_name + "_vertex_buffer"s);
     size_t vertex_buffer_size = num_vertices * shader_signature->getInputAttributes(vertex_binding).getVertexSize();
-    const char* vertex_array_start = reinterpret_cast<const char*>(vertex_data_ptr);
-    const char* vertex_array_end = vertex_array_start + vertex_buffer_size;
-	vertex_cpu_buff->init({vertex_array_start, vertex_array_end});
-    std::shared_ptr<VulkanBuffer> vertex_buffer = resources_manager->create_buffer(mesh_name + "_line_vertex_buffer_"s, "basic_vertex_resource", std::move(vertex_cpu_buff), copy_cmd);
+    std::shared_ptr<VulkanBuffer> vertex_buffer = renderer.makeTransferCommand(mesh_name + "_line_vertex_buffer_"s, "basic_vertex_resource", vertex_data.data(), vertex_buffer_size);
 
-    const void* index_data_ptr = indices.data();
-    std::shared_ptr<CpuResource> index_cpu_buff = std::make_shared<CpuResource>(mesh_name + skeleton_name + "_index_buffer"s);
     size_t index_buffer_size = indices.size() * sizeof(uint32_t);
-    const char* index_array_start = reinterpret_cast<const char*>(index_data_ptr);
-    const char* index_array_end = index_array_start + index_buffer_size;
-	index_cpu_buff->init({index_array_start, index_array_end});
-	std::shared_ptr<VulkanBuffer> index_buffer = resources_manager->create_buffer(mesh_name + "_line_index_buffer"s, "basic_index_resource", index_cpu_buff, copy_cmd);
-
-    per_frame->wait_transfer_commands.push_back(copy_cmd);
+	std::shared_ptr<VulkanBuffer> index_buffer = renderer.makeTransferCommand(mesh_name + "_line_index_buffer"s, "basic_index_resource", indices.data(), index_buffer_size);
 
 	model_data->SetVertexBuffer(std::move(vertex_buffer), vertex_binding);
 	model_data->SetIndexBuffer(std::move(index_buffer));
@@ -274,13 +255,6 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLineInstanced(
 
     Application& app = Application::Get();
     VulkanRenderer& renderer = app.GetRenderer();
-    std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
-    std::shared_ptr<VulkanCommandManager>& cmd_manager = renderer.getCommandManager();
-
-    size_t import_cpy_cmd_frame = renderer.getLastFrame();
-    std::string vtx_cpy_cmd_name = "vtx_cpy_cmd_"s + mesh_name + "_frame"s + std::to_string(import_cpy_cmd_frame);
-	std::shared_ptr<CommandBatch> copy_cmd = cmd_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, import_cpy_cmd_frame, 0u, 1u, vtx_cpy_cmd_name);
-	std::shared_ptr<PerFrame>& per_frame = renderer.getFrameData(import_cpy_cmd_frame);
 
     m_device = renderer.GetDevice();
     m_scene = app.GetGameLogic()->GetHumanView()->VGetScene()->getScene();
@@ -339,21 +313,11 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateBoneLineInstanced(
         }
     }
 
-    const void* vertex_data_ptr = vertex_data.data();
-    std::shared_ptr<CpuResource> vertex_cpu_buff = std::make_shared<CpuResource>(mesh_name + skeleton_name + "_vertex_buffer"s);
     size_t vertex_buffer_size = 6u * shader_signature->getInputAttributes(vertex_binding).getVertexSize();
-    const char* vertex_array_start = reinterpret_cast<const char*>(vertex_data_ptr);
-    const char* vertex_array_end = vertex_array_start + vertex_buffer_size;
-	vertex_cpu_buff->init({vertex_array_start, vertex_array_end});
-    std::shared_ptr<VulkanBuffer> vertex_buffer = resources_manager->create_buffer(mesh_name + "_linedq_vertex_buffer_"s, "static_vertex_resource", vertex_cpu_buff, copy_cmd);
+    std::shared_ptr<VulkanBuffer> vertex_buffer = renderer.makeTransferCommand(mesh_name + "_linedq_vertex_buffer_"s, "static_vertex_resource", vertex_data.data(), vertex_buffer_size);
 
-    const void* instance_data_ptr = instance_data.data();
-    std::shared_ptr<CpuResource> instance_cpu_buff = std::make_shared<CpuResource>(mesh_name + skeleton_name + "_instance_buffer"s);
     size_t instance_buffer_size = total_bones * shader_signature->getInputAttributes(instance_binding).getVertexSize();
-    const char* instance_array_start = reinterpret_cast<const char*>(instance_data_ptr);
-    const char* instance_array_end = instance_array_start + instance_buffer_size;
-	instance_cpu_buff->init({instance_array_start, instance_array_end});
-    std::shared_ptr<VulkanBuffer> instance_buffer = resources_manager->create_buffer(mesh_name + "_line_vertex_buffer_"s, "basic_instance_resource", instance_cpu_buff, copy_cmd);
+    std::shared_ptr<VulkanBuffer> instance_buffer = renderer.makeTransferCommand(mesh_name + "_line_instance_buffer_"s, "basic_instance_resource", instance_data.data(), instance_buffer_size);
 
 	model_data->SetVertexBuffer(std::move(vertex_buffer), vertex_binding);
 	model_data->SetVertexBuffer(std::move(instance_buffer), instance_binding);
@@ -382,14 +346,6 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateSceneNodeSpline(co
 
     Application& app = Application::Get();
     VulkanRenderer& renderer = app.GetRenderer();
-
-    std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
-    std::shared_ptr<VulkanCommandManager>& cmd_manager = renderer.getCommandManager();
-
-    size_t import_cpy_cmd_frame = renderer.getLastFrame();
-    std::string vtx_cpy_cmd_name = "vtx_cpy_cmd_"s + mesh_name + "_frame"s + std::to_string(import_cpy_cmd_frame);
-	std::shared_ptr<CommandBatch> copy_cmd = cmd_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, import_cpy_cmd_frame, 0u, 1u, vtx_cpy_cmd_name);
-	std::shared_ptr<PerFrame>& per_frame = renderer.getFrameData(import_cpy_cmd_frame);
 
     m_device = renderer.GetDevice();
     m_scene = Application::Get().GetGameLogic()->GetHumanView()->VGetScene()->getScene();
@@ -505,21 +461,11 @@ std::shared_ptr<SceneNode> MeshNodeGeometryGenerator::GenerateSceneNodeSpline(co
         value = 0.0f;
     }
 
-    const void* vertex_data_ptr = vertex_data.data();
-    std::shared_ptr<CpuResource> vertex_cpu_buff = std::make_shared<CpuResource>(mesh_name + "_node_spline_vertex_buffer"s);
     size_t vertex_buffer_size = num_vertices * shader_signature->getInputAttributes(vertex_binding).getVertexSize();
-    const char* vertex_array_start = reinterpret_cast<const char*>(vertex_data_ptr);
-    const char* vertex_array_end = vertex_array_start + vertex_buffer_size;
-	vertex_cpu_buff->init({vertex_array_start, vertex_array_end});
-    std::shared_ptr<VulkanBuffer> vertex_buffer = resources_manager->create_buffer(mesh_name + "_line_vertex_buffer_"s, "basic_vertex_resource", vertex_cpu_buff, copy_cmd);
+    std::shared_ptr<VulkanBuffer> vertex_buffer = renderer.makeTransferCommand(mesh_name + "_line_vertex_buffer_"s, "basic_vertex_resource", vertex_data.data(), vertex_buffer_size);
 
-    const void* index_data_ptr = indices.data();
-    std::shared_ptr<CpuResource> index_cpu_buff = std::make_shared<CpuResource>(mesh_name + "_node_spline_index_buffer"s);
     size_t index_buffer_size = indices.size() * sizeof(uint32_t);
-    const char* index_array_start = reinterpret_cast<const char*>(index_data_ptr);
-    const char* index_array_end = index_array_start + index_buffer_size;
-	index_cpu_buff->init({index_array_start, index_array_end});
-	std::shared_ptr<VulkanBuffer> index_buffer = resources_manager->create_buffer(mesh_name + "_line_index_buffer"s, "basic_index_resource", index_cpu_buff, copy_cmd);
+	std::shared_ptr<VulkanBuffer> index_buffer = renderer.makeTransferCommand(mesh_name + "_line_index_buffer"s, "basic_index_resource", indices.data(), index_buffer_size);
 
 	model_data->SetVertexBuffer(std::move(vertex_buffer), vertex_binding);
 	model_data->SetIndexBuffer(std::move(index_buffer));

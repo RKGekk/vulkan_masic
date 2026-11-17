@@ -24,12 +24,6 @@ const std::string ImGUIDrawable::RENDER_NODE_CFG_NAME = "imgui_renderer";
 std::shared_ptr<VulkanImageBuffer> ImGUIDrawable::makeFontTexture(std::shared_ptr<VulkanDevice> device, const char* TTF_font_file_name, float fontSizePixels) {
     Application& app = Application::Get();
     VulkanRenderer& renderer = app.GetRenderer();
-    std::shared_ptr<VulkanCommandManager>& cmd_manager = renderer.getCommandManager();
-    std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
-    uint32_t import_cpy_cmd_frame = renderer.getLastFrame();
-    std::string font_cpy_cmd_name = "font_cpy_cmd_"s + TTF_font_file_name + "_frame"s + std::to_string(import_cpy_cmd_frame);
-	std::shared_ptr<CommandBatch> copy_cmd = cmd_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, import_cpy_cmd_frame, 0u, 1u, font_cpy_cmd_name);
-	std::shared_ptr<PerFrame>& per_frame = renderer.getFrameData(import_cpy_cmd_frame);
 
     ImGuiIO& io = ImGui::GetIO();
 
@@ -57,15 +51,10 @@ std::shared_ptr<VulkanImageBuffer> ImGUIDrawable::makeFontTexture(std::shared_pt
     int height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-    std::string cpu_res_name = TTF_font_file_name + "_cpu_resource"s;
-	std::shared_ptr<CpuResource> cpu_res = std::make_shared<CpuResource>(cpu_res_name);
-	cpu_res->init(static_cast<size_t>(width * height * 32), pixels);
-
-    std::shared_ptr<VulkanImageBuffer> font_texture = resources_manager->create_image(cpu_res, copy_cmd, {(uint32_t)width, (uint32_t)height}, TTF_font_file_name, "imgui_font_resource");
+    std::shared_ptr<VulkanImageBuffer> font_texture = renderer.makeTransferImgCommand({(uint32_t)width, (uint32_t)height}, pixels, static_cast<size_t>(width * height * 32), TTF_font_file_name);
 
     //io.Fonts->TexID = 0u;
     io.FontDefault = font;
-    per_frame->wait_transfer_commands.push_back(copy_cmd);
 
     return font_texture;
 }

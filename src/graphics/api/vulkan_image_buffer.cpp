@@ -241,6 +241,18 @@ void VulkanImageBuffer::ClearUpdateMetadataFn() {
     m_update_functions.clear();
 }
 
+void VulkanImageBuffer::AddTransferFinishFn(TransferFinishFn fn) {
+    m_transfer_functions.push_back(std::move(fn));
+}
+
+void VulkanImageBuffer::ClearTransferFinishFn() {
+    m_transfer_functions.clear();
+}
+
+const std::vector<RenderResource::TransferFinishFn>& VulkanImageBuffer::getTransferFinishFn() const {
+    return m_transfer_functions;
+}
+
 VkImage VulkanImageBuffer::createImage(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<ImageBufferConfig>& img_cfg, const ResourceName& name) {
     VkImage image;
     VkResult result = vkCreateImage(device->getDevice(), &img_cfg->getImageInfo(), nullptr, &image);

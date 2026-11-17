@@ -95,6 +95,12 @@ public:
     std::shared_ptr<VulkanImageBuffer>& getOutColorImage(uint32_t image_index);
     std::shared_ptr<VulkanImageBuffer>& getOutDepthImage(uint32_t image_index);
 
+    std::shared_ptr<VulkanBuffer> makeTransferCommand(std::string buffer_name, std::string buffer_type, const void* data_ptr, size_t buffer_size);
+    std::shared_ptr<VulkanBuffer> makeTransferCommand(std::string buffer_name, std::string buffer_type, std::shared_ptr<CpuResource> cpu_resource);
+    std::shared_ptr<VulkanImageBuffer> makeTransferImgCommand(const std::string& path_to_file);
+    std::shared_ptr<VulkanImageBuffer> makeTransferImgCommand(VkExtent2D extent, std::shared_ptr<CpuResource> cpu_resource, std::string image_name, std::string resource_type_name = "basic_image_resource");
+    std::shared_ptr<VulkanImageBuffer> makeTransferImgCommand(VkExtent2D extent, const void* data_ptr, size_t buffer_size, std::string image_name, std::string resource_type_name = "basic_image_resource");
+
     void beginFrame(unsigned image_index);
     void recordCommandBuffer(unsigned image_index);
     void drawFrame(unsigned image_index);
@@ -102,6 +108,7 @@ public:
     std::shared_ptr<PerFrame>& getFrameData(uint32_t image_index);
     void update_frame(const GameTimerDelta& delta, uint32_t image_index);
     void addRenderNode(std::shared_ptr<RenderNode> render_node, unsigned image_index);
+
     std::pair<bool, uint32_t> acquire_next_image();
     uint32_t getLastFrame() const;
 

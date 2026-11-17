@@ -51,6 +51,10 @@ public:
     void AddUpdateMetadataFn(UpdateMetadataFn fn) override;
     void ClearUpdateMetadataFn() override;
 
+    void AddTransferFinishFn(TransferFinishFn fn) override;
+    void ClearTransferFinishFn() override;
+    const std::vector<TransferFinishFn>& getTransferFinishFn() const override;
+
     static VkImage createImage(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<ImageBufferConfig>& img_cfg, const ResourceName& name);
     static VkMemoryAllocateInfo getImageSize(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<ImageBufferConfig>& img_cfg, VkImage image);
     static VkDeviceMemory allocateImageMemory(const std::shared_ptr<VulkanDevice>& device, VkImage image, const VkMemoryAllocateInfo& alloc_info);
@@ -62,6 +66,7 @@ protected:
     ResourceName m_name;
 
     std::vector<UpdateMetadataFn> m_update_functions;
+    std::vector<TransferFinishFn> m_transfer_functions;
     VkImage m_image;
     VkDeviceMemory m_memory;
     VkDeviceSize m_image_size;

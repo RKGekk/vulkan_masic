@@ -27,8 +27,15 @@ public:
     const ResourceName& getName() const override;
     Type getType() const override;
 
-    void AddUpdateMetadataFn(UpdateMetadataFn fn);
+    void AddUpdateMetadataFn(UpdateMetadataFn fn) override;
     void ClearUpdateMetadataFn() override;
+
+    void AddTransferFinishFn(TransferFinishFn fn) override {};
+    void ClearTransferFinishFn() override {};
+    const std::vector<TransferFinishFn>& getTransferFinishFn() const override {
+        static std::vector<TransferFinishFn> fn;
+        return fn;
+    };
 
     std::vector<char>& getData();
     const void* getDataPtr() const;
