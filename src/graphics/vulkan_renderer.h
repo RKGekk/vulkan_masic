@@ -43,6 +43,7 @@ class RenderGraph;
 class VulkanRenderer;
 class PresentRenderNode;
 class CompositeCommandBatch;
+class VulkanBuffer;
 
 struct PerFrame {
     using RenderNodeId = size_t;
@@ -72,10 +73,13 @@ struct PerFrame {
 
     std::shared_ptr<PresentRenderNode> present_render_node;
     std::shared_ptr<RenderGraph> render_graph;
+    std::shared_ptr<CommandBatch> copy_command;
 };
 
 class VulkanRenderer {
 public:
+    static const uint32_t LAST_AVAILABLE_FRAME = -1; 
+
     bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<WindowSurface> window, std::shared_ptr<ThreadPool> thread_pool);
     void destroy();
 
@@ -95,11 +99,13 @@ public:
     std::shared_ptr<VulkanImageBuffer>& getOutColorImage(uint32_t image_index);
     std::shared_ptr<VulkanImageBuffer>& getOutDepthImage(uint32_t image_index);
 
-    std::shared_ptr<VulkanBuffer> makeTransferCommand(std::string buffer_name, std::string buffer_type, const void* data_ptr, size_t buffer_size);
-    std::shared_ptr<VulkanBuffer> makeTransferCommand(std::string buffer_name, std::string buffer_type, std::shared_ptr<CpuResource> cpu_resource);
-    std::shared_ptr<VulkanImageBuffer> makeTransferImgCommand(const std::string& path_to_file);
-    std::shared_ptr<VulkanImageBuffer> makeTransferImgCommand(VkExtent2D extent, std::shared_ptr<CpuResource> cpu_resource, std::string image_name, std::string resource_type_name = "basic_image_resource");
-    std::shared_ptr<VulkanImageBuffer> makeTransferImgCommand(VkExtent2D extent, const void* data_ptr, size_t buffer_size, std::string image_name, std::string resource_type_name = "basic_image_resource");
+    std::shared_ptr<VulkanBuffer> makeTransferCommand(std::string buffer_name, std::string buffer_type, const void* data_ptr, size_t buffer_size, uint32_t frame_index = LAST_AVAILABLE_FRAME);
+    std::shared_ptr<VulkanBuffer> makeTransferCommand(std::string buffer_name, std::string buffer_type, std::shared_ptr<CpuResource> cpu_resource, uint32_t frame_index = LAST_AVAILABLE_FRAME);
+    std::shared_ptr<VulkanImageBuffer> makeTransferImgCommand(const std::string& path_to_file, uint32_t frame_index = LAST_AVAILABLE_FRAME);
+    std::shared_ptr<VulkanImageBuffer> makeTransferImgCommand(VkExtent2D extent, std::shared_ptr<CpuResource> cpu_resource, std::string image_name, std::string resource_type_name = "basic_image_resource", uint32_t frame_index = LAST_AVAILABLE_FRAME);
+    std::shared_ptr<VulkanImageBuffer> makeTransferImgCommand(VkExtent2D extent, const void* data_ptr, size_t buffer_size, std::string image_name, std::string resource_type_name = "basic_image_resource", uint32_t frame_index = LAST_AVAILABLE_FRAME);
+    void updateCommand(const std::shared_ptr<VulkanBuffer>& data_buffer, const void* data_ptr, size_t buffer_size, uint32_t frame_index = LAST_AVAILABLE_FRAME);
+    void updateCommand(const std::shared_ptr<VulkanBuffer>& data_buffer, std::shared_ptr<CpuResource> cpu_resource, uint32_t frame_index = LAST_AVAILABLE_FRAME);
 
     void beginFrame(unsigned image_index);
     void recordCommandBuffer(unsigned image_index);

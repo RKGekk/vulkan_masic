@@ -29,11 +29,10 @@ std::string GraphicsRenderNode::makeRenderNodeName(const std::string& material_n
     return render_name;
 }
 
-bool GraphicsRenderNode::init(std::string render_node_name, unsigned frame_index, std::shared_ptr<VulkanDevice> device, VkCommandBuffer secondary_command_buffer, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) {
+bool GraphicsRenderNode::init(std::string render_node_name, unsigned frame_index, std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) {
     m_render_node_name = std::move(render_node_name);
     m_frame_index = frame_index;
     m_device = std::move(device);
-    m_secondary_command_buffer = secondary_command_buffer;
     m_render_graph = std::move(render_graph);
     m_node_config = instance_config ? m_render_graph.lock()->makeGraphicsRenderNodeCfgInstance(node_config_name, std::to_string(rand())) : m_render_graph.lock()->getGraphicsRenderNodeConfig(node_config_name);
     m_pipeline = m_node_config->getPipeline();
@@ -62,7 +61,7 @@ bool GraphicsRenderNode::init(std::string render_node_name, unsigned frame_index
 
             if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER && can_instance) {
                 std::string ubo_buffer_name = m_render_node_name + "/uniform/"s + desc_layout_bind_name + "/frame_"s + std::to_string(m_frame_index);
-                std::shared_ptr<VulkanBuffer> ubo = resources_manager->create_buffer(nullptr, 0, std::move(ubo_buffer_name), update_metadata->buffer_resource_type_name);
+                std::shared_ptr<VulkanBuffer> ubo = resources_manager->create_buffer(std::move(ubo_buffer_name), update_metadata->buffer_resource_type_name, 0);
                 ubo->AddUpdateMetadataFn(
                     [this, &desc_layout_bind_name]
                     (const std::shared_ptr<RenderResource>& bo){
@@ -88,7 +87,7 @@ bool GraphicsRenderNode::init(std::string render_node_name, unsigned frame_index
             }
             else if(vk_layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER && can_instance) {
                 std::string ssbo_buffer_name = m_render_node_name + "/storage/"s + desc_layout_bind_name + "/frame_"s + std::to_string(m_frame_index);
-                std::shared_ptr<VulkanBuffer> ssbo = resources_manager->create_buffer(nullptr, 0, ssbo_buffer_name, update_metadata->buffer_resource_type_name);
+                std::shared_ptr<VulkanBuffer> ssbo = resources_manager->create_buffer(ssbo_buffer_name, update_metadata->buffer_resource_type_name, 0);
                 ssbo->AddUpdateMetadataFn(
                     [this, &desc_layout_bind_name]
                     (const std::shared_ptr<RenderResource>& bo){
@@ -384,7 +383,7 @@ void GraphicsRenderNode::TransitionResourcesToProperState(VkCommandBuffer primar
             const VkAttachmentDescription& attach_desc = m_pipeline->getRenderPass()->getRenderPassConfig()->getAttachmentDescription(att_slot.attached_as);
             VkImageLayout write_image_layout = attach_desc.initialLayout;
             if(current_image_layout != write_image_layout) {
-                attached_write_resource->changeLayout(current_image_layout, write_image_layout);
+                attached_write_resource->changeLayout(primary_command_buffer, current_image_layout, write_image_layout);
                 attached_write_resource->getImageConfig()->setAfterInitLayout(write_image_layout);
             }
             continue;

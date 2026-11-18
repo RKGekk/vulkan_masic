@@ -26,6 +26,7 @@ class VulkanPushConstant;
 class PushConstantConfig;
 class VulkanRenderPass;
 class VulkanFramebuffer;
+class CpuResource;
 
 class VulkanResourcesManager {
 public:
@@ -51,6 +52,8 @@ public:
     std::shared_ptr<VulkanPushConstant> create_push_constant(std::string const_name, std::string resource_type_name);
     void detete_push_buffer(const std::string& const_name);
     void delete_push_buffer(std::shared_ptr<VulkanPushConstant> const_ptr);
+
+    std::shared_ptr<CpuResource> create_cpu_buffer(std::string buffer_name, size_t sz, const void* data);
 
     const std::shared_ptr<VulkanImageBuffer>& getImageResource(const std::string& resource_global_name) const;
     const std::shared_ptr<VulkanBuffer>& getBufferResource(const std::string& resource_global_name) const;

@@ -95,7 +95,6 @@ bool ImGUIDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
         per_frame->vertex_buffer = resources_manager->create_buffer("imgui_vertex_buffer_frame_"s + std::to_string(frame), "imgui_vertex_resource", 0u);
         per_frame->index_buffer = resources_manager->create_buffer("imgui_index_buffer_frame_"s + std::to_string(frame), "imgui_index_resource", 0u);
         per_frame->uniform_buffer = resources_manager->create_buffer("imgui_uniform_buffer_frame_"s + std::to_string(frame), "imgui_uniform_resource", 0u);
-        per_frame->copy_command = cmd_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, frame, 0u, 1u, "imgui_cpy_buffer_frame_"s + std::to_string(frame));
 
         m_per_frame.push_back(per_frame);
     }
@@ -155,6 +154,9 @@ std::shared_ptr<GraphicsRenderNode> ImGUIDrawable::makeRenderable(uint32_t image
 }
 
 void ImGUIDrawable::updateUniform(std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name, uint32_t frame, int cmd_i) {
+    Application& app = Application::Get();
+    VulkanRenderer& renderer = app.GetRenderer();
+
     ImDrawData* dd = ImGui::GetDrawData();
     const float L = dd->DisplayPos.x;
     const float R = dd->DisplayPos.x + dd->DisplaySize.x;
@@ -163,10 +165,13 @@ void ImGUIDrawable::updateUniform(std::shared_ptr<VulkanBuffer>& uniform_buffer,
     ImGuiUniformBufferObject bindData;
     bindData.LRTB = {L, R, T, B};
 
-    uniform_buffer->update(&bindData, sizeof(ImGuiUniformBufferObject));
+    renderer.updateCommand(uniform_buffer, &bindData, sizeof(ImGuiUniformBufferObject), frame);
 }
 
 void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
+    Application& app = Application::Get();
+    VulkanRenderer& renderer = app.GetRenderer();
+
     std::shared_ptr<PerFrameData>& per_frame = m_per_frame.at(image_index);
 
     ImDrawData* dd = ImGui::GetDrawData();
@@ -201,11 +206,9 @@ void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
         vertex_sz += vtx_sz;
         index_sz += idx_sz;
     }
-    std::shared_ptr<CommandBatch>& cpy_cmd = per_frame->copy_command;
-    cpy_cmd->reset();
 
-    per_frame->vertex_buffer->update(cpy_cmd, per_frame->imgui_vtx.data(), vertex_sz);
-    per_frame->index_buffer->update(cpy_cmd, per_frame->imgui_idx.data(), index_sz);
+    renderer.updateCommand(per_frame->vertex_buffer, per_frame->imgui_vtx.data(), vertex_sz, image_index);
+    renderer.updateCommand(per_frame->index_buffer, per_frame->imgui_idx.data(), index_sz, image_index);
 
     size_t cmd_ct = 0u;
     for (const ImDrawList* cmdList : dd->CmdLists) {
@@ -248,11 +251,6 @@ void ImGUIDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     for(size_t i = cmd_ct; i < per_frame->renderables.size(); ++i) {
         per_frame->renderables[i]->setExecutionBypass(true);
     }
-
-    Application::GetRenderer().getFrameData(image_index)->wait_transfer_commands.push_back(cpy_cmd);
-
-    //const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
-    //renderable->render_node->changeWriteDependency(swapchain_images[image_index], "resolve_attachment");
 }
 
 int ImGUIDrawable::order() {

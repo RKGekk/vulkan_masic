@@ -180,7 +180,7 @@ const std::string& CommandBatch::getName() const {
     return m_name;
 }
 
-void CommandBatch::reset(size_t index, VkCommandBufferResetFlags flags) const {
+void CommandBatch::reset(size_t index, VkCommandBufferResetFlags flags) {
     if(index == SELECT_ALL_BUFFERS) {
         for(VkCommandBuffer buffer : m_command_buffers) {
             vkResetCommandBuffer(buffer, flags);
@@ -190,4 +190,5 @@ void CommandBatch::reset(size_t index, VkCommandBufferResetFlags flags) const {
     else {
         vkResetCommandBuffer(m_command_buffers.at(index), flags);
     }
+    m_resources.clear();
 }

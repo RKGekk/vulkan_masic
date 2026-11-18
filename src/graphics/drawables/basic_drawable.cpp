@@ -36,13 +36,12 @@ bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
     using namespace std::literals;
 
     VulkanRenderer& renderer = Application::GetRenderer();
-    std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
 
     m_device = std::move(device);
     m_rt_aspect = Application::GetRenderer().getSwapchain()->getFormatConfig()->getAspect();
     m_max_frames = max_frames;
 
-    m_texture = resources_manager->create_image("textures/texture.jpg");
+    m_texture = renderer.makeTransferImgCommand("textures/texture.jpg");
     const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
 
     m_render_nodes.resize(max_frames);
@@ -58,15 +57,15 @@ bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
         VertexFormat::BindingNum vertex_binding = shader_signature->getFirstInputAttribute([](const VertexFormat& vf){ return vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX; });
         std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames().at(0));
 
-        std::shared_ptr<VulkanBuffer> vertex_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(g_vertices.data(), g_vertices.size() * sizeof(Vertex), "basic_vertex_resource");
+        std::shared_ptr<VulkanBuffer> vertex_buffer = renderer.makeTransferCommand("basic_graphics_render_vertex_buffer_frame"s + std::to_string(i), "basic_vertex_resource", g_vertices.data(), g_vertices.size() * sizeof(Vertex), i);
         render_node->addReadDependency(vertex_buffer, shader_signature->getInputAttributes(vertex_binding).getVertexBufferBindingName());
         m_vertex_buffers[i] = std::move(vertex_buffer);
 
-        std::shared_ptr<VulkanBuffer> index_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(g_indices.data(), g_indices.size() * sizeof(uint16_t), "basic_index_resource");
+        std::shared_ptr<VulkanBuffer> index_buffer = renderer.makeTransferCommand("basic_graphics_render_index_buffer_frame"s + std::to_string(i), "basic_index_resource", g_indices.data(), g_indices.size() * sizeof(uint16_t), i);
         render_node->addReadDependency(m_index_buffers[i], shader_signature->getIndexBufferBindingName());
         m_index_buffers[i] = std::move(index_buffer);
 
-        std::shared_ptr<VulkanBuffer> other_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(nullptr, 0, "basic_uniform_resource");
+        std::shared_ptr<VulkanBuffer> other_buffer = Application::GetRenderer().getResourcesManager()->create_buffer("basic_graphics_render_uniform_buffer_frame"s + std::to_string(i), "basic_uniform_resource", 0u);
         render_node->addReadDependency(m_uniform_buffers[i], desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER));
         other_buffer->AddUpdateMetadataFn(
             [render_node, &desc_set_layout_bind_name = desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)]
@@ -102,6 +101,9 @@ void BasicDrawable::destroy() {
 }
 
 void BasicDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
+    Application& app = Application::Get();
+    VulkanRenderer& renderer = app.GetRenderer();
+
     float angle = delta.fGetTotalSeconds() * glm::radians(90.f);
     glm::vec3 rotation_axis = glm::vec3(0.0f, 0.0f, 1.0f);
     
@@ -111,10 +113,7 @@ void BasicDrawable::update(const GameTimerDelta& delta, uint32_t image_index) {
     ubo.proj = glm::perspective(glm::radians(45.0f), m_rt_aspect, 0.1f, 10.0f);
     ubo.proj[1][1] *= -1.0f;
 
-    m_uniform_buffers[image_index]->update(&ubo, sizeof(UniformBufferObject));
-
-    //const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
-    //m_render_nodes[image_index]->changeWriteDependency(swapchain_images[image_index], "resolve_attachment");
+    renderer.updateCommand(m_uniform_buffers[image_index], &ubo, sizeof(UniformBufferObject), image_index);
 }
 
 int BasicDrawable::order() {

@@ -16,6 +16,7 @@
 #include "../pod/push_constant_config.h"
 #include "vulkan_push_constant.h"
 #include "vulkan_render_pass.h"
+#include "cpu_resource.h"
 
 #include "../../tools/string_tools.h"
 
@@ -281,6 +282,13 @@ void VulkanResourcesManager::delete_push_buffer(std::shared_ptr<VulkanPushConsta
 			return;
 		}
 	}
+}
+
+std::shared_ptr<CpuResource> VulkanResourcesManager::create_cpu_buffer(std::string buffer_name, size_t sz, const void* data) {
+	std::shared_ptr<CpuResource> vertex_cpu_buff = std::make_shared<CpuResource>(std::move(buffer_name));
+	vertex_cpu_buff->init(sz, data);
+
+	return vertex_cpu_buff;
 }
 
 const std::shared_ptr<VulkanImageBuffer>& VulkanResourcesManager::getImageResource(const std::string& resource_global_name) const {

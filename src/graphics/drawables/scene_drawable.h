@@ -66,10 +66,10 @@ public:
 private:
     void updatePushConstants(int frame, RenderableId render_id);
 
-    void updateDescBuffer(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name, const void* src_data, VkDeviceSize buffer_size, std::string object_name);
+    void updateDescBuffer(int frame, RenderableId render_id, const std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name, const void* src_data, VkDeviceSize buffer_size, std::string object_name);
 
-    void updateModelMatrices(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name);
-    void updateMaterialProps(int frame, RenderableId render_id, std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name);
+    void updateModelMatrices(int frame, RenderableId render_id, const std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name);
+    void updateMaterialProps(int frame, RenderableId render_id, const std::shared_ptr<VulkanBuffer>& uniform_buffer, const std::string& desc_set_layout_bind_name);
 
     std::shared_ptr<VulkanDevice> m_device;
     float m_rt_aspect = 1.0f;

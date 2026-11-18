@@ -56,7 +56,7 @@ public:
     const uint32_t getFamilyIndex() const;
     const std::string& getName() const;
 
-    void reset(size_t index = SELECT_ALL_BUFFERS, VkCommandBufferResetFlags flags = 0u) const;
+    void reset(size_t index = SELECT_ALL_BUFFERS, VkCommandBufferResetFlags flags = 0u);
 
 private:
     VkDevice m_device;
