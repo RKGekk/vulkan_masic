@@ -112,7 +112,7 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
         per_frame->cmd_submit_finish_fence = m_fence_manager->getFence("submit_finish_"s + std::to_string(i) + "_fen"s);
 
         per_frame->render_graph = std::make_shared<RenderGraph>();
-        per_frame->render_graph->init(m_device, window);
+        per_frame->render_graph->init(m_device, window, i);
 
         per_frame->init(m_device, i);
         

@@ -28,7 +28,7 @@ public:
 	using RenderNodeSet = std::unordered_set<RenderNodePtr>;
 	static const size_t NO_ID = std::numeric_limits<int>::max() / 2;
 
-	bool init(std::shared_ptr<VulkanDevice> device, const std::shared_ptr<WindowSurface>& window);
+	bool init(std::shared_ptr<VulkanDevice> device, const std::shared_ptr<WindowSurface>& window, uint32_t image_index);
     void destroy();
 
 	bool hasGraphicsRenderNodeConfig(const std::string& config_name) const;
@@ -77,4 +77,5 @@ private:
 	std::unordered_map<RenderNodePtr, size_t> m_render_node_sort_idx;
 	std::vector<std::shared_ptr<DependencyLevel>> m_dependency_levels;
 	bool m_sorted;
+	uint32_t m_image_index;
 };

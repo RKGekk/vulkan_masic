@@ -103,7 +103,7 @@ std::shared_ptr<CommandBatch> VulkanCommandManager::allocCommandBufferPtr(PoolTy
     batch_info->family_index = m_queue_family_indices.getFamilyIdx(pool_type).value();
     batch_info->frame_id = frame_id;
     batch_info->thread_id = thread_id;
-    std::shared_ptr<CommandBatch> result_buffers = std::make_shared<CommandBatch>(m_device, std::move(name));
+    std::shared_ptr<CommandBatch> result_buffers = std::make_shared<CommandBatch>(m_device->getDevice(), std::move(name));
     result_buffers->init(buffers_count, std::move(batch_info));
 
     ++LAST_COMMAND_BUFFER_ID;

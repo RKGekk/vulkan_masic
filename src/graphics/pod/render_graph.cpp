@@ -17,11 +17,12 @@
 
 #include <filesystem>
 
-bool RenderGraph::init(std::shared_ptr<VulkanDevice> device, const std::shared_ptr<WindowSurface>& window) {
+bool RenderGraph::init(std::shared_ptr<VulkanDevice> device, const std::shared_ptr<WindowSurface>& window, uint32_t image_index) {
     using namespace std::literals;
 
     m_device = std::move(device);
     m_sorted = false;
+    m_image_index = image_index;
 
     pugi::xml_document xml_doc;
 	pugi::xml_parse_result parse_res = xml_doc.load_file("graphics_pipelines.xml");
@@ -249,7 +250,7 @@ void RenderGraph::build_dependency_levels() {
 
     m_dependency_levels.resize(dependency_level_count + 1);
     for (int level = 0; level < (dependency_level_count + 1); ++level) {
-        std::shared_ptr<DependencyLevel> dependency_level = std::make_shared<DependencyLevel>(level);
+        std::shared_ptr<DependencyLevel> dependency_level = std::make_shared<DependencyLevel>(level, m_image_index);
         m_dependency_levels[level] = std::move(dependency_level);
     }
 
