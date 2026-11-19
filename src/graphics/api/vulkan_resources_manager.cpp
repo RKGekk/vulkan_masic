@@ -95,10 +95,10 @@ std::shared_ptr<VulkanImageBuffer> VulkanResourcesManager::create_image(VkImage 
 	std::shared_ptr<ImageBufferConfig> image_buffer_config = image_config_template->makeInstance(image_buffer_config_name);
 
 	std::shared_ptr<VulkanImageBuffer> image = std::make_shared<VulkanImageBuffer>(m_device, image_name);
-	image->init(vk_image, image_buffer_config);
+	image->init(vk_image, std::move(image_buffer_config));
 
 	m_image_map[image_name] = image;
-	m_image_buffer_config_map[image_buffer_config_name] = std::move(image_buffer_config);
+	//m_image_buffer_config_map[image_buffer_config_name] = std::move(image_buffer_config);
 
 	return image;
 }
@@ -158,10 +158,11 @@ std::shared_ptr<VulkanImageBuffer> VulkanResourcesManager::create_image(std::str
 	std::shared_ptr<ImageBufferConfig> image_buffer_config = image_config_template->makeInstance(image_buffer_config_name);
 
 	std::shared_ptr<VulkanImageBuffer> image = std::make_shared<VulkanImageBuffer>(m_device, image_name);
-	image->init(image_buffer_config);
+	//image->init(image_buffer_config);
+	image->init(std::move(image_buffer_config));
 
 	m_image_map[image_name] = image;
-	m_image_buffer_config_map[image_buffer_config_name] = std::move(image_buffer_config);
+	//m_image_buffer_config_map[image_buffer_config_name] = std::move(image_buffer_config);
 
 	return image;
 }

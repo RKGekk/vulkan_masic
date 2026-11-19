@@ -30,7 +30,7 @@ VulkanImageBuffer::VulkanImageBuffer(std::shared_ptr<VulkanDevice> device, std::
 VulkanImageBuffer::VulkanImageBuffer(std::shared_ptr<VulkanDevice> device) : m_device(std::move(device)), m_name(std::to_string(rand())) {}
 
 bool VulkanImageBuffer::init(std::shared_ptr<ImageBufferConfig> image_buffer_config) {
-    VkImage image = m_image = createImage(m_device, m_image_config, m_name);
+    VkImage image = m_image = createImage(m_device, image_buffer_config, m_name);
     return init(image, std::move(image_buffer_config));
 }
 
@@ -39,11 +39,13 @@ bool VulkanImageBuffer::init(VkImage image, std::shared_ptr<ImageBufferConfig> i
 
     m_image_config = std::move(image_buffer_config);
     m_image = image;
-    VkMemoryAllocateInfo alloc_info = getImageSize(m_device, m_image_config, m_image);
-    m_memory = allocateImageMemory(m_device, m_image, alloc_info);
+    m_alloc_info = getImageSize(m_device, m_image_config, m_image);
 
-    if(m_image_config->getMemoryProperties() & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
-        vkMapMemory(m_device->getDevice(), m_memory, 0, alloc_info.allocationSize, 0u, &m_mapped);
+    if(!m_image_config->isExternalMemoryControl()) {
+        m_memory = allocateImageMemory(m_device, m_image, m_alloc_info);
+        if(m_image_config->getMemoryProperties() & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
+            vkMapMemory(m_device->getDevice(), m_memory, 0, m_alloc_info.allocationSize, 0u, &m_mapped);
+        }
     }
 
     createViews();
@@ -191,7 +193,7 @@ VkDeviceMemory VulkanImageBuffer::getMemory() const {
 }
 
 VkDeviceSize VulkanImageBuffer::getSize() const {
-    return m_image_size;
+    return m_alloc_info.allocationSize;
 }
 
 VkSubresourceLayout VulkanImageBuffer::getSubresourceSizes(uint32_t mip_level, uint32_t array_layer) const {
@@ -255,7 +257,7 @@ const std::vector<RenderResource::TransferFinishFn>& VulkanImageBuffer::getTrans
 
 VkImage VulkanImageBuffer::createImage(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<ImageBufferConfig>& img_cfg, const ResourceName& name) {
     VkImage image;
-    VkResult result = vkCreateImage(device->getDevice(), &img_cfg->getImageInfo(), nullptr, &image);
+    VkResult result = vkCreateImage(device->getDevice(), img_cfg->getImageInfoPtr(), nullptr, &image);
     if(result != VK_SUCCESS) {
         throw std::runtime_error("failed to create image!");
     }
@@ -271,6 +273,8 @@ VkImage VulkanImageBuffer::createImage(const std::shared_ptr<VulkanDevice>& devi
 
     vkSetDebugUtilsObjectNameEXT(device->getDevice(), &name_info);
 #endif
+
+    return image;
 }
 
 VkMemoryAllocateInfo VulkanImageBuffer::getImageSize(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<ImageBufferConfig>& img_cfg, VkImage image) {
@@ -298,7 +302,7 @@ VkMemoryAllocateInfo VulkanImageBuffer::getImageSize(const std::shared_ptr<Vulka
     uint32_t mem_type_idx = device->findMemoryType(mem_req.memoryTypeBits, props);
     VkMemoryAllocateInfo alloc_info{};
     alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    alloc_info.allocationSize = mem_req.size;
+    alloc_info.allocationSize = image_size;
     alloc_info.memoryTypeIndex = mem_type_idx;
 
     return alloc_info;

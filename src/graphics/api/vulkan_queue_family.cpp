@@ -37,6 +37,9 @@ bool QueueFamilyIndices::init(VkPhysicalDevice physical_device, VkSurfaceKHR sur
         }
         ++i;
     }
+
+    const auto& families_set = getFamilies();
+    m_queue_family_indices = std::vector<uint32_t>(families_set.cbegin(), families_set.cend());
     
     return isComplete();
 }
@@ -66,10 +69,8 @@ std::unordered_set<uint32_t> QueueFamilyIndices::getFamilies() const {
     return family_indices;
 }
 
-std::vector<uint32_t> QueueFamilyIndices::getIndices() const {
-    const auto& families = getFamilies();
-    std::vector<uint32_t> result(families.cbegin(), families.cend());
-    return result;
+const std::vector<uint32_t>& QueueFamilyIndices::getIndices() const {
+    return m_queue_family_indices;
 }
 
 const std::vector<VkQueueFamilyProperties>& QueueFamilyIndices::getQueueFamilies() const {

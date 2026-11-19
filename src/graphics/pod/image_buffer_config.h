@@ -27,6 +27,7 @@ public:
 
     const std::string& getName() const;
     const VkImageCreateInfo& getImageInfo() const;
+    const VkImageCreateInfo* getImageInfoPtr() const;
     VkImageLayout getAfterInitLayout() const;
     void setAfterInitLayout(VkImageLayout new_layout);
     const std::vector<std::shared_ptr<VulkanSampler>>& getSamplers() const;

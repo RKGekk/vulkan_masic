@@ -2,6 +2,7 @@
 
 #include "vulkan_device.h"
 #include "vulkan_resources_manager.h"
+#include "vulkan_command_manager.h"
 #include "../vulkan_renderer.h"
 #include "../../window_surface.h"
 #include "vulkan_format_manager.h"
@@ -12,15 +13,11 @@
 #include "../../tools/string_tools.h"
 #include "../../application.h"
 
-bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<WindowSurface> window, const std::string& rg_file_path) {
+bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<WindowSurface> window, const std::shared_ptr<VulkanResourcesManager>& resources_manager, const std::shared_ptr<VulkanFormatManager>& format_manager, const std::string& rg_file_path) {
     using namespace std::literals;
 
     m_window = std::move(window);
     m_device = std::move(device);
-
-    VulkanRenderer& renderer = Application::GetRenderer();
-    std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
-    std::shared_ptr<VulkanFormatManager>& format_manager = renderer.getFormatManager();
 
     pugi::xml_document xml_doc;
 	pugi::xml_parse_result parse_res = xml_doc.load_file(rg_file_path.c_str());
@@ -59,9 +56,9 @@ bool VulkanSwapChain::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr
     m_swapchain_create_info.imageExtent = m_format_config->getExtent2D();
     m_swapchain_create_info.imageArrayLayers = m_format_config->getArrayLayers();
     m_swapchain_create_info.imageUsage = m_format_config->getImageUsage();
-    m_swapchain_create_info.imageSharingMode = m_format_config->getImagesSharingMode();
-    m_swapchain_create_info.queueFamilyIndexCount = m_format_config->getQueueFamilyIndexCount();
-    m_swapchain_create_info.pQueueFamilyIndices = m_format_config->getQueueFamilyIndicesPtr();
+    m_swapchain_create_info.imageSharingMode = VulkanCommandManager::getBufferSharingMode();
+    m_swapchain_create_info.queueFamilyIndexCount = VulkanCommandManager::getQueueFamilyIndices().getIndices().size();
+    m_swapchain_create_info.pQueueFamilyIndices = VulkanCommandManager::getQueueFamilyIndices().getIndices().data();
 
     pugi::xml_node pre_transform_node = swapchain_node.child("PreTransform");
     std::string auto_pre_transform_str = pre_transform_node.text().as_string();

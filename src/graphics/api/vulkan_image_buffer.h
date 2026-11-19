@@ -69,8 +69,8 @@ protected:
     std::vector<TransferFinishFn> m_transfer_functions;
     VkImage m_image;
     VkDeviceMemory m_memory;
-    VkDeviceSize m_image_size;
     void* m_mapped;
+    VkMemoryAllocateInfo m_alloc_info;
     
     std::unordered_map<std::string, VkImageView> m_image_view_map;
     std::shared_ptr<ImageBufferConfig> m_image_config;

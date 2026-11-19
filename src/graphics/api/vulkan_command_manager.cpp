@@ -6,16 +6,18 @@
 
 unsigned int LAST_COMMAND_BUFFER_ID = 0u;
 
+std::unique_ptr<QueueFamilyIndices> gs_pQueueFamilySingeton;
+std::once_flag gs_queue_family_only_once;
+
 bool VulkanCommandManager::init(std::shared_ptr<VulkanDevice> device, size_t frames_in_flight, size_t number_of_threads) {
     m_device = std::move(device);
-    m_queue_family_indices.init(m_device->getDeviceAbilities().physical_device, m_device->getSurface());
 
     m_primary_cmd_pool_flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     m_secondary_cmd_pool_flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     
-    vkGetDeviceQueue(m_device->getDevice(), m_queue_family_indices.getFamilyIdx(PoolTypeEnum::GRAPICS).value(), 0u, &m_graphics_queue);
-    vkGetDeviceQueue(m_device->getDevice(), m_queue_family_indices.getFamilyIdx(PoolTypeEnum::COMPUTE).value(), 0u, &m_compute_queue);
-    vkGetDeviceQueue(m_device->getDevice(), m_queue_family_indices.getFamilyIdx(PoolTypeEnum::TRANSFER).value(), 0u, &m_transfer_queue);
+    vkGetDeviceQueue(m_device->getDevice(), getQueueFamilyIndices().getFamilyIdx(PoolTypeEnum::GRAPICS).value(), 0u, &m_graphics_queue);
+    vkGetDeviceQueue(m_device->getDevice(), getQueueFamilyIndices().getFamilyIdx(PoolTypeEnum::COMPUTE).value(), 0u, &m_compute_queue);
+    vkGetDeviceQueue(m_device->getDevice(), getQueueFamilyIndices().getFamilyIdx(PoolTypeEnum::TRANSFER).value(), 0u, &m_transfer_queue);
 
     m_max_frames = frames_in_flight;
     m_max_threads = number_of_threads;
@@ -35,12 +37,28 @@ void VulkanCommandManager::destroy() {
     }
 }
 
-const QueueFamilyIndices& VulkanCommandManager::getQueueFamilyIndices() const {
-    return m_queue_family_indices;
+const QueueFamilyIndices& VulkanCommandManager::getQueueFamilyIndices() {
+    std::call_once(
+        gs_queue_family_only_once,
+        [](){
+            const std::shared_ptr<VulkanDevice>& device = Application::GetRenderer().GetDevice();
+            gs_pQueueFamilySingeton.reset(new QueueFamilyIndices());
+            gs_pQueueFamilySingeton->init(device->getDeviceAbilities().physical_device, device->getSurface());
+        }
+    );
+    return *gs_pQueueFamilySingeton;
 }
 
-VkSharingMode VulkanCommandManager::getBufferSharingMode() const {
-    return m_queue_family_indices.getBufferSharingMode();
+VkSharingMode VulkanCommandManager::getBufferSharingMode() {
+    std::call_once(
+        gs_queue_family_only_once,
+        [](){
+            const std::shared_ptr<VulkanDevice>& device = Application::GetRenderer().GetDevice();
+            gs_pQueueFamilySingeton.reset(new QueueFamilyIndices());
+            gs_pQueueFamilySingeton->init(device->getDeviceAbilities().physical_device, device->getSurface());
+        }
+    );
+    return (*gs_pQueueFamilySingeton).getBufferSharingMode();
 }
 
 VkQueue VulkanCommandManager::getQueue(PoolTypeEnum pool_type) const {
@@ -100,7 +118,7 @@ std::shared_ptr<CommandBatch> VulkanCommandManager::allocCommandBufferPtr(PoolTy
     batch_info->pool_type = pool_type;
     batch_info->command_pool = command_pool;
     batch_info->command_level = command_level;
-    batch_info->family_index = m_queue_family_indices.getFamilyIdx(pool_type).value();
+    batch_info->family_index = getQueueFamilyIndices().getFamilyIdx(pool_type).value();
     batch_info->frame_id = frame_id;
     batch_info->thread_id = thread_id;
     std::shared_ptr<CommandBatch> result_buffers = std::make_shared<CommandBatch>(m_device->getDevice(), std::move(name));

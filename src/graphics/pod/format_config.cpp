@@ -99,11 +99,6 @@ bool FormatConfig::init(std::shared_ptr<VulkanDevice> device, const std::shared_
     m_has_stencil = m_device->hasStencilComponent(m_format);
     m_color_space = getColorSpace(format_data.child("ColorSpace").text().as_string());
 
-    static std::vector<uint32_t> families = Application::GetRenderer().getCommandManager()->getQueueFamilyIndices().getIndices();
-    m_images_sharing_mode = Application::GetRenderer().getCommandManager()->getBufferSharingMode();
-    m_queue_family_index_count = static_cast<uint32_t>(families.size());
-    m_pQueue_family_indices = families.data();
-
     return true;
 }
 
@@ -272,18 +267,6 @@ void FormatConfig::setVkColorSpace(VkColorSpaceKHR color_space) {
 
 VkSurfaceFormatKHR FormatConfig::getVkSurfaceFormat() const {
     return {m_format, m_color_space};
-}
-
-VkSharingMode FormatConfig::getImagesSharingMode() const {
-    return m_images_sharing_mode;
-}
-
-uint32_t FormatConfig::getQueueFamilyIndexCount() const {
-    return m_queue_family_index_count;
-}
-
-const uint32_t* FormatConfig::getQueueFamilyIndicesPtr() const {
-    return m_pQueue_family_indices;
 }
 
 std::shared_ptr<FormatConfig> FormatConfig::makeInstance(std::string name, VkExtent2D extent) const {

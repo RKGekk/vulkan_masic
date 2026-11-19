@@ -13,10 +13,9 @@ bool ImageBufferConfig::init(const std::shared_ptr<VulkanDevice>& device, std::s
 
     m_image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 
-    static std::vector<uint32_t> families = Application::GetRenderer().getCommandManager()->getQueueFamilyIndices().getIndices();
-    m_image_info.sharingMode = Application::GetRenderer().getCommandManager()->getBufferSharingMode();
-    m_image_info.queueFamilyIndexCount = static_cast<uint32_t>(families.size());
-    m_image_info.pQueueFamilyIndices = families.data();
+    m_image_info.sharingMode = VulkanCommandManager::getBufferSharingMode();
+    m_image_info.queueFamilyIndexCount = static_cast<uint32_t>(VulkanCommandManager::getQueueFamilyIndices().getIndices().size());
+    m_image_info.pQueueFamilyIndices = VulkanCommandManager::getQueueFamilyIndices().getIndices().data();
 
     m_name = std::move(name);
 
@@ -129,6 +128,10 @@ const std::string& ImageBufferConfig::getName() const {
     
 const VkImageCreateInfo& ImageBufferConfig::getImageInfo() const {
     return m_image_info;
+}
+
+const VkImageCreateInfo* ImageBufferConfig::getImageInfoPtr() const {
+    return &m_image_info;
 }
 
 VkImageLayout ImageBufferConfig::getAfterInitLayout() const {

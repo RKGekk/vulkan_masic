@@ -71,10 +71,6 @@ public:
 
     VkSurfaceFormatKHR getVkSurfaceFormat() const;
 
-    VkSharingMode getImagesSharingMode() const;
-    uint32_t getQueueFamilyIndexCount() const;
-    const uint32_t* getQueueFamilyIndicesPtr() const;
-
     std::shared_ptr<FormatConfig> makeInstance(std::string name, VkExtent2D extent = {0, 0}) const;
 
 private:
@@ -93,9 +89,6 @@ private:
     VkImageTiling m_tiling;
     VkImageUsageFlags m_usage;
     VkFormatFeatureFlags m_feature_flags;
-    VkSharingMode m_images_sharing_mode;
-    uint32_t m_queue_family_index_count;
-    const uint32_t* m_pQueue_family_indices;
 
     VkFormat m_format;
     bool m_has_stencil;

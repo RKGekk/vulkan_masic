@@ -19,6 +19,9 @@ class Managers;
 class FormatConfig;
 class VulkanImageBuffer;
 class VulkanDevice;
+class VulkanCommandManager;
+class VulkanResourcesManager;
+class VulkanFormatManager;
 
 struct SwapchainSupportDetails {
     VkSurfaceCapabilitiesKHR capabilities;
@@ -31,7 +34,7 @@ class VulkanSwapChain {
 public:
     static const uint32_t CURRENT_SYNC = -1;
 
-    bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<WindowSurface> window, const std::string& rg_file_path);
+    bool init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<WindowSurface> window, const std::shared_ptr<VulkanResourcesManager>& resources_manager, const std::shared_ptr<VulkanFormatManager>& format_manager, const std::string& rg_file_path);
     void destroy();
     void recreate();
 

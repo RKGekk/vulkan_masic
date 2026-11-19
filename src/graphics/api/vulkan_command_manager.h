@@ -17,6 +17,7 @@
 #include "../../tools/thread_safe_lookup_table.h"
 
 class VulkanDevice;
+class VulkanCommandManager;
 
 class VulkanCommandManager {
 public:
@@ -37,8 +38,9 @@ public:
     bool init(std::shared_ptr<VulkanDevice> device, size_t frames_in_flight, size_t number_of_threads);
     void destroy();
 
-    const QueueFamilyIndices& getQueueFamilyIndices() const;
-    VkSharingMode getBufferSharingMode() const;
+    static const QueueFamilyIndices& getQueueFamilyIndices();
+    static VkSharingMode getBufferSharingMode();
+    
     const CommandBufferPools& getCommandPool(PoolTypeEnum pool_type = PoolTypeEnum::GRAPICS) const;
     void setCommandPoolDirty(VkCommandBufferLevel lvl, size_t frame_id, size_t thread_id);
     VkCommandPoolCreateFlags getPrimaryCmdPoolFlags() const;
@@ -68,7 +70,6 @@ private:
     int m_max_frames;
     int m_max_threads;
 
-    QueueFamilyIndices m_queue_family_indices;
     VkQueue m_graphics_queue = VK_NULL_HANDLE;
     VkQueue m_compute_queue = VK_NULL_HANDLE;
     VkQueue m_transfer_queue = VK_NULL_HANDLE;

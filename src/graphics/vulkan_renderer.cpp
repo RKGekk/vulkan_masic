@@ -76,7 +76,7 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
     m_resources_manager->init(window, "graphics_pipelines.xml"s);
 
     m_swapchain = std::make_shared<VulkanSwapChain>();
-    m_swapchain->init(m_device, window, "graphics_pipelines.xml"s);
+    m_swapchain->init(m_device, window, m_resources_manager, m_format_manager, "graphics_pipelines.xml"s);
 
     m_command_manager = std::make_shared<VulkanCommandManager>();
     m_command_manager->init(m_device, m_swapchain->getSwapchainSupportDetails().capabilities.minImageCount, 1u /*std::thread::hardware_concurrency()*/);
