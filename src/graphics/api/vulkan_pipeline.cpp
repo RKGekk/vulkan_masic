@@ -159,6 +159,10 @@ void VulkanPipeline::destroy() {
     vkDestroyPipelineLayout(m_device->getDevice(), m_pipeline_layout, nullptr);
 }
 
+const std::shared_ptr<VulkanDevice>& VulkanPipeline::getDevice() const {
+    return m_device;
+}
+
 VulkanPipeline::PipelineType VulkanPipeline::getPipelineType() const {
     return m_pipeline_type;
 }

@@ -21,7 +21,8 @@ std::shared_ptr<VulkanFence> VulkanFenceManager::getFence(const std::string& new
     if(m_fences.contains(new_name)) return m_fences[new_name];
 
     std::shared_ptr<VulkanFence> fence = std::make_shared<VulkanFence>();
-    fence->init(m_device, true, new_name);
+    //fence->init(m_device, true, new_name);
+    fence->init(m_device, false, new_name);
 
     m_fences[new_name] = fence;
 

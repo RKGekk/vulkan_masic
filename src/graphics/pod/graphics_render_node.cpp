@@ -29,12 +29,12 @@ std::string GraphicsRenderNode::makeRenderNodeName(const std::string& material_n
     return render_name;
 }
 
-bool GraphicsRenderNode::init(std::string render_node_name, unsigned frame_index, std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) {
+bool GraphicsRenderNode::init(std::string render_node_name, std::shared_ptr<GraphicsRenderNodeConfig> gfx_node_cfg, std::weak_ptr<RenderGraph> render_graph) {
     m_render_node_name = std::move(render_node_name);
-    m_frame_index = frame_index;
-    m_device = std::move(device);
+    m_frame_index = gfx_node_cfg->getSCImageIndex();
+    m_device = gfx_node_cfg->getDevice();
     m_render_graph = std::move(render_graph);
-    m_node_config = instance_config ? m_render_graph.lock()->makeGraphicsRenderNodeCfgInstance(node_config_name, std::to_string(rand())) : m_render_graph.lock()->getGraphicsRenderNodeConfig(node_config_name);
+    m_node_config = std::move(gfx_node_cfg);
     m_pipeline = m_node_config->getPipeline();
     setExecutionBypass(false);
     setExecutionOrder(0u);

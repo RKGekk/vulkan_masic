@@ -122,16 +122,23 @@ void ImGUIDrawable::destroy() {
 std::shared_ptr<GraphicsRenderNode> ImGUIDrawable::makeRenderable(uint32_t image_index, int cmd_i) {
     using namespace std::literals;
 
-    const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = Application::GetRenderer().getSwapchain()->getSwapchainImages();
+    Application& app = Application::Get();
+    VulkanRenderer& renderer = Application::GetRenderer();
+    std::shared_ptr<PerFrame>& global_frame_data = renderer.getFrameData(image_index);
+    std::shared_ptr<RenderGraph>& frame_render_graph = global_frame_data->render_graph;
+
+    const std::vector<std::shared_ptr<VulkanImageBuffer>>& swapchain_images = renderer.getSwapchain()->getSwapchainImages();
+    std::string imgui_render_node_name = "ImguiGraphicsRenderNode"s + std::to_string(image_index);
+    std::shared_ptr<GraphicsRenderNodeConfig> render_node_cfg = frame_render_graph->makeGraphicsRenderNodeCfgInstance(RENDER_NODE_CFG_NAME, imgui_render_node_name);
 
     std::shared_ptr<GraphicsRenderNode> render_node;
     render_node = std::make_shared<GraphicsRenderNode>();
-    render_node->init("ImguiGraphicsRenderNode"s + std::to_string(image_index), image_index, m_device, RENDER_NODE_CFG_NAME, true, Application::GetRenderer().getFrameData(image_index)->render_graph);
+    render_node->init(imgui_render_node_name, render_node_cfg, frame_render_graph);
 
     const std::shared_ptr<VulkanShader>& vertex_shader = render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
     const std::shared_ptr<ShaderSignature>& shader_signature = vertex_shader->getShaderSignature();
     VertexFormat::BindingNum vertex_binding = shader_signature->getFirstInputAttribute([](const VertexFormat& vf){ return vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX; });
-    std::shared_ptr<DescSetLayout> desc_set_layout = Application::GetRenderer().getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames().at(0));
+    std::shared_ptr<DescSetLayout> desc_set_layout = renderer.getDescriptorsManager()->getDescSetLayout(vertex_shader->getShaderSignature()->getDescSetNames().at(0));
 
     render_node->add_update_function(
         "imgui_uniform_update_fn"s,
@@ -146,8 +153,8 @@ std::shared_ptr<GraphicsRenderNode> ImGUIDrawable::makeRenderable(uint32_t image
     render_node->addReadDependency(m_per_frame[image_index]->uniform_buffer, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER));
     render_node->addReadDependency(m_font_texture, desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
     render_node->addWriteDependency(swapchain_images[image_index], "resolve_attachment");
-    render_node->addWriteDependency(Application::GetRenderer().getOutColorImage(image_index), "color_attachment");
-    render_node->addWriteDependency(Application::GetRenderer().getOutDepthImage(image_index), "depth_attachment");
+    render_node->addWriteDependency(renderer.getOutColorImage(image_index), "color_attachment");
+    render_node->addWriteDependency(renderer.getOutDepthImage(image_index), "depth_attachment");
     render_node->finishRenderNode();
 
     return render_node;

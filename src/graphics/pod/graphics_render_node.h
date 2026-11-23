@@ -31,7 +31,7 @@ public:
 
     static std::string makeRenderNodeName(const std::string& material_name);
 
-    virtual bool init(std::string render_node_name, unsigned frame_index, std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) override;
+    bool init(std::string render_node_name, std::shared_ptr<GraphicsRenderNodeConfig> gfx_node_cfg, std::weak_ptr<RenderGraph> render_graph);
     virtual void destroy() override;
 
     virtual void render(VkCommandBuffer secondary_command_buffer, uint32_t bind_flags) override;

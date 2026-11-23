@@ -48,7 +48,7 @@ public:
     using DescSetLayoutBindingName = std::string;
     using UpdateFunctionSigature = std::function<void(std::shared_ptr<VulkanBuffer>&, const DescSetLayoutBindingName&)>;
 
-    virtual bool init(std::string render_node_name, unsigned frame_index, std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) = 0;
+    //virtual bool init(std::string render_node_name, unsigned frame_index, std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) = 0;
     virtual void destroy() = 0;
 
     virtual void render(VkCommandBuffer secondary_command_buffer, uint32_t bind_flags) = 0;

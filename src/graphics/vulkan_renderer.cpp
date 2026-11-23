@@ -25,6 +25,7 @@
 #include "pod/render_graph.h"
 #include "pod/framebuffer_config.h"
 #include "pod/graphics_render_node_config.h"
+#include "pod/present_render_node_config.h"
 #include "pod/image_buffer_config.h"
 #include "pod/render_pass_config.h"
 #include "pod/pipeline_config.h"
@@ -79,7 +80,7 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
     m_swapchain->init(m_device, window, m_resources_manager, m_format_manager, "graphics_pipelines.xml"s);
 
     m_command_manager = std::make_shared<VulkanCommandManager>();
-    m_command_manager->init(m_device, m_swapchain->getSwapchainSupportDetails().capabilities.minImageCount, 1u /*std::thread::hardware_concurrency()*/);
+    m_command_manager->init(m_device, m_swapchain->getSwapchainParams().minImageCount, 1u /*std::thread::hardware_concurrency()*/);
 
     m_descriptors_manager = std::make_shared<VulkanDescriptorsManager>();
     m_descriptors_manager->init(m_device, "graphics_pipelines.xml"s);
@@ -104,8 +105,14 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
         per_frame->out_color_image = m_resources_manager->create_image("render_target_color"s + std::to_string(i), "render_target_color_resource");
         per_frame->out_depth_image = m_resources_manager->create_image("render_target_depth"s + std::to_string(i), "render_target_depth_resource");
 
-        per_frame->swapchain_available_sem = m_semaphore_manager->getSemaphore("swapchain_"s + std::to_string(i) + "_available_sem");
-        per_frame->swapchain_available_fen = m_fence_manager->getFence("swapchain_"s + std::to_string(i) + "_available_fen"s);
+        //per_frame->swapchain_available_sem = m_semaphore_manager->getSemaphore("swapchain_"s + std::to_string(i) + "_available_sem");
+        std::shared_ptr<VulkanSemaphore> spare_swapchain_available_sem = m_semaphore_manager->getSemaphore("swapchain_"s + std::to_string(i) + "_available_spare_sem");
+        m_spare_swapchain_available_sem.push_back(spare_swapchain_available_sem);
+
+        //per_frame->swapchain_available_fen = m_fence_manager->getFence("swapchain_"s + std::to_string(i) + "_available_fen"s);
+        std::shared_ptr<VulkanFence> spare_swapchain_available_fen = m_fence_manager->getFence("swapchain_"s + std::to_string(i) + "_available_spare_fen"s);
+        m_spare_swapchain_available_fen.push_back(spare_swapchain_available_fen);
+
         per_frame->transfer_complete_sem = m_semaphore_manager->getSemaphore("transfer_"s + std::to_string(i) + "_complete_sem");
         per_frame->transfer_complete_fen = m_fence_manager->getFence("transfer_"s + std::to_string(i) + "_complete_sem"s);
         per_frame->cmd_submit_finish_signal_sem = m_semaphore_manager->getSemaphore("submit_finish_"s + std::to_string(i) + "_signal_sem");
@@ -114,14 +121,15 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
         per_frame->render_graph = std::make_shared<RenderGraph>();
         per_frame->render_graph->init(m_device, window, i);
 
-        per_frame->init(m_device, i);
-        
+        std::shared_ptr<PresentRenderNodeConfig> present_cfg = per_frame->render_graph->makePresentRenderNodeCfgInstance("presenter"s, "PresentRenderNode"s + std::to_string(i));
         per_frame->present_render_node = std::make_shared<PresentRenderNode>();
-        per_frame->present_render_node->init("PresentRenderNode"s + std::to_string(i), i,  m_device, "presenter"s, false, per_frame->render_graph);
+        per_frame->present_render_node->init("PresentRenderNode"s + std::to_string(i), present_cfg, per_frame->render_graph);
         per_frame->present_render_node->addReadDependency(swapchain_images.at(i), "swapchain_image"s);
         per_frame->render_graph->add_pass(per_frame->present_render_node);
 
         per_frame->copy_command = m_command_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, i, 0u, 1u, "cpy_buffer_frame_"s + std::to_string(i));
+        
+        per_frame->init(m_device, i);
 
         m_per_frame.push_back(std::move(per_frame));
     }
@@ -264,8 +272,16 @@ void VulkanRenderer::updateCommand(const std::shared_ptr<VulkanBuffer>& data_buf
 void VulkanRenderer::beginFrame(unsigned image_index) {
     const std::shared_ptr<PerFrame>& per_frame = m_per_frame[image_index];
 
-    per_frame->cmd_submit_finish_fence->wait();
-    per_frame->cmd_submit_finish_fence->reset();
+    if(!per_frame->transfer_complete_fen->isFreeForUse()) {
+        per_frame->transfer_complete_fen->wait();
+        per_frame->transfer_complete_fen->reset();
+    }
+
+    if(!per_frame->cmd_submit_finish_fence->isFreeForUse()) {
+        per_frame->cmd_submit_finish_fence->wait();
+        per_frame->cmd_submit_finish_fence->reset();
+    }
+
     per_frame->copy_command->reset();
 
     for(const std::shared_ptr<CommandBatch>& transfer_cmd : per_frame->wait_transfer_commands) {
@@ -299,20 +315,21 @@ void VulkanRenderer::recordCommandBuffer(unsigned image_index) {
 }
 
 void VulkanRenderer::drawFrame(unsigned image_index) {
-    uint32_t prev_frame = getPrevFrame();
-
     recordCommandBuffer(image_index);
+
+    std::shared_ptr<PerFrame>& per_frame = m_per_frame[image_index];
     
     std::shared_ptr<VulkanCommandManager::BatchWaitInfo> wait_info = std::make_shared<VulkanCommandManager::BatchWaitInfo>();
-    wait_info->wait_for_semaphores.push_back(m_per_frame[image_index]->swapchain_available_sem->getSemaphore());
-    if(m_per_frame[image_index]->cmd_submit_wait_sem.size()) {
-        wait_info->wait_for_semaphores.insert(wait_info->wait_for_semaphores.end(), m_per_frame[image_index]->cmd_submit_wait_sem.begin(), m_per_frame[image_index]->cmd_submit_wait_sem.end());
+    wait_info->wait_for_semaphores.push_back(per_frame->swapchain_available_sem->getSemaphore());
+    if(per_frame->cmd_submit_wait_sem.size()) {
+        wait_info->wait_for_semaphores.insert(wait_info->wait_for_semaphores.end(), per_frame->cmd_submit_wait_sem.begin(), per_frame->cmd_submit_wait_sem.end());
     }
     wait_info->wait_for_stages.push_back(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+    wait_info->signal_fence = per_frame->cmd_submit_finish_fence->getFence();
 
     m_command_manager->submitCommandBuffer(m_per_frame[image_index]->submission_buffers, PoolTypeEnum::GRAPICS, wait_info);
 
-    m_per_frame[image_index]->present_render_node->render(VK_NULL_HANDLE, 0u);
+    m_per_frame[image_index]->present_render_node->present();
     m_per_frame[image_index]->end(*this);
 }
 
@@ -321,10 +338,13 @@ std::shared_ptr<PerFrame>& VulkanRenderer::getFrameData(uint32_t image_index) {
 }
 
 void VulkanRenderer::update_frame(const GameTimerDelta& delta, uint32_t image_index) {
+    std::shared_ptr<PerFrame>& per_frame = m_per_frame[image_index];
+
     std::shared_ptr<VulkanCommandManager::BatchWaitInfo> wait_info = std::make_shared<VulkanCommandManager::BatchWaitInfo>();
-    m_per_frame[image_index]->cmd_submit_wait_sem.push_back(m_per_frame[image_index]->transfer_complete_sem->getSemaphore());
-    wait_info->signal_semaphores.push_back(m_per_frame[image_index]->transfer_complete_sem->getSemaphore());
-    wait_info->signal_fence = m_per_frame[image_index]->transfer_complete_fen->getFence();
+    per_frame->cmd_submit_wait_sem.push_back(per_frame->transfer_complete_sem->getSemaphore());
+    wait_info->signal_semaphores.push_back(per_frame->transfer_complete_sem->getSemaphore());
+    wait_info->signal_fence = per_frame->transfer_complete_fen->getFence();
+    
     std::vector<VkCommandBuffer> transfer_submission_buffers;
     for(const std::shared_ptr<CommandBatch>& transfer_batch : m_per_frame[image_index]->wait_transfer_commands) {
         transfer_submission_buffers.push_back(transfer_batch->getCommandBufer());
@@ -336,31 +356,45 @@ void VulkanRenderer::addRenderNode(std::shared_ptr<RenderNode> render_node, unsi
     m_per_frame[image_index]->render_graph->add_pass(std::move(render_node));
 }
 
+bool try_once() {
+    static std::once_flag flag;
+    bool is_first = false;
+    
+    std::call_once(flag, [&]() {
+        is_first = true;
+    });
+    
+    return is_first;
+}
+
 std::pair<bool, uint32_t> VulkanRenderer::acquire_next_image() {
-    uint32_t min_image_count = m_swapchain->getSwapchainSupportDetails().capabilities.minImageCount;
+    bool first_frame = try_once();
+
+    uint32_t min_image_count = m_swapchain->getSwapchainParams().minImageCount;
     if(m_prev_frame.size() >= min_image_count) {
         m_per_frame[m_prev_frame.front()]->swapchain_available_fen->wait();
         m_per_frame[m_prev_frame.front()]->swapchain_available_fen->reset();
+        m_spare_swapchain_available_fen.push_back(std::move(m_per_frame[m_prev_frame.front()]->swapchain_available_fen));
+        m_spare_swapchain_available_sem.push_back(std::move(m_per_frame[m_prev_frame.front()]->swapchain_available_sem));
         m_prev_frame.erase(m_prev_frame.begin());
     }
-
-    if(m_prev_frame.empty()) {
-        //m_prev_frame.push_back(m_frame);
-        int max_frames = m_swapchain->getMaxFrames();
-        m_prev_frame.push_back(max_frames - 1u);
-    }
-    else if(m_prev_frame.back() != m_frame) {
+    
+    if(!first_frame) {
         m_prev_frame.push_back(m_frame);
     }
 
-    uint32_t prev_frame = getPrevFrame();
+    std::shared_ptr<VulkanSemaphore> swapchain_available_sem = std::move(m_spare_swapchain_available_sem.back());
+    m_spare_swapchain_available_sem.pop_back();
+
+    std::shared_ptr<VulkanFence> swapchain_available_fen = std::move(m_spare_swapchain_available_fen.back());
+    m_spare_swapchain_available_fen.pop_back();
 
     VkResult result = vkAcquireNextImageKHR(
         m_device->getDevice(),
         m_swapchain->getSwapchain(),
         UINT64_MAX,
-        m_per_frame[prev_frame]->swapchain_available_sem->getSemaphore(),
-        m_per_frame[prev_frame]->swapchain_available_fen->getFence(),
+        swapchain_available_sem->getSemaphore(),
+        swapchain_available_fen->getFence(),
         &m_frame
     );
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || result == VK_NOT_READY) {
@@ -369,6 +403,11 @@ std::pair<bool, uint32_t> VulkanRenderer::acquire_next_image() {
     else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
         throw std::runtime_error("failed to acquire swap chain image!");
     }
+
+    m_per_frame[m_frame]->swapchain_available_sem = std::move(swapchain_available_sem);
+    m_per_frame[m_frame]->swapchain_available_fen = std::move(swapchain_available_fen);
+    m_per_frame[m_frame]->swapchain_available_fen->setOccupiedState();
+
     return {true, m_frame};
 }
 

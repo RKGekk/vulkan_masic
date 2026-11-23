@@ -42,14 +42,19 @@ bool RenderGraph::init(std::shared_ptr<VulkanDevice> device, const std::shared_p
         if(render_node_type == "GraphicsRenderNode"s) {
             std::shared_ptr<GraphicsRenderNodeConfig> render_node_config = std::make_shared<GraphicsRenderNodeConfig>();
             render_node_config->init(
-                device,
-                0u,
+                m_device,
                 window,
                 VulkanSwapChain::querySwapChainSupport(m_device->getDeviceAbilities().physical_device, m_device->getSurface()),
-                Application::GetRenderer().getResourcesManager(), Application::GetRenderer().getPipelinesManager(),
+                Application::GetRenderer().getResourcesManager(),
+                Application::GetRenderer().getPipelinesManager(),
                 render_node
             );
             m_graphics_cfg_name_map[node_name] = std::move(render_node_config);
+        }
+        else if(render_node_type == "PresentRenderNode"s) {
+            std::shared_ptr<PresentRenderNodeConfig> present_node_config = std::make_shared<PresentRenderNodeConfig>();
+            present_node_config->init(m_device, render_node);
+            m_present_cfg_name_map[node_name] = std::move(present_node_config);
         }
     }
 
@@ -85,7 +90,7 @@ const std::shared_ptr<GraphicsRenderNodeConfig>& RenderGraph::getGraphicsRenderN
 }
 
 std::shared_ptr<GraphicsRenderNodeConfig> RenderGraph::makeGraphicsRenderNodeCfgInstance(const std::string& config_name, const std::string& config_extension) {
-    return m_graphics_cfg_name_map.at(config_name)->makeInstance(config_name + config_extension);
+    return m_graphics_cfg_name_map.at(config_name)->makeInstance(config_name + config_extension, m_image_index);
 }
 
 bool RenderGraph::hasPresentRenderNodeConfig(const std::string& config_name) const {
@@ -97,7 +102,7 @@ const std::shared_ptr<PresentRenderNodeConfig>& RenderGraph::getPresentRenderNod
 }
 
 std::shared_ptr<PresentRenderNodeConfig> RenderGraph::makePresentRenderNodeCfgInstance(const std::string& config_name, const std::string& config_extension) {
-    return m_present_cfg_name_map.at(config_name)->makeInstance(config_name + config_extension);
+    return m_present_cfg_name_map.at(config_name)->makeInstance(config_name + config_extension, m_image_index);
 }
 
 void RenderGraph::add_pass(std::shared_ptr<RenderNode> render_node) {

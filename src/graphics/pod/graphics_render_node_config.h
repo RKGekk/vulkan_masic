@@ -47,10 +47,14 @@ public:
         VkImageLayout read_image_layout;
     };
 
-    bool init(const std::shared_ptr<VulkanDevice>& device, uint32_t fb_image_index, const std::shared_ptr<WindowSurface>& window, const SwapchainSupportDetails& swapchain_support_details, const std::shared_ptr<VulkanResourcesManager>& resources_manager, const std::shared_ptr<VulkanPipelinesManager>& pipelines_manager, const pugi::xml_node& node_data);
+    bool init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<WindowSurface>& window, const SwapchainSupportDetails& swapchain_support_details, const std::shared_ptr<VulkanResourcesManager>& resources_manager, const std::shared_ptr<VulkanPipelinesManager>& pipelines_manager, const pugi::xml_node& node_data);
 
     const std::string& getName() const;
     const std::shared_ptr<VulkanPipeline>& getPipeline() const;
+    const std::shared_ptr<VulkanDevice>& getDevice() const;
+    
+    uint32_t getSCImageIndex() const;
+    void setSCImageIndex(uint32_t image_index);
 
     VkViewport getViewport() const;
     const VkViewport* getViewportPtr() const;
@@ -90,12 +94,12 @@ public:
     const std::unordered_map<std::string, std::shared_ptr<UpdateMetadata>>& getBindingsMetadata() const;
     const std::shared_ptr<UpdateMetadata>& getUpdateMetadata(const std::string& binding_name);
 
-    std::shared_ptr<GraphicsRenderNodeConfig> makeInstance(std::string name) const;
+    std::shared_ptr<GraphicsRenderNodeConfig> makeInstance(std::string name, uint32_t sc_image_index) const;
 
     const std::string& getCommandBufferName() const;
 
 private:
-    uint32_t m_fb_image_index;
+    uint32_t m_swapchain_image_index;
     std::string m_name;
     std::shared_ptr<FramebufferConfig> m_framebuffer_config;
     std::shared_ptr<VulkanPipeline> m_pipeline;

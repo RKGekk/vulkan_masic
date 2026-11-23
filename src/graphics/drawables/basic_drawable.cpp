@@ -35,10 +35,11 @@ const std::vector<uint16_t> g_indices = {
 bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
     using namespace std::literals;
 
+    Application& app = Application::Get();
     VulkanRenderer& renderer = Application::GetRenderer();
 
     m_device = std::move(device);
-    m_rt_aspect = Application::GetRenderer().getSwapchain()->getFormatConfig()->getAspect();
+    m_rt_aspect = renderer.getSwapchain()->getFormatConfig()->getAspect();
     m_max_frames = max_frames;
 
     m_texture = renderer.makeTransferImgCommand("textures/texture.jpg");
@@ -48,9 +49,14 @@ bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
     m_vertex_buffers.resize(max_frames);
     m_uniform_buffers.resize(max_frames);
     for(size_t i = 0u; i < max_frames; ++i) {
+        std::shared_ptr<PerFrame>& global_frame_data = renderer.getFrameData(i);
+        std::shared_ptr<RenderGraph>& frame_render_graph = global_frame_data->render_graph;
+
+        std::string basic_render_node_name = "BasicGraphicsRenderNode"s + std::to_string(i);
+        std::shared_ptr<GraphicsRenderNodeConfig> render_node_cfg = frame_render_graph->makeGraphicsRenderNodeCfgInstance("mesh_render"s, basic_render_node_name);
 
         std::shared_ptr<GraphicsRenderNode> render_node = std::make_shared<GraphicsRenderNode>();
-        render_node->init("BasicGraphicsRenderNode"s + std::to_string(i), i, device, "mesh_render"s, false, Application::GetRenderer().getFrameData(i)->render_graph);
+        render_node->init("BasicGraphicsRenderNode"s + std::to_string(i), render_node_cfg, frame_render_graph);
 
         const std::shared_ptr<VulkanShader>& vertex_shader = render_node->getPipeline()->getShader(VK_SHADER_STAGE_VERTEX_BIT);
         const std::shared_ptr<ShaderSignature>& shader_signature = vertex_shader->getShaderSignature();
@@ -65,7 +71,7 @@ bool BasicDrawable::init(std::shared_ptr<VulkanDevice> device, int max_frames) {
         render_node->addReadDependency(m_index_buffers[i], shader_signature->getIndexBufferBindingName());
         m_index_buffers[i] = std::move(index_buffer);
 
-        std::shared_ptr<VulkanBuffer> other_buffer = Application::GetRenderer().getResourcesManager()->create_buffer("basic_graphics_render_uniform_buffer_frame"s + std::to_string(i), "basic_uniform_resource", 0u);
+        std::shared_ptr<VulkanBuffer> other_buffer = renderer.getResourcesManager()->create_buffer("basic_graphics_render_uniform_buffer_frame"s + std::to_string(i), "basic_uniform_resource", 0u);
         render_node->addReadDependency(m_uniform_buffers[i], desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER));
         other_buffer->AddUpdateMetadataFn(
             [render_node, &desc_set_layout_bind_name = desc_set_layout->getBindingName(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)]

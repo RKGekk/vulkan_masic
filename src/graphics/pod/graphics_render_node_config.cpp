@@ -10,10 +10,10 @@
 #include "image_buffer_config.h"
 #include "format_config.h"
 
-bool GraphicsRenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device, uint32_t fb_image_index, const std::shared_ptr<WindowSurface>& window, const SwapchainSupportDetails& swapchain_support_details, const std::shared_ptr<VulkanResourcesManager>& resources_manager, const std::shared_ptr<VulkanPipelinesManager>& pipelines_manager, const pugi::xml_node& node_data) {
+bool GraphicsRenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device, const std::shared_ptr<WindowSurface>& window, const SwapchainSupportDetails& swapchain_support_details, const std::shared_ptr<VulkanResourcesManager>& resources_manager, const std::shared_ptr<VulkanPipelinesManager>& pipelines_manager, const pugi::xml_node& node_data) {
     using namespace std::literals;
 
-    m_fb_image_index = fb_image_index;
+    m_swapchain_image_index = -1;
     m_name = node_data.attribute("name").as_string();
     m_framebuffer_config = resources_manager->getFramebufferConfig(node_data.child("FrameBufferName").text().as_string());
     m_pipeline = pipelines_manager->getPipeline(node_data.child("Pipeline").text().as_string());
@@ -240,13 +240,24 @@ bool GraphicsRenderNodeConfig::init(const std::shared_ptr<VulkanDevice>& device,
     return true;
 }
 
-
 const std::string& GraphicsRenderNodeConfig::getName() const {
     return m_name;
 }
 
 const std::shared_ptr<VulkanPipeline>& GraphicsRenderNodeConfig::getPipeline() const {
     return m_pipeline;
+}
+
+const std::shared_ptr<VulkanDevice>& GraphicsRenderNodeConfig::getDevice() const {
+    return m_pipeline->getDevice();
+}
+
+uint32_t GraphicsRenderNodeConfig::getSCImageIndex() const {
+    return m_swapchain_image_index;
+}
+
+void GraphicsRenderNodeConfig::setSCImageIndex(uint32_t image_index) {
+    m_swapchain_image_index = image_index;
 }
 
 VkViewport GraphicsRenderNodeConfig::getViewport() const {
@@ -368,10 +379,11 @@ const std::unordered_map<std::string, std::shared_ptr<GraphicsRenderNodeConfig::
     return m_bindings_metadata;
 }
 
-std::shared_ptr<GraphicsRenderNodeConfig> GraphicsRenderNodeConfig::makeInstance(std::string name) const {
+std::shared_ptr<GraphicsRenderNodeConfig> GraphicsRenderNodeConfig::makeInstance(std::string name, uint32_t sc_image_index) const {
     std::shared_ptr<GraphicsRenderNodeConfig> instance = std::make_shared<GraphicsRenderNodeConfig>();
     *instance = *this;
     instance->m_name = std::move(name);
+    instance->m_swapchain_image_index = sc_image_index;
 
     return instance;
 }

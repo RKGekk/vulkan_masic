@@ -16,6 +16,7 @@
 #include "../api/vulkan_push_constant.h"
 #include "../pod/graphics_render_node.h"
 #include "../pod/graphics_render_node_config.h"
+#include "../pod/render_graph.h"
 #include "../pod/descriptor_set_layout.h"
 #include "../pod/format_config.h"
 #include "../pod/push_constant_config.h"
@@ -126,12 +127,12 @@ void SceneDrawable::addRendeNode(std::shared_ptr<MeshNode> model) {
             if(!frame_render_graph->hasGraphicsRenderNodeConfig(render_name)) {
                 render_name = "mesh_render"s;
             }
+            std::string render_node_name = model_data->GetName() + "GraphicsRenderNode"s + std::to_string(frame);
+            std::shared_ptr<GraphicsRenderNodeConfig> render_node_cfg = frame_render_graph->makeGraphicsRenderNodeCfgInstance(render_name, render_node_name);
 
             std::shared_ptr<GraphicsRenderNode> render_node = std::make_shared<GraphicsRenderNode>();
-            std::string render_node_name = model_data->GetName() + "GraphicsRenderNode"s + std::to_string(frame);
-            render_node->init(render_node_name, frame, m_device, render_name, false, frame_render_graph);
+            render_node->init(render_node_name, render_node_cfg, frame_render_graph);
 
-            const std::shared_ptr<GraphicsRenderNodeConfig>& render_node_cfg = render_node->getGraphicsRenderNodeConfig();
             const std::shared_ptr<VulkanPipeline>& pipeline = render_node->getPipeline();
             const std::shared_ptr<VulkanShader>& vertex_shader = pipeline->getShader(VK_SHADER_STAGE_VERTEX_BIT);
             const std::shared_ptr<ShaderSignature>& shader_signature = vertex_shader->getShaderSignature();

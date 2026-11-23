@@ -13,10 +13,11 @@
 #include "render_node.h"
 
 class VulkanSwapChain;
+class PresentRenderNodeConfig;
 
 class PresentRenderNode : public RenderNode {
 public:
-    virtual bool init(std::string render_node_name, unsigned frame_index, std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) override;
+    bool init(std::string render_node_name, std::shared_ptr<PresentRenderNodeConfig> node_config, std::weak_ptr<RenderGraph> render_graph);
     virtual void destroy() override;
 
     virtual void render(VkCommandBuffer secondary_command_buffer, uint32_t bind_flags) override;
@@ -34,4 +35,5 @@ private:
     std::vector<VkSemaphore> m_present_wait_sem;
     VkPresentInfoKHR m_present_info;
     size_t m_present_count;
+    std::shared_ptr<PresentRenderNodeConfig> m_node_config;
 };

@@ -35,7 +35,7 @@ public:
         std::vector<VkSemaphore> signal_semaphores;
     };
 
-    bool init(std::shared_ptr<VulkanDevice> device, size_t frames_in_flight, size_t number_of_threads);
+    bool init(std::shared_ptr<VulkanDevice> device, size_t max_frames, size_t number_of_threads);
     void destroy();
 
     static const QueueFamilyIndices& getQueueFamilyIndices();

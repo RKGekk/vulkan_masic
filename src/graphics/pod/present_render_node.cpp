@@ -10,13 +10,15 @@
 #include "../api/vulkan_render_pass.h"
 #include "render_pass_config.h"
 #include "../api/vulkan_command_buffer.h"
+#include "present_render_node_config.h"
 
-bool PresentRenderNode::init(std::string render_node_name, unsigned frame_index, std::shared_ptr<VulkanDevice> device, const std::string& node_config_name, bool instance_config, std::weak_ptr<RenderGraph> render_graph) {
+bool PresentRenderNode::init(std::string render_node_name, std::shared_ptr<PresentRenderNodeConfig> node_config, std::weak_ptr<RenderGraph> render_graph) {
     m_render_node_name = std::move(render_node_name);
-    m_frame_index = frame_index;
-    m_device = std::move(device);
+    m_frame_index = node_config->getSCImageIndex();
+    m_device = node_config->getDevice();
     m_render_graph = std::move(render_graph);
     m_present_count = 0u;
+    m_node_config = std::move(node_config);
     
     m_swapchain = Application::GetRenderer().getSwapchain();
 

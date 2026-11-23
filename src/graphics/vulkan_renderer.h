@@ -61,6 +61,7 @@ struct PerFrame {
 
     std::shared_ptr<VulkanSemaphore> swapchain_available_sem;
     std::shared_ptr<VulkanFence> swapchain_available_fen;
+    
     std::shared_ptr<VulkanSemaphore> transfer_complete_sem;
     std::shared_ptr<VulkanFence> transfer_complete_fen;
     
@@ -140,4 +141,7 @@ private:
     std::shared_ptr<ThreadPool> m_thread_pool;
     uint32_t m_frame;
     std::vector<uint32_t> m_prev_frame;
+
+    std::vector<std::shared_ptr<VulkanSemaphore>> m_spare_swapchain_available_sem;
+    std::vector<std::shared_ptr<VulkanFence>> m_spare_swapchain_available_fen;
 };

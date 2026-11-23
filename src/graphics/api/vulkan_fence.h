@@ -14,12 +14,15 @@ public:
 	void destroy();
 
 	void wait() const;
-	void reset() const;
+	void reset();
     VkFence getFence() const;
 	const VkFence* getFencePtr() const;
+	bool isFreeForUse() const;
+	void setOccupiedState();
 
 private:
 	std::shared_ptr<VulkanDevice> m_device;
 	std::string m_name;
 	VkFence m_fence;
+	bool m_free_for_use;
 };

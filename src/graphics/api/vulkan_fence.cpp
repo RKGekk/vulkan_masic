@@ -5,6 +5,7 @@
 
 bool VulkanFence::init(std::shared_ptr<VulkanDevice> device, bool signaled, std::string name) {
     m_device = device;
+    m_free_for_use = !signaled;
 	
 	VkFenceCreateInfo fen_info{};
     fen_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
@@ -29,6 +30,14 @@ const VkFence* VulkanFence::getFencePtr() const {
     return &m_fence;
 }
 
+bool VulkanFence::isFreeForUse() const {
+    return m_free_for_use;
+}
+
+void VulkanFence::setOccupiedState() {
+    m_free_for_use = false;
+}
+
 void VulkanFence::wait() const {
 	
 	VkResult result = vkWaitForFences(m_device->getDevice(), 1u, &m_fence, VK_TRUE, UINT64_MAX);
@@ -37,9 +46,10 @@ void VulkanFence::wait() const {
     }
 }
 
-void VulkanFence::reset() const {
+void VulkanFence::reset() {
     VkResult result = vkResetFences(m_device->getDevice(), 1u, &m_fence);
     if(result != VK_SUCCESS) {
     	throw std::runtime_error("Failed to wait for fence!");
     }
+    m_free_for_use = true;
 }
