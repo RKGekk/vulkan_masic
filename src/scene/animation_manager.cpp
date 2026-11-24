@@ -30,7 +30,7 @@ void AnimationManager::Update(const GameTimerDelta& delta) {
         const std::shared_ptr<AnimationSequence>& seq_ptr = m_sequences[seq_name];
         seq_ptr->delta_time = delta.fGetDeltaSeconds();
         seq_ptr->sequence_current_time += seq_ptr->delta_time;
-        seq_ptr->sequence_current_time = std::fmodf(seq_ptr->sequence_current_time, seq_ptr->sequence_total_time);
+        seq_ptr->sequence_current_time = std::fmod(seq_ptr->sequence_current_time, seq_ptr->sequence_total_time);
         
         ProcessSequence(seq_ptr);
     }
@@ -58,7 +58,7 @@ void AnimationManager::AddClipToDefaultSequence(const ClipName& clip_name, float
     std::shared_ptr<TrackData> track_data = std::make_shared<TrackData>();
     track_data->clip_name = clip_name;
     track_data->clip_total_time = CountClipTotalTime(clip_name);
-    track_data->clip_current_time = std::fmodf(clip_current_time, track_data->clip_total_time);
+    track_data->clip_current_time = std::fmod(clip_current_time, track_data->clip_total_time);
     track_data->animation_speed = animation_speed;
     seq->sequence_total_time = track_data->clip_total_time > seq->sequence_total_time ? track_data->clip_total_time : seq->sequence_total_time;
     for(const std::shared_ptr<AnimationNode>& anim_node : m_anim_name_to_node_map[clip_name]) {
@@ -157,7 +157,7 @@ void AnimationManager::SetClipCurrentTime(const SequenceName& seq_name, const Cl
 
     const std::shared_ptr<TrackData>& trk = seq->data_tracks[clip_name];
     //trk->clip_current_time = std::fmodf(t, trk->clip_total_time * trk->animation_speed) * trk->animation_speed;
-    trk->clip_current_time = std::fmodf(t, trk->clip_total_time) * trk->animation_speed;
+    trk->clip_current_time = std::fmod(t, trk->clip_total_time) * trk->animation_speed;
 
     if(seq->state == SequenceState::Paused) {
         seq->delta_time = 0.0f;
@@ -327,7 +327,7 @@ void AnimationManager::SetSequenceCurrentTime(const SequenceName& seq_name, floa
     if(!m_sequences.contains(seq_name)) return;
 
     const std::shared_ptr<AnimationSequence>& seq = m_sequences[seq_name];
-    seq->sequence_current_time = std::fmodf(t, seq->sequence_total_time);
+    seq->sequence_current_time = std::fmod(t, seq->sequence_total_time);
 
     if(seq->state == SequenceState::Paused) {
         seq->delta_time = 0.0f;
@@ -420,7 +420,7 @@ void AnimationManager::ProcessSequence(const std::shared_ptr<AnimationSequence>&
     for(const auto&[clip_name, track_data] : seq->data_tracks) {
         //track_data->clip_total_time = track_data->clip_total_time * track_data->animation_speed;
         track_data->clip_current_time += seq->delta_time * track_data->animation_speed;
-        track_data->clip_current_time = std::fmodf(track_data->clip_current_time, track_data->clip_total_time);
+        track_data->clip_current_time = std::fmod(track_data->clip_current_time, track_data->clip_total_time);
         float clip_time = track_data->clip_current_time;
         for(const auto[anim_node, blend_factor] : track_data->animation_blend_factors) {
             glm::mat4x4 transform = anim_node->Get().ToParent();

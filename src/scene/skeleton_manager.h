@@ -3,6 +3,7 @@
 #include "../tools/glm_define.h"
 
 #include <glm/glm.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 #include "glm/gtc/quaternion.hpp"
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>

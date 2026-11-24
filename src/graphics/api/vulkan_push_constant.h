@@ -12,6 +12,7 @@
 
 #include <cstdint>
 #include <string>
+#include <cstring>
 #include <memory>
 #include <unordered_map>
 

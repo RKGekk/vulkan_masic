@@ -27,7 +27,7 @@ RenderResource::Type VulkanPushConstant::getType() const {
 }
 
 void VulkanPushConstant::SetValue(const std::string& name, const void* data) {
-    memcpy(
+    std::memcpy(
         m_data.data() + m_const_config->getPushConstantsMetadata(name).offset,
         data,
         m_const_config->getPushConstantsMetadata(name).size
