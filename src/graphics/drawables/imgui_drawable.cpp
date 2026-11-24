@@ -51,7 +51,7 @@ std::shared_ptr<VulkanImageBuffer> ImGUIDrawable::makeFontTexture(std::shared_pt
     int height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-    std::shared_ptr<VulkanImageBuffer> font_texture = renderer.makeTransferImgCommand({(uint32_t)width, (uint32_t)height}, pixels, static_cast<size_t>(width * height * 32), TTF_font_file_name);
+    std::shared_ptr<VulkanImageBuffer> font_texture = renderer.makeTransferImgCommand({(uint32_t)width, (uint32_t)height}, pixels, static_cast<size_t>(width * height * 4), TTF_font_file_name);
 
     //io.Fonts->TexID = 0u;
     io.FontDefault = font;

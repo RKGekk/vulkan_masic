@@ -34,11 +34,6 @@
 #include <algorithm>
 #include <thread>
 
-bool PerFrame::init(std::shared_ptr<VulkanDevice> device, unsigned index) {
-    frame_index = index;
-    return true;
-}
-
 void PerFrame::destroy(VulkanRenderer& renderer) {
     renderer.getResourcesManager()->delete_image(out_color_image);
     renderer.getResourcesManager()->delete_image(out_depth_image);
@@ -46,18 +41,6 @@ void PerFrame::destroy(VulkanRenderer& renderer) {
     render_graph->destroy();
 }
 	
-void PerFrame::begin(VulkanRenderer& renderer, uint32_t image_index) {
-    frame_index = image_index;
-    cmd_submit_wait_sem.clear();
-    present_render_node->clearWaitSemaphores();
-    wait_transfer_commands.clear();
-}
-
-void PerFrame::end(VulkanRenderer& renderer) {
-    //renderer.getSemaphoreManager()->returnSemaphore(swapchain_available_sem);
-    //swapchain_available_sem = renderer.getSemaphoreManager()->getSemaphore("swapchain_available_sem");
-}
-
 bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<WindowSurface> window, std::shared_ptr<ThreadPool> thread_pool) {
     using namespace std::literals;
 
@@ -129,7 +112,7 @@ bool VulkanRenderer::init(std::shared_ptr<VulkanDevice> device, std::shared_ptr<
 
         per_frame->copy_command = m_command_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, i, 0u, 1u, "cpy_buffer_frame_"s + std::to_string(i));
         
-        per_frame->init(m_device, i);
+        per_frame->frame_index = i;
 
         m_per_frame.push_back(std::move(per_frame));
     }
@@ -219,7 +202,9 @@ std::shared_ptr<VulkanBuffer> VulkanRenderer::makeTransferCommand(std::string bu
     size_t import_cpy_cmd_frame = frame_index == LAST_AVAILABLE_FRAME ? getLastFrame() : frame_index;
     std::string vtx_cpy_cmd_name = "cpy_cmd_"s + buffer_name + "_frame"s + std::to_string(import_cpy_cmd_frame);
 	std::shared_ptr<CommandBatch> copy_cmd = m_command_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, import_cpy_cmd_frame, 0u, 1u, vtx_cpy_cmd_name);
+    copy_cmd->beginCommandBuffer();
     std::shared_ptr<VulkanBuffer> data_buffer = m_resources_manager->create_buffer(buffer_name, buffer_type, std::move(cpu_resource), copy_cmd);
+    copy_cmd->endCommandBuffer();
     m_per_frame[import_cpy_cmd_frame]->wait_transfer_commands.push_back(copy_cmd);
 
     return data_buffer;
@@ -231,7 +216,7 @@ std::shared_ptr<VulkanImageBuffer> VulkanRenderer::makeTransferImgCommand(const 
     std::string texture_cpy_cmd_name = "image_cpy_cmd_"s + path_to_file + "_frame"s + std::to_string(import_cpy_cmd_frame);
 	std::shared_ptr<CommandBatch> copy_cmd = m_command_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, import_cpy_cmd_frame, 0u, 1u, texture_cpy_cmd_name);
 	std::shared_ptr<VulkanImageBuffer> image_buffer = m_resources_manager->create_image(path_to_file, copy_cmd);
-	m_per_frame[import_cpy_cmd_frame]->wait_transfer_commands.push_back(copy_cmd);
+	m_per_frame[import_cpy_cmd_frame]->wait_transfer_commands.push_back(std::move(copy_cmd));
 
     return image_buffer;
 }
@@ -241,8 +226,10 @@ std::shared_ptr<VulkanImageBuffer> VulkanRenderer::makeTransferImgCommand(VkExte
     size_t import_cpy_cmd_frame = frame_index == LAST_AVAILABLE_FRAME ? getLastFrame() : frame_index;
     std::string texture_cpy_cmd_name = "image_cpy_cmd_"s + image_name + "_frame"s + std::to_string(import_cpy_cmd_frame);
 	std::shared_ptr<CommandBatch> copy_cmd = m_command_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, import_cpy_cmd_frame, 0u, 1u, texture_cpy_cmd_name);
+    copy_cmd->beginCommandBuffer();
 	std::shared_ptr<VulkanImageBuffer> image_buffer = m_resources_manager->create_image(std::move(cpu_resource), copy_cmd, extent, image_name, resource_type_name);
-    m_per_frame[import_cpy_cmd_frame]->wait_transfer_commands.push_back(copy_cmd);
+    copy_cmd->endCommandBuffer();
+    m_per_frame[import_cpy_cmd_frame]->wait_transfer_commands.push_back(std::move(copy_cmd));
 
     return image_buffer;
 }
@@ -276,14 +263,6 @@ void VulkanRenderer::beginFrame(unsigned image_index) {
         per_frame->transfer_complete_fen->wait();
         per_frame->transfer_complete_fen->reset();
     }
-
-    if(!per_frame->cmd_submit_finish_fence->isFreeForUse()) {
-        per_frame->cmd_submit_finish_fence->wait();
-        per_frame->cmd_submit_finish_fence->reset();
-    }
-
-    per_frame->copy_command->reset();
-
     for(const std::shared_ptr<CommandBatch>& transfer_cmd : per_frame->wait_transfer_commands) {
         for(const std::shared_ptr<RenderResource>& transfer_res : transfer_cmd->getResources()) {
             for(const auto& transfer_finish_fn : transfer_res->getTransferFinishFn()) {
@@ -291,8 +270,16 @@ void VulkanRenderer::beginFrame(unsigned image_index) {
             }
         }
     }
+    per_frame->wait_transfer_commands.clear();
+    per_frame->copy_command->reset();
 
-    per_frame->begin(*this, image_index);
+    if(!per_frame->cmd_submit_finish_fence->isFreeForUse()) {
+        per_frame->cmd_submit_finish_fence->wait();
+        per_frame->cmd_submit_finish_fence->reset();
+    }
+    per_frame->cmd_submit_wait_sem.clear();
+    
+    per_frame->present_render_node->clearWaitSemaphores();
     per_frame->present_render_node->addWaitSemaphore(per_frame->cmd_submit_finish_signal_sem->getSemaphore());
 }
 
@@ -320,17 +307,20 @@ void VulkanRenderer::drawFrame(unsigned image_index) {
     std::shared_ptr<PerFrame>& per_frame = m_per_frame[image_index];
     
     std::shared_ptr<VulkanCommandManager::BatchWaitInfo> wait_info = std::make_shared<VulkanCommandManager::BatchWaitInfo>();
-    wait_info->wait_for_semaphores.push_back(per_frame->swapchain_available_sem->getSemaphore());
+    wait_info->wait_for_semaphores.push_back(per_frame->transfer_complete_sem->getSemaphore());
     if(per_frame->cmd_submit_wait_sem.size()) {
         wait_info->wait_for_semaphores.insert(wait_info->wait_for_semaphores.end(), per_frame->cmd_submit_wait_sem.begin(), per_frame->cmd_submit_wait_sem.end());
     }
     wait_info->wait_for_stages.push_back(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
     wait_info->signal_fence = per_frame->cmd_submit_finish_fence->getFence();
+    wait_info->signal_semaphores.push_back(per_frame->cmd_submit_finish_signal_sem->getSemaphore());
 
     m_command_manager->submitCommandBuffer(m_per_frame[image_index]->submission_buffers, PoolTypeEnum::GRAPICS, wait_info);
+    per_frame->cmd_submit_finish_fence->setOccupiedState();
 
     m_per_frame[image_index]->present_render_node->present();
-    m_per_frame[image_index]->end(*this);
+    //renderer.getSemaphoreManager()->returnSemaphore(swapchain_available_sem);
+    //swapchain_available_sem = renderer.getSemaphoreManager()->getSemaphore("swapchain_available_sem");
 }
 
 std::shared_ptr<PerFrame>& VulkanRenderer::getFrameData(uint32_t image_index) {
@@ -340,16 +330,20 @@ std::shared_ptr<PerFrame>& VulkanRenderer::getFrameData(uint32_t image_index) {
 void VulkanRenderer::update_frame(const GameTimerDelta& delta, uint32_t image_index) {
     std::shared_ptr<PerFrame>& per_frame = m_per_frame[image_index];
 
-    std::shared_ptr<VulkanCommandManager::BatchWaitInfo> wait_info = std::make_shared<VulkanCommandManager::BatchWaitInfo>();
     per_frame->cmd_submit_wait_sem.push_back(per_frame->transfer_complete_sem->getSemaphore());
+
+    std::shared_ptr<VulkanCommandManager::BatchWaitInfo> wait_info = std::make_shared<VulkanCommandManager::BatchWaitInfo>();
     wait_info->signal_semaphores.push_back(per_frame->transfer_complete_sem->getSemaphore());
     wait_info->signal_fence = per_frame->transfer_complete_fen->getFence();
     
-    std::vector<VkCommandBuffer> transfer_submission_buffers;
-    for(const std::shared_ptr<CommandBatch>& transfer_batch : m_per_frame[image_index]->wait_transfer_commands) {
-        transfer_submission_buffers.push_back(transfer_batch->getCommandBufer());
+    per_frame->transfer_submission_buffers.clear();
+    for(const std::shared_ptr<CommandBatch>& transfer_batch : per_frame->wait_transfer_commands) {
+        per_frame->transfer_submission_buffers.push_back(transfer_batch->getCommandBufer());
     }
-    m_command_manager->submitCommandBuffer(transfer_submission_buffers, PoolTypeEnum::TRANSFER, wait_info);
+    per_frame->transfer_submission_buffers.push_back(per_frame->copy_command->getCommandBufer());
+
+    m_command_manager->submitCommandBuffer(per_frame->transfer_submission_buffers, PoolTypeEnum::TRANSFER, wait_info);
+    per_frame->transfer_complete_fen->setOccupiedState();
 }
 
 void VulkanRenderer::addRenderNode(std::shared_ptr<RenderNode> render_node, unsigned image_index) {

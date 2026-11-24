@@ -49,7 +49,7 @@ public:
     void addCommandBufer(std::vector<VkCommandBuffer> command_buffers);
     void addResource(std::shared_ptr<RenderResource> resource);
 
-    void beginCommandBuffer(VkCommandBufferBeginInfo* p_begin_info, size_t index = SELECT_ALL_BUFFERS) const;
+    void beginCommandBuffer(VkCommandBufferBeginInfo* p_begin_info = nullptr, size_t index = SELECT_ALL_BUFFERS) const;
     void endCommandBuffer(size_t index = SELECT_ALL_BUFFERS) const;
 
     PoolTypeEnum getPoolType() const;

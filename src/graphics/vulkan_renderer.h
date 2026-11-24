@@ -48,12 +48,8 @@ class VulkanBuffer;
 struct PerFrame {
     using RenderNodeId = size_t;
 
-    bool init(std::shared_ptr<VulkanDevice> device, unsigned index);
     void destroy(VulkanRenderer& renderer);
 	
-	void begin(VulkanRenderer& renderer, uint32_t image_index);
-    void end(VulkanRenderer& renderer);
-
 	unsigned frame_index;
 
     std::shared_ptr<VulkanImageBuffer> out_color_image;
@@ -64,17 +60,17 @@ struct PerFrame {
     
     std::shared_ptr<VulkanSemaphore> transfer_complete_sem;
     std::shared_ptr<VulkanFence> transfer_complete_fen;
+    std::vector<VkCommandBuffer> transfer_submission_buffers;
+    std::vector<std::shared_ptr<CommandBatch>> wait_transfer_commands;
+    std::shared_ptr<CommandBatch> copy_command;
     
+    std::vector<VkCommandBuffer> submission_buffers;
     std::vector<VkSemaphore> cmd_submit_wait_sem;
     std::shared_ptr<VulkanSemaphore> cmd_submit_finish_signal_sem;
     std::shared_ptr<VulkanFence> cmd_submit_finish_fence;
 
-    std::vector<VkCommandBuffer> submission_buffers;
-    std::vector<std::shared_ptr<CommandBatch>> wait_transfer_commands;
-
     std::shared_ptr<PresentRenderNode> present_render_node;
     std::shared_ptr<RenderGraph> render_graph;
-    std::shared_ptr<CommandBatch> copy_command;
 };
 
 class VulkanRenderer {

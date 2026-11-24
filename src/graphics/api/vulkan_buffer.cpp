@@ -176,7 +176,7 @@ void VulkanBuffer::update(const std::shared_ptr<CommandBatch>& command_buffer, c
         std::shared_ptr<VulkanBuffer> my_bo = shared_from_this();
         for(auto& fn : m_update_functions) fn(my_bo);
     }
-    if (buffer_size > m_buffer_config->getBufferInfo().size) {
+    else if (buffer_size > m_buffer_config->getBufferInfo().size) {
         destroy();
         m_buffer_config->setNotAlignedSize(buffer_size);
         m_buffer_config->setAlignedSize(buffer_size);

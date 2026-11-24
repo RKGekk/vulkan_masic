@@ -142,10 +142,10 @@ std::shared_ptr<VulkanImageBuffer> VulkanResourcesManager::create_image(std::sha
 	std::shared_ptr<ImageBufferConfig> image_buffer_config = image_config_template->makeInstance(image_buffer_config_name, extent);
 
 	std::shared_ptr<VulkanImageBuffer> image = std::make_shared<VulkanImageBuffer>(m_device, image_name);
-	image->init(cpy_cmd, cpu_resource, image_buffer_config);
+	image->init(cpy_cmd, std::move(cpu_resource), image_buffer_config);
 
 	m_image_map[image_name] = image;
-	m_image_buffer_config_map[image_buffer_config_name] = std::move(image_buffer_config);
+	//m_image_buffer_config_map[image_buffer_config_name] = std::move(image_buffer_config);
 
 	return image;
 }
