@@ -215,7 +215,9 @@ std::shared_ptr<VulkanImageBuffer> VulkanRenderer::makeTransferImgCommand(const 
     size_t import_cpy_cmd_frame = frame_index == LAST_AVAILABLE_FRAME ? getLastFrame() : frame_index;
     std::string texture_cpy_cmd_name = "image_cpy_cmd_"s + path_to_file + "_frame"s + std::to_string(import_cpy_cmd_frame);
 	std::shared_ptr<CommandBatch> copy_cmd = m_command_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, import_cpy_cmd_frame, 0u, 1u, texture_cpy_cmd_name);
+    copy_cmd->beginCommandBuffer();
 	std::shared_ptr<VulkanImageBuffer> image_buffer = m_resources_manager->create_image(path_to_file, copy_cmd);
+    copy_cmd->endCommandBuffer();
 	m_per_frame[import_cpy_cmd_frame]->wait_transfer_commands.push_back(std::move(copy_cmd));
 
     return image_buffer;

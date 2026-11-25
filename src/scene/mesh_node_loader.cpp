@@ -41,14 +41,14 @@ struct SpecularGlossinessMat {
 	bool operator==(const SpecularGlossinessMat&) const;
 };
 
-std::unordered_map<MeshNodeLoader::NodeIdx, MeshNodeLoader::NodeIdx> MeshNodeLoader::make_parent_map() {
+std::unordered_map<MeshNodeLoader::NodeIdx, MeshNodeLoader::NodeIdx> MeshNodeLoader::make_parent_map() const {
     std::unordered_map<NodeIdx, NodeIdx> node_parent_map;
     size_t num_nodes = m_gltf_model.nodes.size();
     for (int node_ct = 0; node_ct < num_nodes; ++node_ct) {
-    	const tinygltf::Node& gltf_node = m_gltf_model.nodes[node_ct];
+    	const tinygltf::Node& gltf_node = m_gltf_model.nodes.at(node_ct);
         int num_childs = gltf_node.children.size();
         for (int child_ct = 0; child_ct < num_childs; ++child_ct) {
-            node_parent_map[gltf_node.children[child_ct]] = node_ct;
+            node_parent_map[gltf_node.children.at(child_ct)] = node_ct;
         }
     }
     return node_parent_map;
@@ -122,6 +122,24 @@ std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem
 		m_node_to_matrix_map = make_node_to_matrix_map();
 	}
 
+	if (!m_gltf_model.meshes.empty()) {
+		size_t mesh_ct = m_gltf_model.meshes.size();
+		m_meshes.resize(mesh_ct);
+		for(size_t mesh_idx = 0; mesh_idx < mesh_ct; ++mesh_idx) {
+			const tinygltf::Mesh& gltf_mesh = m_gltf_model.meshes[mesh_idx];
+			const std::string& mesh_name = gltf_mesh.name;
+			size_t num_primitives = gltf_mesh.primitives.size();
+			m_meshes[mesh_idx].name = mesh_name;
+			m_meshes[mesh_idx].primitives.resize(num_primitives);
+    		for (size_t prim_idx = 0; prim_idx < num_primitives; ++prim_idx) {
+				const tinygltf::Primitive& primitive = gltf_mesh.primitives[prim_idx];
+    			if (!PrimitiveSupported(primitive.mode)) continue;
+				std::shared_ptr<ModelData> mesh_model = GetMeshModel(mesh_idx, prim_idx);
+				m_meshes[mesh_idx].primitives[prim_idx] = std::move(mesh_model);
+			}
+		}
+	}
+
 	size_t num_scenes = m_gltf_model.scenes.size();
     for (int scene_idx = 0; scene_idx < num_scenes; ++scene_idx) {
     	const tinygltf::Scene gltf_current_scene = m_gltf_model.scenes[scene_idx];
@@ -145,7 +163,7 @@ std::shared_ptr<SceneNode> MeshNodeLoader::ImportSceneNode(const std::filesystem
 	return m_root_node;
 }
 
-bool PrimitiveSupported(int GLTF_primitive_mode) {
+bool MeshNodeLoader::PrimitiveSupported(int GLTF_primitive_mode) const {
 	switch (GLTF_primitive_mode) {
 		//case TINYGLTF_MODE_POINTS : return false;
 		//case TINYGLTF_MODE_LINE : return false;
@@ -158,7 +176,7 @@ bool PrimitiveSupported(int GLTF_primitive_mode) {
 	}
 }
 
-int32_t getNumVertices(size_t mesh_idx, size_t primitive_idx, const tinygltf::Model& gltf_model) {
+int32_t MeshNodeLoader::getNumVertices(size_t mesh_idx, size_t primitive_idx, const tinygltf::Model& gltf_model) const {
     const tinygltf::Mesh& mesh = gltf_model.meshes[mesh_idx];
     const tinygltf::Primitive& primitive = mesh.primitives[primitive_idx];
 	auto pos_semantic_accessor_idx = primitive.attributes.at("POSITION");
@@ -203,7 +221,7 @@ int32_t MeshNodeLoader::GetNumPrimitives(const tinygltf::Primitive& primitive) c
 	}
 }
 
-VertexAttributeGLSLFormat getAttribGLSLFormat(const tinygltf::Accessor& gltf_accessor) {
+VertexAttributeGLSLFormat MeshNodeLoader::getAttribGLSLFormat(const tinygltf::Accessor& gltf_accessor) const {
 	if(gltf_accessor.type == TINYGLTF_TYPE_SCALAR && gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_INT) {
 		return VertexAttributeGLSLFormat::INT;
 	}
@@ -246,7 +264,7 @@ VertexAttributeGLSLFormat getAttribGLSLFormat(const tinygltf::Accessor& gltf_acc
 }
 
 
-VkFormat getAttribVkFormat(const tinygltf::Accessor& gltf_accessor) {
+VkFormat MeshNodeLoader::getAttribVkFormat(const tinygltf::Accessor& gltf_accessor) const {
 	if(gltf_accessor.type == TINYGLTF_TYPE_SCALAR) {
 		if(gltf_accessor.normalized) {
 			if(gltf_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE) {
@@ -459,7 +477,7 @@ VertexFormat MeshNodeLoader::GetVertexFormatFromMesh(std::map<std::string, int> 
 	return format;
 }
 
-VkIndexType MeshNodeLoader::getIndexType(int accessor_component_type) {
+VkIndexType MeshNodeLoader::getIndexType(int accessor_component_type) const {
     switch (accessor_component_type) {
         case TINYGLTF_COMPONENT_TYPE_BYTE : return VK_INDEX_TYPE_UINT8_EXT;
         case TINYGLTF_COMPONENT_TYPE_SHORT : return VK_INDEX_TYPE_UINT16;
@@ -473,12 +491,96 @@ VkIndexType MeshNodeLoader::getIndexType(int accessor_component_type) {
     }
 }
 
+VkPrimitiveTopology MeshNodeLoader::getTopology(int gltf_topology_mode) const {
+	switch(gltf_topology_mode) {
+		case TINYGLTF_MODE_POINTS : return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+		case TINYGLTF_MODE_LINE : return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+		//case TINYGLTF_MODE_LINE_LOOP : return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+		case TINYGLTF_MODE_LINE_STRIP : return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+		case TINYGLTF_MODE_TRIANGLES : return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		case TINYGLTF_MODE_TRIANGLE_STRIP : return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+		case TINYGLTF_MODE_TRIANGLE_FAN : return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+		default : VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	}
+	return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+}
+
+std::shared_ptr<ModelData> MeshNodeLoader::GetMeshModel(size_t mesh_idx, size_t prim_idx) const {
+	Application& app = Application::Get();
+    VulkanRenderer& renderer = app.GetRenderer();
+	std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
+
+	const tinygltf::Mesh& gltf_mesh = m_gltf_model.meshes[mesh_idx];
+	const tinygltf::Primitive& gltf_primitive = gltf_mesh.primitives[prim_idx];
+
+	std::shared_ptr<ModelData> model_data = std::make_shared<ModelData>();
+	if(gltf_primitive.mode != -1) {
+		model_data->SetPrimitiveTopology(getTopology(gltf_primitive.mode));
+	}
+	else {
+		model_data->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+	}
+
+	size_t num_vertices = GetNumVertices(gltf_primitive);
+	const std::string& mesh_name = gltf_mesh.name;
+
+	int gltf_material_idx = gltf_primitive.material;
+	const tinygltf::Material& gltf_material = m_gltf_model.materials[gltf_material_idx];
+	std::string gltf_material_name = gltf_material.name.c_str();
+	std::string render_name = GraphicsRenderNode::makeRenderNodeName(gltf_material_name);
+	const std::shared_ptr<GraphicsRenderNodeConfig>& render_node_cfg = renderer.getFrameData(0)->render_graph->getGraphicsRenderNodeConfig(render_name);
+	const std::shared_ptr<VulkanPipeline>& pipeline = render_node_cfg->getPipeline();
+	const std::shared_ptr<ShaderSignature>& shader_signature = pipeline->getShader(VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature();
+	VertexFormat::BindingNum vertex_binding = shader_signature->getFirstInputAttribute([](const VertexFormat& vf){ return vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX; });
+
+	std::string idx_buff_name = m_model_path.string() + "/"s + mesh_name + "_index_buffer_primitive_"s + std::to_string(prim_idx);
+	std::string idx_buff_type_name = shader_signature->getIndexBufferResourceType();
+	VkIndexType idx_type = shader_signature->getIndexType();
+	if (gltf_primitive.indices != -1 && render_node_cfg->getDrawType() == GraphicsRenderNodeConfig::DrawType::DRAW_INDEXED) {
+		int indices_accessor_idx = gltf_primitive.indices;
+    	const tinygltf::Accessor& indices_accessor = m_gltf_model.accessors[indices_accessor_idx];
+		int indices_component_type = indices_accessor.componentType;
+    	std::shared_ptr<CpuResource> indices = GetIndices(indices_accessor, idx_type);
+		std::shared_ptr<VulkanBuffer> index_buffer = renderer.makeTransferCommand(idx_buff_name, idx_buff_type_name, indices);
+		model_data->SetIndexBuffer(std::move(index_buffer));
+    }
+	else if (render_node_cfg->getDrawType() == GraphicsRenderNodeConfig::DrawType::DRAW_INDEXED){
+		size_t raw_sz = idx_type == VK_INDEX_TYPE_UINT16 ? num_vertices * 2u : num_vertices * 4u;
+		std::vector<char> raw_idx_buff(raw_sz);
+		if(idx_type == VK_INDEX_TYPE_UINT16) {
+			for(uint16_t i = 0u; i < num_vertices; ++i) {
+				pack_uint16(raw_idx_buff, i);
+			}
+		}
+		else if (idx_type == VK_INDEX_TYPE_UINT32) {
+			for(uint32_t i = 0u; i < num_vertices; ++i) {
+				pack_uint16(raw_idx_buff, i);
+			}
+		}
+		std::shared_ptr<CpuResource> idx_buff = std::make_shared<CpuResource>(idx_buff_name + "CPU"s);
+		idx_buff->init(raw_idx_buff);
+		std::shared_ptr<VulkanBuffer> index_buffer = renderer.makeTransferCommand(idx_buff_name, idx_buff_type_name, idx_buff);
+		model_data->SetIndexBuffer(std::move(index_buffer));
+    }
+
+	model_data->SetShaderSignature(shader_signature);
+    std::shared_ptr<Material> prop_set = MakePropertySet(gltf_primitive);
+    //VertexFormat vertex_format = GetVertexFormat(primitive.attributes);
+	model_data->SetMaterial(std::move(prop_set));
+
+	std::shared_ptr<CpuResource> vtx_resource = GetVertices(gltf_primitive, shader_signature->getInputAttributes(vertex_binding));
+	std::string vtx_buff_name = m_model_path.string() + "/"s + mesh_name + "_vertex_buffer_primitive_"s + std::to_string(prim_idx);
+	std::shared_ptr<VulkanBuffer> vertex_buffer = renderer.makeTransferCommand(vtx_buff_name, "basic_vertex_resource", vtx_resource);
+	model_data->SetVertexBuffer(std::move(vertex_buffer), vertex_binding);
+		
+    model_data->SetName(m_model_path.string() + "/node_"s + mesh_name + "/primitive_"s + std::to_string(prim_idx));
+    //model_data->calculateBoundingBox();
+
+	return model_data;
+}
+
 std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Node& gltf_node, Scene::NodeIndex node) {
 	using namespace std::literals;
-
-	VulkanRenderer& renderer = Application::GetRenderer();
-    std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
-	std::shared_ptr<VulkanCommandManager>& cmd_manager = renderer.getCommandManager();
 
 	if(gltf_node.mesh == -1) return nullptr;
 	const tinygltf::Mesh& gltf_mesh = m_gltf_model.meshes[gltf_node.mesh];
@@ -487,10 +589,6 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Node& g
 	m_scene->addProperty(mesh_node);
     const std::string& mesh_name = gltf_mesh.name;
 	
-	std::string vtx_cpy_cmd_name = "vtx_cpy_cmd_"s + mesh_name + "_frame"s + std::to_string(m_import_cpy_cmd_frame);
-	std::shared_ptr<CommandBatch> copy_cmd = cmd_manager->allocCommandBufferPtr(PoolTypeEnum::TRANSFER, VK_COMMAND_BUFFER_LEVEL_PRIMARY, m_import_cpy_cmd_frame, 0u, 1u, vtx_cpy_cmd_name);
-	std::shared_ptr<PerFrame>& per_frame = renderer.getFrameData(m_import_cpy_cmd_frame);
-
 	if(gltf_node.skin != -1) {
 		const tinygltf::Skin& gltf_skin = m_gltf_model.skins[gltf_node.skin];
 		//mesh_node->SetSkinName(gltf_skin.name);
@@ -499,71 +597,9 @@ std::shared_ptr<MeshNode> MeshNodeLoader::MakeRenderNode(const tinygltf::Node& g
 	}
     size_t num_primitives = gltf_mesh.primitives.size();
     for (size_t prim_idx = 0; prim_idx < num_primitives; ++prim_idx) {
-		const tinygltf::Primitive& primitive = gltf_mesh.primitives[prim_idx];
-    	if (!PrimitiveSupported(primitive.mode)) continue;
-
-		std::shared_ptr<ModelData> model_data = std::make_shared<ModelData>();
-		model_data->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-
-		size_t num_vertices = GetNumVertices(primitive);
-    	//int32_t num_primitives = GetNumPrimitives(primitive);
-
-		int gltf_material_idx = primitive.material;
-		const tinygltf::Material& gltf_material = m_gltf_model.materials[gltf_material_idx];
-		std::string gltf_material_name = gltf_material.name.c_str();
-		std::string render_name = GraphicsRenderNode::makeRenderNodeName(gltf_material_name);
-		const std::shared_ptr<GraphicsRenderNodeConfig>& render_node_cfg = Application::GetRenderer().getFrameData(0)->render_graph->getGraphicsRenderNodeConfig(render_name);
-		std::shared_ptr<VulkanPipeline> pipeline = render_node_cfg->getPipeline();
-		const std::shared_ptr<ShaderSignature>& shader_signature = pipeline->getShader(VK_SHADER_STAGE_VERTEX_BIT)->getShaderSignature();
-		VertexFormat::BindingNum vertex_binding = shader_signature->getFirstInputAttribute([](const VertexFormat& vf){ return vf.getInputRate() == VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX; });
-
-		std::string idx_buff_name = m_model_path.string() + "/node"s + std::to_string(node) + "/"s + mesh_name + "_index_buffer_primitive_"s + std::to_string(prim_idx);
-		std::string idx_buff_type_name = shader_signature->getIndexBufferResourceType();
-		VkIndexType idx_type = shader_signature->getIndexType();
-		if (primitive.indices != -1 && render_node_cfg->getDrawType() == GraphicsRenderNodeConfig::DrawType::DRAW_INDEXED) {
-			int indices_accessor_idx = primitive.indices;
-    		const tinygltf::Accessor& indices_accessor = m_gltf_model.accessors[indices_accessor_idx];
-			int indices_component_type = indices_accessor.componentType;
-    		std::shared_ptr<CpuResource> indices = GetIndices(indices_accessor, idx_type);
-			std::shared_ptr<VulkanBuffer> index_buffer = Application::GetRenderer().getResourcesManager()->create_buffer(idx_buff_name, idx_buff_type_name, indices, copy_cmd);
-			model_data->SetIndexBuffer(std::move(index_buffer));
-    	}
-		else if (render_node_cfg->getDrawType() == GraphicsRenderNodeConfig::DrawType::DRAW_INDEXED){
-			size_t raw_sz = idx_type == VK_INDEX_TYPE_UINT16 ? num_vertices * 2u : num_vertices * 4u;
-			std::vector<char> raw_idx_buff(raw_sz);
-			if(idx_type == VK_INDEX_TYPE_UINT16) {
-				for(uint16_t i = 0u; i < num_vertices; ++i) {
-					pack_uint16(raw_idx_buff, i);
-				}
-			}
-			else if (idx_type == VK_INDEX_TYPE_UINT32) {
-				for(uint32_t i = 0u; i < num_vertices; ++i) {
-					pack_uint16(raw_idx_buff, i);
-				}
-			}
-			std::shared_ptr<CpuResource> idx_buff = std::make_shared<CpuResource>(idx_buff_name + "CPU"s);
-			idx_buff->init(raw_idx_buff);
-			
-			std::shared_ptr<VulkanBuffer> index_buffer = resources_manager->create_buffer(idx_buff_name, idx_buff_type_name, idx_buff, copy_cmd);
-			model_data->SetIndexBuffer(std::move(index_buffer));
-    	}
-
-		model_data->SetShaderSignature(shader_signature);
-    	std::shared_ptr<Material> prop_set = MakePropertySet(primitive);
-    	//VertexFormat vertex_format = GetVertexFormat(primitive.attributes);
-		model_data->SetMaterial(prop_set);
-
-		std::shared_ptr<CpuResource> vtx_resource = GetVertices(primitive, shader_signature->getInputAttributes(vertex_binding));
-		std::string vtx_buff_name = m_model_path.string() + "/node"s + std::to_string(node) + "/"s + mesh_name + "_vertex_buffer_primitive_"s + std::to_string(prim_idx);
-		std::shared_ptr<VulkanBuffer> vertex_buffer = resources_manager->create_buffer(vtx_buff_name, "basic_vertex_resource", vtx_resource, copy_cmd);
-		model_data->SetVertexBuffer(std::move(vertex_buffer), vertex_binding);
-		
-    	model_data->SetName(m_model_path.string() + "/node_"s + std::to_string(node) + "_"s + gltf_node.name + "/"s + mesh_name + "/primitive_"s + std::to_string(prim_idx));
-    	//model_data->calculateBoundingBox();
-
-    	mesh_node->AddMesh(model_data);
+		std::shared_ptr<ModelData> model_data = m_meshes[gltf_node.mesh].primitives[prim_idx];
+    	mesh_node->AddMesh(std::move(model_data));
     }
-	per_frame->wait_transfer_commands.push_back(copy_cmd);
 
 	std::shared_ptr<ValueBagNode> value_bag_node = std::make_shared<ValueBagNode>(m_scene, node);
     m_scene->addProperty(value_bag_node);
@@ -712,20 +748,20 @@ glm::mat4x4 MeshNodeLoader::MakeMatrix(const std::vector<double>& scale, const s
 	return T * R * S;
 }
 
-std::vector<glm::mat4x4> MeshNodeLoader::GetMatrices(const tinygltf::Skin& gltf_skin) {
+std::vector<glm::mat4x4> MeshNodeLoader::GetMatrices(const tinygltf::Skin& gltf_skin) const {
 	const int matrice_accessor_idx = gltf_skin.inverseBindMatrices;
 	std::vector<glm::mat4x4> inv_matrices = {};
 	if (matrice_accessor_idx == -1) {
 		inv_matrices = std::vector<glm::mat4x4>(gltf_skin.joints.size(), glm::mat4x4(1.0f));
 	}
 	else {
-		const tinygltf::Accessor inv_matrix_accessor = m_gltf_model.accessors[matrice_accessor_idx];
+		const tinygltf::Accessor inv_matrix_accessor = m_gltf_model.accessors.at(matrice_accessor_idx);
 		inv_matrices = GetMatrices(inv_matrix_accessor);
 	}
 	return inv_matrices;
 }
 
-std::vector<glm::mat4x4> MeshNodeLoader::GetMatrices(const tinygltf::Accessor& matrices_accessor) {
+std::vector<glm::mat4x4> MeshNodeLoader::GetMatrices(const tinygltf::Accessor& matrices_accessor) const {
 	int32_t matrice_element_size = tinygltf::GetComponentSizeInBytes(matrices_accessor.componentType);
 	int32_t num_elements_in_matrice_type = tinygltf::GetNumComponentsInType(matrices_accessor.type);
 	int32_t num_of_elements_to_copy = num_elements_in_matrice_type;
@@ -790,11 +826,11 @@ std::vector<glm::mat4x4> MeshNodeLoader::GetMatrices(const tinygltf::Accessor& m
 	return matrices;
 }
 
-std::vector<glm::quat> MeshNodeLoader::GetLinearRotationAnimData(const tinygltf::Accessor& rotation_accessor) {
+std::vector<glm::quat> MeshNodeLoader::GetLinearRotationAnimData(const tinygltf::Accessor& rotation_accessor) const {
 	size_t rotation_view_idx = rotation_accessor.bufferView;
-	const tinygltf::BufferView& rotation_view = m_gltf_model.bufferViews[rotation_view_idx];
+	const tinygltf::BufferView& rotation_view = m_gltf_model.bufferViews.at(rotation_view_idx);
 	size_t rotation_buffer_idx = rotation_view.buffer;
-	const tinygltf::Buffer& rotation_buffer = m_gltf_model.buffers[rotation_buffer_idx];
+	const tinygltf::Buffer& rotation_buffer = m_gltf_model.buffers.at(rotation_buffer_idx);
 
 	const glm::quat* begin_ptr = reinterpret_cast<const glm::quat*>(rotation_buffer.data.data() + rotation_view.byteOffset);
 	std::vector<glm::quat> rotations(begin_ptr, begin_ptr + rotation_accessor.count);
@@ -802,11 +838,11 @@ std::vector<glm::quat> MeshNodeLoader::GetLinearRotationAnimData(const tinygltf:
 	return rotations;
 }
 
-std::vector<MeshNodeLoader::CubicSplineQuat> MeshNodeLoader::GetCubicRotationAnimData(const tinygltf::Accessor& rotation_accessor) {
+std::vector<MeshNodeLoader::CubicSplineQuat> MeshNodeLoader::GetCubicRotationAnimData(const tinygltf::Accessor& rotation_accessor) const {
 	size_t rotation_view_idx = rotation_accessor.bufferView;
-	const tinygltf::BufferView& rotation_view = m_gltf_model.bufferViews[rotation_view_idx];
+	const tinygltf::BufferView& rotation_view = m_gltf_model.bufferViews.at(rotation_view_idx);
 	size_t rotation_buffer_idx = rotation_view.buffer;
-	const tinygltf::Buffer& rotation_buffer = m_gltf_model.buffers[rotation_buffer_idx];
+	const tinygltf::Buffer& rotation_buffer = m_gltf_model.buffers.at(rotation_buffer_idx);
 
 	const CubicSplineQuat* begin_ptr = reinterpret_cast<const CubicSplineQuat*>(rotation_buffer.data.data() + rotation_view.byteOffset);
 	std::vector<CubicSplineQuat> rotations(begin_ptr, begin_ptr + rotation_accessor.count / 3);
@@ -814,14 +850,14 @@ std::vector<MeshNodeLoader::CubicSplineQuat> MeshNodeLoader::GetCubicRotationAni
 	return rotations;
 }
 
-std::vector<glm::vec3> MeshNodeLoader::GetLinearTranslationAnimData(const tinygltf::Accessor& translation_accessor) {
+std::vector<glm::vec3> MeshNodeLoader::GetLinearTranslationAnimData(const tinygltf::Accessor& translation_accessor) const {
 	int32_t translation_element_size = tinygltf::GetComponentSizeInBytes(translation_accessor.componentType);
 	int32_t num_of_elements_in_type = tinygltf::GetNumComponentsInType(translation_accessor.type);
 	size_t translation_view_idx = translation_accessor.bufferView;
-	const tinygltf::BufferView& translation_view = m_gltf_model.bufferViews[translation_view_idx];
+	const tinygltf::BufferView& translation_view = m_gltf_model.bufferViews.at(translation_view_idx);
 	size_t buffer_stride_bytes = translation_view.byteStride ? translation_view.byteStride : translation_element_size * num_of_elements_in_type;
 	size_t translation_buffer_idx = translation_view.buffer;
-	const tinygltf::Buffer& translation_buffer = m_gltf_model.buffers[translation_buffer_idx];
+	const tinygltf::Buffer& translation_buffer = m_gltf_model.buffers.at(translation_buffer_idx);
 
 	//const glm::vec3* begin_ptr = reinterpret_cast<const glm::vec3*>(translation_buffer.data.data() + translation_view.byteOffset);
 	//std::vector<glm::vec3> translations(begin_ptr, begin_ptr + translation_accessor.count);
@@ -837,11 +873,11 @@ std::vector<glm::vec3> MeshNodeLoader::GetLinearTranslationAnimData(const tinygl
 	return translations;
 }
 
-std::vector<MeshNodeLoader::CubicSplineVec3> MeshNodeLoader::GetCubicTranslationAnimData(const tinygltf::Accessor& translation_accessor) {
+std::vector<MeshNodeLoader::CubicSplineVec3> MeshNodeLoader::GetCubicTranslationAnimData(const tinygltf::Accessor& translation_accessor) const {
 	size_t translation_view_idx = translation_accessor.bufferView;
-	const tinygltf::BufferView& translation_view = m_gltf_model.bufferViews[translation_view_idx];
+	const tinygltf::BufferView& translation_view = m_gltf_model.bufferViews.at(translation_view_idx);
 	size_t translation_buffer_idx = translation_view.buffer;
-	const tinygltf::Buffer& translation_buffer = m_gltf_model.buffers[translation_buffer_idx];
+	const tinygltf::Buffer& translation_buffer = m_gltf_model.buffers.at(translation_buffer_idx);
 
 	const CubicSplineVec3* begin_ptr = reinterpret_cast<const CubicSplineVec3*>(translation_buffer.data.data() + translation_view.byteOffset);
 	std::vector<CubicSplineVec3> translations(begin_ptr, begin_ptr + translation_accessor.count / 3);
@@ -900,14 +936,14 @@ void MeshNodeLoader::MakeNodesHierarchy(NodeIdx current_node_idx, std::shared_pt
 // 	const tinygltf::Skin& gltf_skin = m_gltf_model.skins[skin_idx];
 // }
 
-std::unordered_map<MeshNodeLoader::NodeIdx, std::unordered_map<MeshNodeLoader::AnimationIdx, std::vector<MeshNodeLoader::AnimationChannelIdx>>> MeshNodeLoader::make_node_to_anim_map() {
+std::unordered_map<MeshNodeLoader::NodeIdx, std::unordered_map<MeshNodeLoader::AnimationIdx, std::vector<MeshNodeLoader::AnimationChannelIdx>>> MeshNodeLoader::make_node_to_anim_map() const {
 	std::unordered_map<NodeIdx, std::unordered_map<AnimationIdx, std::vector<AnimationChannelIdx>>> node_to_anim_map;
 	size_t num_animations = m_gltf_model.animations.size();
 	for (int animation_ct = 0; animation_ct < num_animations; ++animation_ct) {
-		const tinygltf::Animation& gltf_current_animation = m_gltf_model.animations[animation_ct];
+		const tinygltf::Animation& gltf_current_animation = m_gltf_model.animations.at(animation_ct);
 		size_t num_channels = gltf_current_animation.channels.size();
 		for (int channel_ct = 0; channel_ct < num_channels; ++channel_ct) {
-			const tinygltf::AnimationChannel& gltf_anim_channel = gltf_current_animation.channels[channel_ct];
+			const tinygltf::AnimationChannel& gltf_anim_channel = gltf_current_animation.channels.at(channel_ct);
 			node_to_anim_map[gltf_anim_channel.target_node][animation_ct].push_back(channel_ct);
 		}
 	}
@@ -915,7 +951,7 @@ std::unordered_map<MeshNodeLoader::NodeIdx, std::unordered_map<MeshNodeLoader::A
 	return node_to_anim_map;
 }
 
-std::unordered_map<MeshNodeLoader::NodeIdx, std::unordered_map<MeshNodeLoader::AnimationIdx, std::shared_ptr<MatrixAnimation>>> MeshNodeLoader::make_node_to_matrix_map() {
+std::unordered_map<MeshNodeLoader::NodeIdx, std::unordered_map<MeshNodeLoader::AnimationIdx, std::shared_ptr<MatrixAnimation>>> MeshNodeLoader::make_node_to_matrix_map() const {
 	std::unordered_map<NodeIdx, std::unordered_map<AnimationIdx, std::shared_ptr<MatrixAnimation>>> node_to_matrix_map;
 	for (const auto&[node_idx, node_to_anim_map] : m_node_to_anim_map) {
 		for(const auto&[anim_idx, channels_vec] : node_to_anim_map) {
@@ -927,13 +963,13 @@ std::unordered_map<MeshNodeLoader::NodeIdx, std::unordered_map<MeshNodeLoader::A
 	return node_to_matrix_map;
 }
 
-std::shared_ptr<MatrixAnimation> MeshNodeLoader::make_anim_matrix(AnimationIdx animation_idx, NodeIdx node_idx) {
+std::shared_ptr<MatrixAnimation> MeshNodeLoader::make_anim_matrix(AnimationIdx animation_idx, NodeIdx node_idx) const {
 	using namespace std::literals;
 	if(!m_node_to_anim_map.contains(node_idx)) return nullptr;
 	
-	const tinygltf::Animation& gltf_animation = m_gltf_model.animations[animation_idx];
+	const tinygltf::Animation& gltf_animation = m_gltf_model.animations.at(animation_idx);
 	std::shared_ptr<MatrixAnimation> matrix_anim = std::make_shared<MatrixAnimation>();
-	for (AnimationChannelIdx channel_idx : m_node_to_anim_map[node_idx][animation_idx]) {
+	for (AnimationChannelIdx channel_idx : m_node_to_anim_map.at(node_idx).at(animation_idx)) {
 		const tinygltf::AnimationChannel& gltf_anim_channel = gltf_animation.channels[channel_idx];
 		if(gltf_anim_channel.target_node != node_idx) continue;
 
@@ -1031,15 +1067,15 @@ std::shared_ptr<MatrixAnimation> MeshNodeLoader::make_anim_matrix(AnimationIdx a
 	return matrix_anim;
 }
 
-std::vector<float> MeshNodeLoader::GetTimeline(const tinygltf::Accessor& time_accessor) {
+std::vector<float> MeshNodeLoader::GetTimeline(const tinygltf::Accessor& time_accessor) const {
 	int32_t time_element_size = tinygltf::GetComponentSizeInBytes(time_accessor.componentType);
 	int32_t num_elements_in_time_type = tinygltf::GetNumComponentsInType(time_accessor.type);
 	int32_t num_of_elements_to_copy = num_elements_in_time_type;
 
 	size_t time_view_idx = time_accessor.bufferView;
-	const tinygltf::BufferView& time_view = m_gltf_model.bufferViews[time_view_idx];
+	const tinygltf::BufferView& time_view = m_gltf_model.bufferViews.at(time_view_idx);
 	size_t time_buffer_idx = time_view.buffer;
-	const tinygltf::Buffer& time_buffer = m_gltf_model.buffers[time_buffer_idx];
+	const tinygltf::Buffer& time_buffer = m_gltf_model.buffers.at(time_buffer_idx);
 
 	const unsigned char* begin_ptr = time_buffer.data.data();
 	size_t buffer_offset_bytes = time_accessor.byteOffset + time_view.byteOffset;
@@ -1068,16 +1104,16 @@ MeshNodeLoader::NodeIdx MeshNodeLoader::getParent(MeshNodeLoader::NodeIdx node_i
     }
 }
 
-std::shared_ptr<CpuResource> MeshNodeLoader::GetIndices(const tinygltf::Accessor& gltf_accessor, VkIndexType idx_type) {
+std::shared_ptr<CpuResource> MeshNodeLoader::GetIndices(const tinygltf::Accessor& gltf_accessor, VkIndexType idx_type) const {
 	int indices_view_idx = gltf_accessor.bufferView;
-	const tinygltf::BufferView& indices_view = m_gltf_model.bufferViews[indices_view_idx];
+	const tinygltf::BufferView& indices_view = m_gltf_model.bufferViews.at(indices_view_idx);
 
 	int indices_buffer_idx = indices_view.buffer;
-	const tinygltf::Buffer& gltf_buffer = m_gltf_model.buffers[indices_buffer_idx];
+	const tinygltf::Buffer& gltf_buffer = m_gltf_model.buffers.at(indices_buffer_idx);
 	return GetIndices(gltf_buffer, indices_view, gltf_accessor, idx_type);
 }
 
-std::shared_ptr<CpuResource> MeshNodeLoader::GetIndices(const tinygltf::Buffer& gltf_buffer, const tinygltf::BufferView& gltf_view, const tinygltf::Accessor& gltf_accessor, VkIndexType idx_type) {
+std::shared_ptr<CpuResource> MeshNodeLoader::GetIndices(const tinygltf::Buffer& gltf_buffer, const tinygltf::BufferView& gltf_view, const tinygltf::Accessor& gltf_accessor, VkIndexType idx_type) const {
 	if (gltf_accessor.type != TINYGLTF_TYPE_SCALAR) return CpuResource::CPU_NULL_PTR;
 	if (gltf_accessor.componentType != TINYGLTF_COMPONENT_TYPE_BYTE &&
 		gltf_accessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE &&
@@ -1104,7 +1140,7 @@ std::shared_ptr<CpuResource> MeshNodeLoader::GetIndices(const tinygltf::Buffer& 
 	else if (idx_type == VK_INDEX_TYPE_UINT32) {
 		std::vector<uint32_t> indices(elements_count);
 		for (size_t current_element_num = 0u; current_element_num < elements_count; ++current_element_num) {
-			int32_t indice = GetIndice16(gltf_buffer, buffer_offset_bytes, current_element_num, component_size, buffer_stride_bytes);
+			int32_t indice = GetIndice32(gltf_buffer, buffer_offset_bytes, current_element_num, component_size, buffer_stride_bytes);
 			pack_uint16(raw_idx_buff, indice);
 		}
 	}
@@ -1114,7 +1150,7 @@ std::shared_ptr<CpuResource> MeshNodeLoader::GetIndices(const tinygltf::Buffer& 
 	return indices_resource;
 }
 
-uint32_t MeshNodeLoader::GetIndice32(const tinygltf::Buffer& gltf_buffer, size_t buffer_offset, size_t element_number, size_t element_size_in_bytes, size_t stride) {
+uint32_t MeshNodeLoader::GetIndice32(const tinygltf::Buffer& gltf_buffer, size_t buffer_offset, size_t element_number, size_t element_size_in_bytes, size_t stride) const {
 	if (element_size_in_bytes == 0u) return -1;
 	if (element_size_in_bytes > sizeof(uint32_t)) return -1;
 
@@ -1130,7 +1166,7 @@ uint32_t MeshNodeLoader::GetIndice32(const tinygltf::Buffer& gltf_buffer, size_t
 	return result;
 }
 
-uint16_t MeshNodeLoader::GetIndice16(const tinygltf::Buffer& gltf_buffer, size_t buffer_offset, size_t element_number, size_t element_size_in_bytes, size_t stride) {
+uint16_t MeshNodeLoader::GetIndice16(const tinygltf::Buffer& gltf_buffer, size_t buffer_offset, size_t element_number, size_t element_size_in_bytes, size_t stride) const {
 	if (element_size_in_bytes == 0u) return -1;
 	if (element_size_in_bytes > sizeof(uint16_t)) return -1;
 
@@ -1146,7 +1182,7 @@ uint16_t MeshNodeLoader::GetIndice16(const tinygltf::Buffer& gltf_buffer, size_t
 	return result;
 }
 
-std::shared_ptr<Material> MeshNodeLoader::MakePropertySet(const tinygltf::Primitive& primitive) {
+std::shared_ptr<Material> MeshNodeLoader::MakePropertySet(const tinygltf::Primitive& primitive) const {
 	int gltf_material_idx = primitive.material;
 	if(gltf_material_idx == -1) {
 		return nullptr;
@@ -1169,7 +1205,7 @@ bool IsImageFileMime(const std::string& mime_type) {
 	return result;
 }
 
-std::shared_ptr<VulkanSampler> MeshNodeLoader::createTextureSampler(uint32_t mip_levels, const tinygltf::Sampler& gltf_texture_sampler, const std::string& sampler_subname) {
+std::shared_ptr<VulkanSampler> MeshNodeLoader::createTextureSampler(uint32_t mip_levels, const tinygltf::Sampler& gltf_texture_sampler, const std::string& sampler_subname) const {
 	using namespace std::literals;
 
     VkPhysicalDeviceFeatures supported_features{};
@@ -1245,19 +1281,12 @@ std::shared_ptr<VulkanSampler> MeshNodeLoader::createTextureSampler(uint32_t mip
     return texture_sampler;
 }
 
-void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, Material::TextureType texture_type_enum, std::shared_ptr<Material> material) {
+void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, Material::TextureType texture_type_enum, std::shared_ptr<Material>& material) const {
 	VulkanRenderer& renderer = Application::GetRenderer();
 
 	int texture_image_idx = gltf_texture.source;
-	const tinygltf::Image& texture_image = m_gltf_model.images[texture_image_idx];
+	const tinygltf::Image& texture_image = m_gltf_model.images.at(texture_image_idx);
 	bool mime_is_file = IsImageFileMime(texture_image.mimeType.c_str());
-
-	int texture_sampler_idx = gltf_texture.sampler;
-	const tinygltf::Sampler& texture_sampler = m_gltf_model.samplers[texture_sampler_idx];
-	uint32_t mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(texture_image.width, texture_image.height))));
-	std::shared_ptr<VulkanSampler> sampler = createTextureSampler(mip_levels, texture_sampler, material->GetName());
-
-	std::shared_ptr<PerFrame>& per_frame = renderer.getFrameData(m_import_cpy_cmd_frame);
 
 	std::shared_ptr<VulkanImageBuffer> texture;
 	if (mime_is_file) {
@@ -1269,22 +1298,25 @@ void MeshNodeLoader::SetTextureProperty(const tinygltf::Texture& gltf_texture, M
 		}
 
 		texture = renderer.makeTransferImgCommand(texture_image_file_name);
-		texture->getImageConfig()->setSampler(std::move(sampler));
-		material->SetTexture(texture_type_enum, std::move(texture));
 	}
 	else {
 		int texture_image_buffer_view_idx = texture_image.bufferView;
-		const tinygltf::BufferView& texture_image_view = m_gltf_model.bufferViews[texture_image_buffer_view_idx];
+		const tinygltf::BufferView& texture_image_view = m_gltf_model.bufferViews.at(texture_image_buffer_view_idx);
 		size_t texture_image_buffer_idx = texture_image_view.buffer;
-		tinygltf::Buffer& texture_image_buffer = m_gltf_model.buffers[texture_image_buffer_idx];
+		const tinygltf::Buffer& texture_image_buffer = m_gltf_model.buffers.at(texture_image_buffer_idx);
 
 		texture = renderer.makeTransferImgCommand({(uint32_t)texture_image.width, (uint32_t)texture_image.height}, texture_image_buffer.data.data(), texture_image_buffer.data.size(), texture_image.name);
-		texture->getImageConfig()->setSampler(std::move(sampler));
-		material->SetTexture(texture_type_enum, std::move(texture));
 	}
+
+	int texture_sampler_idx = gltf_texture.sampler;
+	const tinygltf::Sampler& texture_sampler = m_gltf_model.samplers.at(texture_sampler_idx);
+	std::shared_ptr<VulkanSampler> sampler = createTextureSampler(texture->getImageConfig()->getImageInfo().mipLevels, texture_sampler, material->GetName());
+
+	texture->getImageConfig()->setSampler(std::move(sampler));
+	material->SetTexture(texture_type_enum, std::move(texture));
 }
 
-void MeshNodeLoader::MakeTextureProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material> prop_set) {
+void MeshNodeLoader::MakeTextureProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material>& prop_set) const {
 
 	if (gltf_material.pbrMetallicRoughness.baseColorTexture.index != -1) {
 		int color_texture_idx = gltf_material.pbrMetallicRoughness.baseColorTexture.index;
@@ -1442,7 +1474,7 @@ SpecularGlossinessMat GetSpecularGlossinessMat(const nlohmann::json& json_mat) {
 	return result;
 }
 
-void MeshNodeLoader::MakeMaterialProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material> prop_set) {
+void MeshNodeLoader::MakeMaterialProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material>& prop_set) const {
 	glm::vec4 base_color = GetColor4FromDoubleVec(gltf_material.pbrMetallicRoughness.baseColorFactor);
 	prop_set->SetDiffuseColor(base_color);
 
@@ -1727,7 +1759,9 @@ bool ValidateVertexAttribute(const std::string& semantic_name) {
 // 	return result;
 // }
 
-std::shared_ptr<CpuResource> MeshNodeLoader::GetVertices(const tinygltf::Primitive& primitive, const VertexFormat& pbr_shader_vertex_format) {
+std::shared_ptr<CpuResource> MeshNodeLoader::GetVertices(const tinygltf::Primitive& primitive, const VertexFormat& pbr_shader_vertex_format) const {
+	bool is_triangle = primitive.mode == TINYGLTF_MODE_TRIANGLES || primitive.mode == -1;
+	if(!is_triangle) return nullptr;
 
 	const VertexFormat& uni_vertex_format = pbr_shader_vertex_format;
 	int32_t num_vertices = GetNumVertices(primitive);

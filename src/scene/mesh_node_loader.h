@@ -73,6 +73,12 @@ private:
     using SkinIdx = int;
     using AnimationIdx = int;
     using AnimationChannelIdx = int;
+    using MeshIdx = int;
+
+    struct MeshModel {
+        std::string name;
+        std::vector<std::shared_ptr<ModelData>> primitives;
+    };
 
     struct BoneIdentity {
         BoneNode::JointIndex joint;
@@ -106,17 +112,17 @@ private:
     glm::mat4x4 MakeMatrix(const tinygltf::Node& gltf_node) const;
     glm::mat4x4 MakeMatrix(const std::vector<double>& mat) const;
     glm::mat4x4 MakeMatrix(const std::vector<double>& scale, const std::vector<double>& rotation, const std::vector<double>& translation) const;
-    std::vector<glm::mat4x4> GetMatrices(const tinygltf::Skin& gltf_skin);
-    std::vector<glm::mat4x4> GetMatrices(const tinygltf::Accessor& matrices_accessor);
-    std::vector<glm::quat> GetLinearRotationAnimData(const tinygltf::Accessor& rotation_accessor);
-    std::vector<CubicSplineQuat> GetCubicRotationAnimData(const tinygltf::Accessor& rotation_accessor);
-    std::vector<glm::vec3> GetLinearTranslationAnimData(const tinygltf::Accessor& translation_accessor);
-    std::vector<CubicSplineVec3> GetCubicTranslationAnimData(const tinygltf::Accessor& translation_accessor);
+    std::vector<glm::mat4x4> GetMatrices(const tinygltf::Skin& gltf_skin) const;
+    std::vector<glm::mat4x4> GetMatrices(const tinygltf::Accessor& matrices_accessor) const;
+    std::vector<glm::quat> GetLinearRotationAnimData(const tinygltf::Accessor& rotation_accessor) const;
+    std::vector<CubicSplineQuat> GetCubicRotationAnimData(const tinygltf::Accessor& rotation_accessor) const;
+    std::vector<glm::vec3> GetLinearTranslationAnimData(const tinygltf::Accessor& translation_accessor) const;
+    std::vector<CubicSplineVec3> GetCubicTranslationAnimData(const tinygltf::Accessor& translation_accessor) const;
 
     void MakeNodesHierarchy(NodeIdx current_node_idx, std::shared_ptr<SceneNode> parent);
     //float GetAttribute(const unsigned char* raw_data_ptr, uint32_t component_type);
     template<typename ElementType>
-    ElementType GetAttribute(const unsigned char* raw_data_ptr, uint32_t component_type) {
+    ElementType GetAttribute(const unsigned char* raw_data_ptr, uint32_t component_type) const {
         ElementType result;
     	switch (component_type) {
     		case TINYGLTF_COMPONENT_TYPE_BYTE: {
@@ -159,28 +165,34 @@ private:
     //NodeIdx getSkinRoot(SkinIdx skin_idx) const;
     //NodeIdx isSceneRoot();
     NodeIdx getParent(NodeIdx) const;
-    std::unordered_map<NodeIdx, NodeIdx> make_parent_map();
-    std::unordered_map<NodeIdx, std::unordered_map<AnimationIdx, std::vector<AnimationChannelIdx>>> make_node_to_anim_map();
-    std::unordered_map<NodeIdx, std::unordered_map<AnimationIdx, std::shared_ptr<MatrixAnimation>>> make_node_to_matrix_map();
-    std::shared_ptr<MatrixAnimation> make_anim_matrix(AnimationIdx animation_idx, NodeIdx node_idx);
-    std::vector<float> GetTimeline(const tinygltf::Accessor& time_accessor);
+    std::unordered_map<NodeIdx, NodeIdx> make_parent_map() const;
+    std::unordered_map<NodeIdx, std::unordered_map<AnimationIdx, std::vector<AnimationChannelIdx>>> make_node_to_anim_map() const;
+    std::unordered_map<NodeIdx, std::unordered_map<AnimationIdx, std::shared_ptr<MatrixAnimation>>> make_node_to_matrix_map() const;
+    std::shared_ptr<MatrixAnimation> make_anim_matrix(AnimationIdx animation_idx, NodeIdx node_idx) const;
+    std::vector<float> GetTimeline(const tinygltf::Accessor& time_accessor) const;
     int32_t GetNumVertices(const tinygltf::Primitive& primitive) const;
     int32_t GetNumPrimitives(const tinygltf::Primitive& primitive) const;
-    std::shared_ptr<CpuResource> GetIndices(const tinygltf::Accessor& gltf_accessor, VkIndexType idx_type);
-    std::shared_ptr<CpuResource> GetIndices(const tinygltf::Buffer& gltf_buffer, const tinygltf::BufferView& gltf_view, const tinygltf::Accessor& gltf_accessor, VkIndexType idx_type);
-    uint32_t GetIndice32(const tinygltf::Buffer& gltf_buffer, size_t buffer_offset, size_t element_number, size_t element_size_in_bytes, size_t stride);
-    uint16_t GetIndice16(const tinygltf::Buffer& gltf_buffer, size_t buffer_offset, size_t element_number, size_t element_size_in_bytes, size_t stride);
-    std::shared_ptr<Material> MakePropertySet(const tinygltf::Primitive& primitive);
-    void MakeTextureProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material> material);
-    void SetTextureProperty(const tinygltf::Texture& texture, Material::TextureType texture_type_enum, std::shared_ptr<Material> material);
-    std::shared_ptr<VulkanSampler> createTextureSampler(uint32_t mip_levels, const tinygltf::Sampler& texture_sampler, const std::string& sampler_subname);
-    void MakeMaterialProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material> material);
+    std::shared_ptr<CpuResource> GetIndices(const tinygltf::Accessor& gltf_accessor, VkIndexType idx_type) const;
+    std::shared_ptr<CpuResource> GetIndices(const tinygltf::Buffer& gltf_buffer, const tinygltf::BufferView& gltf_view, const tinygltf::Accessor& gltf_accessor, VkIndexType idx_type) const;
+    uint32_t GetIndice32(const tinygltf::Buffer& gltf_buffer, size_t buffer_offset, size_t element_number, size_t element_size_in_bytes, size_t stride) const;
+    uint16_t GetIndice16(const tinygltf::Buffer& gltf_buffer, size_t buffer_offset, size_t element_number, size_t element_size_in_bytes, size_t stride) const;
+    std::shared_ptr<Material> MakePropertySet(const tinygltf::Primitive& primitive) const;
+    void MakeTextureProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material>& material) const;
+    void SetTextureProperty(const tinygltf::Texture& texture, Material::TextureType texture_type_enum, std::shared_ptr<Material>& material) const;
+    std::shared_ptr<VulkanSampler> createTextureSampler(uint32_t mip_levels, const tinygltf::Sampler& texture_sampler, const std::string& sampler_subname) const;
+    void MakeMaterialProperties(const tinygltf::Material& gltf_material, std::shared_ptr<Material>& material) const;
     VertexFormat GetVertexFormatFromMesh(std::map<std::string, int> attributes) const;
-    std::shared_ptr<CpuResource> GetVertices(const tinygltf::Primitive& primitive, const VertexFormat& pbr_shader_vertex_format);
-    VkIndexType getIndexType(int accessor_component_type);
+    std::shared_ptr<CpuResource> GetVertices(const tinygltf::Primitive& primitive, const VertexFormat& pbr_shader_vertex_format) const;
+    VkIndexType getIndexType(int accessor_component_type) const;
     bool HaveLightExt(const tinygltf::Node& gltf_node);
     bool HaveLightExt(const nlohmann::json& json_node_ext);
     LightPunctual GetLightPunctual(const nlohmann::json& json_light);
+    VkPrimitiveTopology getTopology(int gltf_topology_mode) const;
+    std::shared_ptr<ModelData> GetMeshModel(size_t mesh_idx, size_t prim_idx) const;
+    bool PrimitiveSupported(int GLTF_primitive_mode) const;
+    int32_t getNumVertices(size_t mesh_idx, size_t primitive_idx, const tinygltf::Model& gltf_model) const;
+    VertexAttributeGLSLFormat getAttribGLSLFormat(const tinygltf::Accessor& gltf_accessor) const;
+    VkFormat getAttribVkFormat(const tinygltf::Accessor& gltf_accessor) const;
 
     tinygltf::Model m_gltf_model;
     std::filesystem::path m_model_path;
@@ -197,6 +209,7 @@ private:
     std::shared_ptr<VulkanShadersManager> m_shader_manager;
     std::string m_default_vertex_shader_name;
     std::vector<LightPunctual> m_lights;
+    std::vector<MeshModel> m_meshes;
 
     nlohmann::json m_extensions;
 };
