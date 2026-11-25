@@ -93,6 +93,4 @@ private:
     std::unordered_map<FrameNumber, std::unordered_set<std::shared_ptr<BoneNode>>> m_dirty_at_bone;
     std::unordered_map<FrameNumber, BindPoseChanged> m_bind_pose_changed;
     std::unordered_map<FrameNumber, std::shared_ptr<CommandBatch>> m_cpy_cmd;
-    
-    int m_max_frames;
 };

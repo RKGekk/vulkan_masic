@@ -17,6 +17,7 @@ const std::shared_ptr<SceneNode> NULL_PTR_NODE;
 const std::shared_ptr<Scene::Properties> NULL_PTR_PROP;
 
 Scene::Scene(std::string name) {
+
     m_local_transform.push_back(glm::mat4(1.0f));
     m_global_transform.push_back(glm::mat4(1.0f));
     m_inv_local_transform.push_back(glm::mat4(1.0f));

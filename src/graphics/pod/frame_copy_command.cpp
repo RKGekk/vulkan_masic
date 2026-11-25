@@ -18,12 +18,13 @@ FrameCopyCommand::FrameCopyCommand(std::string cpy_cmd_name) {
 bool FrameCopyCommand::UpdateFameData(uint32_t image_index, size_t thread_id) {
     VulkanRenderer& renderer = Application::GetRenderer();
     std::shared_ptr<PerFrame>& per_frame = renderer.getFrameData(image_index);
-    std::shared_ptr<CommandBatch>& cpy_cmd = m_cpy_cmd[image_index];
-    cpy_cmd->reset();
-
+    //std::shared_ptr<CommandBatch>& cpy_cmd = m_cpy_cmd[image_index];
+    //cpy_cmd->reset();
+    
+    std::shared_ptr<CommandBatch>& cpy_cmd = per_frame->copy_command;
     bool res = CalcFameData(cpy_cmd, image_index, thread_id);
 
-    per_frame->wait_transfer_commands.push_back(cpy_cmd);
+    //per_frame->wait_transfer_commands.push_back(cpy_cmd);
     return res;
 }
 

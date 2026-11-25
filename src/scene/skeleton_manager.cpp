@@ -80,12 +80,13 @@ void SkeletonManager::AddBone(const std::shared_ptr<BoneNode>& node) {
 
     VulkanRenderer& renderer = Application::GetRenderer();
     std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
+    int max_frames = getMaxFrames();
 
     for(const auto&[skin_name, bone_data] : node->getBoneDataMap()) {
         if(!m_skinned_data.contains(skin_name)) {
             SkinnedDataFrame& skinned_data_frame = m_skinned_data[skin_name];
             std::shared_ptr<SkeletonGraphData> skeleton_graph_data = std::make_shared<SkeletonGraphData>();
-            for(int frame = 0; frame < m_max_frames; ++frame) {
+            for(int frame = 0; frame < max_frames; ++frame) {
                 std::shared_ptr<SkinnedData> skinned_data = std::make_shared<SkinnedData>();
                 skinned_data->skeleton_name = skin_name;
 
@@ -107,7 +108,7 @@ void SkeletonManager::AddBone(const std::shared_ptr<BoneNode>& node) {
         SkinnedDataFrame& skinned_data_frame = m_skinned_data[skin_name];
         skinned_data_frame[0]->skeleton_structure->bone_to_joint_map[node] = bone_data.joint_index;
         skinned_data_frame[0]->skeleton_structure->joint_to_bone_map[bone_data.joint_index] = node;
-        for(int frame = 0; frame < m_max_frames; ++frame) {
+        for(int frame = 0; frame < max_frames; ++frame) {
             const std::shared_ptr<SkinnedData>& skinned_data = skinned_data_frame[frame];
 
             if(skinned_data->inverse_bind_matrices.size() <= bone_data.joint_index) {
@@ -126,7 +127,8 @@ void SkeletonManager::AddBone(const std::shared_ptr<BoneNode>& node) {
 }
 
 void SkeletonManager::markAsChanged(const std::shared_ptr<BoneNode>& node, bool bind_changed) {
-    for(int frame = 0; frame < m_max_frames; ++frame) {
+    int max_frames = getMaxFrames();
+    for(int frame = 0; frame < max_frames; ++frame) {
         m_dirty_at_bone[frame].insert(node);
         m_bind_pose_changed[frame] = true;
     }

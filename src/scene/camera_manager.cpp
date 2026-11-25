@@ -40,7 +40,6 @@ void CameraManager::AddCamera(const std::shared_ptr<CameraNode>& node) {
 
     VulkanRenderer& renderer = Application::GetRenderer();
     std::shared_ptr<VulkanResourcesManager>& resources_manager = renderer.getResourcesManager();
-
     int max_frames = getMaxFrames();
     for(int frame = 0; frame < max_frames; ++frame) {
         std::string camera_buffer_name = node->Get().Name() + "_camera_buffer"s + std::to_string(frame);

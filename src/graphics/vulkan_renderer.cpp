@@ -274,6 +274,7 @@ void VulkanRenderer::beginFrame(unsigned image_index) {
     }
     per_frame->wait_transfer_commands.clear();
     per_frame->copy_command->reset();
+    per_frame->copy_command->beginCommandBuffer();
 
     if(!per_frame->cmd_submit_finish_fence->isFreeForUse()) {
         per_frame->cmd_submit_finish_fence->wait();
@@ -342,6 +343,7 @@ void VulkanRenderer::update_frame(const GameTimerDelta& delta, uint32_t image_in
     for(const std::shared_ptr<CommandBatch>& transfer_batch : per_frame->wait_transfer_commands) {
         per_frame->transfer_submission_buffers.push_back(transfer_batch->getCommandBufer());
     }
+    per_frame->copy_command->endCommandBuffer();
     per_frame->transfer_submission_buffers.push_back(per_frame->copy_command->getCommandBufer());
 
     m_command_manager->submitCommandBuffer(per_frame->transfer_submission_buffers, PoolTypeEnum::TRANSFER, wait_info);
