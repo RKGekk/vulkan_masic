@@ -236,7 +236,7 @@ void RenderGraph::build_dependency_levels() {
         node_dist_to_start[node_ptr] = 0;
     }
 
-    int dependency_level_count = 1;
+    int dependency_level_count = 0;
 
     for (RenderNodeList::iterator it = m_topologically_sorted_nodes.begin(); it != m_topologically_sorted_nodes.end(); ++it) {
         const RenderNodePtr& node_ptr = *it;
@@ -253,7 +253,7 @@ void RenderGraph::build_dependency_levels() {
         }
     }
 
-    int max_lvl = dependency_level_count;
+    int max_lvl = dependency_level_count + 1;
     m_dependency_levels.resize(max_lvl);
     for (int level = 0; level < max_lvl; ++level) {
         std::shared_ptr<DependencyLevel> dependency_level = std::make_shared<DependencyLevel>(level, m_image_index);
