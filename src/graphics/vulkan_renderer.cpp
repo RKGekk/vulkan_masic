@@ -296,7 +296,12 @@ void VulkanRenderer::recordCommandBuffer(unsigned image_index) {
     for (auto rev_it = dependency_levels.crbegin(); rev_it != dependency_levels.crend(); ++rev_it) {
         const std::shared_ptr<DependencyLevel>& dependency_lvl = *rev_it;
         dependency_lvl->recordCommandBuffer();
-        for (const auto&[rp_order, fb_set] : dependency_lvl->getOrderToFBmap()) {
+        const std::map<size_t, std::unordered_set<std::shared_ptr<VulkanFramebuffer>>>& order_to_fb_map = dependency_lvl->getOrderToFBmap();
+        if(order_to_fb_map.empty() && dependency_lvl->getNodes().size() > 0u) {
+            dependency_lvl->TransitionResourcesToProperState(per_frame_data->copy_command->getCommandBufer());
+            continue;
+        }
+        for (const auto&[rp_order, fb_set] : order_to_fb_map) {
             for(const std::shared_ptr<VulkanFramebuffer>& fb : fb_set) {
                 const std::shared_ptr<CompositeCommandBatch> cmd_batch = dependency_lvl->getFBtoCmdBufferMap().at(fb);
                 per_frame_data->submission_buffers.push_back(cmd_batch->getPrimaryCommandBuffer()->getCommandBufer());
@@ -315,7 +320,6 @@ void VulkanRenderer::drawFrame(unsigned image_index) {
     if(per_frame->cmd_submit_wait_sem.size()) {
         wait_info->wait_for_semaphores.insert(wait_info->wait_for_semaphores.end(), per_frame->cmd_submit_wait_sem.begin(), per_frame->cmd_submit_wait_sem.end());
     }
-    wait_info->wait_for_semaphores.push_back(per_frame->swapchain_available_sem->getSemaphore());
     wait_info->wait_for_stages.insert(wait_info->wait_for_stages.cend(), wait_info->wait_for_semaphores.size(), VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
     wait_info->signal_fence = per_frame->cmd_submit_finish_fence->getFence();
     wait_info->signal_semaphores.push_back(per_frame->cmd_submit_finish_signal_sem->getSemaphore());
@@ -338,15 +342,17 @@ void VulkanRenderer::update_frame(uint32_t image_index) {
     per_frame->cmd_submit_wait_sem.push_back(per_frame->transfer_complete_sem->getSemaphore());
 
     std::shared_ptr<VulkanCommandManager::BatchWaitInfo> wait_info = std::make_shared<VulkanCommandManager::BatchWaitInfo>();
+    wait_info->wait_for_semaphores.push_back(per_frame->swapchain_available_sem->getSemaphore());
     wait_info->signal_semaphores.push_back(per_frame->transfer_complete_sem->getSemaphore());
     wait_info->signal_fence = per_frame->transfer_complete_fen->getFence();
+    wait_info->wait_for_stages.insert(wait_info->wait_for_stages.cend(), wait_info->wait_for_semaphores.size(), VK_PIPELINE_STAGE_TRANSFER_BIT);
     
+    per_frame->copy_command->endCommandBuffer();
     per_frame->transfer_submission_buffers.clear();
+    per_frame->transfer_submission_buffers.push_back(per_frame->copy_command->getCommandBufer());
     for(const std::shared_ptr<CommandBatch>& transfer_batch : per_frame->wait_transfer_commands) {
         per_frame->transfer_submission_buffers.push_back(transfer_batch->getCommandBufer());
     }
-    per_frame->copy_command->endCommandBuffer();
-    per_frame->transfer_submission_buffers.push_back(per_frame->copy_command->getCommandBufer());
 
     m_command_manager->submitCommandBuffer(per_frame->transfer_submission_buffers, PoolTypeEnum::TRANSFER, wait_info);
     per_frame->transfer_complete_fen->setOccupiedState();

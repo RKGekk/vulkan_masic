@@ -24,6 +24,10 @@ void DependencyLevel::destroy() {
     // }
 }
 
+const std::unordered_set<std::shared_ptr<RenderNode>>& DependencyLevel::getNodes() const {
+    return m_nodes;
+}
+
 const std::map<size_t, std::unordered_set<std::shared_ptr<VulkanFramebuffer>>>& DependencyLevel::getOrderToFBmap() const {
     return m_order_to_fb_map;
 }

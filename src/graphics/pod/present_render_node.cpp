@@ -47,7 +47,9 @@ void PresentRenderNode::destroy() {
 
 }
 
-void PresentRenderNode::render(VkCommandBuffer secondary_command_buffer, uint32_t bind_flags) {}
+void PresentRenderNode::render(VkCommandBuffer secondary_command_buffer, uint32_t bind_flags) {
+    
+}
 
 void PresentRenderNode::present() {
     m_present_info.waitSemaphoreCount = static_cast<uint32_t>(m_present_wait_sem.size());
