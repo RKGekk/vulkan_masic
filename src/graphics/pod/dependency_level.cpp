@@ -77,8 +77,8 @@ void DependencyLevel::TransitionResourcesToProperState(VkCommandBuffer primary_c
 void DependencyLevel::recordCommandBuffer() {
     using namespace std::literals;
 
-    GraphicsRenderNode::BindFlags pipeline_bind_all_flags = GraphicsRenderNode::ALL_BIND_FLAGS;
-    GraphicsRenderNode::BindFlags no_pipeline_bind_flags = pipeline_bind_all_flags & ~GraphicsRenderNode::BindFlags::Pipeline;
+    static GraphicsRenderNode::BindFlags pipeline_bind_all_flags = GraphicsRenderNode::ALL_BIND_FLAGS;
+    static GraphicsRenderNode::BindFlags no_pipeline_bind_flags = pipeline_bind_all_flags & ~GraphicsRenderNode::BindFlags::Pipeline;
 
     for (const auto&[rp_order, fb_set] : m_order_to_fb_map) {
         for(const std::shared_ptr<VulkanFramebuffer>& fb : fb_set) {

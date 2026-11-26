@@ -153,9 +153,8 @@ void Application::mainLoop() {
         exit = update(image_index, 0u);
         if(m_window->SkipDraw()) continue;
         for (GameViewList::const_iterator i = m_game->GetViews().begin(), end = m_game->GetViews().end(); i != end; ++i) {
-		    (*i)->VOnRender(Application::Get().GetTimer(), image_index, 0u);
+		    (*i)->VOnRender(m_timer, image_index, 0u);
 	    }
-        m_renderer.update_frame(m_timer, image_index);
         m_renderer.drawFrame(image_index);
     }
 }

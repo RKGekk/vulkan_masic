@@ -253,8 +253,9 @@ void RenderGraph::build_dependency_levels() {
         }
     }
 
-    m_dependency_levels.resize(dependency_level_count + 1);
-    for (int level = 0; level < (dependency_level_count + 1); ++level) {
+    int max_lvl = dependency_level_count;
+    m_dependency_levels.resize(max_lvl);
+    for (int level = 0; level < max_lvl; ++level) {
         std::shared_ptr<DependencyLevel> dependency_level = std::make_shared<DependencyLevel>(level, m_image_index);
         m_dependency_levels[level] = std::move(dependency_level);
     }

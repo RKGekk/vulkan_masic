@@ -293,7 +293,8 @@ void VulkanRenderer::recordCommandBuffer(unsigned image_index) {
     per_frame_data->submission_buffers.clear();
 
     const std::vector<std::shared_ptr<DependencyLevel>>& dependency_levels = m_per_frame[image_index]->render_graph->getDependencyLevels();
-    for (const std::shared_ptr<DependencyLevel>& dependency_lvl : dependency_levels) {
+    for (auto rev_it = dependency_levels.crbegin(); rev_it != dependency_levels.crend(); ++rev_it) {
+        const std::shared_ptr<DependencyLevel>& dependency_lvl = *rev_it;
         dependency_lvl->recordCommandBuffer();
         for (const auto&[rp_order, fb_set] : dependency_lvl->getOrderToFBmap()) {
             for(const std::shared_ptr<VulkanFramebuffer>& fb : fb_set) {
@@ -306,15 +307,16 @@ void VulkanRenderer::recordCommandBuffer(unsigned image_index) {
 
 void VulkanRenderer::drawFrame(unsigned image_index) {
     recordCommandBuffer(image_index);
+    update_frame(image_index);
 
     std::shared_ptr<PerFrame>& per_frame = m_per_frame[image_index];
     
     std::shared_ptr<VulkanCommandManager::BatchWaitInfo> wait_info = std::make_shared<VulkanCommandManager::BatchWaitInfo>();
-    wait_info->wait_for_semaphores.push_back(per_frame->transfer_complete_sem->getSemaphore());
     if(per_frame->cmd_submit_wait_sem.size()) {
         wait_info->wait_for_semaphores.insert(wait_info->wait_for_semaphores.end(), per_frame->cmd_submit_wait_sem.begin(), per_frame->cmd_submit_wait_sem.end());
     }
-    wait_info->wait_for_stages.push_back(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+    wait_info->wait_for_semaphores.push_back(per_frame->swapchain_available_sem->getSemaphore());
+    wait_info->wait_for_stages.insert(wait_info->wait_for_stages.cend(), wait_info->wait_for_semaphores.size(), VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
     wait_info->signal_fence = per_frame->cmd_submit_finish_fence->getFence();
     wait_info->signal_semaphores.push_back(per_frame->cmd_submit_finish_signal_sem->getSemaphore());
 
@@ -330,7 +332,7 @@ std::shared_ptr<PerFrame>& VulkanRenderer::getFrameData(uint32_t image_index) {
     return m_per_frame[image_index];
 }
 
-void VulkanRenderer::update_frame(const GameTimerDelta& delta, uint32_t image_index) {
+void VulkanRenderer::update_frame(uint32_t image_index) {
     std::shared_ptr<PerFrame>& per_frame = m_per_frame[image_index];
 
     per_frame->cmd_submit_wait_sem.push_back(per_frame->transfer_complete_sem->getSemaphore());

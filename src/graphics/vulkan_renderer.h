@@ -109,7 +109,7 @@ public:
     void drawFrame(unsigned image_index);
     
     std::shared_ptr<PerFrame>& getFrameData(uint32_t image_index);
-    void update_frame(const GameTimerDelta& delta, uint32_t image_index);
+    void update_frame(uint32_t image_index);
     void addRenderNode(std::shared_ptr<RenderNode> render_node, unsigned image_index);
 
     std::pair<bool, uint32_t> acquire_next_image();
